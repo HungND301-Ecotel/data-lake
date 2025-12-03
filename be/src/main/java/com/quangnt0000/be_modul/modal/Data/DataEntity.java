@@ -1,0 +1,45 @@
+package com.quangnt0000.be_modul.modal.Data;
+
+import com.quangnt0000.be_modul.dto.FieldDTO;
+import com.quangnt0000.be_modul.dto.FilterDTO;
+import com.quangnt0000.be_modul.dto.OrderDTO;
+import com.quangnt0000.be_modul.dto.SubDTO;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+@Builder
+@Entity
+public class DataEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+
+    private String mainTable;
+    private String description;
+    private boolean showIndex;
+    private float weightIndex;
+    private String fontName;
+    private int fontSize;
+
+    @OneToMany(mappedBy = "data", cascade = CascadeType.REMOVE)
+    private List<SubEntity> subs;
+
+    @OneToMany(mappedBy = "data", cascade = CascadeType.REMOVE)
+    private List<FieldEntity> fields;
+
+    @OneToMany(mappedBy = "data", cascade = CascadeType.REMOVE)
+    private List<FilterEntity> filters;
+
+    @OneToMany(mappedBy = "data", cascade = CascadeType.REMOVE)
+    private List<OrderEntity> orders;
+
+    private String reportItemId;
+}

@@ -1,0 +1,200 @@
+import React from "react";
+import { Input, Select, Checkbox, Button, Popconfirm, Modal, message } from "antd";
+import { MenuOutlined } from "@ant-design/icons";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  type DropResult,
+} from "@hello-pangea/dnd";
+import type { Order } from "../../types/report";
+import reportApi from "../../services/reportApi";
+
+const { Option } = Select;
+
+interface Props {
+  orders?: Order[];
+  onUpdate: (updated: Order[]) => void;
+}
+
+export const OrderCompoent: React.FC<Props> = ({ orders = [], onUpdate }) => {
+  // Cập nhật một order
+  const [modal, contextHolderModal] = Modal.useModal();
+  const [messageApi, contextHolderMessage] = message.useMessage();
+  const updateOrder = (idx: number, key: keyof Order, value: any) => {
+    const updated = [...orders];
+    updated[idx] = { ...updated[idx], [key]: value };
+    onUpdate(updated);
+  };
+
+const deleteOrder = (idx: number) => {
+  const item = orders[idx];
+  if (!item) return;
+  modal.confirm({
+    title: "Xác nhận xoá",
+    content: "Bạn có chắc chắn muốn xoá mục này không?",
+    okText: "Xoá",
+    okType: "danger",
+    cancelText: "Huỷ",
+    async onOk() {
+      try {
+        // Nếu id null → xoá trực tiếp
+        if (!item.id) {
+          const updated = orders.filter((_, i) => i !== idx);
+          onUpdate(updated.map((o, i) => ({ ...o, index: i + 1 })));
+          messageApi.success("Đã xoá mục");
+          return;
+        }
+
+        // Nếu có id → gọi API
+        await reportApi.deleteOrderById(item.id);
+
+        const updated = orders.filter((_, i) => i !== idx);
+        onUpdate(updated.map((o, i) => ({ ...o, index: i + 1 })));
+        messageApi.success("Xoá thành công!");
+      } catch (err) {
+        console.error("Xoá thất bại:", err);
+        messageApi.error("Xoá thất bại, vui lòng thử lại");
+      }
+    },
+  });
+};
+
+  // Thêm order mới
+  const addOrder = () => {
+    const newOrder: Order = {
+      id: null, // giữ rỗng
+      title: "",
+      fieldKey: "",
+      orderType: "ASC",
+      visible: true,
+      index: orders.length + 1,
+    };
+    onUpdate([...orders, newOrder]);
+  };
+
+  // Xử lý drag & drop
+  const onDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+    const newOrders = Array.from(orders);
+    const [removed] = newOrders.splice(result.source.index, 1);
+    newOrders.splice(result.destination.index, 0, removed);
+    // Cập nhật lại index
+    onUpdate(newOrders.map((o, i) => ({ ...o, index: i + 1 })));
+  };
+
+  return (
+    <div className="overflow-auto">
+      {contextHolderMessage}
+      {contextHolderModal}
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId="orders">
+          {(provided) => (
+            <table
+              className="table-auto w-full border-collapse border border-gray-300"
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+            >
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="w-8"></th>
+                  <th className="p-2">Tên cột</th>
+                  <th className="p-2">Key</th>
+                  <th className="p-2">Chiều sắp xếp</th>
+                  <th className="p-2">Áp dụng</th>
+                  <th className="p-2">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="text-center p-4 text-gray-500">
+                      Chưa có order nào
+                    </td>
+                  </tr>
+                )}
+                {orders
+                  .slice()
+                  .sort((a, b) => a.index - b.index)
+                  .map((order, idx) => (
+                    <Draggable
+                      key={idx} // dùng index làm key
+                      draggableId={`order-${idx}`} // tạm cho draggableId
+                      index={idx}
+                    >
+                      {(dragProvided) => (
+                        <tr
+                          ref={dragProvided.innerRef}
+                          {...dragProvided.draggableProps}
+                          className="border-b border-gray-300 hover:bg-gray-50"
+                        >
+                          <td
+                            {...dragProvided.dragHandleProps}
+                            className="cursor-grab p-2 text-center"
+                          >
+                            <MenuOutlined />
+                          </td>
+                          <td className="p-2">
+                            <Input
+                              value={order.title}
+                              onChange={(e) =>
+                                updateOrder(idx, "title", e.target.value)
+                              }
+                            />
+                          </td>
+                          <td className="p-2">
+                            <Input
+                              value={order.fieldKey}
+                              onChange={(e) =>
+                                updateOrder(idx, "fieldKey", e.target.value)
+                              }
+                            />
+                          </td>
+                          <td className="p-2">
+                            <Select
+                              value={order.orderType}
+                              onChange={(val) =>
+                                updateOrder(idx, "orderType", val)
+                              }
+                              style={{ width: "100%" }}
+                            >
+                              <Option value="ASC">Tăng dần</Option>
+                              <Option value="DESC">Giảm dần</Option>
+                            </Select>
+                          </td>
+                          <td className="p-2 text-center">
+                            <Checkbox
+                              checked={!!order.visible}
+                              onChange={(e) =>
+                                updateOrder(idx, "visible", e.target.checked)
+                              }
+                            />
+                          </td>
+                          <td className="p-2 text-center">
+                            <Popconfirm
+                              title="Bạn có chắc muốn xóa?"
+                              onConfirm={() => deleteOrder(idx)}
+                            >
+                              <Button danger size="small">
+                                Xóa
+                              </Button>
+                            </Popconfirm>
+                          </td>
+                        </tr>
+                      )}
+                    </Draggable>
+                  ))}
+                {provided.placeholder}
+              </tbody>
+            </table>
+          )}
+        </Droppable>
+      </DragDropContext>
+
+      <Button type="dashed" onClick={addOrder} className="mt-2 w-full">
+        Thêm order
+      </Button>
+    </div>
+  );
+};
+

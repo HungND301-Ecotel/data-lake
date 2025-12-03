@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: report
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/report
+    username: admin
+    password: admin
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    defer-datasource-initialization: true
+server:
+  port: 8080
