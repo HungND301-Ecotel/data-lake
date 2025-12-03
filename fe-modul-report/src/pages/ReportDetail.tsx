@@ -17,7 +17,7 @@ import { message, Modal } from "antd";
 
 const ReportDetail: React.FC = () => {
   const location = useLocation();
-  const isUserView = location.pathname.includes("/report/template/us/");
+  const isUserView = location.pathname.includes("/reports/template/us");
 
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);

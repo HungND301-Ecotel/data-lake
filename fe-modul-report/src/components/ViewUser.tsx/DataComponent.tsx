@@ -26,8 +26,8 @@ const DataComponent: React.FC<DataProps> = ({
   const [orders, setOrders] = useState<Order[]>(data.orders);
   const [subs, setSubs] = useState<Sub[]>(data.subs);
   const location = useLocation();
-  const isEditMode = location.pathname.includes("/report/template/edit/");
-  const isUserMode = location.pathname.includes("/report/template/us/");
+  const isEditMode = location.pathname.includes("/reports/template/edit/");
+  const isUserMode = location.pathname.includes("/reports/template/us/");
   const [info, setInfo] = useState<
     Omit<Data, "fields" | "filters" | "orders" | "subs">
   >({

@@ -110,13 +110,13 @@ const showDeleteConfirm = async (id: string | null) => {
         <Space>
           <Button
             type="default"
-            onClick={() => navigate(`/report/template/us/${record.id}`)}
+            onClick={() => navigate(`/reports/template/us/${record.id}`)}
           >
             Xem
           </Button>
           <Button
             type="default"
-            onClick={() => navigate(`/report/template/edit/${record.id}`)}
+            onClick={() => navigate(`/reports/template/edit/${record.id}`)}
           >
             Sửa
           </Button>
