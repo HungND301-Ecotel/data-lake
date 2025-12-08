@@ -1,106 +1,113 @@
 import { useEffect, useState } from "react";
-import { Collapse, Table, Space, Button, Spin } from "antd";
-import { DownloadOutlined, EditOutlined, PlayCircleOutlined } from "@ant-design/icons";
-import { fetchDepartments, fetchReportsByCategory } from "../../services/report/fetch";
-import type { Department, Report } from "../../services/report/fetch";
-
-const { Panel } = Collapse;
+import { Card, Progress, Row, Col, Input, Pagination, message } from "antd";
+import { useNavigate } from "react-router-dom";
+import { departmentApi } from "../../services/departmentApi";
+import { reportCategoryApi } from "../../services/reportCategoryApi";
+import type { DepartmentResponse } from "../../types/department";
 
 const ReportTemplatePage = () => {
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [reportsMap, setReportsMap] = useState<Record<string, Report[]>>({});
-  const [loadingCategory, setLoadingCategory] = useState<Record<string, boolean>>({});
+  const [departments, setDepartments] = useState<DepartmentResponse[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
+  const [limit] = useState(8);
+  const [keyword, setKeyword] = useState("");
+  const [reportCounts, setReportCounts] = useState<Record<string, Record<string, number>>>({}); // { departmentId: { reportName: count } }
 
-  useEffect(() => {
-    const loadDepartments = async () => {
-      const data = await fetchDepartments();
-      setDepartments(data);
-    };
-    loadDepartments();
-  }, []);
+  const navigate = useNavigate();
 
-  const handleCategoryClick = async (categoryId: string) => {
-    if (reportsMap[categoryId]) return; // đã load rồi
-    setLoadingCategory((prev) => ({ ...prev, [categoryId]: true }));
-    const data = await fetchReportsByCategory(categoryId);
-    setReportsMap((prev) => ({ ...prev, [categoryId]: data }));
-    setLoadingCategory((prev) => ({ ...prev, [categoryId]: false }));
+  const loadDepartments = async (page: number, keyword: string) => {
+    try {
+      const res = await departmentApi.getMyDepartment(keyword, page, limit);
+      setDepartments(res.content);
+      setTotal(res.totalElements);
+
+      // Lấy số báo cáo cho từng phòng ban
+      const counts = await Promise.all(
+        res.content.map(async (dep) => {
+          const countRes = await reportCategoryApi.getCountByDepartment(dep.id!);
+          return { depId: dep.id!, counts: countRes };
+        })
+      );
+
+      const newReportCounts: Record<string, Record<string, number>> = {};
+      counts.forEach((item) => {
+        newReportCounts[item.depId] = item.counts;
+      });
+
+      setReportCounts(newReportCounts);
+
+    } catch (err) {
+      console.log(err);
+      message.error("Lỗi tải phòng ban");
+    }
   };
 
-  const columns = [
-    { title: "Tên báo cáo", dataIndex: "name", key: "name" },
-    { title: "Loại file", dataIndex: "type", key: "type" },
-    { title: "Loại báo cáo", dataIndex: "reportMode", key: "reportMode" },
-    { title: "Ngày tạo", dataIndex: "createdAt", key: "createdAt" },
-    {
-      title: "Hành động",
-      key: "action",
-      render: (_: any, record: Report) => (
-        <Space>
-          {record.reportMode === "Static" ? (
-            <Button type="link" icon={<DownloadOutlined />}>Tải về</Button>
-          ) : (
-            <>
-              <Button type="link" icon={<EditOutlined />}>Chỉnh sửa</Button>
-              <Button type="link" icon={<PlayCircleOutlined />}>Tạo</Button>
-            </>
-          )}
-        </Space>
-      ),
-    },
-  ];
+  useEffect(() => {
+    loadDepartments(page, keyword);
+  }, [page, keyword]);
 
   return (
-    <div className="p-4 bg-white" style={{ width: "100%", minHeight: "100%" }}>
-      {departments.map((dept) => (
-        <div
-          key={dept.id}
-          className="mb-6"
-          style={{ display: "flex" }}
-        >
-          {/* Đường dọc bên trái */}
-          <div
-            style={{
-              width: 4,
-              backgroundColor: "#1890ff",
-              borderRadius: 2,
-              marginRight: 16,
-            }}
-          />
+    <div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 16,
+        }}
+      >
+        <Input.Search
+          placeholder="Tìm kiếm phòng ban"
+          style={{ width: 300 }}
+          onSearch={(value) => {
+            setKeyword(value);
+            setPage(0);
+          }}
+          allowClear
+        />
 
-          {/* Nội dung phòng ban */}
-          <div style={{ flex: 1 }}>
-            <h2 style={{ margin: "0 0 16px 0", fontWeight: 700, color: "#1890ff" }}>
-              {dept.name}
-            </h2>
+        <Pagination
+          current={page + 1}
+          pageSize={limit}
+          total={total}
+          onChange={(p) => setPage(p - 1)}
+          size="small"
+        />
+      </div>
 
-            {/* Collapse categories không giới hạn mở */}
-            <Collapse accordion={false}>
-              {dept.categories.map((cat) => (
-                <Panel
-                  header={cat.name}
-                  key={cat.id}
-                  onClick={() => handleCategoryClick(cat.id)}
-                >
-                  {loadingCategory[cat.id] ? (
-                    <Spin />
-                  ) : reportsMap[cat.id] && reportsMap[cat.id].length > 0 ? (
-                    <Table
-                      columns={columns}
-                      dataSource={reportsMap[cat.id]}
-                      rowKey="id"
-                      pagination={{ pageSize: 5 }}
-                      size="small"
+      <Row gutter={[24, 24]}>
+        {departments.map((dep) => {
+          const counts = reportCounts[dep.id!] || {};
+          const totalCount = Object.values(counts).reduce((a, b) => a + b, 0) || 1; // tránh chia 0
+
+          return (
+            <Col span={6} key={dep.id}>
+              <Card
+                title={dep.name}
+                hoverable
+                style={{
+                  borderRadius: 12,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                  cursor: "pointer",
+                }}
+                onClick={() =>
+                  navigate(`/reports/template/department/${dep.id}`)
+                }
+              >
+                {Object.entries(counts).map(([reportName, value]) => (
+                  <div key={reportName} style={{ marginBottom: 12 }}>
+                    <div style={{ fontWeight: 500, marginBottom: 4 }}>{reportName}</div>
+                    <Progress
+                      percent={((value / totalCount) * 100).toFixed(1) as unknown as number}
+                      status="active"
                     />
-                  ) : (
-                    <p>Chưa có báo cáo</p>
-                  )}
-                </Panel>
-              ))}
-            </Collapse>
-          </div>
-        </div>
-      ))}
+                  </div>
+                ))}
+              </Card>
+            </Col>
+          );
+        })}
+      </Row>
     </div>
   );
 };

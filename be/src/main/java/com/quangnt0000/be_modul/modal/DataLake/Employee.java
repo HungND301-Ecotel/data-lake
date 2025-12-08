@@ -7,7 +7,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @AllArgsConstructor
@@ -15,14 +17,25 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 @Entity
-public class DepartmentLake {
+@EntityListeners(AuditingEntityListener.class)
+public class Employee {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    private String code;
     private String name;
-    private int orderIndex;
+    private String email;
+
+    @Column(unique = true, nullable = false)
+    private String phone;
+
+    private String address;
+    private LocalDate birthday;
+    private String gender;
+
+    private String position;
+
+    private String keyAvatar;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
@@ -30,4 +43,11 @@ public class DepartmentLake {
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    @Builder.Default
+    private Boolean deleted = false;
+
+    @ManyToOne
+    @JoinColumn(name = "departmentId")
+    private Department department;
 }

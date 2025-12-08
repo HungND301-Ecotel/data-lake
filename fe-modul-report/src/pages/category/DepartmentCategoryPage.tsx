@@ -1,247 +1,201 @@
-import { useState } from "react";
-import {
-  Table,
-  Button,
-  Input,
-  Modal,
-  Checkbox,
-  Row,
-  Col,
-  Card,
-  Space,
-} from "antd";
+import { useState, useEffect } from "react";
+import { Table, Input, Button, Space, Modal, Form, message } from "antd";
 import {
   SearchOutlined,
-  FilterOutlined,
-  DeleteOutlined,
+  PlusOutlined,
   EditOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
-
-interface Department {
-  id: string;
-  code: string;
-  name: string;
-  description: string;
-  categories: ReportCategory[];
-}
-
-interface ReportCategory {
-  id: string;
-  code: string;
-  name: string;
-  description: string;
-}
+import type { DepartmentResponse, PageResponse } from "../../types/department";
+import { departmentApi } from "../../services/departmentApi";
 
 const DepartmentCategoryPage = () => {
-  const [departments] = useState<Department[]>([
-    {
-      id: "1",
-      code: "KD",
-      name: "Kinh doanh",
-      description: "Phòng kinh doanh",
-      categories: [
-        { id: "c1", code: "SALE01", name: "Báo cáo doanh thu", description: "Theo tháng" },
-        { id: "c2", code: "SALE02", name: "Báo cáo KPI", description: "Nhân viên" },
-      ],
-    },
-    {
-      id: "2",
-      code: "TC",
-      name: "Tài chính",
-      description: "Phòng tài chính",
-      categories: [
-        { id: "c3", code: "FIN01", name: "Báo cáo chi phí", description: "" },
-        { id: "c4", code: "FIN02", name: "Báo cáo ngân sách", description: "" },
-      ],
-    },
-  ]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editingDept, setEditingDept] = useState<DepartmentResponse | null>(
+    null
+  );
+  const [form] = Form.useForm();
+  const [modal, contextHolderModal] = Modal.useModal();
+  const [messageApi, contextHolderMessage] = message.useMessage();
 
-  const [selectedDept, setSelectedDept] = useState<Department | null>(null);
-
-  /** SEARCH STATE */
-  const [searchDept, setSearchDept] = useState("");
-  const [searchCategory, setSearchCategory] = useState("");
-
-  /** FILTER STATE */
-  const [deptFilterVisible, setDeptFilterVisible] = useState(false);
-  const [categoryFilterVisible, setCategoryFilterVisible] = useState(false);
-
-  const [deptFilters, setDeptFilters] = useState<string[]>([]);
-  const [categoryFilters, setCategoryFilters] = useState<string[]>([]);
-
-  /** SELECTED FOR DELETE */
-  const [selectedDeptKeys, setSelectedDeptKeys] = useState<React.Key[]>([]);
-  const [selectedCategoryKeys, setSelectedCategoryKeys] = useState<React.Key[]>([]);
-
-  /** FILTER DEPARTMENT */
-  const filteredDepts = departments.filter((d) => {
-    const matchSearch = d.name.toLowerCase().includes(searchDept.toLowerCase());
-    const matchFilter = deptFilters.length ? deptFilters.includes(d.code) : true;
-    return matchSearch && matchFilter;
+  const [search, setSearch] = useState("");
+  const [pageResponse, setPageResponse] = useState<
+    PageResponse<DepartmentResponse>
+  >({
+    page: 0,
+    limit: 10,
+    totalElements: 0,
+    totalPages: 0,
+    content: [],
   });
 
-  /** FILTER CATEGORIES */
-  const filteredCategories = selectedDept
-    ? selectedDept.categories.filter((c) => {
-        const matchSearch = c.name.toLowerCase().includes(searchCategory.toLowerCase());
-        const matchFilter = categoryFilters.length ? categoryFilters.includes(c.code) : true;
-        return matchSearch && matchFilter;
-      })
-    : [];
+  // Hàm load dữ liệu
+  const loadDepartments = async (keyword = search, page = 0, limit = 10) => {
+    try {
+      const res = await departmentApi.searchDepartment(keyword, page, limit);
+      setPageResponse(res);
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
-  /** DEPARTMENT COLUMNS */
-  const deptColumns = [
-    { title: "Mã", dataIndex: "code", key: "code" },
+  useEffect(() => {
+    loadDepartments();
+  }, []);
+
+  const handleEdit = (dept: DepartmentResponse) => {
+    setEditingDept(dept);
+    form.setFieldsValue({
+      code: dept.code,
+      name: dept.name,
+      description: dept.description,
+    });
+    setModalVisible(true);
+  };
+
+  const handleDelete = (dept: DepartmentResponse) => {
+    modal.confirm({
+      title: `Xóa phòng ban ${dept.name}?`,
+      content: "Hành động này không thể hoàn tác!",
+      okText: "Xóa",
+      okType: "danger",
+      cancelText: "Hủy",
+      onOk: async () => {
+        try {
+          await departmentApi.deleteDepartment(dept.id);
+          messageApi.success("Xóa phòng ban thành công");
+          // Load lại trang hiện tại
+          await loadDepartments(search, pageResponse.page, pageResponse.limit);
+        } catch (error) {
+          console.log(error);
+          messageApi.error("Xóa phòng ban thất bại");
+        }
+      },
+    });
+  };
+
+  const handleAddNew = () => {
+    setEditingDept(null);
+    form.resetFields();
+    setModalVisible(true);
+  };
+
+  const handleSave = async () => {
+    try {
+      const values = await form.validateFields();
+      const departmentRequest: DepartmentResponse = {
+        id: editingDept?.id || null,
+        code: values.code,
+        name: values.name,
+        description: values.description,
+      };
+
+      try {
+        await departmentApi.saveDepartment(departmentRequest);
+        messageApi.success(
+          editingDept
+            ? "Cập nhật phòng ban thành công"
+            : "Tạo phòng ban thành công"
+        );
+        setModalVisible(false);
+        // Load lại trang 0 sau khi tạo/sửa
+        await loadDepartments(search, 0, pageResponse.limit);
+      } catch (error: any) {
+        const msg = error.response?.data?.message;
+        messageApi.error(msg || "Lỗi hệ thống");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const columns = [
+    { title: "Mã phòng", dataIndex: "code", key: "code", width: "15%" },
+    { title: "Tên phòng", dataIndex: "name", key: "name", width: "20%" },
     {
-      title: "Tên phòng ban",
-      dataIndex: "name",
-      key: "name",
-      render: (text: string, record: Department) => (
-        <a onClick={() => setSelectedDept(record)}>{text}</a>
+      title: "Mô tả",
+      dataIndex: "description",
+      key: "description",
+      width: "50%",
+    },
+    {
+      title: "Thao tác",
+      key: "actions",
+      width: "15%",
+      render: (_: any, record: DepartmentResponse) => (
+        <Space>
+          <Button icon={<EditOutlined />} onClick={() => handleEdit(record)}>
+            Sửa
+          </Button>
+          <Button
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => handleDelete(record)}
+          >
+            Xóa
+          </Button>
+        </Space>
       ),
     },
-    { title: "Mô tả", dataIndex: "description", key: "description" },
-  ];
-
-  /** CATEGORY COLUMNS */
-  const categoryColumns = [
-    { title: "Mã", dataIndex: "code", key: "code" },
-    { title: "Tên danh mục", dataIndex: "name", key: "name" },
-    { title: "Mô tả", dataIndex: "description", key: "description" },
   ];
 
   return (
-    <div className="p-4 w-full bg-white h-full flex gap-4">
+    <div style={{  width: "100%" }}>
+      {contextHolderModal}
+      {contextHolderMessage}
 
-      {/* LEFT SIDE – DEPARTMENTS */}
-      <Card title="Danh mục phòng ban" style={{ width: "35%" }}>
-
-        {/* SEARCH + FILTER + DELETE */}
-        <Row gutter={12} align="middle" className="mb-3">
-          <Col flex="auto">
-            <Input
-              prefix={<SearchOutlined />}
-              placeholder="Tìm kiếm phòng ban"
-              value={searchDept}
-              onChange={(e) => setSearchDept(e.target.value)}
-            />
-          </Col>
-          <Col>
-            <Button icon={<FilterOutlined />} onClick={() => setDeptFilterVisible(true)}>
-              Bộ lọc
-            </Button>
-          </Col>
-          {selectedDeptKeys.length > 0 && (
-            <Col>
-              <Button danger icon={<DeleteOutlined />}>
-                Xóa ({selectedDeptKeys.length})
-              </Button>
-            </Col>
-          )}
-        </Row>
-
-        <Table
-          dataSource={filteredDepts}
-          columns={deptColumns}
-          rowKey="id"
-          size="middle"
-          rowSelection={{
-            selectedRowKeys: selectedDeptKeys,
-            onChange: (keys) => setSelectedDeptKeys(keys),
-          }}
-          pagination={false}
+      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+        <Input
+          placeholder="Tìm kiếm phòng ban"
+          prefix={<SearchOutlined />}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          onPressEnter={() => loadDepartments(search, 0, pageResponse.limit)}
+          style={{ flex: 1 }}
         />
-      </Card>
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleAddNew}>
+          Thêm mới
+        </Button>
+      </div>
 
-      {/* RIGHT SIDE – CATEGORIES */}
-      <Card
-        title={`Đầu mục báo cáo ${selectedDept ? "- " + selectedDept.name : ""}`}
-        style={{ flex: 1 }}
-      >
-        {/* SEARCH + FILTER + DELETE */}
-        <Row gutter={12} align="middle" className="mb-3">
-          <Col flex="auto">
-            <Input
-              prefix={<SearchOutlined />}
-              placeholder="Tìm kiếm danh mục"
-              value={searchCategory}
-              onChange={(e) => setSearchCategory(e.target.value)}
-            />
-          </Col>
-          <Col>
-            <Button
-              icon={<FilterOutlined />}
-              onClick={() => setCategoryFilterVisible(true)}
-              disabled={!selectedDept}
-            >
-              Bộ lọc
-            </Button>
-          </Col>
+      <Table
+        dataSource={pageResponse.content}
+        columns={columns}
+        rowKey="id"
+        pagination={{
+          current: pageResponse.page + 1, // trang hiện tại (backend 0-based)
+          pageSize: pageResponse.limit, // số bản ghi mỗi trang
+          total: pageResponse.totalElements, // tổng số bản ghi từ backend
+          showSizeChanger: false, // không cho đổi pageSize
+          onChange: (page) =>
+            loadDepartments(search, page - 1, pageResponse.limit), // AntD page 1-based → backend 0-based
+        }}
+        size="middle"
+        scroll={{ x: "100%" }}
+      />
 
-          {selectedCategoryKeys.length > 0 && (
-            <Col>
-              <Button danger icon={<DeleteOutlined />}>
-                Xóa ({selectedCategoryKeys.length})
-              </Button>
-            </Col>
-          )}
-        </Row>
-
-        <Table
-          dataSource={filteredCategories}
-          columns={categoryColumns}
-          rowKey="id"
-          size="middle"
-          rowSelection={{
-            selectedRowKeys: selectedCategoryKeys,
-            onChange: (keys) => setSelectedCategoryKeys(keys),
-          }}
-          pagination={false}
-        />
-      </Card>
-
-      {/* FILTER MODAL – DEPARTMENT */}
       <Modal
-        title="Bộ lọc phòng ban"
-        open={deptFilterVisible}
-        onOk={() => setDeptFilterVisible(false)}
-        onCancel={() => setDeptFilterVisible(false)}
+        open={modalVisible}
+        onCancel={() => setModalVisible(false)}
+        onOk={handleSave}
+        okText={editingDept ? "Lưu" : "Tạo"}
+        title={
+          editingDept
+            ? `Chỉnh sửa phòng ban: ${editingDept.name}`
+            : "Tạo phòng ban"
+        }
       >
-        <Checkbox.Group
-          style={{ display: "flex", flexDirection: "column", gap: 8 }}
-          value={deptFilters}
-          onChange={(values) => setDeptFilters(values as string[])}
-        >
-          {departments.map((d) => (
-            <Checkbox key={d.id} value={d.code}>
-              {d.name} ({d.code})
-            </Checkbox>
-          ))}
-        </Checkbox.Group>
-      </Modal>
-
-      {/* FILTER MODAL – CATEGORY */}
-      <Modal
-        title="Bộ lọc đầu mục báo cáo"
-        open={categoryFilterVisible}
-        onOk={() => setCategoryFilterVisible(false)}
-        onCancel={() => setCategoryFilterVisible(false)}
-      >
-        {selectedDept ? (
-          <Checkbox.Group
-            style={{ display: "flex", flexDirection: "column", gap: 8 }}
-            value={categoryFilters}
-            onChange={(values) => setCategoryFilters(values as string[])}
-          >
-            {selectedDept.categories.map((c) => (
-              <Checkbox key={c.id} value={c.code}>
-                {c.name} ({c.code})
-              </Checkbox>
-            ))}
-          </Checkbox.Group>
-        ) : (
-          <p>Hãy chọn phòng ban trước.</p>
-        )}
+        <Form form={form} layout="vertical">
+          <Form.Item name="name" label="Tên phòng" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="code" label="Mã phòng" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="description" label="Mô tả">
+            <Input />
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   );

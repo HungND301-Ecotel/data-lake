@@ -63,12 +63,11 @@ const Sidebar = () => {
             icon={<OrderedListOutlined />}
             title="Danh mục"
           >
-            <Menu.Item key="/category/employee">
-              <Link to="/category/employee">Chức vụ</Link>
-            </Menu.Item>
-
             <Menu.Item key="/category/departments">
               <Link to="/category/departments">Phòng ban</Link>
+            </Menu.Item>
+            <Menu.Item key="/category/report">
+              <Link to="/category/report">Danh mục báo cáo</Link>
             </Menu.Item>
           </Menu.SubMenu>
 
@@ -90,9 +89,6 @@ const Sidebar = () => {
               <Link to="/reports/storage">Kho lưu trữ</Link>
             </Menu.Item>
 
-            <Menu.Item key="/reports/template/list">
-              <Link to="/reports/template/list">Modul tạo báo cáo</Link>
-            </Menu.Item>
           </Menu.SubMenu>
         </Menu>
 

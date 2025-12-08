@@ -75,7 +75,7 @@ const ReportStoragePage = () => {
                   cursor: "pointer",
                 }}
                 onClick={() =>
-                  navigate(`/reports/storage/${item.department_id}`)
+                  navigate(`/reports/storage/department/${item.department_id}`)
                 }
               >
                 <div style={{ marginBottom: 6, fontWeight: 500 }}>

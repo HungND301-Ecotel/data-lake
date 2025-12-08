@@ -110,4 +110,33 @@ export interface TableItem {
 }
 
 
+// Dùng để gửi dữ liệu từ frontend sang backend
+export interface ReportCategoryRequest {
+  id?: string | null;           // optional nếu tạo mới
+  code: string;
+  name: string;
+  description?: string;  // optional nếu không bắt buộc
+  departmentId: string;
+}
 
+// Dùng để nhận dữ liệu từ backend
+export interface ReportCategoryResponse {
+  id: string;
+  code: string;
+  name: string;
+  description?: string;
+  departmentId: string;
+  departmentName: string;
+}
+
+export interface ReportCategorySearch {
+  page?: number;      
+  limit?: number;   
+  keyword?: string;   
+  sort?: "ASC" | "DESC";
+  sortBy?: string;  
+  departmentId?: string | null; 
+}
+
+
+export type ReportCategoryCount = Record<string, number>;

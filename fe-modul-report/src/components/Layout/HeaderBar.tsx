@@ -37,10 +37,15 @@ const HeaderBar = () => {
       danger: true,
       icon: <LogoutOutlined />,
       onClick: () => {
-        // TODO: clear token
+        // Xóa token và refreshToken
+        localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+    
+        // Chuyển hướng về trang login
         navigate("/login");
       },
-    },
+    }
+    
   ];
 
   return (
