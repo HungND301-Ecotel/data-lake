@@ -7,13 +7,14 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import { useState } from "react";
+import { useAuthStore } from "../../stores/authStore";
 
 const { Sider } = Layout;
 
 const Sidebar = () => {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
-
+  const role = useAuthStore((s) => s.role);
   return (
     <Sider
       collapsible
@@ -71,10 +72,11 @@ const Sidebar = () => {
             </Menu.Item>
           </Menu.SubMenu>
 
-
-          <Menu.Item key="/employee" icon={<UserOutlined />}>
-            <Link to="/employee">Nhân viên</Link>
-          </Menu.Item>
+          {role === "ADMIN" && (
+            <Menu.Item key="/employee" icon={<UserOutlined />}>
+              <Link to="/employee">Nhân viên</Link>
+            </Menu.Item>
+          )}
 
           <Menu.SubMenu
             key="reports"
@@ -88,11 +90,8 @@ const Sidebar = () => {
             <Menu.Item key="/reports/storage">
               <Link to="/reports/storage">Kho lưu trữ</Link>
             </Menu.Item>
-
           </Menu.SubMenu>
         </Menu>
-
-        
       </div>
     </Sider>
   );

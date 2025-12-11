@@ -55,7 +55,6 @@ const EmployeePage = () => {
 
   const formItemLayout = { labelCol: { span: 6 }, wrapperCol: { span: 18 } };
 
-  // Load employees
   const loadEmployees = async (
     keyword = searchText,
     departmentId: string | null = filterDepartmentId
@@ -72,7 +71,6 @@ const EmployeePage = () => {
     }
   };
 
-  // Load departments
   const loadDepartments = async () => {
     try {
       const res = await departmentApi.searchDepartment("", 0, 200);
@@ -87,7 +85,6 @@ const EmployeePage = () => {
     loadDepartments();
   }, []);
 
-  // Xoá nhân viên
   const handleDeleteEmployee = async (id: string) => {
     modal.confirm({
       title: "Xoá nhân viên?",
@@ -106,7 +103,6 @@ const EmployeePage = () => {
     });
   };
 
-  // Hiển thị chi tiết nhân viên
   const handleShowEmployeeDetail = async (id: string) => {
     try {
       const emp = await employeeApi.getEmployee(id);
@@ -121,7 +117,6 @@ const EmployeePage = () => {
     }
   };
 
-  // Hiển thị chi tiết tài khoản
   const handleShowUserDetail = async (employeeId: string) => {
     try {
       const user = await userApi.getByEmployeeId(employeeId);
@@ -137,7 +132,6 @@ const EmployeePage = () => {
     }
   };
 
-  // Lưu tài khoản
   const handleSaveUserDetail = async () => {
     try {
       const values = await formUserDetail.validateFields();
@@ -369,7 +363,6 @@ const EmployeePage = () => {
         </Form>
       </Modal>
 
-      {/* Modal Chi tiết nhân viên */}
       <Modal
         title="Chi tiết nhân viên"
         open={employeeDetailModal}
@@ -381,13 +374,17 @@ const EmployeePage = () => {
           const values = await formEmployeeDetail.validateFields();
           const formData = new FormData();
           Object.entries(values).forEach(([key, value]) => {
-            if (key === "avatarFile" && Array.isArray(value) && value.length > 0) {
+            if (
+              key === "avatarFile" &&
+              Array.isArray(value) &&
+              value.length > 0
+            ) {
               formData.append(key, value[0].originFileObj);
             } else {
               formData.append(key, value as any);
             }
           });
-          
+
           formData.append("id", selectedEmployee?.id || "");
 
           try {
@@ -403,7 +400,7 @@ const EmployeePage = () => {
         }}
       >
         <Form form={formEmployeeDetail} layout="horizontal" {...formItemLayout}>
-          <Form.Item label="Avatar">
+          <Form.Item label="" className="flex items-center justify-center">
             <Avatar
               size={80}
               src={selectedEmployee?.keyAvatar || DEFAULT_AVATAR}

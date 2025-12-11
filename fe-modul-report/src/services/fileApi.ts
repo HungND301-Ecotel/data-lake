@@ -8,4 +8,20 @@ export const fileApi = {
     });
     return res.data;
   },
+
+  getFileV2: async (fileKey: string): Promise<Blob> => {
+    const res = await axiosClient.get("/file/v2", {
+      params: { fileKey },
+      responseType: "blob",
+    });
+    return res.data;
+  },
+
+  getFileV3: async (fileKey: string): Promise<Blob> => {
+    const res = await axiosClient.get("/file/v3", {
+      params: { fileKey },
+      responseType: "blob",
+    });
+    return res.data;
+  },
 };

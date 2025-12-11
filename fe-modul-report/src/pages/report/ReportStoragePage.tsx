@@ -1,73 +1,109 @@
 import { useEffect, useState } from "react";
-import { Card, Progress, Row, Col } from "antd";
+import { Card, Progress, Row, Col, Input, Pagination, message } from "antd";
 import { useNavigate } from "react-router-dom";
+import { departmentApi } from "../../services/departmentApi";
+import { reportStorageApi } from "../../services/reportStorageApi";
+import type { DepartmentResponse } from "../../types/department";
 
 type ReportStorage = {
-  department_id: number;
-  department_name: string;
-  pending_count: number;
-  processing_count: number;
-  success_count: number;
+  departmentId: string;
+  departmentName: string;
+  pending: number;
+  processing: number;
+  success: number;
 };
 
 const ReportStoragePage = () => {
-  const [data, setData] = useState<ReportStorage[]>([]);
+  const [departments, setDepartments] = useState<DepartmentResponse[]>([]);
+  const [reportCounts, setReportCounts] = useState<
+    Record<string, ReportStorage>
+  >({});
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
+  const [limit] = useState(8);
+  const [keyword, setKeyword] = useState("");
   const navigate = useNavigate();
 
-  // Fake data
-  useEffect(() => {
-    const fake = [
-      {
-        department_id: 1,
-        department_name: "Phòng Nhân Sự",
-        pending_count: 5,
-        processing_count: 12,
-        success_count: 40,
-      },
-      {
-        department_id: 2,
-        department_name: "Phòng Kế Toán",
-        pending_count: 2,
-        processing_count: 6,
-        success_count: 25,
-      },
-      {
-        department_id: 3,
-        department_name: "Phòng IT",
-        pending_count: 10,
-        processing_count: 4,
-        success_count: 15,
-      },
-      {
-        department_id: 4,
-        department_name: "Phòng Marketing",
-        pending_count: 1,
-        processing_count: 2,
-        success_count: 30,
-      },
-    ];
+  const loadDepartments = async (page: number, keyword: string) => {
+    try {
+      const res = await departmentApi.getMyDepartment(keyword, page, limit);
+      setDepartments(res.content);
+      setTotal(res.totalElements);
 
-    setTimeout(() => setData(fake), 400);
-  }, []);
+      const counts = await Promise.all(
+        res.content.map(async (dep) => {
+          const statusCounts =
+            await reportStorageApi.getCountStatusByDepartment(dep.id!);
+          return {
+            departmentId: dep.id!,
+            departmentName: dep.name,
+            pending: statusCounts.PENDING || 0,
+            processing: statusCounts.IN_PROGRESS || 0,
+            success: statusCounts.SUCCESS || 0,
+          };
+        })
+      );
 
-  const calcPercent = (count: number, total: number) => {
-    if (total === 0) return 0;
-    return Number(((count / total) * 100).toFixed(1));
+      const newCounts: Record<string, ReportStorage> = {};
+      counts.forEach((item) => {
+        newCounts[item.departmentId] = item;
+      });
+      setReportCounts(newCounts);
+    } catch (err) {
+      console.error(err);
+      message.error("Lỗi tải phòng ban hoặc số liệu báo cáo");
+    }
   };
 
+  useEffect(() => {
+    loadDepartments(page, keyword);
+  }, [page, keyword]);
+
+  const calcPercent = (count: number, total: number) =>
+    total ? Number(((count / total) * 100).toFixed(1)) : 0;
+
   return (
-    <div style={{  }}>
+    <div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: 16,
+        }}
+      >
+        <Input.Search
+          placeholder="Tìm kiếm phòng ban"
+          style={{ width: 300 }}
+          onSearch={(value) => {
+            setKeyword(value);
+            setPage(0);
+          }}
+          allowClear
+        />
+        <Pagination
+          current={page + 1}
+          pageSize={limit}
+          total={total}
+          onChange={(p) => setPage(p - 1)}
+          size="small"
+        />
+      </div>
+
       <Row gutter={[24, 24]}>
-        {data.map((item) => {
-          const total =
-            item.pending_count +
-            item.processing_count +
-            item.success_count;
+        {departments.map((dep) => {
+          const item = reportCounts[dep.id!] || {
+            pending: 0,
+            processing: 0,
+            success: 0,
+            departmentId: dep.id!,
+            departmentName: dep.name,
+          };
+          const totalCount = item.pending + item.processing + item.success || 1;
 
           return (
-            <Col span={6} key={item.department_id}>
+            <Col span={6} key={dep.id}>
               <Card
-                title={item.department_name}
+                title={dep.name}
                 hoverable
                 style={{
                   borderRadius: 12,
@@ -75,29 +111,30 @@ const ReportStoragePage = () => {
                   cursor: "pointer",
                 }}
                 onClick={() =>
-                  navigate(`/reports/storage/department/${item.department_id}`)
+                  navigate(`/reports/storage/department/${dep.id}`)
                 }
               >
                 <div style={{ marginBottom: 6, fontWeight: 500 }}>
-                  Pending: {item.pending_count}
+                  Pending: {item.pending}
                 </div>
                 <Progress
-                  percent={calcPercent(item.pending_count, total)}
+                  percent={calcPercent(item.pending, totalCount)}
                   status="exception"
                 />
 
                 <div style={{ margin: "14px 0 6px", fontWeight: 500 }}>
-                  Processing: {item.processing_count}
+                  Processing: {item.processing}
                 </div>
                 <Progress
-                  percent={calcPercent(item.processing_count, total)}
+                  percent={calcPercent(item.processing, totalCount)}
+                  status="active"
                 />
 
                 <div style={{ margin: "14px 0 6px", fontWeight: 500 }}>
-                  Success: {item.success_count}
+                  Success: {item.success}
                 </div>
                 <Progress
-                  percent={calcPercent(item.success_count, total)}
+                  percent={calcPercent(item.success, totalCount)}
                   status="success"
                 />
               </Card>

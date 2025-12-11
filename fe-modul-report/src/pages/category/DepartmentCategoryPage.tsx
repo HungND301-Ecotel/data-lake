@@ -29,7 +29,6 @@ const DepartmentCategoryPage = () => {
     content: [],
   });
 
-  // Hàm load dữ liệu
   const loadDepartments = async (keyword = search, page = 0, limit = 10) => {
     try {
       const res = await departmentApi.searchDepartment(keyword, page, limit);
@@ -64,7 +63,6 @@ const DepartmentCategoryPage = () => {
         try {
           await departmentApi.deleteDepartment(dept.id);
           messageApi.success("Xóa phòng ban thành công");
-          // Load lại trang hiện tại
           await loadDepartments(search, pageResponse.page, pageResponse.limit);
         } catch (error) {
           console.log(error);
@@ -98,7 +96,6 @@ const DepartmentCategoryPage = () => {
             : "Tạo phòng ban thành công"
         );
         setModalVisible(false);
-        // Load lại trang 0 sau khi tạo/sửa
         await loadDepartments(search, 0, pageResponse.limit);
       } catch (error: any) {
         const msg = error.response?.data?.message;
@@ -140,7 +137,7 @@ const DepartmentCategoryPage = () => {
   ];
 
   return (
-    <div style={{  width: "100%" }}>
+    <div style={{ width: "100%" }}>
       {contextHolderModal}
       {contextHolderMessage}
 
@@ -163,12 +160,12 @@ const DepartmentCategoryPage = () => {
         columns={columns}
         rowKey="id"
         pagination={{
-          current: pageResponse.page + 1, // trang hiện tại (backend 0-based)
-          pageSize: pageResponse.limit, // số bản ghi mỗi trang
-          total: pageResponse.totalElements, // tổng số bản ghi từ backend
-          showSizeChanger: false, // không cho đổi pageSize
+          current: pageResponse.page + 1,
+          pageSize: pageResponse.limit,
+          total: pageResponse.totalElements,
+          showSizeChanger: false,
           onChange: (page) =>
-            loadDepartments(search, page - 1, pageResponse.limit), // AntD page 1-based → backend 0-based
+            loadDepartments(search, page - 1, pageResponse.limit),
         }}
         size="middle"
         scroll={{ x: "100%" }}
@@ -186,10 +183,10 @@ const DepartmentCategoryPage = () => {
         }
       >
         <Form form={form} layout="vertical">
-          <Form.Item name="name" label="Tên phòng" rules={[{ required: true }]}>
+          <Form.Item name="code" label="Mã phòng" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="code" label="Mã phòng" rules={[{ required: true }]}>
+          <Form.Item name="name" label="Tên phòng" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
           <Form.Item name="description" label="Mô tả">

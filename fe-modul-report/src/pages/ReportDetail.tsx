@@ -117,10 +117,7 @@ const ReportDetail: React.FC = () => {
   const handleSave = async () => {
     try {
       console.log("📌 REPORT JSON:", JSON.stringify(report, null, 2));
-
-      // Lưu vị trí scroll hiện tại
       const scrollY = window.scrollY;
-
       const res = await reportApi.addReport(report);
       messageApi.success("Lưu báo cáo thành công!");
 
@@ -139,16 +136,14 @@ const ReportDetail: React.FC = () => {
   };
 
   return (
-    <div className="p-5 bg-white text-black min-h-screen">
+    <div className=" bg-white text-black min-h-screen">
       {contextHolder}
       {contextHolderModal}
-      {/* ========================= HEADER CỐ ĐỊNH ========================= */}
       <div className="sticky top-0 bg-white z-50 border-b pb-2 pt-2 mb-5 shadow-sm">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-semibold">{report.name}</h2>
 
           <div className="flex gap-2">
-            {/* CHỈNH SỬA */}
             <button
               className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700"
               onClick={() => setEditMode(!editMode)}
@@ -156,7 +151,6 @@ const ReportDetail: React.FC = () => {
               <FaEye /> {editMode ? "Thoát chỉnh sửa" : "Chỉnh sửa"}
             </button>
 
-            {/* LƯU */}
             {!isUserView && (
               <button
                 className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700"
@@ -166,7 +160,6 @@ const ReportDetail: React.FC = () => {
               </button>
             )}
 
-            {/* XUẤT PDF */}
             <button
               className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700"
               onClick={handleExportPdf}
@@ -177,13 +170,11 @@ const ReportDetail: React.FC = () => {
         </div>
       </div>
 
-      {/* ========================= FORM SỬA REPORT ========================= */}
       {editMode && (
         <div className="mb-6 p-4 border rounded bg-gray-50 shadow-sm">
           <div className="flex justify-between items-center">
             <h3 className="font-bold mb-3 text-lg">Thông tin báo cáo</h3>
 
-            {/* ===================== ADD BUTTON HERE ===================== */}
             <div className="flex gap-2">
               {/* ADD TEXT */}
               <button
@@ -348,7 +339,6 @@ const ReportDetail: React.FC = () => {
         </div>
       )}
 
-      {/* ========================= ITEMS ========================= */}
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId="report-items">
           {(provided) => (
@@ -433,7 +423,6 @@ const ReportDetail: React.FC = () => {
         </Droppable>
       </DragDropContext>
 
-      {/* ========================= PDF MODAL ========================= */}
       {pdfModalOpen && pdfUrl && (
         <div
           className="fixed inset-0 z-50 flex justify-center items-start pt-10"

@@ -2,23 +2,25 @@ import { useState } from "react";
 import { Form, Input, Button, Card, message } from "antd";
 import { useNavigate } from "react-router-dom";
 import { userApi } from "../../services/userApi";
+
 import type { UserLogin, LoginResponse } from "../../types/user";
+import { useAuthStore } from "../../stores/authStore";
 
 const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const setRole = useAuthStore((s) => s.setRole);
 
   const handleLogin = async (values: UserLogin) => {
     setLoading(true);
     try {
       const res: LoginResponse = await userApi.login(values);
       
-      // Lưu vào localStorage
       localStorage.setItem("token", res.token);
       localStorage.setItem("refreshToken", res.refreshToken);
-
+      setRole(res.role);
       message.success("Đăng nhập thành công");
-      navigate("/"); // chuyển tới trang chính
+      navigate("/"); 
     } catch (err: any) {
       console.log(err);
       message.error(err?.response?.data?.message || "Đăng nhập thất bại");

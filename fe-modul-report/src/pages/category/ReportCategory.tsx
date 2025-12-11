@@ -1,22 +1,45 @@
 import { useState, useEffect } from "react";
-import { Table, Input, Button, Space, Modal, Form, message, Select } from "antd";
-import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import {
+  Table,
+  Input,
+  Button,
+  Space,
+  Modal,
+  Form,
+  message,
+  Select,
+} from "antd";
+import {
+  SearchOutlined,
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+} from "@ant-design/icons";
 import type { DepartmentResponse, PageResponse } from "../../types/department";
-import type { ReportCategoryRequest, ReportCategoryResponse, ReportCategorySearch } from "../../types/report";
+import type {
+  ReportCategoryRequest,
+  ReportCategoryResponse,
+  ReportCategorySearch,
+} from "../../types/report";
 import { reportCategoryApi } from "../../services/reportCategoryApi";
 import { departmentApi } from "../../services/departmentApi";
 
 const ReportCategoryPage = () => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<ReportCategoryResponse | null>(null);
+  const [editingCategory, setEditingCategory] =
+    useState<ReportCategoryResponse | null>(null);
   const [form] = Form.useForm();
   const [modal, contextHolderModal] = Modal.useModal();
   const [messageApi, contextHolderMessage] = message.useMessage();
   const [departments, setDepartments] = useState<DepartmentResponse[]>([]);
 
   const [search, setSearch] = useState("");
-  const [filterDepartmentId, setFilterDepartmentId] = useState<string | null>(null);
-  const [pageResponse, setPageResponse] = useState<PageResponse<ReportCategoryResponse>>({
+  const [filterDepartmentId, setFilterDepartmentId] = useState<string | null>(
+    null
+  );
+  const [pageResponse, setPageResponse] = useState<
+    PageResponse<ReportCategoryResponse>
+  >({
     page: 0,
     limit: 10,
     totalElements: 0,
@@ -24,7 +47,6 @@ const ReportCategoryPage = () => {
     content: [],
   });
 
-  // Load danh sách category
   const loadCategories = async (
     keyword = search,
     page = 0,
@@ -37,7 +59,7 @@ const ReportCategoryPage = () => {
         page,
         limit,
         sort: "ASC",
-        sortBy: "name",
+        sortBy: "department",
         departmentId,
       } as ReportCategorySearch);
       setPageResponse(res);
@@ -46,7 +68,6 @@ const ReportCategoryPage = () => {
     }
   };
 
-  // Load danh sách phòng ban limit 200
   const loadDepartments = async () => {
     try {
       const res = await departmentApi.searchDepartment("", 0, 200);
@@ -83,7 +104,12 @@ const ReportCategoryPage = () => {
         try {
           await reportCategoryApi.deleteReportCategory(category.id);
           messageApi.success("Xóa danh mục thành công");
-          await loadCategories(search, pageResponse.page, pageResponse.limit, filterDepartmentId);
+          await loadCategories(
+            search,
+            pageResponse.page,
+            pageResponse.limit,
+            filterDepartmentId
+          );
         } catch (error) {
           console.log(error);
           messageApi.error("Xóa danh mục thất bại");
@@ -110,7 +136,11 @@ const ReportCategoryPage = () => {
       };
 
       await reportCategoryApi.saveReportCategory(request);
-      messageApi.success(editingCategory ? "Cập nhật danh mục thành công" : "Tạo danh mục thành công");
+      messageApi.success(
+        editingCategory
+          ? "Cập nhật danh mục thành công"
+          : "Tạo danh mục thành công"
+      );
       setModalVisible(false);
       loadCategories(search, 0, pageResponse.limit, filterDepartmentId);
     } catch (error: any) {
@@ -122,16 +152,34 @@ const ReportCategoryPage = () => {
   const columns = [
     { title: "Mã danh mục", dataIndex: "code", key: "code", width: "15%" },
     { title: "Tên danh mục", dataIndex: "name", key: "name", width: "25%" },
-    { title: "Mô tả", dataIndex: "description", key: "description", width: "35%" },
-    { title: "Phòng ban", dataIndex: "departmentName", key: "departmentName", width: "15%" },
+    {
+      title: "Mô tả",
+      dataIndex: "description",
+      key: "description",
+      width: "35%",
+    },
+    {
+      title: "Phòng ban",
+      dataIndex: "departmentName",
+      key: "departmentName",
+      width: "15%",
+    },
     {
       title: "Thao tác",
       key: "actions",
       width: "10%",
       render: (_: any, record: ReportCategoryResponse) => (
         <Space>
-          <Button icon={<EditOutlined />} onClick={() => handleEdit(record)}>Sửa</Button>
-          <Button danger icon={<DeleteOutlined />} onClick={() => handleDelete(record)}>Xóa</Button>
+          <Button icon={<EditOutlined />} onClick={() => handleEdit(record)}>
+            Sửa
+          </Button>
+          <Button
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => handleDelete(record)}
+          >
+            Xóa
+          </Button>
         </Space>
       ),
     },
@@ -148,7 +196,9 @@ const ReportCategoryPage = () => {
           prefix={<SearchOutlined />}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          onPressEnter={() => loadCategories(search, 0, pageResponse.limit, filterDepartmentId)}
+          onPressEnter={() =>
+            loadCategories(search, 0, pageResponse.limit, filterDepartmentId)
+          }
           style={{ flex: 1 }}
         />
         <Select
@@ -159,9 +209,11 @@ const ReportCategoryPage = () => {
           onChange={(value) => {
             const deptId = value || null;
             setFilterDepartmentId(deptId);
-            loadCategories(search, 0, pageResponse.limit, deptId); // tự search ngay khi chọn
+            loadCategories(search, 0, pageResponse.limit, deptId);
           }}
-          onBlur={() => loadCategories(search, 0, pageResponse.limit, filterDepartmentId)}
+          onBlur={() =>
+            loadCategories(search, 0, pageResponse.limit, filterDepartmentId)
+          }
         >
           {departments.map((dept) => (
             <Select.Option key={dept.id} value={dept.id}>
@@ -183,7 +235,13 @@ const ReportCategoryPage = () => {
           pageSize: pageResponse.limit,
           total: pageResponse.totalElements,
           showSizeChanger: false,
-          onChange: (page) => loadCategories(search, page - 1, pageResponse.limit, filterDepartmentId),
+          onChange: (page) =>
+            loadCategories(
+              search,
+              page - 1,
+              pageResponse.limit,
+              filterDepartmentId
+            ),
         }}
         size="middle"
         scroll={{ x: "100%" }}
@@ -194,25 +252,44 @@ const ReportCategoryPage = () => {
         onCancel={() => setModalVisible(false)}
         onOk={handleSave}
         okText={editingCategory ? "Lưu" : "Tạo"}
-        title={editingCategory ? `Chỉnh sửa: ${editingCategory.name}` : "Tạo danh mục"}
+        title={
+          editingCategory
+            ? `Chỉnh sửa: ${editingCategory.name}`
+            : "Tạo danh mục"
+        }
       >
         <Form form={form} layout="vertical">
-          <Form.Item name="name" label="Tên danh mục" rules={[{ required: true }]}>
+          <Form.Item
+            name="code"
+            label="Mã danh mục"
+            rules={[{ required: true }]}
+          >
             <Input />
           </Form.Item>
-          <Form.Item name="code" label="Mã danh mục" rules={[{ required: true }]}>
+          <Form.Item
+            name="name"
+            label="Tên danh mục"
+            rules={[{ required: true }]}
+          >
             <Input />
           </Form.Item>
+
           <Form.Item name="description" label="Mô tả">
             <Input />
           </Form.Item>
-          <Form.Item name="departmentId" label="Phòng ban" rules={[{ required: true }]}>
+          <Form.Item
+            name="departmentId"
+            label="Phòng ban"
+            rules={[{ required: true }]}
+          >
             <Select
               showSearch
               placeholder="Chọn phòng ban"
               optionFilterProp="children"
               filterOption={(input, option) =>
-                String(option?.children).toLowerCase().includes(input.toLowerCase())
+                String(option?.children)
+                  .toLowerCase()
+                  .includes(input.toLowerCase())
               }
             >
               {departments.map((dept) => (

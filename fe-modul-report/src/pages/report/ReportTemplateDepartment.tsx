@@ -39,12 +39,14 @@ const ReportTemplateDepartment = () => {
   const [groups, setGroups] = useState<ReportGroup[]>([]);
   const [searchText, setSearchText] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingReport, setEditingReport] = useState<ReportTemplateResponse | null>(null);
+  const [editingReport, setEditingReport] =
+    useState<ReportTemplateResponse | null>(null);
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState<RcFile[]>([]);
   const nav = useNavigate();
   const [messageApi, contextHolderMessage] = message.useMessage();
   const [modal, contextHolderModal] = Modal.useModal();
+
   useEffect(() => {
     if (!departmentId) return;
     const fetchCategories = async () => {
@@ -70,6 +72,34 @@ const ReportTemplateDepartment = () => {
     };
     fetchCategories();
   }, [departmentId, searchText]);
+
+  const handleView = (record: ReportTemplateResponse) => {
+    const getExtension = (path: string) => {
+      if (!path) return "";
+      const name = path.split("/").pop() || "";
+      return name.split(".").pop()?.toLowerCase() || "";
+    };
+
+    if (record.reportId) {
+      return nav(`/reports/template/us/${record.reportId}`);
+    }
+
+    if (!record.fileKey) {
+      return messageApi.error("Chưa có file cho báo cáo này");
+    }
+
+    const ext = getExtension(record.fileKey);
+
+    if (ext === "xlsx" || ext === "xls") {
+      nav(`/reports/template/view/excel/${encodeURIComponent(record.fileKey)}`);
+    } else if (ext === "pdf") {
+      return messageApi.info("Preview PDF đang được phát triển");
+    } else if (ext === "doc" || ext === "docx") {
+      return messageApi.info("Preview Word đang được phát triển");
+    } else {
+      messageApi.warning("Không hỗ trợ xem loại file này");
+    }
+  };
 
   const handleCategoryClick = async (categoryId: string) => {
     const grpIndex = groups.findIndex((g) => g.id === categoryId);
@@ -146,7 +176,7 @@ const ReportTemplateDepartment = () => {
         reportType: values.reportType,
         file,
         reportCategoryId: values.reportCategoryId,
-        id: editingReport?.id, // nếu có thì là update
+        id: editingReport?.id,
       };
 
       if (editingReport) {
@@ -178,7 +208,6 @@ const ReportTemplateDepartment = () => {
       key: "employeeName",
       width: 150,
     },
-
     {
       title: "Loại",
       dataIndex: "reportType",
@@ -186,17 +215,23 @@ const ReportTemplateDepartment = () => {
       width: 120,
       render: (type?: string) => <Tag color={typeColor(type)}>{type}</Tag>,
     },
-
     {
       title: "Thao tác",
       key: "action",
       width: 180,
       render: (_: any, record: ReportTemplateResponse) => (
         <Space>
-          <Button size="small" onClick={() => record.reportId && nav(`/reports/template/us/${record.reportId}`)}>
+          <Button size="small" onClick={() => handleView(record)}>
             Xem
           </Button>
-          <Button size="small" onClick={() => (record.reportId && nav(`/reports/template/edit/${record.reportId}`) ) || (!record.reportId && handleEdit(record))}>
+          <Button
+            size="small"
+            onClick={() =>
+              (record.reportId &&
+                nav(`/reports/template/edit/${record.reportId}`)) ||
+              (!record.reportId && handleEdit(record))
+            }
+          >
             Sửa
           </Button>
           <Button
@@ -205,7 +240,8 @@ const ReportTemplateDepartment = () => {
             onClick={() =>
               handleDelete(
                 record.id!,
-                groups.find((g) => g.reports.some((r) => r.id === record.id))?.id!
+                groups.find((g) => g.reports.some((r) => r.id === record.id))
+                  ?.id!
               )
             }
           >
@@ -220,7 +256,13 @@ const ReportTemplateDepartment = () => {
     <div>
       {contextHolderMessage}
       {contextHolderModal}
-      <Space style={{ marginBottom: 16, width: "100%", justifyContent: "space-between" }}>
+      <Space
+        style={{
+          marginBottom: 16,
+          width: "100%",
+          justifyContent: "space-between",
+        }}
+      >
         <Input
           placeholder="Tìm kiếm báo cáo..."
           value={searchText}
@@ -232,31 +274,36 @@ const ReportTemplateDepartment = () => {
         </Button>
       </Space>
 
-      <Collapse
-        accordion={false}
-        style={{
-          borderRadius: 8,
-          backgroundColor: "#e0f7fa",
-          border: "1px solid #d9d9d9",
-        }}
-        onChange={(keys) => {
-          if (!keys) return;
-          const keyArray = Array.isArray(keys) ? keys : [keys];
-          keyArray.forEach((id) => handleCategoryClick(id));
-        }}
-      >
+      {/* Bọc Collapse bằng div có gap */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {groups.map((grp) => (
-          <Panel header={`${grp.name} - ${grp.code}`} key={grp.id}>
-            <Table
-              dataSource={grp.reports}
-              columns={columns}
-              rowKey="id"
-              pagination={false}
-              showHeader={false}
-            />
-          </Panel>
+          <Collapse
+            key={grp.id}
+            accordion={false}
+            style={{
+              borderRadius: 8,
+              backgroundColor: "#e0f7fa",
+              border: "1px solid #d9d9d9",
+              overflow: "hidden",
+            }}
+            onChange={(keys) => {
+              if (!keys) return;
+              const keyArray = Array.isArray(keys) ? keys : [keys];
+              keyArray.forEach((id) => handleCategoryClick(id));
+            }}
+          >
+            <Panel header={`${grp.name} - ${grp.code}`} key={grp.id}>
+              <Table
+                dataSource={grp.reports}
+                columns={columns}
+                rowKey="id"
+                pagination={false}
+                showHeader={false}
+              />
+            </Panel>
+          </Collapse>
         ))}
-      </Collapse>
+      </div>
 
       <Modal
         title={editingReport ? "Sửa báo cáo" : "Thêm báo cáo"}
@@ -301,7 +348,9 @@ const ReportTemplateDepartment = () => {
           {form.getFieldValue("reportType") === "STATIC" && (
             <Form.Item
               label="Upload file"
-              rules={[{ required: true, message: "Chọn file cho báo cáo tĩnh" }]}
+              rules={[
+                { required: true, message: "Chọn file cho báo cáo tĩnh" },
+              ]}
             >
               <Upload
                 beforeUpload={(file) => {

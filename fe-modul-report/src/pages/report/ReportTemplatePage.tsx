@@ -11,7 +11,9 @@ const ReportTemplatePage = () => {
   const [page, setPage] = useState(0);
   const [limit] = useState(8);
   const [keyword, setKeyword] = useState("");
-  const [reportCounts, setReportCounts] = useState<Record<string, Record<string, number>>>({}); // { departmentId: { reportName: count } }
+  const [reportCounts, setReportCounts] = useState<
+    Record<string, Record<string, number>>
+  >({});
 
   const navigate = useNavigate();
 
@@ -21,10 +23,11 @@ const ReportTemplatePage = () => {
       setDepartments(res.content);
       setTotal(res.totalElements);
 
-      // Lấy số báo cáo cho từng phòng ban
       const counts = await Promise.all(
         res.content.map(async (dep) => {
-          const countRes = await reportCategoryApi.getCountByDepartment(dep.id!);
+          const countRes = await reportCategoryApi.getCountByDepartment(
+            dep.id!
+          );
           return { depId: dep.id!, counts: countRes };
         })
       );
@@ -35,7 +38,6 @@ const ReportTemplatePage = () => {
       });
 
       setReportCounts(newReportCounts);
-
     } catch (err) {
       console.log(err);
       message.error("Lỗi tải phòng ban");
@@ -78,7 +80,8 @@ const ReportTemplatePage = () => {
       <Row gutter={[24, 24]}>
         {departments.map((dep) => {
           const counts = reportCounts[dep.id!] || {};
-          const totalCount = Object.values(counts).reduce((a, b) => a + b, 0) || 1; // tránh chia 0
+          const totalCount =
+            Object.values(counts).reduce((a, b) => a + b, 0) || 1;
 
           return (
             <Col span={6} key={dep.id}>
@@ -96,9 +99,15 @@ const ReportTemplatePage = () => {
               >
                 {Object.entries(counts).map(([reportName, value]) => (
                   <div key={reportName} style={{ marginBottom: 12 }}>
-                    <div style={{ fontWeight: 500, marginBottom: 4 }}>{reportName}</div>
+                    <div style={{ fontWeight: 500, marginBottom: 4 }}>
+                      {reportName}
+                    </div>
                     <Progress
-                      percent={((value / totalCount) * 100).toFixed(1) as unknown as number}
+                      percent={
+                        ((value / totalCount) * 100).toFixed(
+                          1
+                        ) as unknown as number
+                      }
                       status="active"
                     />
                   </div>
