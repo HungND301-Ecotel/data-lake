@@ -35,4 +35,7 @@ public class ReportCategory {
 
     @OneToMany(mappedBy = "reportCategory")
     private List<ReportTemplate> reportTemplates;
+
+    @OneToMany(mappedBy = "reportCategory")
+    private List<ReportStorage> reportStorages;
 }

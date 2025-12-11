@@ -18,4 +18,16 @@ public class FileController {
     public ResponseEntity<Resource> getFileKey(@RequestParam String fileKey){
         return s3Service.getFile(fileKey);
     }
+
+    @GetMapping("/v2")
+    public ResponseEntity<Resource> getFileV2(@RequestParam String fileKey){
+        return s3Service.getFileV2(fileKey);
+    }
+
+    @GetMapping("/v3")
+    public ResponseEntity<Resource> getFileV3(@RequestParam String fileKey){
+        return s3Service.getFileV3(fileKey);
+    }
+
+
 }

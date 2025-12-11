@@ -1,7 +1,10 @@
 spring:
   application:
     name: report
-
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
   datasource:
     url: jdbc:postgresql://localhost:5432/report
     username: admin
@@ -14,6 +17,7 @@ spring:
     defer-datasource-initialization: true
 server:
   port: 8080
+
 aws:
   accessKeyId: ${AWS_ACCESSKEYID}
   secretAccessKey: ${AWS_SECRETACCESSKEY}
