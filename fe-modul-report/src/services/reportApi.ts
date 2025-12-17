@@ -65,6 +65,13 @@ const reportApi = {
     return res.data;
   },
 
+  queryList: async (query: string) => {
+    const res = await axiosClient.get<[]>(`/data/query-map`, {
+      params: { query },
+    });
+    return res.data;
+  },
+
   
 };
 

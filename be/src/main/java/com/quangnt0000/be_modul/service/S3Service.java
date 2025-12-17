@@ -1,7 +1,7 @@
 package com.quangnt0000.be_modul.service;
 
 import com.quangnt0000.be_modul.dto.FileResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -24,16 +24,12 @@ import java.io.InputStream;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class S3Service {
     @Value("${aws.s3.bucket}")
     private String bucket;
 
     private final S3Client s3Client;
-
-    @Autowired
-    public S3Service(S3Client s3Client) {
-        this.s3Client = s3Client;
-    }
 
     public FileResponse uploadFile(String key, MultipartFile file) {
         try {
@@ -51,16 +47,16 @@ public class S3Service {
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucket)
                     .key(fileName)
+                    .contentType(file.getContentType())
                     .build();
 
             s3Client.putObject(putObjectRequest, RequestBody.fromBytes(file.getBytes()));
             return FileResponse.builder()
                     .key(fileName)
-                    .fileUrl("https://" + bucket + ".s3.amazonaws.com/" + fileName)
                     .type(file.getContentType())
                     .build();
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "S3 upload error");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 
@@ -164,5 +160,7 @@ public class S3Service {
         }
     }
 
-    
+
+
+
 }

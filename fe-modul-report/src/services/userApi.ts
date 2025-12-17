@@ -26,5 +26,10 @@ export const userApi = {
       const res = await axiosClient.get(`/user/employee/${employeeId}`);
       return res.data;
     },
+
+    getMyAccount: async (): Promise<UserResponse> => {
+      const res = await axiosClient.get(`/user/my-account`);
+      return res.data;
+    },
     
 };

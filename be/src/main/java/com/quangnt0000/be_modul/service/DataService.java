@@ -2,7 +2,9 @@ package com.quangnt0000.be_modul.service;
 
 import com.quangnt0000.be_modul.dto.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -14,20 +16,36 @@ import java.util.Map;
 public class DataService {
     private final JdbcTemplate jdbcTemplate;
     public List<Map<String, Object>> getReport(DataDTO request) {
-        //SELECT
-        StringBuilder sql = new StringBuilder("SELECT ");
-        sql.append(createSelect(request));
-        //FROM
-        sql.append(createFrom(request));
-        //WHERE
-        sql.append(createFilter(request));
-        //GROUP
-//        sql.append(createGroupBy(request));
-        //ORDER
-        sql.append(createOrderBy(request));
-        System.out.println(sql);
+        try {
+            JdbcTemplate jdbcTemplate = this.jdbcTemplate;
+            if (request.getUrl() != null) {
+                DriverManagerDataSource tempDataSource = new DriverManagerDataSource();
+                tempDataSource.setDriverClassName("org.postgresql.Driver");
+                tempDataSource.setUrl(request.getUrl());
+                tempDataSource.setUsername(request.getUsername());
+                tempDataSource.setPassword(request.getPassword());
 
-        return jdbcTemplate.queryForList(sql.toString());
+                jdbcTemplate = new JdbcTemplate(tempDataSource);
+            }
+
+
+            //SELECT
+            StringBuilder sql = new StringBuilder("SELECT ");
+            sql.append(createSelect(request));
+            //FROM
+            sql.append(createFrom(request));
+            //WHERE
+            sql.append(createFilter(request));
+            //GROUP
+            //        sql.append(createGroupBy(request));
+            //ORDER
+            sql.append(createOrderBy(request));
+            System.out.println(sql);
+
+            return jdbcTemplate.queryForList(sql.toString());
+        }catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public String queryJdbcSingleValue(String sqlSyntax) {
@@ -45,6 +63,12 @@ public class DataService {
         // convert thành string
         return value != null ? value.toString() : "";
     }
+
+    public ResponseEntity<List<String>> queryList(String sqlSyntax) {
+        List<String> result = jdbcTemplate.queryForList(sqlSyntax, String.class);
+        return ResponseEntity.ok(result);
+    }
+
 
 
     public String createSelect(DataDTO report) {
@@ -72,14 +96,14 @@ public class DataService {
 
         StringBuilder filterSql = new StringBuilder(" WHERE 1 = 1");
         for (FilterDTO filter : report.getFilters()){
-            if(filter.getDefaultOperator() == null || filter.getDefaultOperator().equals("")) continue;
+            if(filter.getDefaultOperator() == null || filter.getDefaultOperator().equals("") || filter.getDefaultValue().equals("")) continue;
             String fieldKey = filter.getFieldKey();
             String operator = filter.getDefaultOperator();
             String rawValue = filter.getDefaultValue();
             String formattedValue = "";
 
             switch (filter.getValueType().toUpperCase()) {
-                case "LIST":
+                case "SELECT":
                     // Tách chuỗi "a,b,c" → ('a','b','c')
                     List<String> items = List.of(rawValue.split(","));
                     String joined = items.stream()

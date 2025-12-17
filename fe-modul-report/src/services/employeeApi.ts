@@ -35,5 +35,10 @@ export const employeeApi = {
       const res = await axiosClient.get(`/employee/${employeeId}`);
       return res.data;
     },
+
+    getMyProfile: async (): Promise<EmployeeResponse> => {
+      const res = await axiosClient.get(`/employee/my-profile`);
+      return res.data;
+    },
     
   };

@@ -1,9 +1,5 @@
 package com.quangnt0000.be_modul.modal.Data;
 
-import com.quangnt0000.be_modul.dto.FieldDTO;
-import com.quangnt0000.be_modul.dto.FilterDTO;
-import com.quangnt0000.be_modul.dto.OrderDTO;
-import com.quangnt0000.be_modul.dto.SubDTO;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,6 +24,10 @@ public class DataEntity {
     private float weightIndex;
     private String fontName;
     private int fontSize;
+
+    private String url;
+    private String username;
+    private String password;
 
     @OneToMany(mappedBy = "data", cascade = CascadeType.REMOVE)
     private List<SubEntity> subs;

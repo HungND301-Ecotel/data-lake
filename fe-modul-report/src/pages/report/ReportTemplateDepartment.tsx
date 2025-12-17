@@ -12,6 +12,8 @@ import {
   Upload,
   message,
   Space,
+  Col,
+  Row,
 } from "antd";
 import { UploadOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import type { RcFile } from "antd/es/upload";
@@ -91,9 +93,9 @@ const ReportTemplateDepartment = () => {
     const ext = getExtension(record.fileKey);
 
     if (ext === "xlsx" || ext === "xls") {
-      nav(`/reports/template/view/excel/${encodeURIComponent(record.fileKey)}`);
+      nav(`/reports/view/excel/${encodeURIComponent(record.fileKey)}`);
     } else if (ext === "pdf") {
-      return messageApi.info("Preview PDF đang được phát triển");
+      nav(`/reports/view/pdf/${encodeURIComponent(record.fileKey)}`);
     } else if (ext === "doc" || ext === "docx") {
       return messageApi.info("Preview Word đang được phát triển");
     } else {
@@ -256,23 +258,39 @@ const ReportTemplateDepartment = () => {
     <div>
       {contextHolderMessage}
       {contextHolderModal}
-      <Space
-        style={{
-          marginBottom: 16,
-          width: "100%",
-          justifyContent: "space-between",
-        }}
-      >
-        <Input
-          placeholder="Tìm kiếm báo cáo..."
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          style={{ flex: 1 }}
-        />
-        <Button type="primary" onClick={handleAddNew}>
-          + Thêm mới
-        </Button>
-      </Space>
+      <Row gutter={16} style={{ marginBottom: 16 }}>
+        {/* SEARCH */}
+        <Col flex="auto">
+          <Input
+            placeholder="Tìm kiếm báo cáo..."
+            value={searchText}
+            allowClear
+            onChange={(e) => {
+              const value = e.target.value;
+              setSearchText(value);
+            }}
+          />
+        </Col>
+
+        {/* TYPE FILTER */}
+        <Col>
+          <Select
+            placeholder="Loại báo cáo"
+            style={{ width: 160 }}
+          >
+            <Select.Option value="null">Tất cả</Select.Option>
+            <Select.Option value="STATIC">Báo cáo tĩnh</Select.Option>
+            <Select.Option value="DYNAMIC">Báo cáo động</Select.Option>
+          </Select>
+        </Col>
+
+        {/* ADD BUTTON */}
+        <Col>
+          <Button type="primary" onClick={handleAddNew}>
+            + Thêm mới
+          </Button>
+        </Col>
+      </Row>
 
       {/* Bọc Collapse bằng div có gap */}
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>

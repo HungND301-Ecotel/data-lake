@@ -32,6 +32,9 @@ export interface Data {
   id: string | null;
   mainTable: string;
   showIndex: boolean;
+  url?: string | null;
+  username?: string | null;
+  password?: string | null;
   weightIndex: number;
   description: string;
   fontName: string;
@@ -57,6 +60,7 @@ export interface Filter {
   valueType: string;
   defaultValue?: string | number | boolean | null;
   defaultOperator?: string;
+  queryValue?: string;
 }
 
 export interface Field {

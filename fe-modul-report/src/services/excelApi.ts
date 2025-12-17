@@ -1,6 +1,7 @@
+import type { Report } from "../types/report";
 import axiosClient from "./axiosClient";
 
-export const fileApi = {
+export const excelApi = {
   getFile: async (fileKey: string): Promise<Blob> => {
     const res = await axiosClient.get("/file", {
       params: { fileKey },
@@ -9,21 +10,6 @@ export const fileApi = {
     return res.data;
   },
 
-  getFileV2: async (fileKey: string): Promise<Blob> => {
-    const res = await axiosClient.get("/file/v2", {
-      params: { fileKey },
-      responseType: "blob",
-    });
-    return res.data;
-  },
-
-  getFileV3: async (fileKey: string): Promise<Blob> => {
-    const res = await axiosClient.get("/file/v3", {
-      params: { fileKey },
-      responseType: "blob",
-    });
-    return res.data;
-  },
 
   saveFile: async (file: Blob | File): Promise<any> => {
     const formData = new FormData();
@@ -35,6 +21,13 @@ export const fileApi = {
       },
     });
   
+    return res.data;
+  },
+
+  exportExcel: async (report: Report) => {
+    const res = await axiosClient.post("/excel", report, {
+      responseType: "arraybuffer",
+    });
     return res.data;
   },
   

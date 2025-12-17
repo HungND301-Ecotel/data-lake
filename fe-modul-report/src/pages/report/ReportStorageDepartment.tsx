@@ -12,6 +12,8 @@ import {
   Upload,
   message,
   Space,
+  Col,
+  Row,
 } from "antd";
 import { ExclamationCircleOutlined, UploadOutlined } from "@ant-design/icons";
 import type { RcFile } from "antd/es/upload";
@@ -48,7 +50,6 @@ const ReportStorageDepartment = () => {
   const [messageApi, contextHolderMessage] = message.useMessage();
   const [modal, contextHolderModal] = Modal.useModal();
 
-  // 1. Lấy category trước
   useEffect(() => {
     if (!departmentId) return;
 
@@ -67,20 +68,22 @@ const ReportStorageDepartment = () => {
           reports: null,
         }));
         setGroups(initialGroups);
-
-        // Sau khi có category mới gọi báo cáo
-        initialGroups.forEach((grp) =>
-          fetchReports(grp.id, searchText, 0, 10, statusFilter)
-        );
       } catch (err) {
         console.error(err);
         messageApi.error("Lấy danh sách category thất bại");
       }
     };
     fetchCategories();
-  }, [departmentId]);
+  }, [departmentId, messageApi]);
 
-  // 2. Fetch báo cáo theo category + keyword + pagination + status
+  useEffect(() => {
+    if (groups.length === 0) return;
+
+    groups.forEach((grp) => {
+      fetchReports(grp.id, searchText, 0, 10, statusFilter);
+    });
+  }, [groups]);
+
   const fetchReports = async (
     categoryId: string,
     keyword = "",
@@ -127,9 +130,9 @@ const ReportStorageDepartment = () => {
     const ext = getExtension(record.fileKey);
 
     if (ext === "xlsx" || ext === "xls") {
-      nav(`/reports/template/view/excel/${encodeURIComponent(record.fileKey)}`);
+      nav(`/reports/view/excel/${encodeURIComponent(record.fileKey)}`);
     } else if (ext === "pdf") {
-      return messageApi.info("Preview PDF đang được phát triển");
+      nav(`/reports/view/pdf/${encodeURIComponent(record.fileKey)}`);
     } else if (ext === "doc" || ext === "docx") {
       return messageApi.info("Preview Word đang được phát triển");
     } else {
@@ -262,35 +265,41 @@ const ReportStorageDepartment = () => {
       {contextHolderModal}
 
       {/* Thanh tìm kiếm + status */}
-      <Space style={{ marginBottom: 16, width: "100%" }}>
-        <Input
-          placeholder="Tìm kiếm báo cáo..."
-          value={searchText}
-          onChange={(e) => {
-            setSearchText(e.target.value);
-            updateReports(e.target.value, statusFilter);
-          }}
-          style={{ flex: 1 }}
-          allowClear
-        />
-        <Select
-          value={statusFilter}
-          onChange={(value) => {
-            setStatusFilter(value);
-            updateReports(searchText, value);
-          }}
-          style={{ width: 180 }}
-        >
-          <Option value="">Tất cả trạng thái</Option>
-          <Option value="PENDING">PENDING</Option>
-          <Option value="SUCCESS">SUCCESS</Option>
-          <Option value="IN_PROGRESS">IN_PROGRESS</Option>
-        </Select>
+      <Row gutter={16} style={{ marginBottom: 16 }}>
+        <Col flex="auto">
+          <Input
+            placeholder="Tìm kiếm báo cáo..."
+            value={searchText}
+            onChange={(e) => {
+              setSearchText(e.target.value);
+              updateReports(e.target.value, statusFilter);
+            }}
+            allowClear
+          />
+        </Col>
 
-        <Button type="primary" onClick={handleAddNew}>
-          + Thêm mới
-        </Button>
-      </Space>
+        <Col>
+          <Select
+            value={statusFilter}
+            style={{ width: 180 }}
+            onChange={(value) => {
+              setStatusFilter(value);
+              updateReports(searchText, value);
+            }}
+          >
+            <Option value="">Tất cả trạng thái</Option>
+            <Option value="PENDING">PENDING</Option>
+            <Option value="SUCCESS">SUCCESS</Option>
+            <Option value="IN_PROGRESS">IN_PROGRESS</Option>
+          </Select>
+        </Col>
+
+        <Col>
+          <Button type="primary" onClick={handleAddNew}>
+            + Thêm mới
+          </Button>
+        </Col>
+      </Row>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {groups.map((grp) => (

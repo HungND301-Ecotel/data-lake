@@ -5,6 +5,7 @@ import com.quangnt0000.be_modul.dto.User.UserRequest;
 import com.quangnt0000.be_modul.service.DataLake.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -32,4 +33,10 @@ public class UserController {
     public ResponseEntity<?> getUserByEmployeeId(@PathVariable ("employee-id") String employeeId){
         return userService.getUserByEmployeeId(employeeId);
     }
+
+    @GetMapping("/my-account")
+    public ResponseEntity<?> getMyAccount(){
+        return userService.getMyAccount();
+    }
+
 }

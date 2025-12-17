@@ -3,8 +3,8 @@ spring:
     name: report
   servlet:
     multipart:
-      max-file-size: 50MB
-      max-request-size: 50MB
+      max-file-size: 500MB
+      max-request-size: 500MB
   datasource:
     url: jdbc:postgresql://localhost:5432/report
     username: admin

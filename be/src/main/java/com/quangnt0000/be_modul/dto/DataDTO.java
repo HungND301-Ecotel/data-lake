@@ -19,6 +19,9 @@ public class DataDTO {
     private float weightIndex;
     private String fontName;
     private int fontSize;
+    private String url;
+    private String username;
+    private String password;
     private List<SubDTO> subs;
     private List<FieldDTO> fields;
     private List<FilterDTO> filters;

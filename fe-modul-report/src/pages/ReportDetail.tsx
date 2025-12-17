@@ -6,7 +6,7 @@ import {
   type DropResult,
 } from "@hello-pangea/dnd";
 import type { Data, Report, ReportItem, Table, Text } from "../types/report";
-import { FaTrash, FaEye, FaFilePdf, FaSave } from "react-icons/fa";
+import { FaTrash, FaEye, FaFilePdf, FaSave, FaFileExcel } from "react-icons/fa";
 import TextComponent from "../components/ViewUser.tsx/Text";
 import TableComponent from "../components/ViewUser.tsx/TableComponent";
 import DataComponent from "../components/ViewUser.tsx/DataComponent";
@@ -14,10 +14,13 @@ import reportApi from "../services/reportApi";
 import { useLocation, useParams } from "react-router-dom";
 import { v4 } from "uuid";
 import { message, Modal } from "antd";
+import PdfPreviewModal from "../components/previewReport/PdfPreviewModalProps ";
+import { excelApi } from "../services/excelApi";
 
 const ReportDetail: React.FC = () => {
   const location = useLocation();
   const isUserView = location.pathname.includes("/reports/template/us");
+  const [fileName, setFileName] = useState("report.pdf");
 
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);
@@ -94,7 +97,7 @@ const ReportDetail: React.FC = () => {
         } catch (err) {
           console.error("Xóa thất bại:", err);
           messageApi.error("Xóa thất bại, vui lòng thử lại");
-          throw err; // Giữ modal nếu onOk muốn báo lỗi
+          throw err;
         }
       },
     });
@@ -113,6 +116,31 @@ const ReportDetail: React.FC = () => {
       console.error("Lỗi xuất PDF:", error);
     }
   };
+
+  const handleExportExcel = async () => {
+    try {
+      if (!report) return;
+  
+      const excelBytes = await excelApi.exportExcel(report);
+  
+      console.log("fetched json:", JSON.stringify(report, null, 2));
+  
+      const blob = new Blob([excelBytes], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+  
+      const url = URL.createObjectURL(blob);
+  
+      window.open(url); 
+
+    } catch (error) {
+      console.error("Lỗi xuất Excel:", error);
+    }
+  };
+  
+
+  
+  
 
   const handleSave = async () => {
     try {
@@ -165,6 +193,13 @@ const ReportDetail: React.FC = () => {
               onClick={handleExportPdf}
             >
               <FaFilePdf /> Xem PDF
+            </button>
+
+            <button
+              className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700"
+              onClick={handleExportExcel}
+            >
+              <FaFileExcel /> Xem EXCEL
             </button>
           </div>
         </div>
@@ -423,23 +458,13 @@ const ReportDetail: React.FC = () => {
         </Droppable>
       </DragDropContext>
 
-      {pdfModalOpen && pdfUrl && (
-        <div
-          className="fixed inset-0 z-50 flex justify-center items-start pt-10"
-          onClick={() => setPdfModalOpen(false)}
-        >
-          <div
-            className="w-4/5 h-4/5 bg-white rounded shadow-lg border border-gray-300"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <iframe
-              src={pdfUrl}
-              className="w-full h-full rounded"
-              title="PDF Preview"
-            />
-          </div>
-        </div>
-      )}
+      <PdfPreviewModal
+        open={pdfModalOpen}
+        pdfUrl={pdfUrl}
+        fileName={fileName}
+        setFileName={setFileName}
+        onClose={() => setPdfModalOpen(false)}
+      />
     </div>
   );
 };

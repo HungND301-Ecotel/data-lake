@@ -19,4 +19,5 @@ public class FilterDTO {
     private String valueType;
     private String defaultValue;
     private String defaultOperator;
+    private String queryValue;
 }

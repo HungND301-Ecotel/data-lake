@@ -38,7 +38,7 @@ public class ExcelService {
 
             for (ReportItemDTO item : items) {
                 if (item.getType().equals("text")) {
-                    rowIndex = buildText(sheet, rowIndex, item);
+//                    rowIndex = buildText(sheet, rowIndex, item);
                 }
                 if (item.getType().equals("data")) {
                     rowIndex = buildDataTable(sheet, rowIndex, item, request);
@@ -117,12 +117,52 @@ public class ExcelService {
                 .sorted(Comparator.comparing(FieldDTO::getIndex))
                 .toList();
 
-        boolean allGroupEmpty = sortedFields.stream()
-                .allMatch(f -> f.getGroupName() == null || f.getGroupName().isEmpty());
-
         Workbook wb = sheet.getWorkbook();
 
         // ===== Styles =====
+        CellStyle descStyle = wb.createCellStyle();
+        Font descFont = wb.createFont();
+        descFont.setBold(true);
+        descFont.setFontHeightInPoints((short) 12);
+        descStyle.setFont(descFont);
+        descStyle.setAlignment(HorizontalAlignment.LEFT);
+        descStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        // ===== Insert description row =====
+        if (dto.getDescription() != null && !dto.getDescription().isEmpty()) {
+            Row descRow = sheet.createRow(rowIndex++);
+            Cell descCell = descRow.createCell(0);
+            descCell.setCellValue(dto.getDescription());
+
+            // Style riêng cho description
+            CellStyle descriptionCellStyle = sheet.getWorkbook().createCellStyle();
+            Font descriptionFont = sheet.getWorkbook().createFont(); // đổi tên
+            descriptionFont.setBold(true);                   // In đậm
+            descriptionFont.setFontHeightInPoints((short) 12);
+            descriptionCellStyle.setFont(descriptionFont);
+            descriptionCellStyle.setAlignment(HorizontalAlignment.CENTER);  // Căn giữa ngang
+            descriptionCellStyle.setVerticalAlignment(VerticalAlignment.CENTER); // Căn giữa dọc
+            descCell.setCellStyle(descriptionCellStyle);
+
+            // Merge toàn bộ cột (bao gồm STT nếu có)
+            int totalCols = sortedFields.size();
+            if (totalCols > 1) {
+                sheet.addMergedRegion(new CellRangeAddress(
+                        descRow.getRowNum(),
+                        descRow.getRowNum(),
+                        0,
+                        totalCols - 1
+                ));
+            }
+
+            // Thêm 1 dòng trống
+            rowIndex++;
+        }
+
+
+
+
+        // ===== Styles cho bảng =====
         CellStyle headerStyle = wb.createCellStyle();
         Font bold = wb.createFont();
         bold.setBold(true);
@@ -133,6 +173,8 @@ public class ExcelService {
         headerStyle.setBorderBottom(BorderStyle.THIN);
         headerStyle.setBorderLeft(BorderStyle.THIN);
         headerStyle.setBorderRight(BorderStyle.THIN);
+        headerStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
+        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
         CellStyle dataStyle = wb.createCellStyle();
         dataStyle.setAlignment(HorizontalAlignment.CENTER);
@@ -144,7 +186,10 @@ public class ExcelService {
 
         int startRow = rowIndex;
 
-        // ===== Group Header =====
+        // ===== Group Header và Header Row =====
+        boolean allGroupEmpty = sortedFields.stream()
+                .allMatch(f -> f.getGroupName() == null || f.getGroupName().isEmpty());
+
         if (!allGroupEmpty) {
             Row groupRow = sheet.createRow(rowIndex++);
             String current = "";
@@ -154,7 +199,6 @@ public class ExcelService {
                 FieldDTO f = sortedFields.get(i);
 
                 if (f.getGroupName() == null || f.getGroupName().isEmpty()) {
-                    // Merge vertically: rowspan = 2
                     Cell cell = groupRow.createCell(i);
                     cell.setCellValue(f.getAlias());
                     setBordersForMergedRegion(sheet, new CellRangeAddress(startRow, startRow + 1, i, i), headerStyle);
@@ -177,7 +221,7 @@ public class ExcelService {
             }
         }
 
-        // ===== Header Row =====
+        // Header row
         Row header = sheet.createRow(rowIndex++);
         for (int i = 0; i < sortedFields.size(); i++) {
             FieldDTO f = sortedFields.get(i);
@@ -186,7 +230,6 @@ public class ExcelService {
             Cell cell = header.createCell(i);
             cell.setCellValue(f.getAlias());
             cell.setCellStyle(headerStyle);
-
             sheet.setColumnWidth(i, (int) (f.getWeight() * 256));
         }
 
@@ -204,6 +247,7 @@ public class ExcelService {
 
         return rowIndex;
     }
+
 
     private void setBordersForMergedRegion(Sheet sheet, CellRangeAddress region, CellStyle baseStyle) {
         Workbook wb = sheet.getWorkbook();

@@ -11,8 +11,9 @@ import ReportTemplateDepartment from "../pages/report/ReportTemplateDepartment";
 import ReportCategoryPage from "../pages/category/ReportCategory";
 import DepartmentCategoryPage from "../pages/category/DepartmentCategoryPage";
 import LoginPage from "../pages/user/LoginPage";
-import Luckysheet from "../components/xlsx/Luckysheet";
-import LuckeyExcelViewer from "../components/xlsx/LuckeyExcel";
+import LuckeyExcelViewer from "../components/previewFile/LuckeyExcel";
+import PreviewFilePdf from "../components/previewFile/PreviewFilePdf";
+import ProfilePage from "../pages/Employee/ProfilePage";
 
 export const router = createBrowserRouter([
   {
@@ -21,14 +22,20 @@ export const router = createBrowserRouter([
     children: [
       { path: "/", element: <DashboardPage /> },
       { path: "/employee", element: <EmployeePage /> },
+      { path: "/employee/:employeeId", element: <ProfilePage /> },
 
 
       { path: "/category/report", element: <ReportCategoryPage/> },
       { path: "/category/departments", element: <DepartmentCategoryPage/> },
 
       {
-        path: "/reports/template/view/excel/:fileKey",
+        path: "/reports/view/excel/:fileKey",
         element: <LuckeyExcelViewer />,
+      },
+
+      {
+        path: "/reports/view/pdf/:fileKey",
+        element: <PreviewFilePdf />,
       },
       
 
@@ -51,10 +58,5 @@ export const router = createBrowserRouter([
     
   },
 
-  {
-    path: "/sheet",
-    element: <Luckysheet />,
-    
-  },
   
 ]);

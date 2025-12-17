@@ -10,7 +10,7 @@ import { FilterUsingComponent } from "../DataUsingComponent/FilterUsingComponent
 
 interface DataProps {
   data: Data;
-  editMode?: boolean; // true nếu modal, false nếu hiển thị ngoài
+  editMode?: boolean;
   onChange?: (updated: Data) => void;
 }
 
@@ -38,6 +38,9 @@ const DataComponent: React.FC<DataProps> = ({
     description: data.description,
     fontName: data.fontName,
     fontSize: data.fontSize,
+    url: data.url,
+    username: data.username,
+    password: data.password
   });
 
   // Đồng bộ dữ liệu lên parent khi thay đổi
@@ -179,16 +182,45 @@ const DataComponent: React.FC<DataProps> = ({
               </select>
             </div>
           </div>
+
+          {/* Dòng 4: DB connection info */}
+          <div className="flex justify-between space-x-4">
+            <div className="flex-1">
+              <label className="block mb-1">DB URL:</label>
+              <Input
+                value={info.url ?? ""}
+                onChange={(e) => setInfo({ ...info, url: e.target.value })}
+                placeholder="jdbc:postgresql://host:port/db"
+              />
+            </div>
+
+            <div className="flex-1">
+              <label className="block mb-1">DB Username:</label>
+              <Input
+                value={info.username ?? ""}
+                onChange={(e) => setInfo({ ...info, username: e.target.value })}
+                placeholder="Username"
+              />
+            </div>
+
+            <div className="flex-1">
+              <label className="block mb-1">DB Password:</label>
+              <Input.Password
+                value={info.password ?? ""}
+                onChange={(e) => setInfo({ ...info, password: e.target.value })}
+                placeholder="Password"
+              />
+            </div>
+          </div>
         </div>
       </TabPane>
 
       {/* Bảng liên kết */}
       {isEditMode && (
         <TabPane tab="Bảng liên kết" key="2">
-        <SubsComponent subs={subs} onUpdate={setSubs} />
-      </TabPane>
+          <SubsComponent subs={subs} onUpdate={setSubs} />
+        </TabPane>
       )}
-      
 
       {/* Fields */}
       <TabPane tab="Fields" key="3">

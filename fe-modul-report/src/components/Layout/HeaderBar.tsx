@@ -20,7 +20,8 @@ const HeaderBar = () => {
   if (location.pathname === "/") title = "Trang chủ";
   else if (location.pathname === "/reports/template") title = "Mẫu báo cáo";
   else if (location.pathname === "/reports/storage") title = "Kho lưu trữ";
-  else if (location.pathname.startsWith("/reports/")) title = "Chi tiết báo cáo";
+  else if (location.pathname.startsWith("/reports/"))
+    title = "Chi tiết báo cáo";
   else title = "";
 
   // MENU DROPDOWN
@@ -29,7 +30,7 @@ const HeaderBar = () => {
       key: "profile",
       label: "Thông tin cá nhân",
       icon: <UserOutlined />,
-      onClick: () => navigate("/profile"),
+      onClick: () => navigate(`/employee/1`),
     },
     {
       key: "logout",
@@ -40,12 +41,11 @@ const HeaderBar = () => {
         // Xóa token và refreshToken
         localStorage.removeItem("token");
         localStorage.removeItem("refreshToken");
-    
+
         // Chuyển hướng về trang login
         navigate("/login");
       },
-    }
-    
+    },
   ];
 
   return (
@@ -56,7 +56,10 @@ const HeaderBar = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
+
+        borderBottom: "1px solid #f0f0f0",
+        boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+        zIndex: 10,
       }}
     >
       {/* LEFT */}

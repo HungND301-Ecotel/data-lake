@@ -225,7 +225,7 @@ const EmployeePage = () => {
   ];
 
   return (
-    <div className="w-full h-full bg-white p-4">
+    <div className="w-full h-full bg-white ">
       {contextHolderModal}
       {contextHolderMessage}
 
@@ -439,8 +439,13 @@ const EmployeePage = () => {
               ))}
             </Select>
           </Form.Item>
-          <Form.Item name="avatarFile" label="Thay đổi Avatar">
-            <Upload maxCount={1} listType="picture">
+          <Form.Item
+            name="avatarFile"
+            label="Thay đổi Avatar"
+            valuePropName="fileList"
+            getValueFromEvent={(e) => (Array.isArray(e) ? e : e?.fileList)}
+          >
+            <Upload beforeUpload={() => false} maxCount={1} listType="picture">
               <Button icon={<UploadOutlined />}>Chọn ảnh</Button>
             </Upload>
           </Form.Item>
