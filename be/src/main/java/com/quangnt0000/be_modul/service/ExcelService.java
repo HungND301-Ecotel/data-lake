@@ -38,7 +38,7 @@ public class ExcelService {
 
             for (ReportItemDTO item : items) {
                 if (item.getType().equals("text")) {
-//                    rowIndex = buildText(sheet, rowIndex, item);
+                    rowIndex = buildText(sheet, rowIndex, item, calculateMaxColumns(request));
                 }
                 if (item.getType().equals("data")) {
                     rowIndex = buildDataTable(sheet, rowIndex, item, request);
@@ -65,9 +65,9 @@ public class ExcelService {
         }
     }
 
-    private int buildText(Sheet sheet, int rowIndex, ReportItemDTO item) {
-        Row row = sheet.createRow(rowIndex);
+    private int buildText(Sheet sheet, int rowIndex, ReportItemDTO item, int totalCols) {
 
+        Row row = sheet.createRow(rowIndex);
         TextDTO dto = new ObjectMapper().convertValue(item.getObject(), TextDTO.class);
 
         Cell cell = row.createCell(0);
@@ -80,17 +80,33 @@ public class ExcelService {
         font.setItalic(dto.getFontStyle().contains("italic"));
         style.setFont(font);
 
+        // align
         switch (dto.getAlign().toUpperCase()) {
             case "CENTER" -> style.setAlignment(HorizontalAlignment.CENTER);
             case "RIGHT" -> style.setAlignment(HorizontalAlignment.RIGHT);
             default -> style.setAlignment(HorizontalAlignment.LEFT);
         }
 
+        style.setVerticalAlignment(VerticalAlignment.CENTER);
+        style.setWrapText(true); // ⭐ QUAN TRỌNG
+
         cell.setCellStyle(style);
-        sheet.addMergedRegion(new CellRangeAddress(rowIndex, rowIndex, 0, 10));
+
+        // merge theo số cột
+        if (totalCols > 1) {
+            sheet.addMergedRegion(
+                    new CellRangeAddress(rowIndex, rowIndex, 0, totalCols - 1)
+            );
+        }
+
+        // ⭐ tăng chiều cao theo số dòng
+        int lineCount = dto.getContent().split("\n").length;
+        row.setHeightInPoints(lineCount * (dto.getFontSize() + 4));
 
         return rowIndex + 1;
     }
+
+
 
 
     private int buildDataTable(Sheet sheet, int rowIndex, ReportItemDTO item, ReportDTO report) throws Exception {
@@ -373,6 +389,49 @@ public class ExcelService {
 
         return rowIndex + maxRow + 2;
     }
+
+    private int calculateMaxColumns(ReportDTO report) {
+
+        int max = 1;
+        ObjectMapper mapper = new ObjectMapper();
+
+        for (ReportItemDTO item : report.getItems()) {
+
+            // ===== DATA TABLE =====
+            if ("data".equals(item.getType())) {
+                DataDTO dto = mapper.convertValue(item.getObject(), DataDTO.class);
+
+                int colCount = (int) dto.getFields().stream()
+                        .filter(FieldDTO::isVisible)
+                        .count();
+
+                if (dto.isShowIndex()) colCount++;
+
+                max = Math.max(max, colCount);
+            }
+
+            // ===== CUSTOM TABLE =====
+            if ("table".equals(item.getType())) {
+                TableDTO dto = mapper.convertValue(item.getObject(), TableDTO.class);
+
+                if (dto.getColumns() != null) {
+                    int maxCol = dto.getColumns().stream()
+                            .mapToInt(c -> c.getCol() + (
+                                    c.getColSpan() != null
+                                            ? Integer.parseInt(c.getColSpan()) - 1
+                                            : 0
+                            ))
+                            .max()
+                            .orElse(0);
+
+                    max = Math.max(max, maxCol + 1);
+                }
+            }
+        }
+
+        return max;
+    }
+
 
 
 
