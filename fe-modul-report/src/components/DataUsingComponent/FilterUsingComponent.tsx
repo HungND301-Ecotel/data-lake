@@ -2,12 +2,12 @@ import React, { useState } from "react";
 import { Input, Select, Modal, Checkbox, Button, message, Spin } from "antd";
 import type { Filter } from "../../types/report";
 import reportApi from "../../services/reportApi";
+import { DatePicker } from "antd";
+import dayjs from "dayjs";
 
 const { Option } = Select;
 
-/* =======================
-   MAP OPERATOR LABEL
-======================= */
+
 const OPERATOR_LABEL_MAP: Record<string, string> = {
   "=": "So sánh bằng",
   "!=": "Không bằng",
@@ -25,7 +25,6 @@ const VALUE_TYPE_PLACEHOLDER_MAP: Record<string, string> = {
   INPUT: "Nhập giá trị",
   RANGE: "Nhập khoảng",
   DATE: "Chọn ngày",
-  DATE_RANGE: "Chọn khoảng thời gian",
 };
 
 interface Props {
@@ -37,31 +36,22 @@ export const FilterUsingComponent: React.FC<Props> = ({
   filters,
   onUpdate,
 }) => {
-  /* =======================
-      SELECT MODAL STATE
-  ======================= */
   const [selectModalOpen, setSelectModalOpen] = useState(false);
   const [selectValues, setSelectValues] = useState<string[]>([]);
   const [selectOptions, setSelectOptions] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
   const [loadingOptions, setLoadingOptions] = useState(false);
 
-  /* =======================
-        UPDATE FILTER
-  ======================= */
+
   const updateFilter = (index: number, key: keyof Filter, value: any) => {
     const updated = [...filters];
     updated[index] = { ...updated[index], [key]: value };
     onUpdate(updated);
   };
 
-  /* =======================
-      OPEN SELECT MODAL
-  ======================= */
   const openSelectModal = async (filter: Filter, index: number) => {
     setCurrentIndex(index);
 
-    // map defaultValue "A,B" -> ["A","B"]
     if (filter.defaultValue) {
       setSelectValues(String(filter.defaultValue).split(","));
     } else {
@@ -96,15 +86,73 @@ export const FilterUsingComponent: React.FC<Props> = ({
     setSelectModalOpen(false);
   };
 
+ 
+
   const renderInputByType = (filter: Filter, index: number) => {
     let value = filter.defaultValue ?? "";
     if (typeof value === "boolean" || typeof value === "number") {
       value = String(value);
     }
-
+  
     const placeholder =
       VALUE_TYPE_PLACEHOLDER_MAP[filter.valueType] ?? "Nhập giá trị";
-
+  
+    const isBetween = filter.defaultOperator === "BETWEEN";
+  
+    if (filter.valueType === "DATE") {
+      if (isBetween) {
+        const [start, end] = value
+          ? value
+              .split(" and ")
+              .map((v) => v.replace(/'/g, "").trim())
+          : [];
+      
+        return (
+          <DatePicker.RangePicker
+            style={{ width: "100%" }}
+            format="DD/MM/YYYY"   
+            placeholder={["Ngày bắt đầu", "Ngày kết thúc"]}
+            value={[
+              start ? dayjs(start, "YYYY-MM-DD") : null,
+              end ? dayjs(end, "YYYY-MM-DD") : null,
+            ]}
+            onChange={(dates) => {
+              if (!dates || !dates[0] || !dates[1]) {
+                updateFilter(index, "defaultValue", "");
+                return;
+              }
+      
+              const startVal = dates[0].format("YYYY-MM-DD");
+              const endVal = dates[1].format("YYYY-MM-DD");
+      
+              updateFilter(
+                index,
+                "defaultValue",
+                `'${startVal}' and '${endVal}'`
+              );
+            }}
+          />
+        );
+      }
+      
+  
+      return (
+        <DatePicker
+          style={{ width: "100%" }}
+          format="DD/MM/YYYY"   
+          placeholder={placeholder}
+          value={value ? dayjs(value, "YYYY-MM-DD") : null}
+          onChange={(date) =>
+            updateFilter(
+              index,
+              "defaultValue",
+              date ? date.format("YYYY-MM-DD") : ""
+            )
+          }
+        />
+      );
+    }
+  
     if (filter.valueType === "SELECT") {
       return (
         <Input
@@ -115,7 +163,7 @@ export const FilterUsingComponent: React.FC<Props> = ({
         />
       );
     }
-
+  
     return (
       <Input
         value={value}
@@ -126,6 +174,8 @@ export const FilterUsingComponent: React.FC<Props> = ({
       />
     );
   };
+  
+  
 
   return (
     <>
@@ -150,12 +200,10 @@ export const FilterUsingComponent: React.FC<Props> = ({
                 gap: 8,
               }}
             >
-              {/* ALIAS */}
               <div style={{ width: 140, fontWeight: 600 }}>
                 {f.alias}
               </div>
 
-              {/* OPERATOR */}
               <Select
                 value={f.defaultOperator ?? "..."}
                 style={{ width: 160 }}
@@ -175,7 +223,6 @@ export const FilterUsingComponent: React.FC<Props> = ({
                 ))}
               </Select>
 
-              {/* VALUE */}
               <div style={{ flex: 1 }}>
                 {renderInputByType(f, index)}
               </div>

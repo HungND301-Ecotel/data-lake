@@ -41,5 +41,8 @@ public class DataEntity {
     @OneToMany(mappedBy = "data", cascade = CascadeType.REMOVE)
     private List<OrderEntity> orders;
 
+    @OneToMany(mappedBy = "data", cascade = CascadeType.REMOVE)
+    private List<GroupEntity> groups;
+
     private String reportItemId;
 }

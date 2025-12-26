@@ -1,15 +1,5 @@
 import React, { useState } from "react";
-import {
-  Table,
-  Input,
-  Select,
-  Button,
-  Popconfirm,
-  Modal,
-  message,
-  Row,
-  Col,
-} from "antd";
+import { Table, Input, Select, Button, Modal, message, Row, Col } from "antd";
 import type { Filter } from "../../types/report";
 import reportApi from "../../services/reportApi";
 import { ArrowRightOutlined } from "@ant-design/icons";
@@ -26,14 +16,12 @@ export const FilterComponent: React.FC<Props> = ({ filters, onUpdate }) => {
   const [modal, contextHolderModal] = Modal.useModal();
   const [messageApi, contextHolderMessage] = message.useMessage();
 
-  /* ===== STATE CHO QUERY MODAL ===== */
   const [queryModalOpen, setQueryModalOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
   const [queryText, setQueryText] = useState("");
   const [previewResult, setPreviewResult] = useState<any>(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
 
-  /* ===== FILTER CRUD ===== */
   const updateFilter = (index: number, key: keyof Filter, value: any) => {
     const updated = [...filters];
     updated[index] = { ...updated[index], [key]: value };
@@ -79,7 +67,6 @@ export const FilterComponent: React.FC<Props> = ({ filters, onUpdate }) => {
     ]);
   };
 
-  /* ===== QUERY MODAL LOGIC ===== */
   const openQueryModal = (record: Filter, index: number) => {
     setCurrentIndex(index);
     setQueryText(record.queryValue || "");
@@ -91,7 +78,6 @@ export const FilterComponent: React.FC<Props> = ({ filters, onUpdate }) => {
     try {
       setLoadingPreview(true);
 
-      // 👉 API preview (bạn có thể mock)
       const res = await reportApi.queryList(queryText);
 
       setPreviewResult(res);
@@ -109,7 +95,6 @@ export const FilterComponent: React.FC<Props> = ({ filters, onUpdate }) => {
     messageApi.success("Đã lưu query");
   };
 
-  /* ===== TABLE COLUMNS ===== */
   const columns = [
     {
       title: "Alias",
@@ -150,8 +135,8 @@ export const FilterComponent: React.FC<Props> = ({ filters, onUpdate }) => {
       dataIndex: "valueType",
       width: 200,
       render: (_: string, record: Filter, index: number) => (
-        <Select style={{ width: "100%" }}
-          
+        <Select
+          style={{ width: "100%" }}
           value={record.valueType}
           onChange={(val) => updateFilter(index, "valueType", val)}
         >
@@ -159,7 +144,6 @@ export const FilterComponent: React.FC<Props> = ({ filters, onUpdate }) => {
           <Option value="INPUT">Nhập liệu</Option>
           <Option value="RANGE">Nhập khoảng</Option>
           <Option value="DATE">Nhập ngày</Option>
-          <Option value="DATE_RANGE">Khoảng thời gian</Option>
         </Select>
       ),
     },
@@ -206,14 +190,9 @@ export const FilterComponent: React.FC<Props> = ({ filters, onUpdate }) => {
     {
       title: "Thao tác",
       render: (_: any, __: Filter, index: number) => (
-        <Popconfirm
-          title="Bạn có chắc muốn xóa?"
-          onConfirm={() => deleteFilter(index)}
-        >
-          <Button danger size="small">
-            Xóa
-          </Button>
-        </Popconfirm>
+        <Button danger size="small" onClick={() => deleteFilter(index)}>
+          Xóa
+        </Button>
       ),
     },
   ];
@@ -235,7 +214,6 @@ export const FilterComponent: React.FC<Props> = ({ filters, onUpdate }) => {
         Thêm bộ lọc
       </Button>
 
-      {/* ===== QUERY MODAL ===== */}
       <Modal
         open={queryModalOpen}
         width={900}
@@ -274,7 +252,7 @@ export const FilterComponent: React.FC<Props> = ({ filters, onUpdate }) => {
                 background: "#f6f6f6",
                 padding: 12,
                 height: 320,
-                overflow: "auto", // scroll khi nội dung dài
+                overflow: "auto", 
                 border: "1px solid #ddd",
                 margin: 0,
                 whiteSpace: "pre-wrap",

@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import type { Data, Field, Filter, Order, Sub } from "../../types/report";
+import type {
+  Data,
+  Field,
+  Filter,
+  Order,
+  Sub,
+  Group,
+} from "../../types/report";
 import { Tabs, Input, Checkbox, InputNumber } from "antd";
 import { SubsComponent } from "../DataUpdateComponent/SubsComponent";
 import { FieldComponent } from "../DataUpdateComponent/FieldComponent";
@@ -7,6 +14,7 @@ import { FilterComponent } from "../DataUpdateComponent/FilterComponent";
 import { OrderCompoent } from "../DataUpdateComponent/OrderComponent";
 import { useLocation } from "react-router-dom";
 import { FilterUsingComponent } from "../DataUsingComponent/FilterUsingComponent";
+import { GroupCompoent } from "../DataUpdateComponent/GroupComponent";
 
 interface DataProps {
   data: Data;
@@ -25,11 +33,12 @@ const DataComponent: React.FC<DataProps> = ({
   const [filters, setFilters] = useState<Filter[]>(data.filters);
   const [orders, setOrders] = useState<Order[]>(data.orders);
   const [subs, setSubs] = useState<Sub[]>(data.subs);
+  const [groups, setGroups] = useState<Group[]>(data.groups);
   const location = useLocation();
   const isEditMode = location.pathname.includes("/reports/template/edit/");
   const isUserMode = location.pathname.includes("/reports/template/us/");
   const [info, setInfo] = useState<
-    Omit<Data, "fields" | "filters" | "orders" | "subs">
+    Omit<Data, "fields" | "filters" | "orders" | "subs" | "groups">
   >({
     id: data.id,
     mainTable: data.mainTable,
@@ -40,7 +49,7 @@ const DataComponent: React.FC<DataProps> = ({
     fontSize: data.fontSize,
     url: data.url,
     username: data.username,
-    password: data.password
+    password: data.password,
   });
 
   // Đồng bộ dữ liệu lên parent khi thay đổi
@@ -51,8 +60,9 @@ const DataComponent: React.FC<DataProps> = ({
       filters,
       orders,
       subs,
+      groups,
     });
-  }, [info, fields, filters, orders, subs]);
+  }, [info, fields, filters, orders, subs, groups]);
 
   // Lọc các field hiển thị
   const visibleFields = fields
@@ -184,34 +194,40 @@ const DataComponent: React.FC<DataProps> = ({
           </div>
 
           {/* Dòng 4: DB connection info */}
-          <div className="flex justify-between space-x-4">
-            <div className="flex-1">
-              <label className="block mb-1">DB URL:</label>
-              <Input
-                value={info.url ?? ""}
-                onChange={(e) => setInfo({ ...info, url: e.target.value })}
-                placeholder="jdbc:postgresql://host:port/db"
-              />
-            </div>
+          {!isUserMode && (
+            <div className="flex justify-between space-x-4">
+              <div className="flex-1">
+                <label className="block mb-1">DB URL:</label>
+                <Input
+                  value={info.url ?? ""}
+                  onChange={(e) => setInfo({ ...info, url: e.target.value })}
+                  placeholder="jdbc:postgresql://host:port/db"
+                />
+              </div>
 
-            <div className="flex-1">
-              <label className="block mb-1">DB Username:</label>
-              <Input
-                value={info.username ?? ""}
-                onChange={(e) => setInfo({ ...info, username: e.target.value })}
-                placeholder="Username"
-              />
-            </div>
+              <div className="flex-1">
+                <label className="block mb-1">DB Username:</label>
+                <Input
+                  value={info.username ?? ""}
+                  onChange={(e) =>
+                    setInfo({ ...info, username: e.target.value })
+                  }
+                  placeholder="Username"
+                />
+              </div>
 
-            <div className="flex-1">
-              <label className="block mb-1">DB Password:</label>
-              <Input.Password
-                value={info.password ?? ""}
-                onChange={(e) => setInfo({ ...info, password: e.target.value })}
-                placeholder="Password"
-              />
+              <div className="flex-1">
+                <label className="block mb-1">DB Password:</label>
+                <Input.Password
+                  value={info.password ?? ""}
+                  onChange={(e) =>
+                    setInfo({ ...info, password: e.target.value })
+                  }
+                  placeholder="Password"
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </TabPane>
 
@@ -223,7 +239,7 @@ const DataComponent: React.FC<DataProps> = ({
       )}
 
       {/* Fields */}
-      <TabPane tab="Fields" key="3">
+      <TabPane tab="Cột hiển thị" key="3">
         <FieldComponent fields={fields} onUpdate={setFields} />
       </TabPane>
 
@@ -240,6 +256,10 @@ const DataComponent: React.FC<DataProps> = ({
       {/* Sắp xếp */}
       <TabPane tab="Sắp xếp" key="5">
         <OrderCompoent orders={orders} onUpdate={setOrders} />
+      </TabPane>
+
+      <TabPane tab="Nhóm đếm" key="6">
+        <GroupCompoent groups={groups} onUpdate={setGroups} />
       </TabPane>
     </Tabs>
   );

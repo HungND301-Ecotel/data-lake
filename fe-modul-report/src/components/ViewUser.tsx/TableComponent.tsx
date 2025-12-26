@@ -9,7 +9,8 @@ import {
   ItalicOutlined,
   UnderlineOutlined,
 } from "@ant-design/icons";
-import { Modal, Input } from "antd";
+import { Modal, Input, Select, Table as TableAntd } from "antd";
+import type { ColumnsType } from "antd/es/table";
 
 const borderIcons = [
   BorderTopOutlined,
@@ -25,7 +26,7 @@ const defaultCell = (r: number, c: number): TableItem => ({
   col: c,
   type: "text",
   text: "New Cell",
-  fontName: "Arial",
+  fontName: "Times",
   fontSize: 12,
   fontStyle: [],
   align: "center",
@@ -36,7 +37,6 @@ const defaultCell = (r: number, c: number): TableItem => ({
   querySyntax: "",
 });
 
-/* ------------------ Component ------------------ */
 interface Props {
   table: Table;
   editMode?: boolean;
@@ -62,9 +62,74 @@ const TableEditor: React.FC<Props> = ({
   const [selectedCells, setSelectedCells] = useState<TableItem[]>([]);
   const [editingCell, setEditingCell] = useState<TableItem | null>(null);
   const [isQueryModalOpen, setIsQueryModalOpen] = useState(false);
-  const [queryEditingCell, setQueryEditingCell] = useState<TableItem | null>(
-    null
-  );
+
+  const queryItems = localTable.columns.filter((item) => item.type === "query");
+
+  const modalColumns: ColumnsType<TableItem> = [
+    {
+      title: "Tiêu đề",
+      dataIndex: "text",
+      width: 200,
+      render: (_, record) => (
+        <Input
+          style={{ width: "100%" }}
+          value={record.text}
+          onChange={(e) =>
+            setCell(record.row, record.col, {
+              text: e.target.value,
+            })
+          }
+        />
+      ),
+    },
+    {
+      title: "Hàng",
+      dataIndex: "row",
+      width: 80,
+    },
+    {
+      title: "Cột",
+      dataIndex: "col",
+      width: 80,
+    },
+    {
+      title: "Type",
+      dataIndex: "type",
+      width: 120,
+      render: (_, record) => (
+        <Select
+          style={{ width: "100%" }}
+          value={record.type}
+          onChange={(val) =>
+            setCell(record.row, record.col, {
+              type: val,
+            })
+          }
+        >
+          <Select.Option value="text">Text</Select.Option>
+          <Select.Option value="query">Query</Select.Option>
+        </Select>
+      ),
+    },
+    {
+      title: "Query",
+      dataIndex: "querySyntax",
+      render: (_, record) => (
+        <Input.TextArea
+          rows={2}
+          style={{ width: "100%" }}
+          value={record.querySyntax}
+          onChange={(e) =>
+            setCell(record.row, record.col, {
+              querySyntax: e.target.value,
+            })
+          }
+        />
+      ),
+    },
+  ];
+  
+  
 
   useEffect(() => {
     onChange?.(localTable);
@@ -232,8 +297,6 @@ const TableEditor: React.FC<Props> = ({
           <button
             className="border px-2 py-1 rounded bg-white"
             onClick={() => {
-              if (selectedCells.length === 0) return;
-              setQueryEditingCell(selectedCells[0]);
               setIsQueryModalOpen(true);
             }}
           >
@@ -246,8 +309,8 @@ const TableEditor: React.FC<Props> = ({
             onChange={(e) => updateSelected({ fontName: e.target.value })}
             className="border p-1 text-sm"
           >
-            <option>Arial</option>
             <option>Times</option>
+            <option>Arial</option>
             <option>Tahoma</option>
             <option>Verdana</option>
           </select>
@@ -299,10 +362,9 @@ const TableEditor: React.FC<Props> = ({
             onChange={(e) => updateSelected({ align: e.target.value as any })}
             className="border p-1"
           >
-            <option value="left">Trái</option>
-            <option value="center">Giữa</option>
-            <option value="right">Phải</option>
-            <option value="justify">Justify</option>
+            <option value="left">Căn trái</option>
+            <option value="center">Căn giữa</option>
+            <option value="right">Căn phải</option>
           </select>
 
           {/* Width */}
@@ -353,25 +415,28 @@ const TableEditor: React.FC<Props> = ({
 
           {/* Add/Delete Row/Col */}
           <button onClick={addRow} className="border px-2 py-1">
-            + Row
+            + Hàng
           </button>
           <button onClick={deleteRow} className="border px-2 py-1 text-red-600">
-            - Row
+            - Hàng
           </button>
           <button onClick={addColumn} className="border px-2 py-1">
-            + Col
+            + Cột
           </button>
           <button
             onClick={deleteColumn}
             className="border px-2 py-1 text-red-600"
           >
-            - Col
+            - Cột
           </button>
         </div>
       )}
 
       <div className="overflow-auto">
-        <table className="border-collapse w-full" style={{ tableLayout: "fixed" }}>
+        <table
+          className="border-collapse w-full"
+          style={{ tableLayout: "fixed" }}
+        >
           <tbody>
             {matrix.map((row, rIdx) => (
               <tr key={rIdx}>
@@ -384,16 +449,32 @@ const TableEditor: React.FC<Props> = ({
                       minWidth: Number(localTable.width.split(",")[cIdx]) * 10,
                       fontFamily: cell?.fontName,
                       fontSize: cell?.fontSize,
-                      fontWeight: cell?.fontStyle?.includes("bold") ? "bold" : "normal",
-                      fontStyle: cell?.fontStyle?.includes("italic") ? "italic" : "normal",
+                      fontWeight: cell?.fontStyle?.includes("bold")
+                        ? "bold"
+                        : "normal",
+                      fontStyle: cell?.fontStyle?.includes("italic")
+                        ? "italic"
+                        : "normal",
                       textDecoration: cell?.fontStyle?.includes("underline")
                         ? "underline"
                         : "none",
                       textAlign: cell?.align,
-                      borderTop: cell?.border?.split(" ")[0] === "1" ? "1px solid #000" : "none",
-                      borderBottom: cell?.border?.split(" ")[1] === "1" ? "1px solid #000" : "none",
-                      borderLeft: cell?.border?.split(" ")[2] === "1" ? "1px solid #000" : "none",
-                      borderRight: cell?.border?.split(" ")[3] === "1" ? "1px solid #000" : "none",
+                      borderTop:
+                        cell?.border?.split(" ")[0] === "1"
+                          ? "1px solid #000"
+                          : "none",
+                      borderBottom:
+                        cell?.border?.split(" ")[1] === "1"
+                          ? "1px solid #000"
+                          : "none",
+                      borderLeft:
+                        cell?.border?.split(" ")[2] === "1"
+                          ? "1px solid #000"
+                          : "none",
+                      borderRight:
+                        cell?.border?.split(" ")[3] === "1"
+                          ? "1px solid #000"
+                          : "none",
                       padding: 4,
                       cursor: editMode ? "pointer" : "default",
                       overflow: "hidden",
@@ -406,28 +487,30 @@ const TableEditor: React.FC<Props> = ({
                         : "transparent",
                     }}
                     onClick={(e) =>
-                      editMode && toggleSelectCell(cell, e.ctrlKey || e.metaKey, rIdx, cIdx)
+                      editMode &&
+                      toggleSelectCell(cell, e.ctrlKey || e.metaKey, rIdx, cIdx)
                     }
                     onDoubleClick={() => editMode && setEditingCell(cell)}
                   >
                     {editingCell &&
-editingCell.row === cell?.row &&
-editingCell.col === cell?.col ? (
-  <input
-    autoFocus
-    value={cell.text ?? ""}
-    className="w-full"
-    onBlur={() => setEditingCell(null)}
-    onChange={(e) =>
-      setCell(cell.row, cell.col, { text: e.target.value })
-    }
-  />
-) : cell?.type === "query" ? (
-  <span style={{ color: "red", fontWeight: "bold" }}>{cell.text}</span>
-) : (
-  cell?.text
-)}
-
+                    editingCell.row === cell?.row &&
+                    editingCell.col === cell?.col ? (
+                      <input
+                        autoFocus
+                        value={cell.text ?? ""}
+                        className="w-full"
+                        onBlur={() => setEditingCell(null)}
+                        onChange={(e) =>
+                          setCell(cell.row, cell.col, { text: e.target.value })
+                        }
+                      />
+                    ) : cell?.type === "query" ? (
+                      <span style={{ color: "red", fontWeight: "bold" }}>
+                        {cell.text}
+                      </span>
+                    ) : (
+                      cell?.text
+                    )}
                   </td>
                 ))}
               </tr>
@@ -436,29 +519,19 @@ editingCell.col === cell?.col ? (
         </table>
       </div>
 
-      {/* Query Modal */}
       <Modal
         open={isQueryModalOpen}
-        title="Nhập Query"
+        width={1200}
         onCancel={() => setIsQueryModalOpen(false)}
-        onOk={() => {
-          if (queryEditingCell) {
-            setCell(queryEditingCell.row, queryEditingCell.col, {
-              type: "query",
-              querySyntax: queryEditingCell.querySyntax,
-            });
-          }
-          setIsQueryModalOpen(false);
-        }}
+        footer={null}
       >
-        <Input.TextArea
-          rows={5}
-          value={queryEditingCell?.querySyntax || ""}
-          onChange={(e) =>
-            setQueryEditingCell((prev) =>
-              prev ? { ...prev, querySyntax: e.target.value } : prev
-            )
-          }
+        <TableAntd
+          rowKey={(record) => `${record.row}-${record.col}`}
+          columns={modalColumns}
+          dataSource={queryItems}
+          pagination={false}
+          bordered
+          size="small"
         />
       </Modal>
     </div>

@@ -11,15 +11,11 @@ const MainLayout = () => {
 
   return (
     <Layout style={{ height: "100vh", overflow: "hidden" }}>
-      {/* Sidebar */}
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
 
-      {/* Main */}
       <Layout style={{ minWidth: 0, overflow: "hidden" }}>
-        {/* Header */}
         <HeaderBar />
 
-        {/* Content – chỉ content scroll */}
         <Content
           style={{
             height: "calc(100vh - 64px)",
@@ -27,7 +23,6 @@ const MainLayout = () => {
             background: "#f5f5f5",
           }}
         >
-          {/* LỚP NÀY MỚI CÓ PADDING */}
           <div
             style={{
               padding: 24,

@@ -1,5 +1,5 @@
 import React from "react";
-import { Table, Button, Input, Select, Popconfirm, Modal, message } from "antd";
+import { Table, Button, Input, Select, Modal, message } from "antd";
 import type { Sub } from "../../types/report";
 import reportApi from "../../services/reportApi";
 
@@ -14,7 +14,7 @@ export const SubsComponent: React.FC<Props> = ({ subs, onUpdate }) => {
   // Cập nhật bản ghi
   const [modal, contextHolderModal] = Modal.useModal();
   const [messageApi, contextHolderMessage] = message.useMessage();
-  
+
   const updateRecord = (index: number, key: keyof Sub, value: any) => {
     const updated = [...subs];
     updated[index] = { ...updated[index], [key]: value };
@@ -25,7 +25,7 @@ export const SubsComponent: React.FC<Props> = ({ subs, onUpdate }) => {
   const deleteRecord = (index: number) => {
     const item = subs[index];
     if (!item) return;
-  
+
     modal.confirm({
       title: "Xác nhận xoá",
       content: "Bạn có chắc chắn muốn xoá mục này không?",
@@ -36,16 +36,16 @@ export const SubsComponent: React.FC<Props> = ({ subs, onUpdate }) => {
         try {
           // Nếu id null → xoá trực tiếp
           if (!item.id) {
-            console.log(item.id)
+            console.log(item.id);
             onUpdate(subs.filter((_, i) => i !== index));
             messageApi.success("Đã xoá mục");
             return;
           }
-  
+
           // Nếu có id → gọi API
           await reportApi.deleteSubById(item.id);
-          console.log(item.id)
-  
+          console.log(item.id);
+
           onUpdate(subs.filter((_, i) => i !== index));
           messageApi.success("Xoá thành công!");
         } catch (err) {
@@ -56,10 +56,9 @@ export const SubsComponent: React.FC<Props> = ({ subs, onUpdate }) => {
     });
   };
 
-  // Thêm bản ghi mới
   const addRecord = () => {
     const newSub: Sub = {
-      id: null, // để trống
+      id: null,
       tableName: "",
       joinType: "LEFT JOIN",
       joinOn: "",
@@ -108,14 +107,9 @@ export const SubsComponent: React.FC<Props> = ({ subs, onUpdate }) => {
       title: "Thao tác",
       dataIndex: "action",
       render: (_: any, __: Sub, index: number) => (
-        <Popconfirm
-          title="Bạn có chắc muốn xóa?"
-          onConfirm={() => deleteRecord(index)}
-        >
-          <Button size="small" danger>
-            Xóa
-          </Button>
-        </Popconfirm>
+        <Button size="small" danger onClick={() => deleteRecord(index)}>
+          Xóa
+        </Button>
       ),
     },
   ];
@@ -137,4 +131,3 @@ export const SubsComponent: React.FC<Props> = ({ subs, onUpdate }) => {
     </div>
   );
 };
-

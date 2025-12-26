@@ -24,6 +24,8 @@ public class FieldEntity {
     private int index;
     private String groupName;
 
+    private Integer alignment; //1,2,3
+
     @ManyToOne
     @JoinColumn(name = "data_id")
     private DataEntity data;

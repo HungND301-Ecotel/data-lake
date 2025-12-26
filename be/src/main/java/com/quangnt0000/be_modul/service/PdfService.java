@@ -17,10 +17,8 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.io.ByteArrayOutputStream;
 import java.text.Normalizer;
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -98,13 +96,13 @@ public class PdfService {
             Font boldFont = new Font(baseFont, commonFontSize, Font.BOLD);
             Font italicFont = new Font(baseFont, commonFontSize, Font.ITALIC);
 
-            // ===== 1️⃣ Lấy dữ liệu =====
+            // 1. query lấy dữ liẹu
             List<Map<String, Object>> data = dataService.getReport(request);
 
             // Copy field list sang list mới
             List<FieldDTO> fieldDTOs = new ArrayList<>(request.getFields());
 
-            // ===== 2️⃣ Thêm STT =====
+            // 2. show index
             if (request.isShowIndex()) {
                 for (int i = 0; i < data.size(); i++) {
                     data.get(i).put("STT", i + 1);
@@ -122,7 +120,7 @@ public class PdfService {
                 );
             }
 
-            // ===== 3️⃣ Lọc + Sort =====
+            // 3. lọc + sắp xếp cột
             List<FieldDTO> sortedFields = fieldDTOs.stream()
                     .filter(f -> f.getWeight() > 0)
                     .filter(FieldDTO::isVisible)
@@ -139,11 +137,11 @@ public class PdfService {
             }
             table.setWidths(widths);
 
-            // ===== 4️⃣ Kiểm tra tất cả groupName có trống không =====
+            // 4. kiểm tra nhóm tiêu đề có trống kh
             boolean allGroupEmpty = sortedFields.stream()
                     .allMatch(f -> f.getGroupName() == null || f.getGroupName().isEmpty());
 
-            // ===== 5️⃣ Nếu không phải tất cả đều rỗng → tạo dòng groupHeader =====
+            // 5. nếu kh rỗng tạo dòng header
             if (!allGroupEmpty) {
                 String currentGroup = "";
                 int groupStart = 0;
@@ -158,6 +156,7 @@ public class PdfService {
                         verticalMerge.setRowspan(2);
                         verticalMerge.setHorizontalAlignment(Element.ALIGN_CENTER);
                         verticalMerge.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                        verticalMerge.setBackgroundColor(BaseColor.LIGHT_GRAY);
                         table.addCell(verticalMerge);
                         continue;
                     }
@@ -180,6 +179,7 @@ public class PdfService {
                         groupCell.setColspan(i - groupStart + 1);
                         groupCell.setHorizontalAlignment(Element.ALIGN_CENTER);
                         groupCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                        groupCell.setBackgroundColor(BaseColor.LIGHT_GRAY);
                         table.addCell(groupCell);
 
                         currentGroup = isLast ? "" : sortedFields.get(i + 1).getGroupName();
@@ -188,7 +188,7 @@ public class PdfService {
                 }
             }
 
-            // ===== 6️⃣ Header (Dòng 2) =====
+            // 6. header tên cột
             for (FieldDTO f : sortedFields) {
 
                 // 🔥 Nếu không phải allEmpty → groupName rỗng đã merge dọc → bỏ qua
@@ -199,14 +199,83 @@ public class PdfService {
                 String colName = f.getAlias() != null ? f.getAlias() : f.getId();
                 PdfPCell cell = new PdfPCell(new Phrase(colName, boldFont));
                 cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                cell.setBackgroundColor(BaseColor.LIGHT_GRAY);
                 table.addCell(cell);
             }
 
             // Nếu tất cả groupName rỗng → chỉ có 1 dòng header
             table.setHeaderRows(allGroupEmpty ? 1 : 2);
+            // nhóm
+            List<GroupDTO> groups = request.getGroups().stream()
+                    .filter(g -> Boolean.TRUE.equals(g.getVisible()))
+                    .sorted(Comparator.comparingInt(GroupDTO::getIndex))
+                    .toList();
+            int groupLevelCount = groups.size();
 
-            // ===== 7️⃣ Render Data Rows =====
+            List<Object> prevGroupValues =
+                    new ArrayList<>(Collections.nCopies(groupLevelCount, null));
+
+            int[] groupIndexes = new int[groupLevelCount];
+
+            FieldDTO firstField = sortedFields.get(0);
+            // gen dữ liệu
             for (Map<String, Object> row : data) {
+                for (int level = 0; level < groups.size(); level++) {
+                    GroupDTO g = groups.get(level);
+
+                    String alias = "group_" + g.getIndex();
+                    String totalAlias = alias + "_total";
+
+                    Object current = row.get(alias);
+                    Object previous = prevGroupValues.get(level);
+
+                    // chỉ render khi group thay đổi
+                    if (!Objects.equals(current, previous)) {
+
+                        // reset các level dưới
+                        for (int i = level + 1; i < groupLevelCount; i++) {
+                            groupIndexes[i] = 0;
+                            prevGroupValues.set(i, null);
+                        }
+
+                        groupIndexes[level]++;
+                        prevGroupValues.set(level, current);
+
+                        // build prefix: 1.2.3
+                        StringBuilder prefix = new StringBuilder();
+                        for (int i = 0; i <= level; i++) {
+                            prefix.append(groupIndexes[i]).append(".");
+                        }
+
+                        table.addCell(new PdfPCell(new Phrase("")));
+
+                        Object total = row.get(totalAlias);
+
+                        // ===== cell group ở CỘT ĐẦU =====
+
+                        PdfPCell groupCell = new PdfPCell(
+                                new Phrase(
+                                        prefix + " " + current +
+                                                (total != null ? " (" + total + ")" : ""),
+                                        boldFont
+                                )
+                        );
+                        groupCell.setColspan(totalCols);          // MERGE 2 CỘT ĐẦU
+//                        groupCell.setPaddingLeft(level * 15);      // thụt theo level
+                        groupCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+                        groupCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+//                        groupCell.setBackgroundColor(BaseColor.LIGHT_GRAY);
+//                        groupCell.
+
+                        table.addCell(groupCell);
+
+                        // ===== các cột còn lại để trống =====
+//                        for (int i = 1; i < totalCols-(mergedCols); i++) {
+//                            table.addCell(new PdfPCell(new Phrase("")));
+//                        }
+                    }
+                }
+                //data
                 for (FieldDTO f : sortedFields) {
                     String key = f.getAlias() != null ? f.getAlias() : f.getId();
                     Object val = row.get(key);
@@ -215,12 +284,12 @@ public class PdfService {
                             val == null ? "" : val.toString(),
                             normalFont
                     ));
-                    cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                    cell.setHorizontalAlignment(f.getAlignment() != null ? f.getAlignment() : Element.ALIGN_CENTER);
                     table.addCell(cell);
                 }
             }
 
-            // ===== 8️⃣ Footer =====
+            // tên bảng
             if (request.getDescription() != null && !request.getDescription().isEmpty()) {
                 PdfPCell foot = new PdfPCell(new Phrase(request.getDescription(), italicFont));
                 foot.setColspan(totalCols);

@@ -18,4 +18,6 @@ public class FieldDTO {
     private boolean visible;
     private int index;
     private String groupName;
+
+    private Integer alignment;
 }

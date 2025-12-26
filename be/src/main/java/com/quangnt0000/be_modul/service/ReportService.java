@@ -4,6 +4,7 @@ import com.quangnt0000.be_modul.dto.*;
 import com.quangnt0000.be_modul.modal.*;
 import com.quangnt0000.be_modul.modal.Data.*;
 import com.quangnt0000.be_modul.repository.*;
+import com.quangnt0000.be_modul.repository.DataLake.GroupRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
@@ -30,6 +31,7 @@ public class ReportService {
     private final FieldRepository fieldRepository;
     private final FilterRepository filterRepository;
     private final OrderRepository orderRepository;
+    private final GroupRepository groupRepository;
 
     @Transactional
     public ResponseEntity<?> createReport(ReportDTO request) {
@@ -60,9 +62,17 @@ public class ReportService {
                 if (table.getId().startsWith("new-")) {
                     table.setId(null);
                 }
-                table.setReportItemId(reportItem.getId());
-                table = tableRepository.save(table);
-                for (TableItemEntity tableItemEntity : table.getColumns()){
+                List<TableItemEntity> tableItemEntities = table.getColumns();
+                // mới thì lưu còn cũ sẽ xoá
+                if (table.getId() == null){
+                    table.setReportItemId(reportItem.getId());
+                    table = tableRepository.save(table);
+                }else {
+                    tableItemRepository.deleteByTable_Id(table.getId());
+                }
+
+                for (TableItemEntity tableItemEntity : tableItemEntities){
+                    tableItemEntity.setId(null);
                     tableItemEntity.setTable(table);
                     tableItemRepository.save(tableItemEntity);
                 }
@@ -102,6 +112,12 @@ public class ReportService {
                     OrderEntity orderEntity = modelMapper.map(orderDTO, OrderEntity.class);
                     orderEntity.setData(dataReport);
                     orderRepository.save(orderEntity);
+                }
+                List<GroupDTO> groupDTOs = data.getGroups();
+                for (GroupDTO groupDTO : groupDTOs) {
+                    GroupEntity groupEntity = modelMapper.map(groupDTO, GroupEntity.class);
+                    groupEntity.setData(dataReport);
+                    groupRepository.save(groupEntity);
                 }
             }
             if(reportItem.getType().equals("text")){

@@ -13,10 +13,7 @@ import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 
 import java.text.Normalizer;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -145,35 +142,35 @@ public class ExcelService {
         descStyle.setVerticalAlignment(VerticalAlignment.CENTER);
 
         // ===== Insert description row =====
-        if (dto.getDescription() != null && !dto.getDescription().isEmpty()) {
-            Row descRow = sheet.createRow(rowIndex++);
-            Cell descCell = descRow.createCell(0);
-            descCell.setCellValue(dto.getDescription());
-
-            // Style riêng cho description
-            CellStyle descriptionCellStyle = sheet.getWorkbook().createCellStyle();
-            Font descriptionFont = sheet.getWorkbook().createFont(); // đổi tên
-            descriptionFont.setBold(true);                   // In đậm
-            descriptionFont.setFontHeightInPoints((short) 12);
-            descriptionCellStyle.setFont(descriptionFont);
-            descriptionCellStyle.setAlignment(HorizontalAlignment.CENTER);  // Căn giữa ngang
-            descriptionCellStyle.setVerticalAlignment(VerticalAlignment.CENTER); // Căn giữa dọc
-            descCell.setCellStyle(descriptionCellStyle);
-
-            // Merge toàn bộ cột (bao gồm STT nếu có)
-            int totalCols = sortedFields.size();
-            if (totalCols > 1) {
-                sheet.addMergedRegion(new CellRangeAddress(
-                        descRow.getRowNum(),
-                        descRow.getRowNum(),
-                        0,
-                        totalCols - 1
-                ));
-            }
-
-            // Thêm 1 dòng trống
-            rowIndex++;
-        }
+//        if (dto.getDescription() != null && !dto.getDescription().isEmpty()) {
+//            Row descRow = sheet.createRow(rowIndex++);
+//            Cell descCell = descRow.createCell(0);
+//            descCell.setCellValue(dto.getDescription());
+//
+//            // Style riêng cho description
+//            CellStyle descriptionCellStyle = sheet.getWorkbook().createCellStyle();
+//            Font descriptionFont = sheet.getWorkbook().createFont(); // đổi tên
+//            descriptionFont.setBold(true);                   // In đậm
+//            descriptionFont.setFontHeightInPoints((short) 12);
+//            descriptionCellStyle.setFont(descriptionFont);
+//            descriptionCellStyle.setAlignment(HorizontalAlignment.CENTER);  // Căn giữa ngang
+//            descriptionCellStyle.setVerticalAlignment(VerticalAlignment.CENTER); // Căn giữa dọc
+//            descCell.setCellStyle(descriptionCellStyle);
+//
+//            // Merge toàn bộ cột (bao gồm STT nếu có)
+//            int totalCols = sortedFields.size();
+//            if (totalCols > 1) {
+//                sheet.addMergedRegion(new CellRangeAddress(
+//                        descRow.getRowNum(),
+//                        descRow.getRowNum(),
+//                        0,
+//                        totalCols - 1
+//                ));
+//            }
+//
+//            // Thêm 1 dòng trống
+//            rowIndex++;
+//        }
 
 
 
@@ -257,7 +254,19 @@ public class ExcelService {
                 Object v = rowData.get(f.getAlias());
                 Cell cell = row.createCell(col++);
                 cell.setCellValue(v == null ? "" : v.toString());
-                cell.setCellStyle(dataStyle);
+
+                CellStyle cellStyle = wb.createCellStyle();
+                cellStyle.cloneStyleFrom(dataStyle);
+                if (f.getAlignment() == null){
+                    cellStyle.setAlignment(HorizontalAlignment.CENTER);
+                }else if (f.getAlignment() == 0){
+                    cellStyle.setAlignment(HorizontalAlignment.LEFT);
+                }else if (f.getAlignment() == 2){
+                    cellStyle.setAlignment(HorizontalAlignment.RIGHT);
+                }else {
+                    cellStyle.setAlignment(HorizontalAlignment.CENTER);
+                }
+                cell.setCellStyle(cellStyle);
             }
         }
 
@@ -324,12 +333,23 @@ public class ExcelService {
 
             // Tạo cell
             Cell cell = row.createCell(t.getCol());
+            if (t.getType().equals("query")){
+                t.setText(dataService.queryJdbcSingleValue(t.getQuerySyntax()));
+            }
             cell.setCellValue(t.getText());
+            String [] border = t.getBorder().split(" ");
+
+
 
             // Style
             CellStyle style = wb.createCellStyle();
             Font font = wb.createFont();
             font.setFontHeightInPoints((short) t.getFontSize());
+
+            if ("1".equals(border[0])) style.setBorderTop(BorderStyle.THIN);
+            if ("1".equals(border[0])) style.setBorderBottom(BorderStyle.THIN);
+            if ("1".equals(border[0])) style.setBorderLeft(BorderStyle.THIN);
+            if ("1".equals(border[0])) style.setBorderRight(BorderStyle.THIN);
 
             if (t.getFontStyle() != null) {
                 font.setBold(t.getFontStyle().contains("bold"));

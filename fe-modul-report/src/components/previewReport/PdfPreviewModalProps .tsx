@@ -84,7 +84,6 @@ const PdfPreviewModal: React.FC<PdfPreviewModalProps> = ({
       const response = await fetch(pdfUrl);
       const blob = await response.blob();
   
-      // Ép Blob thành File với tên + type
       const file = new File([blob], `${fileName}.pdf`, { type: "application/pdf" });
   
       const request: ReportStorageRequest = {
@@ -118,7 +117,6 @@ const PdfPreviewModal: React.FC<PdfPreviewModalProps> = ({
         className="w-4/5 h-4/5 bg-white rounded shadow-lg border border-gray-300 flex"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* LEFT panel */}
         <div className="w-1/5 p-4 border-r flex flex-col gap-3">
           <label className="font-semibold">Tên báo cáo:</label>
           <input
@@ -183,7 +181,6 @@ const PdfPreviewModal: React.FC<PdfPreviewModalProps> = ({
           </button>
         </div>
 
-        {/* RIGHT panel - PDF preview */}
         <div className="flex-1 p-2">
           <iframe
             src={pdfUrl}

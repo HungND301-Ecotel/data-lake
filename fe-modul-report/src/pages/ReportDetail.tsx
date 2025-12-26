@@ -107,13 +107,15 @@ const ReportDetail: React.FC = () => {
     try {
       if (!report) return;
       const pdfBytes = await reportApi.exportPdf(report);
+
       console.log("fetched json:", JSON.stringify(report, null, 2));
       const blob = new Blob([pdfBytes], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
       setPdfModalOpen(true);
-    } catch (error) {
-      console.error("Lỗi xuất PDF:", error);
+    } catch (error: any) {
+      // messageApi.error("Lỗi xuất PDF:"+  error);
+      messageApi.error(error?.data || "Lỗi xuất PDF");
     }
   };
 
@@ -133,14 +135,11 @@ const ReportDetail: React.FC = () => {
   
       window.open(url); 
 
-    } catch (error) {
-      console.error("Lỗi xuất Excel:", error);
+    } catch (error: any) {
+      messageApi.error(error?.data || "Lỗi xuất Excel");
     }
   };
-  
 
-  
-  
 
   const handleSave = async () => {
     try {
@@ -275,6 +274,7 @@ const ReportDetail: React.FC = () => {
                       filters: [],
                       fields: [],
                       orders: [],
+                      groups: [],
                     },
                   };
                   setReport({ ...report, items: [...report.items, newItem] });
@@ -283,13 +283,11 @@ const ReportDetail: React.FC = () => {
                 + Data
               </button>
             </div>
-            {/* ============================================================ */}
           </div>
 
           {/* NAME + PAGE TYPE */}
           <div className="">
             <div className="flex gap-3">
-              {/* NAME */}
               <div className="flex-1">
                 <label className="font-semibold">Tên báo cáo:</label>
                 <input
@@ -301,7 +299,6 @@ const ReportDetail: React.FC = () => {
                 />
               </div>
 
-              {/* PAGE TYPE */}
               <div className="w-48">
                 <label className="font-semibold">Loại khổ giấy:</label>
                 <select

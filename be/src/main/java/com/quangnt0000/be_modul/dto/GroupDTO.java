@@ -5,16 +5,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
 @Builder
-public class OrderDTO {
+@AllArgsConstructor
+@NoArgsConstructor
+public class GroupDTO {
     private String id;
-    private String title;
     private String fieldKey;
-    private String orderType;
-    private boolean visible;
-    private int index;
-    private Boolean groupTotal;
+    private String title;
+    private Integer index;
+    private Boolean visible;
 }
+

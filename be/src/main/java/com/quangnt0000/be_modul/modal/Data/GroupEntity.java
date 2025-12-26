@@ -11,19 +11,14 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 @Entity
-public class OrderEntity {
+public class GroupEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
-
-    private String title;
     private String fieldKey;
-    private String orderType;
-    private boolean visible;
-    private int index;
-
-    private Boolean groupTotal;
-
+    private String title;
+    private Integer index;
+    private Boolean visible;
     @ManyToOne
     @JoinColumn(name = "data_id")
     private DataEntity data;

@@ -1,5 +1,5 @@
 import React from "react";
-import { Input, Select, Checkbox, Button, Modal, message } from "antd";
+import { Input, Checkbox, Button, Modal, message } from "antd";
 import { MenuOutlined } from "@ant-design/icons";
 import {
   DragDropContext,
@@ -7,28 +7,26 @@ import {
   Draggable,
   type DropResult,
 } from "@hello-pangea/dnd";
-import type { Order } from "../../types/report";
+import type { Group, Order } from "../../types/report";
 import reportApi from "../../services/reportApi";
 
-const { Option } = Select;
-
 interface Props {
-  orders?: Order[];
-  onUpdate: (updated: Order[]) => void;
+  groups?: Group[];
+  onUpdate: (updated: Group[]) => void;
 }
 
-export const OrderCompoent: React.FC<Props> = ({ orders = [], onUpdate }) => {
+export const GroupCompoent: React.FC<Props> = ({ groups = [], onUpdate }) => {
   const [modal, contextHolderModal] = Modal.useModal();
   const [messageApi, contextHolderMessage] = message.useMessage();
   const isUserView = location.pathname.includes("/reports/template/us");
   const updateOrder = (idx: number, key: keyof Order, value: any) => {
-    const updated = [...orders];
+    const updated = [...groups];
     updated[idx] = { ...updated[idx], [key]: value };
     onUpdate(updated);
   };
 
   const deleteOrder = (idx: number) => {
-    const item = orders[idx];
+    const item = groups[idx];
     if (!item) return;
     modal.confirm({
       title: "Xác nhận xoá",
@@ -39,15 +37,15 @@ export const OrderCompoent: React.FC<Props> = ({ orders = [], onUpdate }) => {
       async onOk() {
         try {
           if (!item.id) {
-            const updated = orders.filter((_, i) => i !== idx);
+            const updated = groups.filter((_, i) => i !== idx);
             onUpdate(updated.map((o, i) => ({ ...o, index: i + 1 })));
             messageApi.success("Đã xoá mục");
             return;
           }
 
-          await reportApi.deleteOrderById(item.id);
+          await reportApi.deleteGroupById(item.id);
 
-          const updated = orders.filter((_, i) => i !== idx);
+          const updated = groups.filter((_, i) => i !== idx);
           onUpdate(updated.map((o, i) => ({ ...o, index: i + 1 })));
           messageApi.success("Xoá thành công!");
         } catch (err) {
@@ -65,17 +63,17 @@ export const OrderCompoent: React.FC<Props> = ({ orders = [], onUpdate }) => {
       fieldKey: "",
       orderType: "ASC",
       visible: true,
-      index: orders.length + 1,
+      index: groups.length + 1,
     };
-    onUpdate([...orders, newOrder]);
+    onUpdate([...groups, newOrder]);
   };
 
   const onDragEnd = (result: DropResult) => {
     if (!result.destination) return;
-    const newOrders = Array.from(orders);
-    const [removed] = newOrders.splice(result.source.index, 1);
-    newOrders.splice(result.destination.index, 0, removed);
-    onUpdate(newOrders.map((o, i) => ({ ...o, index: i + 1 })));
+    const newgroups = Array.from(groups);
+    const [removed] = newgroups.splice(result.source.index, 1);
+    newgroups.splice(result.destination.index, 0, removed);
+    onUpdate(newgroups.map((o, i) => ({ ...o, index: i + 1 })));
   };
 
   return (
@@ -83,7 +81,7 @@ export const OrderCompoent: React.FC<Props> = ({ orders = [], onUpdate }) => {
       {contextHolderMessage}
       {contextHolderModal}
       <DragDropContext onDragEnd={onDragEnd}>
-        <Droppable droppableId="orders">
+        <Droppable droppableId="groups">
           {(provided) => (
             <table
               className="table-auto w-full border-collapse border border-gray-300"
@@ -95,26 +93,25 @@ export const OrderCompoent: React.FC<Props> = ({ orders = [], onUpdate }) => {
                   <th className="w-8"></th>
                   <th className="p-2">Tên cột</th>
                   {!isUserView && <th className="p-2">Key</th>}
-                  <th className="p-2">Chiều sắp xếp</th>
                   <th className="p-2">Áp dụng</th>
                   {!isUserView && <th className="p-2">Thao tác</th>}
                 </tr>
               </thead>
               <tbody>
-                {orders.length === 0 && (
+                {groups.length === 0 && (
                   <tr>
                     <td colSpan={6} className="text-center p-4 text-gray-500">
                       Chưa có order nào
                     </td>
                   </tr>
                 )}
-                {orders
+                {groups
                   .slice()
                   .sort((a, b) => a.index - b.index)
                   .map((order, idx) => (
                     <Draggable
-                      key={idx}
-                      draggableId={`order-${idx}`}
+                      key={idx} 
+                      draggableId={`order-${idx}`} 
                       index={idx}
                     >
                       {(dragProvided) => (
@@ -147,18 +144,7 @@ export const OrderCompoent: React.FC<Props> = ({ orders = [], onUpdate }) => {
                               />
                             </td>
                           )}
-                          <td className="p-2">
-                            <Select
-                              value={order.orderType}
-                              onChange={(val) =>
-                                updateOrder(idx, "orderType", val)
-                              }
-                              style={{ width: "100%" }}
-                            >
-                              <Option value="ASC">Tăng dần</Option>
-                              <Option value="DESC">Giảm dần</Option>
-                            </Select>
-                          </td>
+
                           <td className="p-2 text-center">
                             <Checkbox
                               checked={!!order.visible}

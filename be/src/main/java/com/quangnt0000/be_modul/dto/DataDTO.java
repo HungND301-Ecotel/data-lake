@@ -26,4 +26,5 @@ public class DataDTO {
     private List<FieldDTO> fields;
     private List<FilterDTO> filters;
     private List<OrderDTO> orders;
+    private List<GroupDTO> groups;
 }

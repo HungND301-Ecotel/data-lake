@@ -65,6 +65,11 @@ const reportApi = {
     return res.data;
   },
 
+  deleteGroupById: async (groupId: string) => {
+    const res = await axiosClient.delete<Report>(`/group/${groupId}`);
+    return res.data;
+  },
+
   queryList: async (query: string) => {
     const res = await axiosClient.get<[]>(`/data/query-map`, {
       params: { query },

@@ -43,6 +43,7 @@ export interface Data {
   filters: Filter[];
   fields: Field[];
   orders: Order[];
+  groups: Group[];
 }
 
 export interface Sub {
@@ -61,6 +62,7 @@ export interface Filter {
   defaultValue?: string | number | boolean | null;
   defaultOperator?: string;
   queryValue?: string;
+  
 }
 
 export interface Field {
@@ -72,6 +74,7 @@ export interface Field {
   visible: boolean;    // có hiển thị hay không
   index: number;       // thứ tự cột
   groupName: string;   // tên nhóm (nếu có)
+  alignment: number;
 }
 
 export interface Order {
@@ -79,6 +82,14 @@ export interface Order {
   title: string;       // tiêu đề phần order
   fieldKey: string;    // tên trường trong DB
   orderType: "ASC" | "DESC"; // kiểu sắp xếp
+  visible: boolean;   // có hiển thị hay không
+  index: number; 
+}
+
+export interface Group {
+  id: string | null;
+  title: string;       // tiêu đề phần order
+  fieldKey: string;    // tên trường trong DB
   visible: boolean;   // có hiển thị hay không
   index: number; 
 }

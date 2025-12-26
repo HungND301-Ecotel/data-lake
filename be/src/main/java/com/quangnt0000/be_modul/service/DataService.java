@@ -2,10 +2,12 @@ package com.quangnt0000.be_modul.service;
 
 import com.quangnt0000.be_modul.dto.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Comparator;
 import java.util.List;
@@ -32,6 +34,8 @@ public class DataService {
             //SELECT
             StringBuilder sql = new StringBuilder("SELECT ");
             sql.append(createSelect(request));
+            //nhóm
+            sql.append(createGroupSelect(request));
             //FROM
             sql.append(createFrom(request));
             //WHERE
@@ -41,32 +45,44 @@ public class DataService {
             //ORDER
             sql.append(createOrderBy(request));
             System.out.println(sql);
-
-            return jdbcTemplate.queryForList(sql.toString());
+            try {
+                return jdbcTemplate.queryForList(sql.toString());
+            }catch (Exception e){
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lỗi truy vấn: " + sql);
+            }
         }catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     public String queryJdbcSingleValue(String sqlSyntax) {
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sqlSyntax);
 
-        // Không có kết quả
-        if (rows.isEmpty()) return "";
+        try {
+            List<Map<String, Object>> rows = jdbcTemplate.queryForList(sqlSyntax);
+            // Không có kết quả
+            if (rows.isEmpty()) return "";
 
-        // Lấy row đầu tiên
-        Map<String, Object> firstRow = rows.get(0);
+            // Lấy row đầu tiên
+            Map<String, Object> firstRow = rows.get(0);
 
-        // Lấy value đầu tiên trong row
-        Object value = firstRow.values().stream().findFirst().orElse("");
+            // Lấy value đầu tiên trong row
+            Object value = firstRow.values().stream().findFirst().orElse("");
 
-        // convert thành string
-        return value != null ? value.toString() : "";
+            // convert thành string
+            return value != null ? value.toString() : "";
+        }catch (Exception e){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lỗi truy vấn: " + sqlSyntax);
+        }
+
     }
 
     public ResponseEntity<List<String>> queryList(String sqlSyntax) {
         List<String> result = jdbcTemplate.queryForList(sqlSyntax, String.class);
-        return ResponseEntity.ok(result);
+        try {
+            return ResponseEntity.ok(result);
+        }catch (Exception e){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lỗi truy vấn: " + sqlSyntax);
+        }
     }
 
 
@@ -78,6 +94,7 @@ public class DataService {
                 .toList()) {
             fieldSql.append(field.getFieldKey()).append(" AS \"").append(field.getAlias()).append("\", ");
         }
+
         fieldSql.delete(fieldSql.length()-2, fieldSql.length());
         return fieldSql.toString();
     }
@@ -91,6 +108,48 @@ public class DataService {
         fromSql.delete(fromSql.length()-1, fromSql.length());
         return fromSql.toString();
     }
+
+    public String createGroupSelect(DataDTO report) {
+
+        List<GroupDTO> groups = report.getGroups().stream()
+                .filter(g -> Boolean.TRUE.equals(g.getVisible()))
+                .sorted(Comparator.comparingInt(GroupDTO::getIndex))
+                .toList();
+
+        if (groups.isEmpty()) return "";
+
+        StringBuilder fieldSql = new StringBuilder(", ");
+
+        for (int i = 0; i < groups.size(); i++) {
+            GroupDTO g = groups.get(i);
+
+            String alias = "group_" + (groups.get(i).getIndex());
+
+            // ===== group value =====
+            fieldSql.append(g.getFieldKey())
+                    .append(" AS \"")
+                    .append(alias)
+                    .append("\", ");
+
+            // ===== COUNT OVER =====
+            fieldSql.append("COUNT(*) OVER (PARTITION BY ");
+
+            for (int j = 0; j <= i; j++) {
+                fieldSql.append(groups.get(j).getFieldKey());
+                if (j < i) fieldSql.append(", ");
+            }
+
+            fieldSql.append(") AS \"")
+                    .append(alias)
+                    .append("_total\", ");
+        }
+        if (fieldSql.charAt(fieldSql.length() - 2) == ',') {
+            fieldSql.delete(fieldSql.length() - 2, fieldSql.length());
+        }
+
+        return fieldSql.toString();
+    }
+
 
     private String createFilter(DataDTO report) {
 
@@ -121,8 +180,14 @@ public class DataService {
 
                 case "DATE":
                     // Giả sử ngày dạng yyyy-MM-dd → chuyển thành 'yyyy-MM-dd'
-                    formattedValue = "'" + rawValue.trim() + "'";
+                    if (!filter.getDefaultOperator().equals("BETWEEN")) {
+                        formattedValue = "'" + rawValue.trim() + "'";
+                    }else {
+                        formattedValue =  rawValue.trim() ;
+                    }
                     break;
+
+
 
                 default:
                     // Mặc định là chuỗi

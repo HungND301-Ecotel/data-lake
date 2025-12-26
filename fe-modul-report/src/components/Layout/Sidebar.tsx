@@ -6,7 +6,7 @@ import {
   OrderedListOutlined,
   UserOutlined,
 } from "@ant-design/icons";
-import { useAuthStore } from "../../stores/authStore";
+//import { useAuthStore } from "../../stores/authStore";
 
 const { Sider } = Layout;
 
@@ -17,7 +17,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
   const location = useLocation();
-  const role = useAuthStore((s) => s.role);
+  //const role = useAuthStore((s) => s.role);
 
   return (
     <Sider
@@ -29,7 +29,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
       collapsedWidth={80}
       style={{ minHeight: "100vh" }}
     >
-      {/* Logo */}
       <div
         style={{
           height: 64,

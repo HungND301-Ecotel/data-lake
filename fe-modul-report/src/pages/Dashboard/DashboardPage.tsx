@@ -17,7 +17,6 @@ const DashboardPage = () => {
     { title: "Ngày tạo", dataIndex: "date", key: "date" },
   ];
 
-  // Bar chart - số báo cáo theo phòng ban
   const barData = [
     { department: "Kinh doanh", reports: 40 },
     { department: "Kho", reports: 30 },
@@ -34,7 +33,6 @@ const DashboardPage = () => {
     meta: { department: { alias: "Phòng ban" }, reports: { alias: "Số báo cáo" } },
   };
 
-  // Line chart - xu hướng báo cáo theo ngày
   const lineData = [
     { date: "2025-11-25", reports: 5 },
     { date: "2025-11-26", reports: 8 },
@@ -55,7 +53,6 @@ const DashboardPage = () => {
 
   return (
     <div className=" min-h-screen">
-      {/* Thống kê */}
       <Row gutter={16} className="mb-6">
         <Col span={8}>
           <Card>
@@ -74,7 +71,6 @@ const DashboardPage = () => {
         </Col>
       </Row>
 
-      {/* Biểu đồ Bar + Line trên 1 hàng */}
       <Row gutter={16} className="mb-6">
         <Col span={12}>
           <Card title="Số báo cáo theo phòng ban">
@@ -93,7 +89,6 @@ const DashboardPage = () => {
         </Col>
       </Row>
 
-      {/* Table báo cáo gần đây */}
       <Card title="Báo cáo gần đây">
         <Table columns={columns} dataSource={recentReports} pagination={false} />
       </Card>
