@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/pdf")
+@RequestMapping("/api/pdf")
 @RequiredArgsConstructor
 public class PdfController {
     private final PdfService pdfService;

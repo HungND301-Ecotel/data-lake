@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/field")
+@RequestMapping("/api/field")
 @RequiredArgsConstructor
 public class FieldController {
     private final FieldService fieldService;

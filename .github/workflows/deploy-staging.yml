@@ -5,12 +5,12 @@ name: Deploy for staging version
 on:
   push:
     branches:
-      - develop  # Deploy when code is pushed to 'develop'
+      - develop # Deploy when code is pushed to 'develop'
 
 env:
-  WEBAPP_NAME: data-lake    # set this to your application's name
-  WEBAPP_PACKAGE_PATH: '.'      # set this to the path to your web app project, defaults to the repository root
-  NODE_VERSION: '20.x'                # set this to the node version to use
+  WEBAPP_NAME: data-lake # set this to your application's name
+  WEBAPP_PACKAGE_PATH: "." # set this to the path to your web app project, defaults to the repository root
+  NODE_VERSION: "20.x" # set this to the node version to use
 
 # permissions:
 #   contents: read
@@ -28,8 +28,8 @@ jobs:
 
       - name: Create an .env file in frontend for building image
         run: |
-          echo "VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}" > ./fe/.env
-      
+          echo "VITE_API=${{ secrets.VITE_API }}" > ./fe-modul-report/.env
+
       - name: List Files
         run: ls -laR
 
@@ -52,7 +52,7 @@ jobs:
           port: ${{ secrets.STAGING_PORT }}
           script: |
             mkdir -p /home/${{ secrets.STAGING_USER }}/data-lake/deployment/staging
-      
+
       - name: Transfer docker-compose file to VPS for deployment
         uses: appleboy/scp-action@v0.1.4
         with:
@@ -62,9 +62,8 @@ jobs:
           port: ${{ secrets.STAGING_PORT }}
           source: deployment/staging/*
           target: "/home/${{ secrets.STAGING_USER }}/data-lake/deployment/staging"
-          strip_components: 2   # Removes "deployment/staging/" folder path!
+          strip_components: 2 # Removes "deployment/staging/" folder path!
 
-      
       - name: Clean up containers and stuff via SSH
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -81,7 +80,7 @@ jobs:
             docker image prune -f
             docker compose -f staging-docker-compose.yaml down # always down first
             docker ps
-            
+
       - name: Deploy to Staging via SSH
         uses: appleboy/ssh-action@v0.1.7
         with:

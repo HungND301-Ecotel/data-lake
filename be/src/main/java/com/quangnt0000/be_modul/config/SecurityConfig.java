@@ -35,19 +35,19 @@ public class SecurityConfig {
     }
 
     private static final String[] PUBLIC_ENDPOINTS = {
-            "/user/login",
+            "/api/user/login",
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
-            "/department/my",
+            "/api/department/my",
 
     };
     private static final String[] PUBLIC_ENDPOINTS_GET = {
-            "/user",
+            "/api/user",
 
     };
     private static final String[] PUBLIC_ENDPOINTS_POST = {
-            "/user/login"
+            "/api/user/login"
     };
 
     @Bean

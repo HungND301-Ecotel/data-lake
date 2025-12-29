@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/report-item")
+@RequestMapping("/api/report-item")
 @RequiredArgsConstructor
 public class ReportItemController {
     private final ReportItemService reportItemService;

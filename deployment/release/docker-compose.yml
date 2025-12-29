@@ -1,7 +1,49 @@
 services:
-  #backend:
-  #fontend:
-  #reverse_proxy
+  report_reverse_proxy_service:
+    image: ${REGISTRY}/report_reverse_proxy_img:${VERSION}
+    ports:
+      # HOST_PORT:CONTAINER_PORT
+      - "6565:8888"
+    stdin_open: true
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+    networks:
+      - backnet
+      - frontnet
+    depends_on:
+      - report_backend_service
+      - report_frontend_service
+
+  report_backend_service:
+    env_file:
+      - .env_backend
+    image: ${REGISTRY}/report_backend_img:${VERSION}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    networks:
+      - backnet
+    restart: unless-stopped
+
+  report_frontend_service:
+    image: ${REGISTRY}/report_frontend_img:${VERSION}
+    # target: development
+    stdin_open: true
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+    volumes:
+      # For development only, to synced src code to container
+      - /usr/src/app/node_modules
+    # restart: always
+    networks:
+      - frontnet
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "30"
 
   postgres:
     container_name: pg_report_2211
@@ -12,9 +54,9 @@ services:
       - POSTGRES_DB=report
       - PGDATA=/var/lib/postgresql/data
     volumes:
-      - pg_report_2211:/var/lib/postgresql/data
+      - report_postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5434:5432"
     restart: unless-stopped
 
   pgadmin:
@@ -25,11 +67,15 @@ services:
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD:-admin}
       - PGADMIN_CONFIG_SERVER_MODE=False
     volumes:
-      - pgadmin_report_2211:/var/lib/pgadmin
+      - report_pgadmin_data:/var/lib/pgadmin
     ports:
       - "5050:80"
     restart: unless-stopped
 
 volumes:
-  pg_report_2211:
-  pgadmin_report_2211:
+  report_postgres_data: # ✅ Cho postgres
+  report_pgadmin_data: # ✅ Cho pgadmin (thêm mới)
+
+networks:
+  backnet:
+  frontnet:

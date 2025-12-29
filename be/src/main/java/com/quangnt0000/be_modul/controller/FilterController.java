@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/filter")
+@RequestMapping("/api/filter")
 @RequiredArgsConstructor
 public class FilterController {
     private final FilterService filterService;
