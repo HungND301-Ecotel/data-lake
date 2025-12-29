@@ -13,10 +13,10 @@ services:
 
   report_backend_service:
     build:
-      context: ./backend
+      context: ./be
     image: ${REGISTRY}/report_ecotel_backend_img:${VERSION}
 
   report_frontend_service:
     build:
-      context: ./frontend
+      context: ./fe-modul-report
     image: ${REGISTRY}/report_ecotel_frontend_img:${VERSION}
