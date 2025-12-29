@@ -1,19 +1,19 @@
 import { createBrowserRouter } from "react-router-dom";
-import MainLayout from "../components/Layout/MainLayout";
-import DashboardPage from "../pages/Dashboard/DashboardPage";
-import ReportTemplatePage from "../pages/report/ReportTemplatePage";
-import ReportStoragePage from "../pages/report/ReportStoragePage";
-import ReportDetailPage from "../pages/report/ReportDetailPage";
-import EmployeePage from "../pages/Employee/Employee";
-import ReportStorageDepartment from "../pages/report/ReportStorageDepartment";
-import ReportDetail from "../pages/ReportDetail";
-import ReportTemplateDepartment from "../pages/report/ReportTemplateDepartment";
-import ReportCategoryPage from "../pages/category/ReportCategory";
-import DepartmentCategoryPage from "../pages/category/DepartmentCategoryPage";
-import LoginPage from "../pages/user/LoginPage";
-import LuckeyExcelViewer from "../components/previewFile/LuckeyExcel";
-import PreviewFilePdf from "../components/previewFile/PreviewFilePdf";
-import ProfilePage from "../pages/Employee/ProfilePage";
+import DashboardPage from "../features/dashboard/pages/DashboardPage";
+import ReportTemplatePage from "../features/report/pages/ReportTemplatePage";
+import ReportStoragePage from "../features/report/pages/ReportStoragePage";
+import ReportDetailPage from "../features/report/pages/ReportDetailPage";
+import EmployeePage from "../features/employee/pages/Employee";
+import ReportStorageDepartment from "../features/report/pages/ReportStorageDepartment";
+import ReportDetail from "../features/report/pages/ReportDetail";
+import ReportTemplateDepartment from "../features/report/pages/ReportTemplateDepartment";
+import ReportCategoryPage from "../features/category/reportCategory/pages/ReportCategory";
+import DepartmentCategoryPage from "../features/department/pages/DepartmentCategoryPage";
+import LoginPage from "../features/auth/pages/LoginPage";
+import LuckeyExcelViewer from "../features/report/components/previewFile/LuckeyExcel";
+import PreviewFilePdf from "../features/report/components/previewFile/PreviewFilePdf";
+import ProfilePage from "../features/employee/pages/ProfilePage";
+import MainLayout from "../features/layout/MainLayout";
 
 export const router = createBrowserRouter([
   {

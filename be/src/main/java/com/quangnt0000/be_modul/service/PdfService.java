@@ -7,6 +7,7 @@ import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.quangnt0000.be_modul.dto.*;
 import com.quangnt0000.be_modul.utils.FontUtils;
+import com.quangnt0000.be_modul.utils.PageNumberEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -26,11 +27,14 @@ import java.util.stream.Collectors;
 public class PdfService {
     private final DataService dataService;
     private final FontUtils fontUtils;
+    private final PageNumberEvent pageNumberEvent;
     public ResponseEntity<?> exportPdf(ReportDTO report) {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Document document = new Document(report.getPageType().equals("LANDSCAPE") ? PageSize.A4.rotate() : PageSize.A4 ,
                     report.getMarginLeft(), report.getMarginRight(), report.getMarginTop(), report.getMarginBottom());
-            PdfWriter.getInstance(document, out);
+            PdfWriter writer = PdfWriter.getInstance(document, out);
+            writer.setPageEvent(new PageNumberEvent());
+
             document.open();
 
             List<ReportItemDTO> items = report.getItems().stream()

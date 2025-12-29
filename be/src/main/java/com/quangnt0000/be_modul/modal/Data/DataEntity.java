@@ -44,5 +44,7 @@ public class DataEntity {
     @OneToMany(mappedBy = "data", cascade = CascadeType.REMOVE)
     private List<GroupEntity> groups;
 
+    private String groupAdvance;
+    private String selectAdvance;
     private String reportItemId;
 }

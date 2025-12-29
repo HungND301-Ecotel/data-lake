@@ -41,7 +41,7 @@ public class DataService {
             //WHERE
             sql.append(createFilter(request));
             //GROUP
-            //        sql.append(createGroupBy(request));
+            sql.append(createGroupBy(request));
             //ORDER
             sql.append(createOrderBy(request));
             System.out.println(sql);
@@ -89,6 +89,9 @@ public class DataService {
 
     public String createSelect(DataDTO report) {
         StringBuilder fieldSql = new StringBuilder();
+        if (report.getSelectAdvance() != null && !report.getSelectAdvance().trim().isEmpty()) {
+            fieldSql.append(report.getSelectAdvance()).append(" , ");
+        }
         for (FieldDTO field : report.getFields().stream()
                 .filter(FieldDTO::isVisible)
                 .toList()) {
@@ -202,10 +205,18 @@ public class DataService {
     }
 
     public String createOrderBy(DataDTO report){
+        List<GroupDTO> groups = report.getGroups().stream()
+                .filter(g -> Boolean.TRUE.equals(g.getVisible()))
+                .sorted(Comparator.comparingInt(GroupDTO::getIndex))
+                .toList();
+
+
         List<OrderDTO> orderByList = report.getOrders().stream()
                 .filter(OrderDTO::isVisible)            // chỉ lấy visible = true
                 .sorted(Comparator.comparingInt(OrderDTO::getIndex)) // sắp xếp theo index
                 .toList();
+
+
         if (orderByList.isEmpty()) return "";
         StringBuilder orderSql = new StringBuilder(" ORDER BY ");
         for (OrderDTO orderBy : orderByList){
@@ -227,5 +238,10 @@ public class DataService {
 //        }
 //
 //        return orderSql.toString();
-//    }
+//    }\
+
+    public String createGroupBy(DataDTO report){
+        if (report.getGroupAdvance() == null) return "";
+        return " " + report.getGroupAdvance() + " ";
+    }
 }

@@ -197,6 +197,19 @@ public class ExcelService {
         dataStyle.setBorderLeft(BorderStyle.THIN);
         dataStyle.setBorderRight(BorderStyle.THIN);
 
+
+        CellStyle groupStyle = wb.createCellStyle();
+        Font groupFont = wb.createFont();
+        groupFont.setBold(true);
+        groupStyle.setFont(groupFont);
+        groupStyle.setAlignment(HorizontalAlignment.LEFT);
+        groupStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        groupFont.setColor(IndexedColors.BLUE.getIndex());
+        groupStyle.setBorderTop(BorderStyle.THIN);
+        groupStyle.setBorderBottom(BorderStyle.THIN);
+        groupStyle.setBorderLeft(BorderStyle.THIN);
+        groupStyle.setBorderRight(BorderStyle.THIN);
+
         int startRow = rowIndex;
 
         // ===== Group Header và Header Row =====
@@ -246,8 +259,85 @@ public class ExcelService {
             sheet.setColumnWidth(i, (int) (f.getWeight() * 256));
         }
 
-        // ===== Data Rows =====
+        //group
+        List<GroupDTO> groups = dto.getGroups().stream()
+                .filter(g -> Boolean.TRUE.equals(g.getVisible()))
+                .sorted(Comparator.comparingInt(GroupDTO::getIndex))
+                .toList();
+
+        int groupLevelCount = groups.size();
+        List<Object> prevGroupValues = new ArrayList<>(Collections.nCopies(groupLevelCount, null));
+        int[] groupIndexes = new int[groupLevelCount];
+
+        // data róws
         for (Map<String, Object> rowData : data) {
+            // -group
+            for (int level = 0; level < groups.size(); level++) {
+                GroupDTO g = groups.get(level);
+
+                String alias = "group_" + g.getIndex();
+                String totalAlias = alias + "_total";
+
+                Object current = rowData.get(alias);
+                Object previous = prevGroupValues.get(level);
+
+                if (!Objects.equals(current, previous)) {
+
+                    // reset level dưới
+                    for (int i = level + 1; i < groupLevelCount; i++) {
+                        groupIndexes[i] = 0;
+                        prevGroupValues.set(i, null);
+                    }
+
+                    groupIndexes[level]++;
+                    prevGroupValues.set(level, current);
+
+
+                    // build prefix: 1.2.3
+                    StringBuilder prefix = new StringBuilder();
+                    for (int i = 0; i <= level; i++) {
+                        prefix.append(groupIndexes[i]).append(".");
+                    }
+
+                    Row groupRow = sheet.createRow(rowIndex++);
+
+                    // CHỈ GHI Ở CỘT THỨ 2 index = 1
+                    Cell cell = groupRow.createCell(1);
+
+//                    sheet.addMergedRegion(new CellRangeAddress(
+//                            rowIndex-1,
+//                            rowIndex-1,
+//                            1,
+//                            sortedFields.size() - 1
+//                    ));
+                    Row groupRow2 = sheet.getRow(rowIndex - 1);
+                    if (groupRow2 == null) {
+                        groupRow2 = sheet.createRow(rowIndex - 1);
+                    }
+
+                    Cell cell0 = groupRow2.getCell(0);
+                    if (cell0 == null) {
+                        cell0 = groupRow2.createCell(0);
+                    }
+
+                    cell0.setCellStyle(dataStyle);
+
+
+                    setBordersForMergedRegion(sheet, new CellRangeAddress(rowIndex-1, rowIndex-1 , 1, sortedFields.size() - 1), dataStyle);
+
+                    StringBuilder indent = new StringBuilder();
+                    for (int i = 0; i < level * 3; i++) {
+                        indent.append(" ");
+                    }
+                    Object total = rowData.get(totalAlias);
+                    cell.setCellValue(
+                            indent.toString() + prefix + " " + current +
+                                    (total != null ? " (" + total + ")" : "")
+                    );
+                    cell.setCellStyle(groupStyle);
+                }
+            }
+
             Row row = sheet.createRow(rowIndex++);
             int col = 0;
             for (FieldDTO f : sortedFields) {
@@ -368,9 +458,7 @@ public class ExcelService {
 
             cell.setCellStyle(style);
 
-            // =====================
-            //   MERGE COLUMNS
-            // =====================
+            //merge cột
             if (t.getColSpan() != null && !t.getColSpan().isEmpty()) {
                 int colSpan = Integer.parseInt(t.getColSpan());
 
@@ -417,7 +505,7 @@ public class ExcelService {
 
         for (ReportItemDTO item : report.getItems()) {
 
-            // ===== DATA TABLE =====
+            // dât table
             if ("data".equals(item.getType())) {
                 DataDTO dto = mapper.convertValue(item.getObject(), DataDTO.class);
 
@@ -430,7 +518,7 @@ public class ExcelService {
                 max = Math.max(max, colCount);
             }
 
-            // ===== CUSTOM TABLE =====
+            // cus table
             if ("table".equals(item.getType())) {
                 TableDTO dto = mapper.convertValue(item.getObject(), TableDTO.class);
 

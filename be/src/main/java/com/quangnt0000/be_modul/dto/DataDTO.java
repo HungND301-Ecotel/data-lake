@@ -27,4 +27,6 @@ public class DataDTO {
     private List<FilterDTO> filters;
     private List<OrderDTO> orders;
     private List<GroupDTO> groups;
+    private String groupAdvance;
+    private String selectAdvance;
 }
