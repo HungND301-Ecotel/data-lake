@@ -17,6 +17,8 @@ spring:
     defer-datasource-initialization: true
 server:
   port: 8080
+  servlet:
+    context-path: /api
 
 aws:
   accessKeyId: ${AWS_ACCESSKEYID}

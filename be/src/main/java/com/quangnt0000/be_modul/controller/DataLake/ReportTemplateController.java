@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/report-template")
+@RequestMapping("/report-template")
 @RequiredArgsConstructor
 public class ReportTemplateController {
     private final ReportTemplateService reportTemplateService;

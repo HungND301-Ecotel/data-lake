@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/data")
+@RequestMapping("/data")
 @RequiredArgsConstructor
 public class DataController {
     private final DataService dataService;
