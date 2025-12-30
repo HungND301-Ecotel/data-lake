@@ -270,6 +270,8 @@ const ReportDetail: React.FC = () => {
                       description: "",
                       fontName: "Times New Roman",
                       fontSize: 12,
+                      selectAdvance: "",
+                      groupAdvance: "",
                       subs: [],
                       filters: [],
                       fields: [],
