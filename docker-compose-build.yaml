@@ -6,7 +6,7 @@
 # b. Push:  $ docker compose -f docker-compose-build.yaml push
 #####
 services:
-  kvd_reverseproxy_service:
+  report_reverseproxy_service:
     build:
       context: ./reverse_proxy
     image: ${REGISTRY}/report_reverse_proxy_img:${VERSION}
