@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: report
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 500MB
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    defer-datasource-initialization: true
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+aws:
+  accessKeyId: ${AWS_ACCESSKEYID}
+  secretAccessKey: ${AWS_SECRETACCESSKEY}
+  s3:
+    bucket: ${AWS_S3_BUCKET}
+  region: ${AWS_REGION}
+
+jwt:
+  secret: ${JWT_SECRET}
+
