@@ -39,11 +39,6 @@ services:
     # restart: always
     networks:
       - frontnet
-    logging:
-      driver: json-file
-      options:
-        max-size: "100m"
-        max-file: "30"
 
   postgres:
     container_name: pg_report_2211
