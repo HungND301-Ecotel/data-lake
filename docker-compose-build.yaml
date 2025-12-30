@@ -14,9 +14,9 @@ services:
   report_backend_service:
     build:
       context: ./be
-    image: ${REGISTRY}/report_ecotel_backend_img:${VERSION}
+    image: ${REGISTRY}/report_backend_img:${VERSION}
 
   report_frontend_service:
     build:
       context: ./fe-modul-report
-    image: ${REGISTRY}/report_ecotel_frontend_img:${VERSION}
+    image: ${REGISTRY}/report_frontend_img:${VERSION}
