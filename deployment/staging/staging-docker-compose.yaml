@@ -19,8 +19,7 @@ services:
       - .env_backend
     image: ${REGISTRY}/report_backend_img:${VERSION}
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres
     ports:
       - "8484:8080"
     networks:
@@ -64,7 +63,7 @@ services:
     volumes:
       - report_pgadmin_data:/var/lib/pgadmin
     ports:
-      - "5050:80"
+      - "5051:80"
     restart: unless-stopped
 
 volumes:
