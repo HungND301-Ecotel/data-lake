@@ -1,3 +1,4 @@
+-- Tạo employee nếu chưa có
 INSERT INTO employee (
     id,
     name,
@@ -28,8 +29,10 @@ SELECT
     FALSE,
     NULL
     WHERE NOT EXISTS (
-    SELECT 1 FROM employee
+    SELECT 1 FROM employee WHERE id = '645f2878-7fe6-4363-a46b-59f909011b2b'
 );
+
+-- Tạo user nếu chưa có
 INSERT INTO users (
     id,
     username,
@@ -46,5 +49,5 @@ SELECT
     '645f2878-7fe6-4363-a46b-59f909011b2b',
     TRUE
     WHERE NOT EXISTS (
-    SELECT 1 FROM employee
+    SELECT 1 FROM users WHERE username = 'admin'
 );
