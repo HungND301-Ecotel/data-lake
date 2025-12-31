@@ -10,8 +10,8 @@ import '@syncfusion/ej2-navigations/styles/material.css';
 import '@syncfusion/ej2-popups/styles/material.css';
 import '@syncfusion/ej2-splitbuttons/styles/material.css';
 import '@syncfusion/ej2-react-spreadsheet/styles/material.css';
-
 function App() {
+
   return <RouterProvider router={router} />;
 }
 
