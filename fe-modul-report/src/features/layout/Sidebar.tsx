@@ -1,6 +1,7 @@
 import { Layout, Menu } from "antd";
 import { Link, useLocation } from "react-router-dom";
 import {
+  DiffOutlined,
   FileTextOutlined,
   HomeOutlined,
   OrderedListOutlined,
@@ -65,6 +66,9 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
           <Menu.Item key="/category/report">
             <Link to="/category/report">Danh mục báo cáo</Link>
           </Menu.Item>
+          <Menu.Item key="/category/ware">
+            <Link to="/category/ware">Danh mục DTL</Link>
+          </Menu.Item>
         </Menu.SubMenu>
 
         <Menu.Item key="/employee" icon={<UserOutlined />}>
@@ -83,6 +87,10 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
             <Link to="/reports/storage">Kho lưu trữ</Link>
           </Menu.Item>
         </Menu.SubMenu>
+
+        <Menu.Item key="/ware" icon={<DiffOutlined />}>
+          <Link to="/ware">QL dữ liệu</Link>
+        </Menu.Item>
       </Menu>
     </Sider>
   );

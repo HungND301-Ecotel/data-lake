@@ -14,6 +14,12 @@ import LuckeyExcelViewer from "../features/report/components/previewFile/LuckeyE
 import PreviewFilePdf from "../features/report/components/previewFile/PreviewFilePdf";
 import ProfilePage from "../features/employee/pages/ProfilePage";
 import MainLayout from "../features/layout/MainLayout";
+import DepartmentMy from "../features/department/pages/DepartmentMy";
+import WareCategoryPage from "../features/ware/pages/WareCategory";
+import WareTemplate from "../features/ware/pages/WareTemplate";
+import { WareBatch } from "../features/ware/pages/WareBatch";
+import { TemplateDetail } from "../features/ware/pages/WareTemplateDetail";
+import { WareBatchDetail } from "../features/ware/pages/WareBatchDetail";
 
 export const router = createBrowserRouter([
   {
@@ -23,10 +29,15 @@ export const router = createBrowserRouter([
       { path: "/", element: <DashboardPage /> },
       { path: "/employee", element: <EmployeePage /> },
       { path: "/employee/:employeeId", element: <ProfilePage /> },
-
+      { path: "/ware", element: <DepartmentMy /> },
+      { path: "/ware/department/:departmentId", element: <WareTemplate /> },
+      { path: "/ware/template/:templateId", element: <WareBatch /> },
+      { path: "/ware/template/detail/:templateId", element: <TemplateDetail /> },
+      { path: "/ware/batch/:wareBatchId", element: <WareBatchDetail /> },
 
       { path: "/category/report", element: <ReportCategoryPage/> },
       { path: "/category/departments", element: <DepartmentCategoryPage/> },
+      { path: "/category/ware", element: <WareCategoryPage/> },
 
       {
         path: "/reports/view/excel/:fileKey",
