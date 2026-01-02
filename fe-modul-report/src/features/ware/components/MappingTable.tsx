@@ -36,7 +36,9 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await wareMappingApi.getByBatch(templateId);
+      const res = await wareMappingApi.searchWareMapping({
+        wareTemplateId: templateId
+      });
 
       const typeOrder = ["CELL", "TEXT", "ROW"];
       const sorted = [...res].sort((a, b) => {
