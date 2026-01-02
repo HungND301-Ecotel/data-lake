@@ -1,6 +1,5 @@
 export interface WareMappingRequest {
   id?: number | null;
-  excelColumn: number;
   fieldName: string;
   fieldValue?: string;
   fieldType?: "ROW" | "CELL" | "TEXT"; 

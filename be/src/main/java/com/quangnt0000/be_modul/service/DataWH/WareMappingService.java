@@ -32,7 +32,6 @@ public class WareMappingService {
         WareTemplate wareTemplate = wareTemplateRepository.findById(request.getWareTemplateId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ware Template Not Found"));
        WareMapping wareMapping = WareMapping.builder()
-               .id(request.getId())
                .fieldName(request.getFieldName())
                .fieldValue(request.getFieldValue())
                .fieldType(request.getFieldType())
@@ -78,5 +77,18 @@ public class WareMappingService {
                 .wareTemplateId(wareTemplate.getId())
                 .build();
         return ResponseEntity.ok(get(wareMappingSearch).getBody());
+    }
+
+    public ResponseEntity<?> update(WareMappingRequest request) {
+        WareMapping wareMapping = wareMappingRepository.findById(request.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ware Mapping Not Found"));
+        wareMapping.setFieldName(request.getFieldName());
+        wareMapping.setFieldValue(request.getFieldValue());
+        wareMapping.setFieldType(request.getFieldType());
+        wareMapping.setIsKeyColumn(request.getIsKeyColumn());
+        wareMapping.setIsScopFilter(request.getIsScopFilter());
+        wareMapping.setCellAddress(request.getCellAddress());
+        wareMapping = wareMappingRepository.save(wareMapping);
+        return ResponseEntity.ok(wareMapping.getId());
     }
 }

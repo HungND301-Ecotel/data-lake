@@ -8,16 +8,21 @@ import com.quangnt0000.be_modul.dto.WareBatch.WareBatchResponse;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchSearch;
 import com.quangnt0000.be_modul.dto.WareCategory.WareCategoryResponse;
 import com.quangnt0000.be_modul.dto.WareDataRow.WareDataRowSearch;
+import com.quangnt0000.be_modul.modal.DataLake.Employee;
+import com.quangnt0000.be_modul.modal.DataLake.User;
 import com.quangnt0000.be_modul.modal.DataWH.WareBatch;
 import com.quangnt0000.be_modul.modal.DataWH.WareDataRow;
 import com.quangnt0000.be_modul.modal.DataWH.WareMapping;
 import com.quangnt0000.be_modul.modal.DataWH.WareTemplate;
+import com.quangnt0000.be_modul.repository.DataLake.EmployeeRepository;
+import com.quangnt0000.be_modul.repository.DataLake.UserRepository;
 import com.quangnt0000.be_modul.repository.DataWH.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -33,11 +38,15 @@ public class WareBatchService {
     private final WareApiService wareApiService;
     private final WareDataRowService wareDataRowService;
     private final WareMappingRepository wareMappingRepository;
+    private final EmployeeRepository employeeRepository;
+    private final UserRepository userRepository;
     @Transactional
     public ResponseEntity<?> addWareBatch(WareBatchRequest request) {
         WareTemplate wareTemplate = wareTemplateRepository.findById(request.getWareTemplateId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "template not found"));
-
+        String employeeId = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findById(employeeId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "user not found"));
         List<WareMapping> wareMappings = wareTemplate.getWareMappings();
 
         try {
@@ -104,10 +113,8 @@ public class WareBatchService {
                     .code("new")
                     .name(request.getName())
                     .description(request.getDescription())
-                    .employee(null)
+                    .employee(user.getEmployee())
                     .wareTemplate(wareTemplate)
-                    .year(request.getYear())
-                    .period(request.getPeriod())
                     .build());
 
             batch.setCode("BATCH" + batch.getId());
@@ -191,8 +198,7 @@ public class WareBatchService {
                                 .description(item.getDescription())
                                 .createdAt(item.getCreatedAt())
                                 .updatedAt(item.getUpdatedAt())
-                                .year(item.getYear())
-                                .period(item.getPeriod())
+                                .employeeName(item.getEmployee() != null ? item.getEmployee().getName() : null)
                                 .build()
                 )
                 .toList();
@@ -270,9 +276,15 @@ public class WareBatchService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "batch not found"));
         wareBatch.setName(request.getName());
         wareBatch.setDescription(request.getDescription());
-        wareBatch.setYear(request.getYear());
-        wareBatch.setPeriod(request.getPeriod());
         wareBatch = wareBatchRepository.save(wareBatch);
         return ResponseEntity.ok(wareBatch.getId());
+    }
+
+    public ResponseEntity<?> delete(Integer wareBatchId) {
+        WareBatch wareBatch = wareBatchRepository.findById(wareBatchId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "batch not found"));
+        wareBatch.setDeleted(true);
+        wareBatchRepository.save(wareBatch);
+        return ResponseEntity.ok("deleted");
     }
 }

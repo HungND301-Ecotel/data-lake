@@ -5,7 +5,6 @@ import {
   Button,
   message,
   Popconfirm,
-  Form,
   Checkbox,
   Select,
 } from "antd";
@@ -28,9 +27,11 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
 }) => {
   const [data, setData] = useState<WareMappingResponse[]>([]);
   const [loading, setLoading] = useState(false);
+
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  const [form] = Form.useForm<WareMappingRequest>();
+  const [editingRequest, setEditingRequest] =
+    useState<WareMappingRequest | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -44,18 +45,14 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
           typeOrder.indexOf(b.fieldType ?? "");
         if (typeDiff !== 0) return typeDiff;
 
-        const aAddr = a.cellAddress ?? "";
-        const bAddr = b.cellAddress ?? "";
-
-        return aAddr.localeCompare(bAddr, undefined, {
+        return (a.cellAddress ?? "").localeCompare(b.cellAddress ?? "", undefined, {
           numeric: true,
           sensitivity: "base",
         });
       });
 
       setData(sorted);
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
       message.error("Lấy dữ liệu mapping thất bại");
     } finally {
       setLoading(false);
@@ -66,11 +63,49 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
     fetchData();
   }, [templateId]);
 
-  // ================= Handlers =================
+  const isEditing = (record: WareMappingResponse) =>
+    editingId === record.id || (record.id === null && editingId === null);
+
+  const updateRequest = <K extends keyof WareMappingRequest>(
+    key: K,
+    value: WareMappingRequest[K]
+  ) => {
+    setEditingRequest((prev) => (prev ? { ...prev, [key]: value } : prev));
+  };
+
+  const handleAdd = () => {
+    setEditingId(null);
+
+    setEditingRequest({
+      id: null,
+      fieldName: "",
+      fieldType: "ROW",
+      cellAddress: "",
+      fieldValue: "",
+      isKeyColumn: false,
+      isScopFilter: false,
+      wareTemplateId: templateId,
+    });
+
+    setData((prev) => [
+      {
+        id: null,
+        fieldName: "",
+        fieldType: "ROW",
+        cellAddress: "",
+        fieldValue: "",
+        isKeyColumn: false,
+        isScopFilter: false,
+      },
+      ...prev,
+    ]);
+  };
+
   const handleEdit = (record: WareMappingResponse) => {
-    setEditingId(record.id);
-    form.setFieldsValue({
-      id: record.id,
+    setEditingId(record.id!);
+
+    setEditingRequest({
+      id: record.id!,
       fieldName: record.fieldName,
       fieldType: record.fieldType,
       cellAddress: record.cellAddress,
@@ -83,17 +118,31 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
 
   const handleCancel = () => {
     setEditingId(null);
+    setEditingRequest(null);
+    fetchData();
   };
 
-  const handleSave = async (id: number) => {
+  const handleSave = async () => {
+    if (!editingRequest) return;
+
     try {
-      const values = await form.validateFields();
-      await wareMappingApi.saveWareMapping(values);
-      message.success("Lưu mapping thành công");
+      if (!editingRequest.fieldName || !editingRequest.fieldType) {
+        message.warning("Field Name và Field Type là bắt buộc");
+        return;
+      }
+
+      if (editingRequest.id == null) {
+        await wareMappingApi.saveWareMapping(editingRequest);
+        message.success("Thêm mapping thành công");
+      } else {
+        await wareMappingApi.updateWareMapping(editingRequest);
+        message.success("Cập nhật mapping thành công");
+      }
+
       setEditingId(null);
+      setEditingRequest(null);
       fetchData();
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
       message.error("Lưu mapping thất bại");
     }
   };
@@ -103,102 +152,84 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
       await wareMappingApi.deleteWareMapping(String(id));
       message.success("Xóa mapping thành công");
       fetchData();
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
       message.error("Xóa mapping thất bại");
     }
   };
 
-  // ================= Table columns =================
+  /* ================= COLUMNS ================= */
   const columns: ColumnsType<WareMappingResponse> = [
     {
       title: "Field Name",
-      dataIndex: "fieldName",
-      key: "fieldName",
       width: 150,
       render: (_, record) =>
-        editingId === record.id ? (
-          <Form.Item
-            name="fieldName"
-            style={{ margin: 0 }}
-            rules={[{ required: true }]}
-          >
-            <Input placeholder="Field Name" />
-          </Form.Item>
+        isEditing(record) ? (
+          <Input
+            value={editingRequest?.fieldName}
+            onChange={(e) => updateRequest("fieldName", e.target.value)}
+          />
         ) : (
           record.fieldName
         ),
     },
     {
       title: "Field Type",
-      dataIndex: "fieldType",
-      key: "fieldType",
-      width: 120,
+      width: 130,
       align: "center",
       render: (_, record) =>
-        editingId === record.id ? (
-          <Form.Item
-            name="fieldType"
-            style={{ margin: 0 }}
-            rules={[{ required: true }]}
-          >
-            <Select
-              options={[
-                { value: "ROW", label: "Đối chiếu cột" },
-                { value: "CELL", label: "Đối chiếu ô" },
-                { value: "TEXT", label: "Nhập dữ liệu" },
-              ]}
-            />
-          </Form.Item>
+        isEditing(record) ? (
+          <Select
+            value={editingRequest?.fieldType}
+            style={{ width: "100%" }}
+            onChange={(v) => updateRequest("fieldType", v)}
+            options={[
+              { value: "ROW", label: "Đối chiếu cột" },
+              { value: "CELL", label: "Đối chiếu ô" },
+              { value: "TEXT", label: "Nhập dữ liệu" },
+            ]}
+          />
         ) : (
           record.fieldType
         ),
     },
     {
       title: "Cell Address",
-      dataIndex: "cellAddress",
-      key: "cellAddress",
       width: 120,
       align: "center",
       render: (_, record) =>
-        editingId === record.id ? (
-          <Form.Item name="cellAddress" style={{ margin: 0 }}>
-            <Input placeholder="Cell Address" />
-          </Form.Item>
+        isEditing(record) ? (
+          <Input
+            value={editingRequest?.cellAddress}
+            onChange={(e) => updateRequest("cellAddress", e.target.value)}
+          />
         ) : (
           record.cellAddress
         ),
     },
     {
       title: "Value / Default",
-      dataIndex: "fieldValue",
-      key: "fieldValue",
       width: 150,
       align: "center",
       render: (_, record) =>
-        editingId === record.id ? (
-          <Form.Item name="fieldValue" style={{ margin: 0 }}>
-            <Input placeholder="Default / Value" />
-          </Form.Item>
+        isEditing(record) ? (
+          <Input
+            value={editingRequest?.fieldValue}
+            onChange={(e) => updateRequest("fieldValue", e.target.value)}
+          />
         ) : (
           record.fieldValue
         ),
     },
     {
       title: "Key",
-      dataIndex: "isKeyColumn",
-      key: "isKeyColumn",
       width: 80,
       align: "center",
       render: (_, record) =>
-        editingId === record.id ? (
-          <Form.Item
-            name="isKeyColumn"
-            style={{ margin: 0 }}
-            valuePropName="checked"
-          >
-            <Checkbox />
-          </Form.Item>
+        isEditing(record) ? (
+          <Checkbox
+            checked={editingRequest?.isKeyColumn}
+            onChange={(e) => updateRequest("isKeyColumn", e.target.checked)}
+          />
         ) : record.isKeyColumn ? (
           "✔️"
         ) : (
@@ -207,19 +238,14 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
     },
     {
       title: "Scope",
-      dataIndex: "isScopFilter",
-      key: "isScopFilter",
       width: 80,
       align: "center",
       render: (_, record) =>
-        editingId === record.id ? (
-          <Form.Item
-            name="isScopFilter"
-            style={{ margin: 0 }}
-            valuePropName="checked"
-          >
-            <Checkbox />
-          </Form.Item>
+        isEditing(record) ? (
+          <Checkbox
+            checked={editingRequest?.isScopFilter}
+            onChange={(e) => updateRequest("isScopFilter", e.target.checked)}
+          />
         ) : record.isScopFilter ? (
           "✔️"
         ) : (
@@ -228,18 +254,12 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
     },
     {
       title: "Action",
-      key: "action",
       width: 160,
       align: "center",
       render: (_, record) =>
-        editingId === record.id ? (
+        isEditing(record) ? (
           <>
-            <Button
-              type="link"
-              icon={<SaveOutlined />}
-              onClick={() => handleSave(record.id!)}
-              style={{ marginRight: 8 }}
-            >
+            <Button type="link" icon={<SaveOutlined />} onClick={handleSave}>
               Lưu
             </Button>
             <Button type="link" icon={<CloseOutlined />} onClick={handleCancel}>
@@ -252,7 +272,6 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
               type="link"
               icon={<EditOutlined />}
               onClick={() => handleEdit(record)}
-              style={{ marginRight: 8 }}
             >
               Sửa
             </Button>
@@ -271,52 +290,31 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
 
   return (
     <div style={{ paddingTop: 16 }}>
-      {/* ===== Header + Button ===== */}
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "center",
           marginBottom: 16,
         }}
       >
-        <h1 style={{ fontWeight: "bold", fontSize: 20, margin: 0 }}>
+        <h1 style={{ fontSize: 20, fontWeight: "bold", margin: 0 }}>
           Cấu hình dữ liệu
         </h1>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => {
-            const newItem: WareMappingResponse = {
-              id: null,
-              fieldName: "",
-              fieldType: "ROW",
-              cellAddress: "",
-              isKeyColumn: false,
-              isScopFilter: false,
-              fieldValue: "",
-            };
-            setData([newItem, ...data]);
-            setEditingId(-1);
-            form.setFieldsValue({ ...newItem, wareTemplateId: templateId });
-          }}
-        >
-          Thêm Mapping
+
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+          Thêm mới
         </Button>
       </div>
 
-      {/* ===== Form + Table ===== */}
-      <Form form={form} component={false}>
-        <Table
-          rowKey={(record) => record.id ?? Math.random()}
-          columns={columns}
-          dataSource={data}
-          loading={loading}
-          pagination={false}
-          bordered
-          size="small"
-        />
-      </Form>
+      <Table
+        rowKey={(record) => record.id ?? "new"}
+        columns={columns}
+        dataSource={data}
+        loading={loading}
+        pagination={false}
+        bordered
+        size="small"
+      />
     </div>
   );
 };

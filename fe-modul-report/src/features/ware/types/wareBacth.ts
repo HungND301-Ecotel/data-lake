@@ -4,8 +4,6 @@ export interface WareBatchRequest {
   description: string;
   file?: File | null;
   wareTemplateId: number | null;
-  year: number;
-  period: number;
 }
 
 export interface WareBatchResponse {
@@ -16,8 +14,6 @@ export interface WareBatchResponse {
   createdAt: string;
   updatedAt: string;
   employeeName?: string | null;
-  year: number;
-  period: number;
 }
 
 export interface WareBatchSearch {

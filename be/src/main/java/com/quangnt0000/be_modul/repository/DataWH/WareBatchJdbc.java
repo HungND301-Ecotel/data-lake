@@ -26,7 +26,8 @@ public class WareBatchJdbc {
                         wb.name AS name,
                         wb.description AS description,
                         wb.created_at AS created_at,
-                        wb.updated_at AS updated_at
+                        wb.updated_at AS updated_at,
+                        e.name AS employee_name
                     FROM ware_batch wb
                     LEFT JOIN employee e ON wb.employee_id = e.id
                     WHERE wb.deleted = false

@@ -39,5 +39,9 @@ public class WareBatchController {
         return wareBatchService.update(request);
     }
 
+    @DeleteMapping("/{ware-batch-id}")
+    public ResponseEntity<?> delete(@PathVariable ("ware-batch-id") Integer wareBatchId) {
+        return wareBatchService.delete(wareBatchId);
+    }
 
 }

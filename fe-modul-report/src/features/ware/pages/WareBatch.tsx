@@ -1,8 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, Input, Modal, Form, Upload, message, Space, Row, Col } from "antd";
+import {
+  Table,
+  Button,
+  Input,
+  Modal,
+  Form,
+  Upload,
+  message,
+  Space,
+} from "antd";
 import type { UploadFile } from "antd/es/upload/interface";
 import type { ColumnsType } from "antd/es/table";
-import type { WareBatchRequest, WareBatchResponse, WareBatchSearch } from "../types/wareBacth";
+import type {
+  WareBatchRequest,
+  WareBatchResponse,
+  WareBatchSearch,
+} from "../types/wareBacth";
 import type { PageResponse } from "../../department/types/department";
 import { wareBatchApi } from "../api/wareBathApi";
 import { useNavigate, useParams } from "react-router-dom";
@@ -32,7 +45,8 @@ export const WareBatch: React.FC = () => {
         keyword: searchKeyword,
         wareTemplateId: templateId ? Number(templateId) : undefined,
       };
-      const res: PageResponse<WareBatchResponse> = await wareBatchApi.searchWareBatch(params);
+      const res: PageResponse<WareBatchResponse> =
+        await wareBatchApi.searchWareBatch(params);
       setBatches(res.content);
       setTotal(res.totalElements);
     } catch (error) {
@@ -46,7 +60,6 @@ export const WareBatch: React.FC = () => {
     fetchBatches();
   }, [page, searchKeyword]);
 
-  // ------------------ Add batch ------------------
   const handleAddBatch = async (values: WareBatchRequest) => {
     try {
       const request: WareBatchRequest = {
@@ -68,7 +81,6 @@ export const WareBatch: React.FC = () => {
     }
   };
 
-  // ------------------ Delete batch ------------------
   const handleDelete = async (id: string | number) => {
     try {
       await wareBatchApi.deleteWareBatch(String(id));
@@ -85,8 +97,6 @@ export const WareBatch: React.FC = () => {
     { title: "Name", dataIndex: "name", key: "name" },
     { title: "Description", dataIndex: "description", key: "description" },
     { title: "Employee", dataIndex: "employeeName", key: "employeeName" },
-    { title: "Year", dataIndex: "year", key: "year" },
-    { title: "Period", dataIndex: "period", key: "period" },
     { title: "Created At", dataIndex: "createdAt", key: "createdAt" },
     {
       title: "Action",
@@ -94,7 +104,9 @@ export const WareBatch: React.FC = () => {
       render: (_, record) => (
         <Space>
           <Button onClick={() => nav(`/ware/batch/${record.id}`)}>Xem</Button>
-          <Button danger onClick={() => handleDelete(record.id)}>Xoá</Button>
+          <Button danger onClick={() => handleDelete(record.id)}>
+            Xoá
+          </Button>
         </Space>
       ),
     },
@@ -102,16 +114,17 @@ export const WareBatch: React.FC = () => {
 
   return (
     <div>
-      <Space style={{ marginBottom: 16, width: "100%" }}>
+      <div className="flex items-center gap-4 mb-4 w-full">
         <Search
           placeholder="Tìm kiếm batch"
           onSearch={(value) => setSearchKeyword(value)}
           allowClear
-          style={{ width: 250 }}
+          className="flex-1"
         />
-        <Button type="primary" onClick={() => setIsModalOpen(true)}>Thêm batch</Button>
-      </Space>
-      
+        <Button type="primary" onClick={() => setIsModalOpen(true)}>
+          + Thêm dữ liệu
+        </Button>
+      </div>
 
       <Table
         rowKey="id"
@@ -126,7 +139,6 @@ export const WareBatch: React.FC = () => {
         }}
       />
 
-      {/* Modal Add Batch */}
       <Modal
         title="Thêm Batch"
         open={isModalOpen}
@@ -135,35 +147,17 @@ export const WareBatch: React.FC = () => {
         onOk={() => form.submit()}
       >
         <Form form={form} layout="vertical" onFinish={handleAddBatch}>
-          <Form.Item name="name" label="Tên Batch" rules={[{ required: true, message: "Vui lòng nhập tên" }]}>
+          <Form.Item
+            name="name"
+            label="Tên Batch"
+            rules={[{ required: true, message: "Vui lòng nhập tên" }]}
+          >
             <Input />
           </Form.Item>
 
           <Form.Item name="description" label="Mô tả">
             <Input.TextArea />
           </Form.Item>
-
-          {/* Year & Period */}
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="year"
-                label="Year"
-                rules={[{ required: true, message: "Vui lòng nhập Year" }]}
-              >
-                <Input type="number" />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="period"
-                label="Period"
-                rules={[{ required: true, message: "Vui lòng nhập Period" }]}
-              >
-                <Input type="number" />
-              </Form.Item>
-            </Col>
-          </Row>
 
           <Form.Item label="File">
             <Upload

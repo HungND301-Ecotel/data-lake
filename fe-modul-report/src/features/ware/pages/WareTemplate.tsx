@@ -33,7 +33,6 @@ type WareTemplateGroup = {
 const WareTemplate = () => {
   const [groups, setGroups] = useState<WareTemplateGroup[]>([]);
   const [searchText, setSearchText] = useState("");
-  const [tableCode, setTableCode] = useState<string | undefined>();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<WareTemplateResponse | null>(null);
   const [form] = Form.useForm();
@@ -42,7 +41,6 @@ const WareTemplate = () => {
   const { departmentId } = useParams<{ departmentId: string }>();
   const nav = useNavigate();
 
-  /* ================= LOAD CATEGORY ================= */
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -72,7 +70,6 @@ const WareTemplate = () => {
     fetchCategories();
   }, [searchText, departmentId]);
 
-  /* ================= LOAD TEMPLATE BY CATEGORY ================= */
   const loadTemplatesByCategory = async (categoryId: number) => {
     const idx = groups.findIndex((g) => g.id === categoryId);
     if (idx === -1) return;
@@ -87,9 +84,6 @@ const WareTemplate = () => {
 
       let data = res;
 
-      if (tableCode) {
-        data = data.filter((t) => t.tableCode === tableCode);
-      }
 
       const newGroups = [...groups];
       newGroups[idx].templates = data;
@@ -100,7 +94,6 @@ const WareTemplate = () => {
     }
   };
 
-  /* ================= ACTION ================= */
   const handleAdd = () => {
     setEditing(null);
     form.resetFields();
@@ -196,17 +189,7 @@ const WareTemplate = () => {
           />
         </Col>
 
-        <Col>
-          <Select
-            allowClear
-            placeholder="Table code"
-            style={{ width: 160 }}
-            onChange={(v) => setTableCode(v)}
-          >
-            <Option value="EMPLOYEE">EMPLOYEE</Option>
-            <Option value="WARE">WARE</Option>
-          </Select>
-        </Col>
+        
 
         <Col>
           <Button type="primary" onClick={handleAdd}>
@@ -273,6 +256,15 @@ const WareTemplate = () => {
             <Input />
           </Form.Item>
 
+          <Form.Item name="startRow" label="Bắt đầu">
+            <Input />
+          </Form.Item>
+
+          <Form.Item name="description" label="Mô tả">
+            <Input />
+          </Form.Item>
+
+        
     
         </Form>
       </Modal>
