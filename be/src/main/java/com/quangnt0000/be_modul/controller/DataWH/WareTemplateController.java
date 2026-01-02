@@ -33,4 +33,9 @@ public class WareTemplateController {
         return wareTemplateService.getById(templateId);
     }
 
+    @PutMapping
+    public ResponseEntity<?> update(@RequestBody WareTemplateRequest request) {
+        return wareTemplateService.update(request);
+    }
+
 }

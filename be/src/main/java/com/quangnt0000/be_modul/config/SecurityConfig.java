@@ -40,6 +40,7 @@ public class SecurityConfig {
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/department/my",
+            "/wh-batch"
 
     };
     private static final String[] PUBLIC_ENDPOINTS_GET = {

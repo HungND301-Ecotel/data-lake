@@ -11,9 +11,11 @@ import lombok.NoArgsConstructor;
 @Builder
 public class WareMappingRequest {
     private Integer id;
-    private Integer excelColumn;
     private String fieldName;
-    private String fieldType;
-    private String defaultValue;
+    private String fieldValue; //string-number
+    private String fieldType;   //row - cell - input
+    private Boolean isKeyColumn;
+    private Boolean isScopFilter;
+    private String cellAddress; //địa chỉ cell
     private Integer wareTemplateId;
 }

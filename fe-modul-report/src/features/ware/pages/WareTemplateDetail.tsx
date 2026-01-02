@@ -9,8 +9,8 @@ export const TemplateDetail: React.FC = () => {
 
   return (
     <div>
-      <TemplateForm templateId={templateId} />
-      <MappingTable templateId={templateId} />
+      <TemplateForm templateId={Number(templateId)} />
+      <MappingTable templateId={Number(templateId)} />
     </div>
   );
 };

@@ -1,8 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, Input, Modal, Form, Upload, message, Space } from "antd";
+import {
+  Table,
+  Button,
+  Input,
+  Modal,
+  Form,
+  Upload,
+  message,
+  Space,
+} from "antd";
 import type { UploadFile } from "antd/es/upload/interface";
 import type { ColumnsType } from "antd/es/table";
-import type { WareBatchRequest, WareBatchResponse, WareBatchSearch } from "../types/wareBacth";
+import type {
+  WareBatchRequest,
+  WareBatchResponse,
+  WareBatchSearch,
+} from "../types/wareBacth";
 import type { PageResponse } from "../../department/types/department";
 import { wareBatchApi } from "../api/wareBathApi";
 import { useNavigate, useParams } from "react-router-dom";
@@ -19,8 +32,9 @@ export const WareBatch: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [form] = Form.useForm<WareBatchRequest>();
-  const {templateId} = useParams<{templateId: string}>();
+  const { templateId } = useParams<{ templateId: string }>();
   const nav = useNavigate();
+
   // ------------------ Fetch batch list ------------------
   const fetchBatches = async () => {
     setLoading(true);
@@ -30,11 +44,11 @@ export const WareBatch: React.FC = () => {
         limit,
         keyword: searchKeyword,
         wareTemplateId: templateId ? Number(templateId) : undefined,
-
       };
-      const res: PageResponse<WareBatchResponse> = await wareBatchApi.searchWareBatch(params);
-      setBatches(res.content);      // content chứ không phải data
-      setTotal(res.totalElements);  // totalElements chứ không phải total
+      const res: PageResponse<WareBatchResponse> =
+        await wareBatchApi.searchWareBatch(params);
+      setBatches(res.content);
+      setTotal(res.totalElements);
     } catch (error) {
       message.error("Lấy danh sách batch thất bại");
     } finally {
@@ -46,30 +60,27 @@ export const WareBatch: React.FC = () => {
     fetchBatches();
   }, [page, searchKeyword]);
 
-  // ------------------ Add batch ------------------
   const handleAddBatch = async (values: WareBatchRequest) => {
     try {
-      // Gán file từ fileList của Upload
       const request: WareBatchRequest = {
         ...values,
         id: null,
         wareTemplateId: templateId ? Number(templateId) : null,
         file: fileList[0]?.originFileObj || null,
       };
-  
-      await wareBatchApi.saveWareBatch(request); // gửi thẳng request object
+
+      await wareBatchApi.saveWareBatch(request);
       message.success("Thêm batch thành công");
       setIsModalOpen(false);
       setFileList([]);
       form.resetFields();
       fetchBatches();
     } catch (error) {
+      console.error(error);
       message.error("Thêm batch thất bại");
     }
   };
-  
 
-  // ------------------ Delete batch ------------------
   const handleDelete = async (id: string | number) => {
     try {
       await wareBatchApi.deleteWareBatch(String(id));
@@ -80,7 +91,6 @@ export const WareBatch: React.FC = () => {
     }
   };
 
-  // ------------------ Table columns ------------------
   const columns: ColumnsType<WareBatchResponse> = [
     { title: "Code", dataIndex: "code", key: "code" },
     { title: "Name", dataIndex: "name", key: "name" },
@@ -92,9 +102,7 @@ export const WareBatch: React.FC = () => {
       key: "action",
       render: (_, record) => (
         <Space>
-          <Button onClick={() => nav(`/ware/batch/${record.id}`)}>
-            Xem
-          </Button>
+          <Button onClick={() => nav(`/ware/batch/${record.id}`)}>Xem</Button>
           <Button danger onClick={() => handleDelete(record.id)}>
             Xoá
           </Button>
@@ -105,17 +113,17 @@ export const WareBatch: React.FC = () => {
 
   return (
     <div>
-      <Space style={{ marginBottom: 16 }}>
+      <div className="flex items-center gap-4 mb-4 w-full">
         <Search
           placeholder="Tìm kiếm batch"
           onSearch={(value) => setSearchKeyword(value)}
           allowClear
-          style={{ width: 250 }}
+          className="flex-1"
         />
         <Button type="primary" onClick={() => setIsModalOpen(true)}>
-          Thêm batch
+          + Thêm dữ liệu
         </Button>
-      </Space>
+      </div>
 
       <Table
         rowKey="id"
@@ -130,7 +138,6 @@ export const WareBatch: React.FC = () => {
         }}
       />
 
-      {/* Modal Add Batch */}
       <Modal
         title="Thêm Batch"
         open={isModalOpen}
@@ -139,16 +146,21 @@ export const WareBatch: React.FC = () => {
         onOk={() => form.submit()}
       >
         <Form form={form} layout="vertical" onFinish={handleAddBatch}>
-          <Form.Item name="name" label="Tên Batch" rules={[{ required: true, message: "Vui lòng nhập tên" }]}>
+          <Form.Item
+            name="name"
+            label="Tên Batch"
+            rules={[{ required: true, message: "Vui lòng nhập tên" }]}
+          >
             <Input />
           </Form.Item>
+
           <Form.Item name="description" label="Mô tả">
             <Input.TextArea />
           </Form.Item>
 
           <Form.Item label="File">
             <Upload
-              beforeUpload={() => false} // prevent auto upload
+              beforeUpload={() => false}
               fileList={fileList}
               onChange={({ fileList }) => setFileList(fileList)}
               maxCount={1}

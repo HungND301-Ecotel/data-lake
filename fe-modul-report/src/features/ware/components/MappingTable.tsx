@@ -1,194 +1,320 @@
-import React, { useEffect, useState, useRef } from "react";
-import { Table, Button, Space, Modal, Input, Form, message, Row, Col } from "antd";
+import React, { useEffect, useState } from "react";
+import {
+  Table,
+  Input,
+  Button,
+  message,
+  Popconfirm,
+  Checkbox,
+  Select,
+} from "antd";
+import {
+  EditOutlined,
+  DeleteOutlined,
+  SaveOutlined,
+  CloseOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
+import type {
+  WareMappingResponse,
+  WareMappingRequest,
+} from "../types/wareMapping";
 import { wareMappingApi } from "../api/wareMappingApi";
-import type { WareMappingResponse, WareMappingRequest } from "../types/wareMapping";
 
-interface MappingTableProps {
-  templateId: string;
-}
-
-export const MappingTable: React.FC<MappingTableProps> = ({ templateId }) => {
-  const [mappings, setMappings] = useState<WareMappingResponse[]>([]);
+export const MappingTable: React.FC<{ templateId: number }> = ({
+  templateId,
+}) => {
+  const [data, setData] = useState<WareMappingResponse[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const [keyword, setKeyword] = useState(""); // ô nhập từ khóa
-  const debounceRef = useRef<number | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newMapping, setNewMapping] = useState<WareMappingRequest>({
-    id: null,
-    excelColumn: 0,
-    fieldName: "",
-    fieldType: "",
-    defaultValue: "",
-    wareTemplateId: Number(templateId),
-  });
+  const [editingRequest, setEditingRequest] =
+    useState<WareMappingRequest | null>(null);
 
-  // ----- Fetch mappings -----
-  const fetchMappings = async (searchKeyword?: string) => {
-    if (!templateId) return;
+  const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await wareMappingApi.searchWareMapping({
-        wareTemplateId: Number(templateId),
-        keyword: searchKeyword ?? keyword,
+      const res = await wareMappingApi.getByBatch(templateId);
+
+      const typeOrder = ["CELL", "TEXT", "ROW"];
+      const sorted = [...res].sort((a, b) => {
+        const typeDiff =
+          typeOrder.indexOf(a.fieldType ?? "") -
+          typeOrder.indexOf(b.fieldType ?? "");
+        if (typeDiff !== 0) return typeDiff;
+
+        return (a.cellAddress ?? "").localeCompare(b.cellAddress ?? "", undefined, {
+          numeric: true,
+          sensitivity: "base",
+        });
       });
-      setMappings(res);
-    } catch (error) {
-      message.error("Lấy danh sách mapping thất bại");
+
+      setData(sorted);
+    } catch (e) {
+      message.error("Lấy dữ liệu mapping thất bại");
     } finally {
       setLoading(false);
     }
   };
 
-  // ----- Debounce khi gõ keyword -----
-  const handleKeywordChange = (value: string) => {
-    setKeyword(value);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      fetchMappings(value);
-    }, 500); // 0.5s
-  };
-
   useEffect(() => {
-    fetchMappings(); // load ban đầu
+    fetchData();
   }, [templateId]);
 
-  // ----- Thêm mapping mới -----
-  const handleAddMapping = () => {
-    setNewMapping({
-      id: null,
-      excelColumn: 0,
-      fieldName: "",
-      fieldType: "",
-      defaultValue: "",
-      wareTemplateId: Number(templateId),
-    });
-    setIsModalOpen(true);
+  const isEditing = (record: WareMappingResponse) =>
+    editingId === record.id || (record.id === null && editingId === null);
+
+  const updateRequest = <K extends keyof WareMappingRequest>(
+    key: K,
+    value: WareMappingRequest[K]
+  ) => {
+    setEditingRequest((prev) => (prev ? { ...prev, [key]: value } : prev));
   };
 
-  const handleModalOk = async () => {
+  const handleAdd = () => {
+    setEditingId(null);
+
+    setEditingRequest({
+      id: null,
+      fieldName: "",
+      fieldType: "ROW",
+      cellAddress: "",
+      fieldValue: "",
+      isKeyColumn: false,
+      isScopFilter: false,
+      wareTemplateId: templateId,
+    });
+
+    setData((prev) => [
+      {
+        id: null,
+        fieldName: "",
+        fieldType: "ROW",
+        cellAddress: "",
+        fieldValue: "",
+        isKeyColumn: false,
+        isScopFilter: false,
+      },
+      ...prev,
+    ]);
+  };
+
+  const handleEdit = (record: WareMappingResponse) => {
+    setEditingId(record.id!);
+
+    setEditingRequest({
+      id: record.id!,
+      fieldName: record.fieldName,
+      fieldType: record.fieldType,
+      cellAddress: record.cellAddress,
+      fieldValue: record.fieldValue ?? "",
+      isKeyColumn: record.isKeyColumn ?? false,
+      isScopFilter: record.isScopFilter ?? false,
+      wareTemplateId: templateId,
+    });
+  };
+
+  const handleCancel = () => {
+    setEditingId(null);
+    setEditingRequest(null);
+    fetchData();
+  };
+
+  const handleSave = async () => {
+    if (!editingRequest) return;
+
     try {
-      await wareMappingApi.saveWareMapping(newMapping);
-      message.success("Thêm mapping thành công");
-      setIsModalOpen(false);
-      fetchMappings();
-    } catch (error) {
-      message.error("Thêm mapping thất bại");
+      if (!editingRequest.fieldName || !editingRequest.fieldType) {
+        message.warning("Field Name và Field Type là bắt buộc");
+        return;
+      }
+
+      if (editingRequest.id == null) {
+        await wareMappingApi.saveWareMapping(editingRequest);
+        message.success("Thêm mapping thành công");
+      } else {
+        await wareMappingApi.updateWareMapping(editingRequest);
+        message.success("Cập nhật mapping thành công");
+      }
+
+      setEditingId(null);
+      setEditingRequest(null);
+      fetchData();
+    } catch (e) {
+      message.error("Lưu mapping thất bại");
     }
   };
 
-  // ----- Xóa mapping -----
-  const handleDeleteMapping = (id: number) => {
-    Modal.confirm({
-      title: "Bạn có chắc muốn xóa mapping này?",
-      onOk: async () => {
-        try {
-          await wareMappingApi.deleteWareMapping(String(id));
-          message.success("Xóa mapping thành công");
-          fetchMappings();
-        } catch (error) {
-          message.error("Xóa mapping thất bại");
-        }
-      },
-    });
+  const handleDelete = async (id: number) => {
+    try {
+      await wareMappingApi.deleteWareMapping(String(id));
+      message.success("Xóa mapping thành công");
+      fetchData();
+    } catch (e) {
+      message.error("Xóa mapping thất bại");
+    }
   };
 
-  // ----- Table columns -----
+  /* ================= COLUMNS ================= */
   const columns: ColumnsType<WareMappingResponse> = [
-    { title: "Excel Column", dataIndex: "excelColumn", key: "excelColumn" },
-    { title: "Field Name", dataIndex: "fieldName", key: "fieldName" },
-    { title: "Field Type", dataIndex: "fieldType", key: "fieldType" },
-    { title: "Default Value", dataIndex: "defaultValue", key: "defaultValue" },
     {
-      title: "Hành động",
-      key: "action",
-      render: (_, record) => (
-        <Space>
-          <Button
-            type="link"
-            danger
-            onClick={() => record.id !== null && handleDeleteMapping(record.id)}
-          >
-            Xóa
-          </Button>
-          {/* Nút chỉnh sửa: hiện modal hoặc inline edit */}
-          <Button type="link" onClick={handleAddMapping}>
-            Chỉnh sửa
-          </Button>
-        </Space>
-      ),
+      title: "Field Name",
+      width: 150,
+      render: (_, record) =>
+        isEditing(record) ? (
+          <Input
+            value={editingRequest?.fieldName}
+            onChange={(e) => updateRequest("fieldName", e.target.value)}
+          />
+        ) : (
+          record.fieldName
+        ),
+    },
+    {
+      title: "Field Type",
+      width: 130,
+      align: "center",
+      render: (_, record) =>
+        isEditing(record) ? (
+          <Select
+            value={editingRequest?.fieldType}
+            style={{ width: "100%" }}
+            onChange={(v) => updateRequest("fieldType", v)}
+            options={[
+              { value: "ROW", label: "Đối chiếu cột" },
+              { value: "CELL", label: "Đối chiếu ô" },
+              { value: "TEXT", label: "Nhập dữ liệu" },
+            ]}
+          />
+        ) : (
+          record.fieldType
+        ),
+    },
+    {
+      title: "Cell Address",
+      width: 120,
+      align: "center",
+      render: (_, record) =>
+        isEditing(record) ? (
+          <Input
+            value={editingRequest?.cellAddress}
+            onChange={(e) => updateRequest("cellAddress", e.target.value)}
+          />
+        ) : (
+          record.cellAddress
+        ),
+    },
+    {
+      title: "Value / Default",
+      width: 150,
+      align: "center",
+      render: (_, record) =>
+        isEditing(record) ? (
+          <Input
+            value={editingRequest?.fieldValue}
+            onChange={(e) => updateRequest("fieldValue", e.target.value)}
+          />
+        ) : (
+          record.fieldValue
+        ),
+    },
+    {
+      title: "Key",
+      width: 80,
+      align: "center",
+      render: (_, record) =>
+        isEditing(record) ? (
+          <Checkbox
+            checked={editingRequest?.isKeyColumn}
+            onChange={(e) => updateRequest("isKeyColumn", e.target.checked)}
+          />
+        ) : record.isKeyColumn ? (
+          "✔️"
+        ) : (
+          ""
+        ),
+    },
+    {
+      title: "Scope",
+      width: 80,
+      align: "center",
+      render: (_, record) =>
+        isEditing(record) ? (
+          <Checkbox
+            checked={editingRequest?.isScopFilter}
+            onChange={(e) => updateRequest("isScopFilter", e.target.checked)}
+          />
+        ) : record.isScopFilter ? (
+          "✔️"
+        ) : (
+          ""
+        ),
+    },
+    {
+      title: "Action",
+      width: 160,
+      align: "center",
+      render: (_, record) =>
+        isEditing(record) ? (
+          <>
+            <Button type="link" icon={<SaveOutlined />} onClick={handleSave}>
+              Lưu
+            </Button>
+            <Button type="link" icon={<CloseOutlined />} onClick={handleCancel}>
+              Hủy
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button
+              type="link"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
+            >
+              Sửa
+            </Button>
+            <Popconfirm
+              title="Bạn có chắc muốn xóa?"
+              onConfirm={() => handleDelete(record.id!)}
+            >
+              <Button type="link" icon={<DeleteOutlined />} danger>
+                Xóa
+              </Button>
+            </Popconfirm>
+          </>
+        ),
     },
   ];
 
   return (
-    <div>
-      {/* ===== Keyword + Thêm mapping ===== */}
-      <Row style={{ marginBottom: 16 }} gutter={8} align="middle">
-        <Col>
-          <Input
-            placeholder="Nhập keyword"
-            value={keyword}
-            onChange={(e) => handleKeywordChange(e.target.value)}
-            style={{ width: 200 }}
-          />
-        </Col>
-        <Col>
-          <Button type="dashed" onClick={handleAddMapping}>
-            + Thêm Mapping
-          </Button>
-        </Col>
-      </Row>
+    <div style={{ paddingTop: 16 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: 16,
+        }}
+      >
+        <h1 style={{ fontSize: 20, fontWeight: "bold", margin: 0 }}>
+          Cấu hình dữ liệu
+        </h1>
 
-      {/* ===== Table ===== */}
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+          Thêm mới
+        </Button>
+      </div>
+
       <Table
-        rowKey={(record, index) => (record.id != null ? record.id : `new-${index}`)}
+        rowKey={(record) => record.id ?? "new"}
         columns={columns}
-        dataSource={mappings}
+        dataSource={data}
         loading={loading}
         pagination={false}
+        bordered
+        size="small"
       />
-
-      {/* ===== Modal Thêm Mapping ===== */}
-      <Modal
-        title="Thêm Mapping mới"
-        open={isModalOpen}
-        onCancel={() => setIsModalOpen(false)}
-        onOk={handleModalOk}
-      >
-        <Form layout="vertical">
-          <Form.Item label="Excel Column">
-            <Input
-              type="number"
-              value={newMapping.excelColumn}
-              onChange={(e) =>
-                setNewMapping({ ...newMapping, excelColumn: Number(e.target.value) })
-              }
-            />
-          </Form.Item>
-          <Form.Item label="Field Name">
-            <Input
-              value={newMapping.fieldName}
-              onChange={(e) => setNewMapping({ ...newMapping, fieldName: e.target.value })}
-            />
-          </Form.Item>
-          <Form.Item label="Field Type">
-            <Input
-              value={newMapping.fieldType}
-              onChange={(e) => setNewMapping({ ...newMapping, fieldType: e.target.value })}
-            />
-          </Form.Item>
-          <Form.Item label="Default Value">
-            <Input
-              value={newMapping.defaultValue}
-              onChange={(e) =>
-                setNewMapping({ ...newMapping, defaultValue: e.target.value })
-              }
-            />
-          </Form.Item>
-        </Form>
-      </Modal>
     </div>
   );
 };

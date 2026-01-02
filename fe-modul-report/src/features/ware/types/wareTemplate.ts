@@ -1,15 +1,13 @@
 export interface WareTemplateRequest {
-  id?: number;
-  code?: string | null;
-  name?: string;
-  description?: string;
-  startRow?: number;
-  wareCategoryId?: number;
+  id?: number | null;
+  code: string | null;
+  name: string;
+  description: string;
+  startRow: number;
+  wareCategoryId: number;
 
-  tableName?: string;
-  tableCode?: string;
-  keyColumns?: string;
-  scopeFilter?: string;
+  tableName: string;
+  tableCode: string;
 }
 export interface WareTemplateSearch {
   page?: number;
@@ -21,14 +19,12 @@ export interface WareTemplateResponse {
   id: number;
   code: string;
   name: string;
-  description?: string;
+  description: string;
 
-  startRow?: number;
+  startRow: number;
 
-  tableName?: string;
-  tableCode?: string;
-  keyColumns?: string;
-  scopeFilter?: string;
+  tableName: string;
+  tableCode: string;
 
   createdAt: string;
   updatedAt: string;

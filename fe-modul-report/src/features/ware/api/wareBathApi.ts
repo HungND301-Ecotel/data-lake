@@ -1,6 +1,6 @@
 import axiosClient from "../../../services/axiosClient";
 import type { PageResponse } from "../../department/types/department";
-import type { WareBatchRequest, WareBatchResponse, WareBatchSearch } from "../types/wareBacth";
+import type { WareBatchPush, WareBatchRequest, WareBatchResponse, WareBatchSearch } from "../types/wareBacth";
 
 export const wareBatchApi = {
   searchWareBatch: async (
@@ -30,5 +30,10 @@ export const wareBatchApi = {
     const res = await axiosClient.delete(`/wh-batch/${id}`);
     return res.data;
   },
+
+  pushWareBatch: async (request: WareBatchPush): Promise<any> => {
+    const res = await axiosClient.post(`/wh-batch/push`, request);
+    return res.data;
+  }
 
 };

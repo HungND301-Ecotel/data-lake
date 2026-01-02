@@ -22,3 +22,9 @@ export interface WareBatchSearch {
   keyword?: string | null;
   wareTemplateId?: number | null;
 }
+
+export interface WareBatchPush {
+  id: number;
+  deleteMissing: boolean;
+}
+

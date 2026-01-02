@@ -16,6 +16,13 @@ export const wareMappingApi = {
     return res.data;
   },
 
+  updateWareMapping: async (
+    request: WareMappingRequest
+  ): Promise<string> => {
+    const res = await axiosClient.put(`/wh-mapping`, request);
+    return res.data;
+  },
+
 //   updateWareMapping: async (
 //     request: WareMappingRequest
 //   ): Promise<string> => {
@@ -28,4 +35,9 @@ export const wareMappingApi = {
     return res.data;
   },
 
+
+  getByBatch: async (id: number): Promise<WareMappingResponse[]> => {
+    const res = await axiosClient.get(`/wh-mapping/batch/${id}`);
+    return res.data;
+  },
 };

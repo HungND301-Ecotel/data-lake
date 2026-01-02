@@ -1,24 +1,38 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, Row, Col, Button, message } from "antd";
-import type { WareTemplateResponse } from "../types/wareTemplate";
+import { Input, Button, message, Row, Col } from "antd";
+import type {
+  WareTemplateRequest,
+  WareTemplateResponse,
+} from "../types/wareTemplate";
 import { wareTemplateApi } from "../api/wareTemplateApi";
+import { EditOutlined } from "@ant-design/icons";
 
 interface TemplateFormProps {
-  templateId: string;
+  templateId: number;
 }
 
 export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
   const [template, setTemplate] = useState<WareTemplateResponse | null>(null);
-  const [templateForm] = Form.useForm<WareTemplateResponse>();
   const [isEditing, setIsEditing] = useState(false);
 
-  // ------------------ Fetch template ------------------
+  const [request, setRequest] = useState<WareTemplateRequest | null>(null);
+
   const fetchTemplate = async () => {
     try {
-      const res = await wareTemplateApi.getWareTemplateById(Number(templateId));
+      const res = await wareTemplateApi.getWareTemplateById(templateId);
       setTemplate(res);
-      templateForm.setFieldsValue(res);
-    } catch (error) {
+
+      setRequest({
+        id: res.id,
+        code: res.code,
+        name: res.name,
+        description: res.description,
+        startRow: res.startRow,
+        wareCategoryId: 0,
+        tableName: res.tableName,
+        tableCode: res.tableCode,
+      });
+    } catch (err) {
       message.error("Lấy thông tin template thất bại");
     }
   };
@@ -27,79 +41,150 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
     fetchTemplate();
   }, [templateId]);
 
-  // ------------------ Save handler ------------------
+  const updateField = <K extends keyof WareTemplateRequest>(
+    key: K,
+    value: WareTemplateRequest[K]
+  ) => {
+    setRequest((prev) => (prev ? { ...prev, [key]: value } : prev));
+  };
+
+  /* ================= ACTIONS ================= */
   const handleSave = async () => {
+    if (!request) return;
+
+    // Validation FE cơ bản
+    if (!request.name) {
+      message.warning("Template Name không được để trống");
+      return;
+    }
+
     try {
-      const values = await templateForm.validateFields();
-      if (!template) return;
-      await wareTemplateApi.updateWareTemplate({ ...values, id: template.id });
+      await wareTemplateApi.updateWareTemplate(request);
       message.success("Cập nhật template thành công");
       setIsEditing(false);
       fetchTemplate();
-    } catch (error) {
-      message.error("Cập nhật template thất bại");
+    } catch (err) {
+      message.error(
+        (err as any)?.response?.data?.message || "Cập nhật template thất bại"
+      );
     }
   };
 
+  const handleCancel = () => {
+    setIsEditing(false);
+    fetchTemplate();
+  };
+
+  if (!request) return null;
+
   return (
-    <Form
-  form={templateForm}
-  layout="vertical"
-  style={{ marginBottom: 24 }}
->
-  {/* ===== Row 1: name, tableName, tableCode ===== */}
-  <Row gutter={16}>
-    <Col span={6}>
-      <Form.Item
-        name="name"
-        label="Template Name"
-        rules={[{ required: true, message: "Vui lòng nhập tên template" }]}
+    <div style={{ background: "#fff" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 16,
+        }}
       >
-        <Input disabled={!isEditing} />
-      </Form.Item>
-    </Col>
-    <Col span={6}>
-      <Form.Item name="tableName" label="Table Name">
-        <Input disabled={!isEditing} />
-      </Form.Item>
-    </Col>
-    <Col span={6}>
-      <Form.Item name="tableCode" label="Table Code">
-        <Input disabled={!isEditing} />
-      </Form.Item>
-    </Col>
-    <Col span={6} style={{ display: "flex", alignItems: "flex-end", gap: 8 }}>
-      {isEditing ? (
-        <Button type="primary" onClick={handleSave}>
-          Lưu
-        </Button>
-      ) : (
-        <Button type="default" onClick={() => setIsEditing(true)}>
-          Sửa
-        </Button>
-      )}
-    </Col>
-  </Row>
+        <h1 style={{ fontSize: 20, fontWeight: "bold", margin: 0 }}>
+          Cấu hình dữ liệu
+        </h1>
 
-  {/* ===== Row 2: keyColumns, scopeFilter, startRow ===== */}
-  <Row gutter={16}>
-    <Col span={6}>
-      <Form.Item name="keyColumns" label="Key Columns">
-        <Input disabled={!isEditing} />
-      </Form.Item>
-    </Col>
-    <Col span={6}>
-      <Form.Item name="scopeFilter" label="Scope Filter">
-        <Input disabled={!isEditing} />
-      </Form.Item>
-    </Col>
-    <Col span={6}>
-      <Form.Item name="startRow" label="Start Row">
-        <Input type="number" disabled={!isEditing} />
-      </Form.Item>
-    </Col>
-  </Row>
-</Form>
+        {isEditing ? (
+          <div>
+            <Button style={{ marginRight: 8 }} onClick={handleCancel}>
+              Hủy
+            </Button>
+            <Button type="primary" onClick={handleSave}>
+              Lưu
+            </Button>
+          </div>
+        ) : (
+          <Button type="primary" icon={<EditOutlined />} onClick={() => setIsEditing(true)}>
+            Chỉnh sửa
+          </Button>
+        )}
+      </div>
 
+      <Row gutter={16}>
+        <Col span={12}>
+          <label>Template Code</label>
+          <Input value={request.code ?? ""} disabled />
+        </Col>
+
+        <Col span={12}>
+          <label>Template Name</label>
+          <Input
+            value={request.name}
+            disabled={!isEditing}
+            onChange={(e) => updateField("name", e.target.value)}
+          />
+        </Col>
+      </Row>
+
+      <Row gutter={16} style={{ marginTop: 12 }}>
+        <Col span={12}>
+          <label>Table Code</label>
+          <Input
+            value={request.tableCode}
+            disabled={!isEditing}
+            onChange={(e) => updateField("tableCode", e.target.value)}
+          />
+        </Col>
+
+        <Col span={12}>
+          <label>Table Name</label>
+          <Input
+            value={request.tableName}
+            disabled={!isEditing}
+            onChange={(e) => updateField("tableName", e.target.value)}
+          />
+        </Col>
+      </Row>
+
+      <Row gutter={16} style={{ marginTop: 12 }}>
+        <Col span={12}>
+          <label>Description</label>
+          <Input
+            value={request.description}
+            disabled={!isEditing}
+            onChange={(e) => updateField("description", e.target.value)}
+          />
+        </Col>
+
+        <Col span={12}>
+          <label>Start Row</label>
+          <Input
+            type="number"
+            value={request.startRow}
+            disabled={!isEditing}
+            onChange={(e) => updateField("startRow", Number(e.target.value))}
+          />
+        </Col>
+      </Row>
+
+      <Row gutter={16} style={{ marginTop: 12 }}>
+        <Col span={12}>
+          <label>Created At</label>
+          <Input
+            value={
+              template ? new Date(template.createdAt).toLocaleString() : ""
+            }
+            disabled
+          />
+        </Col>
+
+        <Col span={12}>
+          <label>Updated At</label>
+          <Input
+            value={
+              template ? new Date(template.updatedAt).toLocaleString() : ""
+            }
+            disabled
+          />
+        </Col>
+      </Row>
+    </div>
   );
 };

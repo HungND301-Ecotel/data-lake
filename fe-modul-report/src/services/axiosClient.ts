@@ -1,5 +1,6 @@
 import axios from "axios";
 import type { ApiError } from "./erorr";
+import { message } from "antd";
 
 
 const axiosClient = axios.create({
@@ -23,7 +24,6 @@ axiosClient.interceptors.response.use(
   (error): Promise<never> => {
     let apiError: ApiError;
 
-    // ❌ Không có response → network / timeout
     if (!error.response) {
       apiError = {
         status: 0,
@@ -86,6 +86,18 @@ axiosClient.interceptors.response.use(
           message: data?.message || "Đã xảy ra lỗi",
         };
     }
+
+    axiosClient.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        const msg =
+          error.response?.data?.message ||
+          "Lỗi hệ thống";
+        message.error(msg);
+        return Promise.reject(error);
+      }
+    );
+    
 
     return Promise.reject(apiError);
   }

@@ -29,6 +29,8 @@ public class WareBatch {
 
     private String name;
     private String description;
+    private Integer year;
+    private Integer period;
 
     @ManyToOne
     @JoinColumn(name = "wareTemplateId")

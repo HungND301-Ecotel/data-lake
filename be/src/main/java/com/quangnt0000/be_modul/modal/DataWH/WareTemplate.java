@@ -1,5 +1,7 @@
 package com.quangnt0000.be_modul.modal.DataWH;
 
+import com.quangnt0000.be_modul.utils.JsonDataConverter;
+import com.quangnt0000.be_modul.utils.JsonStringListConverter;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,6 +13,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -35,18 +38,6 @@ public class WareTemplate {
     //ch
     private String tableName;
     private String tableCode;
-    private String keyColumns;
-    private String scopeFilter;
-
-    //
-    @Builder.Default
-    private String requestId = UUID.randomUUID().toString();
-    @Builder.Default
-    private Boolean deleteMissing = true;
-    @Builder.Default
-    private String changeBy = "supperuser";
-    @Builder.Default
-    private String dataUploadId = "4400-1000012142";
 
     @ManyToOne
     @JoinColumn(name = "wareCategoryId")

@@ -24,10 +24,13 @@ public class WareMapping {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    private Integer excelColumn;
+    private String cellAddress; //địa chỉ cell
     private String fieldName;
-    private String fieldType;
-    private String defaultValue;
+    private String fieldValue; //string-number
+    private String fieldType;   //row - cell - input
+    private Boolean isKeyColumn;
+    private Boolean isScopFilter;
+
 
     @ManyToOne
     @JoinColumn(name = "wareTemplateId")

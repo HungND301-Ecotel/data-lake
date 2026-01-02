@@ -1,17 +1,22 @@
 export interface WareMappingRequest {
   id?: number | null;
-  excelColumn: number;
   fieldName: string;
-  fieldType: string;
-  defaultValue: string;
+  fieldValue?: string;
+  fieldType?: "ROW" | "CELL" | "TEXT"; 
+  isKeyColumn?: boolean;
+  isScopFilter?: boolean;
+  cellAddress?: string;
   wareTemplateId: number;
 }
 
 export interface WareMappingResponse {
   id: number | null;
-  excelColumn: number;
   fieldName: string;
-  fieldType: string;
+  fieldValue?: string;
+  fieldType?: "ROW" | "CELL" | "TEXT"; 
+  isKeyColumn?: boolean;
+  isScopFilter?: boolean;
+  cellAddress?: string;
   defaultValue?: string | null;
 }
 

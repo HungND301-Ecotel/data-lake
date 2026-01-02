@@ -1,31 +1,27 @@
 import React, { useEffect, useState } from "react";
-import { Table, Input, Row, Col, Button, message } from "antd";
+import { Table, Input, Row, Col, Button, message, Switch } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useParams } from "react-router-dom";
 import { wareDataRowApi } from "../api/wareDataRowApi";
 import { wareMappingApi } from "../api/wareMappingApi";
 import type { WareDataRowResponse } from "../types/wareDataRow";
 import type { WareMappingResponse } from "../types/wareMapping";
-
+import { wareBatchApi } from "../api/wareBathApi";
 
 export const WareBatchDetail: React.FC = () => {
-    const wareBatchId = Number(useParams<{ wareBatchId: string }>().wareBatchId ?? 0);
-
-  const wareTemplateId = Number(1);
+  const wareBatchId = Number(useParams<{ wareBatchId: string }>().wareBatchId ?? 0);
 
   const [rows, setRows] = useState<WareDataRowResponse[]>([]);
   const [mappings, setMappings] = useState<WareMappingResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState("");
+  const [deleteMissing, setDeleteMissing] = useState(false); // state cho deleteMissing
 
   // ----- Fetch Mapping -----
   const fetchMappings = async () => {
-    if (!wareTemplateId) return;
     try {
-      const res = await wareMappingApi.searchWareMapping({
-        wareTemplateId,
-      });
-      setMappings(res.sort((a, b) => a.excelColumn - b.excelColumn));
+      const res = await wareMappingApi.getByBatch(wareBatchId);
+      setMappings(res);
     } catch (error) {
       message.error("Lấy mapping thất bại");
     }
@@ -52,7 +48,7 @@ export const WareBatchDetail: React.FC = () => {
 
   useEffect(() => {
     fetchMappings();
-  }, [wareTemplateId]);
+  }, [wareBatchId]);
 
   useEffect(() => {
     fetchRows();
@@ -74,11 +70,25 @@ export const WareBatchDetail: React.FC = () => {
 
   const columns = [...defaultColumns, ...mappingColumns];
 
+  // ----- Push WareBatch -----
+  const handlePush = async () => {
+    if (!wareBatchId) return;
+    try {
+      await wareBatchApi.pushWareBatch({
+        id: wareBatchId,
+        deleteMissing,
+      });
+      message.success("Push dữ liệu thành công!");
+    } catch (error) {
+      message.error("Push dữ liệu thất bại");
+    }
+  };
+
   return (
     <div>
-      {/* ===== Keyword Search ===== */}
-      <Row style={{ marginBottom: 16 }} gutter={8}>
-        <Col span={8}>
+      {/* ===== Keyword Search + Push ===== */}
+      <Row style={{ marginBottom: 16 }} gutter={8} align="middle">
+        <Col span={6}>
           <Input
             placeholder="Nhập keyword"
             value={keyword}
@@ -89,6 +99,19 @@ export const WareBatchDetail: React.FC = () => {
         <Col>
           <Button type="primary" onClick={fetchRows}>
             Tìm kiếm
+          </Button>
+        </Col>
+        <Col>
+          <span>Delete Missing:</span>
+          <Switch
+            style={{ marginLeft: 8 }}
+            checked={deleteMissing}
+            onChange={setDeleteMissing}
+          />
+        </Col>
+        <Col>
+          <Button type="default" onClick={handlePush}>
+            Update
           </Button>
         </Col>
       </Row>

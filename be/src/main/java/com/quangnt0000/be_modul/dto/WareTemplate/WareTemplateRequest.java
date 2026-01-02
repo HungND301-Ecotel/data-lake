@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -21,6 +23,4 @@ public class WareTemplateRequest {
 
     private String tableName;
     private String tableCode;
-    private String keyColumns;
-    private String scopeFilter;
 }
