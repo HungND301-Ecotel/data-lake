@@ -91,7 +91,6 @@ export const WareBatch: React.FC = () => {
     }
   };
 
-  // ------------------ Table columns ------------------
   const columns: ColumnsType<WareBatchResponse> = [
     { title: "Code", dataIndex: "code", key: "code" },
     { title: "Name", dataIndex: "name", key: "name" },
