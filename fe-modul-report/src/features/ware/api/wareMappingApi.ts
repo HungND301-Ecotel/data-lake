@@ -28,4 +28,9 @@ export const wareMappingApi = {
     return res.data;
   },
 
+
+  getByBatch: async (id: number): Promise<WareMappingResponse[]> => {
+    const res = await axiosClient.get(`/wh-mapping/batch/${id}`);
+    return res.data;
+  },
 };

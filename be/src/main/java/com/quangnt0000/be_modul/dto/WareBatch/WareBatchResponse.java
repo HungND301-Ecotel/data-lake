@@ -17,6 +17,8 @@ public class WareBatchResponse {
     private String code;
     private String name;
     private String description;
+    private Integer year;
+    private Integer period;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String employeeName;

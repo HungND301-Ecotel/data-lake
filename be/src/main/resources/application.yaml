@@ -1,8 +1,4 @@
 spring:
   profiles:
-    active: dev
+    active: prod
 
-webclient:
-  base-url: https://api.example.com
-  connection-timeout: 5000
-  read-timeout: 10000

@@ -19,7 +19,7 @@ export const wareTemplateApi = {
   updateWareTemplate: async (
     request: WareTemplateRequest
   ): Promise<string> => {
-    const res = await axiosClient.post(`/wh-template`, request);
+    const res = await axiosClient.put(`/wh-template`, request);
     return res.data;
   },
 
@@ -27,6 +27,7 @@ export const wareTemplateApi = {
     const res = await axiosClient.delete(`/wh-template/${id}`);
     return res.data;
   },
+
 
   getWareTemplateById: async (id: number): Promise<WareTemplateResponse> => {
     const res = await axiosClient.get(`/wh-template/${id}`);

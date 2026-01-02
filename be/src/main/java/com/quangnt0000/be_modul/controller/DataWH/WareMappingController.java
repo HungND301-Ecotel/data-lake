@@ -28,4 +28,10 @@ public class WareMappingController {
         return wareMappingService.get(request);
 
     }
+
+    @GetMapping("/batch/{batch-id}")
+    private ResponseEntity<?> getByBatch(@PathVariable ("batch-id") Integer batchId) {
+        return ResponseEntity.ok(wareMappingService.getByBatch(batchId).getBody());
+
+    }
 }

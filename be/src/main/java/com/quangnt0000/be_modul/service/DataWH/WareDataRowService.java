@@ -57,4 +57,8 @@ public class WareDataRowService {
                         .content(wareDataRowResponses)
                 .build());
     }
+
+    public List<WareDataRow> getByBatchId(Integer batchId) {
+        return wareDataRowRepository.findByWareBatch_Id(batchId);
+    }
 }

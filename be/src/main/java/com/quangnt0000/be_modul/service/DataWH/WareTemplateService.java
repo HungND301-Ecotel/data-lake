@@ -32,8 +32,6 @@ public class WareTemplateService {
                 .description(request.getDescription())
                 .tableName(request.getTableName())
                 .tableCode(request.getTableCode())
-                .keyColumns(request.getKeyColumns())
-                .scopeFilter(request.getScopeFilter())
                 .startRow(request.getStartRow())
                 .wareCategory(wareCategory)
                 .build();
@@ -60,8 +58,6 @@ public class WareTemplateService {
                         .description(wareTemplate.getDescription())
                         .tableName(wareTemplate.getTableName())
                         .tableCode(wareTemplate.getTableCode())
-                        .keyColumns(wareTemplate.getKeyColumns())
-                        .scopeFilter(wareTemplate.getScopeFilter())
                         .startRow(wareTemplate.getStartRow())
                         .createdAt(wareTemplate.getCreatedAt())
                         .updatedAt(wareTemplate.getUpdatedAt())
@@ -80,12 +76,22 @@ public class WareTemplateService {
                 .description(wareTemplate.getDescription())
                 .tableName(wareTemplate.getTableName())
                 .tableCode(wareTemplate.getTableCode())
-                .keyColumns(wareTemplate.getKeyColumns())
-                .scopeFilter(wareTemplate.getScopeFilter())
                 .startRow(wareTemplate.getStartRow())
                 .createdAt(wareTemplate.getCreatedAt())
                 .updatedAt(wareTemplate.getUpdatedAt())
                 .build();
         return ResponseEntity.ok(wareTemplateResponse);
+    }
+
+    public ResponseEntity<?> update(WareTemplateRequest request) {
+        WareTemplate wareTemplate = wareTemplateRepository.findById(request.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "template not found"));
+        wareTemplate.setName(request.getName());
+        wareTemplate.setDescription(request.getDescription());
+        wareTemplate.setTableName(request.getTableName());
+        wareTemplate.setTableCode(request.getTableCode());
+        wareTemplate.setStartRow(request.getStartRow());
+        wareTemplate = wareTemplateRepository.save(wareTemplate);
+        return ResponseEntity.ok(wareTemplate.getId());
     }
 }

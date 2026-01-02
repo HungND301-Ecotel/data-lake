@@ -123,7 +123,7 @@ public class WareApiService {
         }
 
         String token = loginResponse.getAccessToken();
-
+        log.info("Push body: {}", request);
         return webClient.post()
                 .uri("/v1/push-transaction")
                 .contentType(MediaType.APPLICATION_JSON)

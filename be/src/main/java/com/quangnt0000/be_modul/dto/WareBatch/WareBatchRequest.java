@@ -14,6 +14,8 @@ public class WareBatchRequest {
     private Integer id;
     private String name;
     private String description;
+    private Integer year;
+    private Integer period;
     private MultipartFile file;
     private Integer wareTemplateId;
 }

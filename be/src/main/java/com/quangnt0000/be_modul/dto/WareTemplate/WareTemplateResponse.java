@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -21,8 +23,6 @@ public class WareTemplateResponse {
 
     private String tableName;
     private String tableCode;
-    private String keyColumns;
-    private String scopeFilter;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

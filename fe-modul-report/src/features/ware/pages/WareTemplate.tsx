@@ -41,6 +41,7 @@ const WareTemplate = () => {
   const [modal, contextHolderModal] = Modal.useModal();
   const { departmentId } = useParams<{ departmentId: string }>();
   const nav = useNavigate();
+
   /* ================= LOAD CATEGORY ================= */
   useEffect(() => {
     const fetchCategories = async () => {
@@ -69,7 +70,7 @@ const WareTemplate = () => {
     };
 
     fetchCategories();
-  }, [searchText]);
+  }, [searchText, departmentId]);
 
   /* ================= LOAD TEMPLATE BY CATEGORY ================= */
   const loadTemplatesByCategory = async (categoryId: number) => {
@@ -83,18 +84,16 @@ const WareTemplate = () => {
         wareCategoryId: categoryId,
         keyword: searchText,
       });
-      
-      // 🔥 res là Array
+
       let data = res;
-      
+
       if (tableCode) {
         data = data.filter((t) => t.tableCode === tableCode);
       }
-      
+
       const newGroups = [...groups];
       newGroups[idx].templates = data;
       setGroups(newGroups);
-      
     } catch (err) {
       console.error(err);
       messageApi.error("Lỗi tải template");
@@ -108,11 +107,6 @@ const WareTemplate = () => {
     setModalOpen(true);
   };
 
-  const handleEdit = (record: WareTemplateResponse) => {
-    setEditing(record);
-    form.setFieldsValue(record);
-    setModalOpen(true);
-  };
 
   const handleDelete = (id: number, categoryId: number) => {
     modal.confirm({
@@ -121,7 +115,7 @@ const WareTemplate = () => {
       content: "Bạn có chắc chắn muốn xóa template này?",
       okType: "danger",
       onOk: async () => {
-        await wareTemplateApi.deleteWareTemplate(String(id));
+        await wareTemplateApi.deleteWareTemplate(Number(id));
         messageApi.success("Xóa thành công");
         loadTemplatesByCategory(categoryId);
       },
@@ -146,6 +140,9 @@ const WareTemplate = () => {
       }
 
       setModalOpen(false);
+      if (values.wareCategoryId) {
+        loadTemplatesByCategory(values.wareCategoryId);
+      }
     } catch (err) {
       console.error(err);
       messageApi.error("Thao tác thất bại");
@@ -163,7 +160,7 @@ const WareTemplate = () => {
       render: (_: any, record) => (
         <Space>
           <Button size="small" onClick={() => nav(`/ware/template/detail/${record.id}`)}>Chi tiết</Button>
-          <Button size="small" onClick={() => nav(`/ware/template/${record.id}`)}>Xem</Button>
+          <Button size="small" onClick={() => nav(`/ware/template/${record.id}`)}>Upload</Button>
           <Button
             size="small"
             danger
@@ -219,35 +216,32 @@ const WareTemplate = () => {
       </Row>
 
       {/* ===== COLLAPSE ===== */}
-{/* ===== COLLAPSE ===== */}
-<div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-  {groups.map((grp) => (
-    <Collapse
-      key={grp.id}
-      accordion={false}
-      style={{
-        borderRadius: 8,
-        backgroundColor: "#e0f7fa", // màu xanh nhạt
-        border: "1px solid #d9d9d9",
-        overflow: "hidden",
-      }}
-      onChange={() => loadTemplatesByCategory(grp.id)}
-    >
-      <Panel header={`${grp.name} - ${grp.code}`} key={grp.id}>
-        <Table
-          dataSource={grp.templates}
-          columns={columns}
-          rowKey="id"
-          pagination={false}
-          bordered={false}    // bỏ viền bảng
-          showHeader={false}  // ẩn header
-        />
-      </Panel>
-    </Collapse>
-  ))}
-</div>
-
-
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        {groups.map((grp) => (
+          <Collapse
+            key={grp.id}
+            accordion={false}
+            style={{
+              borderRadius: 8,
+              backgroundColor: "#e0f7fa",
+              border: "1px solid #d9d9d9",
+              overflow: "hidden",
+            }}
+            onChange={() => loadTemplatesByCategory(grp.id)}
+          >
+            <Panel header={`${grp.name} - ${grp.code}`} key={grp.id}>
+              <Table
+                dataSource={grp.templates}
+                columns={columns}
+                rowKey="id"
+                pagination={false}
+                bordered={false}
+                showHeader={false}
+              />
+            </Panel>
+          </Collapse>
+        ))}
+      </div>
 
       {/* ===== MODAL ADD / EDIT ===== */}
       <Modal
@@ -260,6 +254,7 @@ const WareTemplate = () => {
           <Form.Item name="name" label="Tên" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
+
           <Form.Item name="wareCategoryId" label="Category" rules={[{ required: true }]}>
             <Select>
               {groups.map((g) => (
@@ -269,18 +264,16 @@ const WareTemplate = () => {
               ))}
             </Select>
           </Form.Item>
+
           <Form.Item name="tableName" label="Table name">
             <Input />
           </Form.Item>
+
           <Form.Item name="tableCode" label="Table code">
             <Input />
           </Form.Item>
-          <Form.Item name="keyColumns" label="Key columns">
-            <Input />
-          </Form.Item>
-          <Form.Item name="scopeFilter" label="Scope filter">
-            <Input.TextArea rows={2} />
-          </Form.Item>
+
+    
         </Form>
       </Modal>
     </div>

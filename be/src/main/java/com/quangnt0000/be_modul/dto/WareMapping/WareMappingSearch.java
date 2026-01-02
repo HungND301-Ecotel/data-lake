@@ -21,5 +21,5 @@ public class WareMappingSearch {
     @Builder.Default
     private String sort = "ASC";
     @Builder.Default
-    private String sortBy = "excelColumn";
+    private String sortBy = "id";
 }
