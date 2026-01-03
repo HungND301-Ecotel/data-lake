@@ -19,6 +19,7 @@ import type {
 import type { PageResponse } from "../../department/types/department";
 import { wareBatchApi } from "../api/wareBathApi";
 import { useNavigate, useParams } from "react-router-dom";
+import { ExclamationCircleOutlined } from "@ant-design/icons";
 
 const { Search } = Input;
 
@@ -34,6 +35,8 @@ export const WareBatch: React.FC = () => {
   const [form] = Form.useForm<WareBatchRequest>();
   const { templateId } = useParams<{ templateId: string }>();
   const nav = useNavigate();
+  const [messageApi, contextHolderMessage] = message.useMessage();
+  const [modal, contextHolderModal] = Modal.useModal();
 
   // ------------------ Fetch batch list ------------------
   const fetchBatches = async () => {
@@ -50,7 +53,7 @@ export const WareBatch: React.FC = () => {
       setBatches(res.content);
       setTotal(res.totalElements);
     } catch (error) {
-      message.error("Lấy danh sách batch thất bại");
+      messageApi.error("Lấy danh sách batch thất bại");
     } finally {
       setLoading(false);
     }
@@ -70,25 +73,33 @@ export const WareBatch: React.FC = () => {
       };
 
       await wareBatchApi.saveWareBatch(request);
-      message.success("Thêm batch thành công");
+      messageApi.success("Thêm batch thành công");
       setIsModalOpen(false);
       setFileList([]);
       form.resetFields();
       fetchBatches();
     } catch (error) {
       console.error(error);
-      message.error("Thêm batch thất bại");
+      messageApi.error("Thêm batch thất bại");
     }
   };
 
   const handleDelete = async (id: string | number) => {
-    try {
-      await wareBatchApi.deleteWareBatch(String(id));
-      message.success("Xóa batch thành công");
-      fetchBatches();
-    } catch (error) {
-      message.error("Xóa batch thất bại");
-    }
+    modal.confirm({
+      title: "Xác nhận xóa",
+      icon: <ExclamationCircleOutlined />,
+      content: "Bạn có chắc chắn muốn xóa template này?",
+      okType: "danger",
+      onOk: async () => {
+        try {
+          await wareBatchApi.deleteWareBatch(String(id));
+          messageApi.success("Xóa batch thành công");
+          fetchBatches();
+        } catch (error) {
+          messageApi.error("Xóa batch thất bại");
+        }
+      },
+    });
   };
 
   const columns: ColumnsType<WareBatchResponse> = [
@@ -113,6 +124,8 @@ export const WareBatch: React.FC = () => {
 
   return (
     <div>
+      {contextHolderMessage}
+      {contextHolderModal}
       <div className="flex items-center gap-4 mb-4 w-full">
         <Search
           placeholder="Tìm kiếm batch"
