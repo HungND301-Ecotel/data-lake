@@ -74,12 +74,15 @@ axiosClient.interceptors.response.use(
         };
         break;
 
-      case 500:
-        apiError = {
-          status,
-          message: "Lỗi hệ thống",
-        };
-        break;
+        case 500:
+          apiError = {
+            status,
+            message:
+              typeof data === "string" ? data : data?.message || "Lỗi server",
+            data,
+          };
+          break;
+        
 
       default:
         apiError = {

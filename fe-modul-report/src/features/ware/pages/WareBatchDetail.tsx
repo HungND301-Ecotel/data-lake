@@ -9,20 +9,23 @@ import type { WareMappingResponse } from "../types/wareMapping";
 import { wareBatchApi } from "../api/wareBathApi";
 
 export const WareBatchDetail: React.FC = () => {
-  const wareBatchId = Number(useParams<{ wareBatchId: string }>().wareBatchId ?? 0);
+  const wareBatchId = Number(
+    useParams<{ wareBatchId: string }>().wareBatchId ?? 0
+  );
 
   const [rows, setRows] = useState<WareDataRowResponse[]>([]);
   const [mappings, setMappings] = useState<WareMappingResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState("");
   const [deleteMissing, setDeleteMissing] = useState(false);
+  const [messageApi, contextHolderMessage] = message.useMessage();
 
   const fetchMappings = async () => {
     try {
       const res = await wareMappingApi.getByBatch(wareBatchId);
       setMappings(res);
     } catch (error) {
-      message.error("Lấy mapping thất bại");
+      messageApi.error("Lấy mapping thất bại");
     }
   };
 
@@ -38,7 +41,7 @@ export const WareBatchDetail: React.FC = () => {
       });
       setRows(res.content);
     } catch (error) {
-      message.error("Lấy dữ liệu thất bại");
+      messageApi.error("Lấy dữ liệu thất bại");
     } finally {
       setLoading(false);
     }
@@ -54,14 +57,14 @@ export const WareBatchDetail: React.FC = () => {
 
   const defaultColumns: ColumnsType<WareDataRowResponse> = [
     { title: "ID", dataIndex: "id", key: "id", width: 60 },
-  
+
     {
       title: "Ngày tạo",
       dataIndex: "createdAt",
       key: "createdAt",
       render: (value: string) => formatVNDate(value),
     },
-  
+
     {
       title: "Cập nhật",
       dataIndex: "updatedAt",
@@ -69,7 +72,6 @@ export const WareBatchDetail: React.FC = () => {
       render: (value: string) => formatVNDate(value),
     },
   ];
-  
 
   const formatVNDate = (iso: string) => {
     const d = new Date(iso);
@@ -83,30 +85,34 @@ export const WareBatchDetail: React.FC = () => {
     });
   };
 
-  const mappingColumns: ColumnsType<WareDataRowResponse> = mappings.map((m) => ({
-    title: m.fieldName,
-    dataIndex: ["data", m.fieldName],
-    key: m.fieldName,
-    render: (value) => (value == null ? "" : value.toString()),
-  }));
+  const mappingColumns: ColumnsType<WareDataRowResponse> = mappings.map(
+    (m) => ({
+      title: m.fieldName,
+      dataIndex: ["data", m.fieldName],
+      key: m.fieldName,
+      render: (value) => (value == null ? "" : value.toString()),
+    })
+  );
 
   const columns = [...defaultColumns, ...mappingColumns];
 
   const handlePush = async () => {
     if (!wareBatchId) return;
+
     try {
-      await wareBatchApi.pushWareBatch({
+      const res = await wareBatchApi.pushWareBatch({
         id: wareBatchId,
         deleteMissing,
       });
-      message.success("Push dữ liệu thành công!");
-    } catch (error) {
-      message.error("Push dữ liệu thất bại");
+      messageApi.success(JSON.stringify(res));
+    } catch (error: any) {
+      messageApi.error(error?.data || "Push batch thất bại");
     }
   };
 
   return (
     <div>
+      {contextHolderMessage}
       <Row style={{ marginBottom: 16 }} gutter={8} align="middle">
         <Col span={6}>
           <Input
