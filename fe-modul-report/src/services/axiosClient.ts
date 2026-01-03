@@ -2,7 +2,6 @@ import axios from "axios";
 import type { ApiError } from "./erorr";
 import { message } from "antd";
 
-
 const axiosClient = axios.create({
   baseURL: import.meta.env.VITE_API,
   headers: {
@@ -45,6 +44,8 @@ axiosClient.interceptors.response.use(
 
       case 401:
         localStorage.removeItem("token");
+        message.error("Phiên đăng nhập đã hết hạn");
+        window.location.href = "/login";
         apiError = {
           status,
           message: "Phiên đăng nhập đã hết hạn",
@@ -90,14 +91,11 @@ axiosClient.interceptors.response.use(
     axiosClient.interceptors.response.use(
       (response) => response,
       (error) => {
-        const msg =
-          error.response?.data?.message ||
-          "Lỗi hệ thống";
+        const msg = error.response?.data?.message || "Lỗi hệ thống";
         message.error(msg);
         return Promise.reject(error);
       }
     );
-    
 
     return Promise.reject(apiError);
   }

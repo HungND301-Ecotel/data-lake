@@ -39,12 +39,9 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
-            "/department/my",
-            "/wh-batch"
 
     };
     private static final String[] PUBLIC_ENDPOINTS_GET = {
-            "/user",
 
     };
     private static final String[] PUBLIC_ENDPOINTS_POST = {
@@ -59,8 +56,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, PUBLIC_ENDPOINTS_GET).permitAll()
                         .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS_POST).permitAll()
-                        .requestMatchers(PUBLIC_ENDPOINTS).authenticated()
-                        .anyRequest().permitAll()
+                        .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+                        .anyRequest().authenticated()
                 )
 
                 .oauth2ResourceServer(oauth2 -> oauth2

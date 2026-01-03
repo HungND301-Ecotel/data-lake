@@ -4,9 +4,9 @@ import {
   Input,
   Button,
   message,
-  Popconfirm,
   Checkbox,
   Select,
+  Modal,
 } from "antd";
 import {
   EditOutlined,
@@ -14,6 +14,7 @@ import {
   SaveOutlined,
   CloseOutlined,
   PlusOutlined,
+  ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import type {
@@ -27,7 +28,8 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
 }) => {
   const [data, setData] = useState<WareMappingResponse[]>([]);
   const [loading, setLoading] = useState(false);
-
+  const [messageApi, contextHolderMessage] = message.useMessage();
+  const [modal, contextHolderModal] = Modal.useModal();
   const [editingId, setEditingId] = useState<number | null>(null);
 
   const [editingRequest, setEditingRequest] =
@@ -55,7 +57,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
 
       setData(sorted);
     } catch (e) {
-      message.error("Lấy dữ liệu mapping thất bại");
+      messageApi.error("Lấy dữ liệu mapping thất bại");
     } finally {
       setLoading(false);
     }
@@ -129,34 +131,43 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
 
     try {
       if (!editingRequest.fieldName || !editingRequest.fieldType) {
-        message.warning("Field Name và Field Type là bắt buộc");
+        messageApi.warning("Field Name và Field Type là bắt buộc");
         return;
       }
 
       if (editingRequest.id == null) {
         await wareMappingApi.saveWareMapping(editingRequest);
-        message.success("Thêm mapping thành công");
+        messageApi.success("Thêm mapping thành công");
       } else {
         await wareMappingApi.updateWareMapping(editingRequest);
-        message.success("Cập nhật mapping thành công");
+        messageApi.success("Cập nhật mapping thành công");
       }
 
       setEditingId(null);
       setEditingRequest(null);
       fetchData();
     } catch (e) {
-      message.error("Lưu mapping thất bại");
+      messageApi.error("Lưu mapping thất bại");
     }
   };
 
   const handleDelete = async (id: number) => {
-    try {
-      await wareMappingApi.deleteWareMapping(String(id));
-      message.success("Xóa mapping thành công");
-      fetchData();
-    } catch (e) {
-      message.error("Xóa mapping thất bại");
-    }
+    modal.confirm({
+      title: "Xác nhận xóa",
+      icon: <ExclamationCircleOutlined />,
+      content: "Bạn có chắc chắn muốn xóa template này?",
+      okType: "danger",
+      onOk: async () => {
+        try {
+          await wareMappingApi.deleteWareMapping(String(id));
+          messageApi.success("Xóa mapping thành công");
+          fetchData();
+        } catch (e) {
+          messageApi.error("Xóa mapping thất bại");
+        }
+      },
+    });
+    
   };
 
   /* ================= COLUMNS ================= */
@@ -277,21 +288,21 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
             >
               Sửa
             </Button>
-            <Popconfirm
-              title="Bạn có chắc muốn xóa?"
-              onConfirm={() => handleDelete(record.id!)}
-            >
-              <Button type="link" icon={<DeleteOutlined />} danger>
+            
+
+              <Button type="link" icon={<DeleteOutlined />} onClick={() => handleDelete(record.id!)} danger>
                 Xóa
               </Button>
-            </Popconfirm>
           </>
         ),
     },
   ];
 
   return (
+    
     <div style={{ paddingTop: 16 }}>
+      {contextHolderMessage}
+      {contextHolderModal}
       <div
         style={{
           display: "flex",

@@ -15,9 +15,8 @@ export const WareBatchDetail: React.FC = () => {
   const [mappings, setMappings] = useState<WareMappingResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState("");
-  const [deleteMissing, setDeleteMissing] = useState(false); // state cho deleteMissing
+  const [deleteMissing, setDeleteMissing] = useState(false);
 
-  // ----- Fetch Mapping -----
   const fetchMappings = async () => {
     try {
       const res = await wareMappingApi.getByBatch(wareBatchId);
@@ -27,7 +26,6 @@ export const WareBatchDetail: React.FC = () => {
     }
   };
 
-  // ----- Fetch Rows -----
   const fetchRows = async () => {
     if (!wareBatchId) return;
     setLoading(true);
@@ -54,12 +52,36 @@ export const WareBatchDetail: React.FC = () => {
     fetchRows();
   }, [wareBatchId, keyword]);
 
-  // ----- Dynamic Columns -----
   const defaultColumns: ColumnsType<WareDataRowResponse> = [
     { title: "ID", dataIndex: "id", key: "id", width: 60 },
-    { title: "Created At", dataIndex: "createdAt", key: "createdAt" },
-    { title: "Updated At", dataIndex: "updatedAt", key: "updatedAt" },
+  
+    {
+      title: "Ngày tạo",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (value: string) => formatVNDate(value),
+    },
+  
+    {
+      title: "Cập nhật",
+      dataIndex: "updatedAt",
+      key: "updatedAt",
+      render: (value: string) => formatVNDate(value),
+    },
   ];
+  
+
+  const formatVNDate = (iso: string) => {
+    const d = new Date(iso);
+    return d.toLocaleString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+  };
 
   const mappingColumns: ColumnsType<WareDataRowResponse> = mappings.map((m) => ({
     title: m.fieldName,
@@ -70,7 +92,6 @@ export const WareBatchDetail: React.FC = () => {
 
   const columns = [...defaultColumns, ...mappingColumns];
 
-  // ----- Push WareBatch -----
   const handlePush = async () => {
     if (!wareBatchId) return;
     try {
@@ -86,7 +107,6 @@ export const WareBatchDetail: React.FC = () => {
 
   return (
     <div>
-      {/* ===== Keyword Search + Push ===== */}
       <Row style={{ marginBottom: 16 }} gutter={8} align="middle">
         <Col span={6}>
           <Input
@@ -96,11 +116,7 @@ export const WareBatchDetail: React.FC = () => {
             onPressEnter={fetchRows}
           />
         </Col>
-        <Col>
-          <Button type="primary" onClick={fetchRows}>
-            Tìm kiếm
-          </Button>
-        </Col>
+
         <Col>
           <span>Delete Missing:</span>
           <Switch
@@ -116,13 +132,11 @@ export const WareBatchDetail: React.FC = () => {
         </Col>
       </Row>
 
-      {/* ===== Table Data ===== */}
       <Table
         rowKey={(record) => record.id ?? Math.random()}
         columns={columns}
         dataSource={rows}
         loading={loading}
-        pagination={{ pageSize: 20 }}
       />
     </div>
   );

@@ -6,9 +6,6 @@ import com.quangnt0000.be_modul.dto.WareBatch.WareBatchPush;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchResponse;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchSearch;
-import com.quangnt0000.be_modul.dto.WareCategory.WareCategoryResponse;
-import com.quangnt0000.be_modul.dto.WareDataRow.WareDataRowSearch;
-import com.quangnt0000.be_modul.modal.DataLake.Employee;
 import com.quangnt0000.be_modul.modal.DataLake.User;
 import com.quangnt0000.be_modul.modal.DataWH.WareBatch;
 import com.quangnt0000.be_modul.modal.DataWH.WareDataRow;
@@ -59,6 +56,10 @@ public class WareBatchService {
                 Row row = sheet.getRow(i);
                 if (row == null) break;
 
+                if (isRowEmpty(row, wareMappings)) {
+                    break;
+                }
+
                 Map<String, Object> data = new HashMap<>();
 
                 for (WareMapping mapping : wareMappings) {
@@ -94,7 +95,7 @@ public class WareBatchService {
                             break;
 
                         case "TEXT":
-                            value = mapping.getCellAddress(); // giữ literal
+                            value = mapping.getCellAddress();
                             break;
 
                         default:
@@ -137,55 +138,53 @@ public class WareBatchService {
         }
     }
 
+    private boolean isRowEmpty(Row row, List<WareMapping> mappings) {
+        for (WareMapping mapping : mappings) {
+            if ("ROW".equals(mapping.getFieldType())) {
+                try {
+                    int colIndex = Integer.parseInt(mapping.getCellAddress()) - 1;
+                    Cell cell = row.getCell(colIndex);
+
+                    if (cell != null && cell.getCellType() != CellType.BLANK) {
+                        if (cell.getCellType() == CellType.FORMULA) {
+                            if (!cell.getStringCellValue().trim().isEmpty()) {
+                                return false;
+                            }
+                        } else {
+                            return false;
+                        }
+                    }
+                } catch (Exception ignored) {}
+            }
+        }
+        return true;
+    }
+
+
 
     private Object parseCell(Cell cell, String fieldType) {
         if (cell == null) return null;
 
-        return switch (fieldType) {
-            case "STRING" -> getStringValue(cell);
-            case "NUMBER" -> getNumberValue(cell);
-            case "BOOLEAN" -> getBooleanValue(cell);
-            case "INTEGER" -> getIntegerValue(cell);
-            default -> cell.toString();
-        };
-    }
-    private Integer getIntegerValue(Cell cell) {
-        Double num = getNumberValue(cell); // lấy giá trị number trước
-        if (num == null) return null;
-        return num.intValue(); // ép Double -> int (1.0 -> 1)
-    }
-    private String getStringValue(Cell cell) {
-        return switch (cell.getCellType()) {
-            case STRING -> cell.getStringCellValue();
-            case NUMERIC -> String.valueOf(cell.getNumericCellValue());
-            case BOOLEAN -> String.valueOf(cell.getBooleanCellValue());
-            default -> null;
-        };
-    }
+        CellType type = cell.getCellType();
+        if (type == CellType.FORMULA) {
+            type = cell.getCachedFormulaResultType();
+        }
 
-    private Double getNumberValue(Cell cell) {
-        return switch (cell.getCellType()) {
-            case NUMERIC -> cell.getNumericCellValue();
-            case STRING -> {
-                try {
-                    yield Double.parseDouble(cell.getStringCellValue());
-                } catch (NumberFormatException e) {
-                    yield null;
-                }
-            }
-            default -> null;
-        };
+        switch (fieldType) {
+            case "STRING":
+                return (type == CellType.NUMERIC)
+                        ? String.valueOf(cell.getNumericCellValue())
+                        : cell.getStringCellValue();
+            case "NUMBER":
+                return cell.getNumericCellValue();
+            case "BOOLEAN":
+                return cell.getBooleanCellValue();
+            case "INTEGER":
+                return (int) cell.getNumericCellValue();
+            default:
+                return null;
+        }
     }
-
-    private Boolean getBooleanValue(Cell cell) {
-        return switch (cell.getCellType()) {
-            case BOOLEAN -> cell.getBooleanCellValue();
-            case STRING -> Boolean.parseBoolean(cell.getStringCellValue());
-            case NUMERIC -> cell.getNumericCellValue() != 0;
-            default -> null;
-        };
-    }
-
 
     public ResponseEntity<?> get(WareBatchSearch request) {
         List<WareBatch> wareBatchList = wareBatchRepository.findByWareTemplate_Id(request.getWareTemplateId());
