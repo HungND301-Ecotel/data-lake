@@ -34,7 +34,7 @@ public class WareApiController {
     }
 
     @PostMapping("/push")
-    public Mono<ResponseEntity<PushResponse>> push(@Valid @RequestBody PushRequest request) {
+    public Mono<ResponseEntity<Object>> push(@Valid @RequestBody PushRequest request) {
         return wareApiService.push(request);
     }
 }

@@ -6,6 +6,8 @@ import com.quangnt0000.be_modul.dto.TWH_Get.GetRequest;
 import com.quangnt0000.be_modul.dto.TWH_Get.GetResponse;
 import com.quangnt0000.be_modul.dto.TWH_Push.PushRequest;
 import com.quangnt0000.be_modul.dto.TWH_Push.PushResponse;
+import com.quangnt0000.be_modul.modal.DataWH.WareBatchAction;
+import com.quangnt0000.be_modul.repository.DataWH.WareBatchActionRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,12 +16,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class WareApiService {
-
+    private final WareBatchActionRepository wareBatchActionRepository;
     private final WebClient webClient;
 
     public ResponseEntity<LoginResponse> login(LoginRequest request) {
@@ -109,7 +112,7 @@ public class WareApiService {
         );
     }
 
-    public Mono<ResponseEntity<PushResponse>> push(@Valid PushRequest request) {
+    public Mono<ResponseEntity<Object>> push(@Valid PushRequest request) {
 
         LoginResponse loginResponse = login(LoginRequest.builder()
                 .username("VHTC")
@@ -123,7 +126,7 @@ public class WareApiService {
         }
 
         String token = loginResponse.getAccessToken();
-        log.info("Push body: {}", request);
+
         return webClient.post()
                 .uri("/v1/push-transaction")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -138,15 +141,31 @@ public class WareApiService {
                                 )
                 )
                 .bodyToMono(PushResponse.class)
-                .map(ResponseEntity::ok)
+
+                .flatMap(pushResponse ->
+                        Mono.fromCallable(() -> {
+                                    wareBatchActionRepository.save(
+                                            WareBatchAction.builder()
+                                                    .action("PUSH")
+                                                    .request(request)
+                                                    .response(pushResponse)
+                                                    .build()
+                                    );
+                                    return ResponseEntity.ok((Object) pushResponse);
+                                }
+                        ).subscribeOn(Schedulers.boundedElastic())
+                )
+
                 .onErrorResume(ex -> {
                     log.error("Push master-data failed", ex);
                     return Mono.just(
                             ResponseEntity
                                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                    .body(null)
+                                    .contentType(MediaType.TEXT_PLAIN)
+                                    .body(ex.getMessage())
                     );
                 });
     }
+
 
 }
