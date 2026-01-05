@@ -24,7 +24,6 @@ public class GetRequest {
     @JsonProperty("order_by")
     private List<String> orderBy;
 
-    private Integer limit;
-
-    private Integer offset;
+    private Integer limit ;
+    private Integer offset ;
 }

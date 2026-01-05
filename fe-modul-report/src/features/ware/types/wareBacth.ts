@@ -14,6 +14,7 @@ export interface WareBatchResponse {
   createdAt: string;
   updatedAt: string;
   employeeName?: string | null;
+  isPushed: boolean;
 }
 
 export interface WareBatchSearch {
@@ -26,5 +27,7 @@ export interface WareBatchSearch {
 export interface WareBatchPush {
   id: number;
   deleteMissing: boolean;
+  username: string;
+  password: string;
 }
 

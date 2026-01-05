@@ -1,6 +1,7 @@
 package com.quangnt0000.be_modul.service.DataWH;
 
 import com.quangnt0000.be_modul.dto.PageResponse;
+import com.quangnt0000.be_modul.dto.TWH_Get.GetRequest;
 import com.quangnt0000.be_modul.dto.TWH_Push.PushRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchPush;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchRequest;
@@ -37,6 +38,7 @@ public class WareBatchService {
     private final WareMappingRepository wareMappingRepository;
     private final EmployeeRepository employeeRepository;
     private final UserRepository userRepository;
+
     @Transactional
     public ResponseEntity<?> addWareBatch(WareBatchRequest request) {
         WareTemplate wareTemplate = wareTemplateRepository.findById(request.getWareTemplateId())
@@ -264,7 +266,7 @@ public class WareBatchService {
                 .dataUploadId(UUID.randomUUID().toString())
                 .build();
         try {
-            return wareApiService.push(body).block();
+            return wareApiService.push(body, wareBatch, request).block();
         }catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
@@ -285,5 +287,35 @@ public class WareBatchService {
         wareBatch.setDeleted(true);
         wareBatchRepository.save(wareBatch);
         return ResponseEntity.ok("deleted");
+    }
+
+    public ResponseEntity<?> getMasterData(Integer batchId, GetRequest request) {
+        WareBatch wareBatch = wareBatchRepository.findById(batchId)
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.BAD_REQUEST, "batch not found")
+                );
+
+        List<String> mapFilters = wareBatch.getWareTemplate()
+                .getWareMappings()
+                .stream()
+                .filter(WareMapping::getIsScopFilter)
+                .map(WareMapping::getFieldName) // <-- List<String>
+                .toList();
+
+        Map<String, Object> data =
+                wareBatch.getWareDataRows().get(0).getData();
+
+        Map<String, Object> filters = new HashMap<>();
+
+        for (String fieldName : mapFilters) {
+            if (data.containsKey(fieldName)) {
+                Object value = data.get(fieldName);
+                if (value != null) {
+                    filters.put(fieldName, value);
+                }
+            }
+        }
+        request.setFilters(filters);
+        return wareApiService.getMasterData(request).block();
     }
 }

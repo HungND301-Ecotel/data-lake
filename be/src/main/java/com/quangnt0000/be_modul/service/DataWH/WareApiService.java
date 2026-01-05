@@ -6,6 +6,9 @@ import com.quangnt0000.be_modul.dto.TWH_Get.GetRequest;
 import com.quangnt0000.be_modul.dto.TWH_Get.GetResponse;
 import com.quangnt0000.be_modul.dto.TWH_Push.PushRequest;
 import com.quangnt0000.be_modul.dto.TWH_Push.PushResponse;
+import com.quangnt0000.be_modul.dto.WareBatch.WareBatchPush;
+import com.quangnt0000.be_modul.dto.WareBatch.WareBatchRequest;
+import com.quangnt0000.be_modul.modal.DataWH.WareBatch;
 import com.quangnt0000.be_modul.modal.DataWH.WareBatchAction;
 import com.quangnt0000.be_modul.repository.DataWH.WareBatchActionRepository;
 import jakarta.validation.Valid;
@@ -15,8 +18,10 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
+import tools.jackson.databind.ObjectMapper;
 
 @Service
 @RequiredArgsConstructor
@@ -56,7 +61,7 @@ public class WareApiService {
 
 
     public Mono<ResponseEntity<GetResponse>> getMasterData(GetRequest request) {
-
+        ObjectMapper mapper = new ObjectMapper();
         LoginResponse loginResponse = login(LoginRequest.builder()
                 .username("VHTC")
                 .password("Vin@comin123")
@@ -73,7 +78,8 @@ public class WareApiService {
                             .queryParam("table", request.getTable());
 
                     if (request.getFilters() != null && !request.getFilters().isEmpty()) {
-                        builder.queryParam("filters", request.getFilters());
+                        String filtersJson = mapper.writeValueAsString(request.getFilters());
+                        builder.queryParam("filters", filtersJson); // **KHÔNG build(true)**
                     }
                     if (request.getColumns() != null && !request.getColumns().isEmpty()) {
                         builder.queryParam("columns", request.getColumns());
@@ -112,17 +118,20 @@ public class WareApiService {
         );
     }
 
-    public Mono<ResponseEntity<Object>> push(@Valid PushRequest request) {
+    public Mono<ResponseEntity<Object>> push(@Valid PushRequest request, WareBatch wareBatch, WareBatchPush batchPush) {
+
+
 
         LoginResponse loginResponse = login(LoginRequest.builder()
-                .username("VHTC")
-                .password("Vin@comin123")
+                .username(batchPush.getUsername())
+                .password(batchPush.getPassword())
                 .ttlSeconds(3600)
                 .build()
         ).getBody();
 
         if (loginResponse == null || loginResponse.getAccessToken() == null) {
-            return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+//            return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Sai thông tin tài khoản"));
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sai thông tin tài khoản");
         }
 
         String token = loginResponse.getAccessToken();
@@ -149,6 +158,7 @@ public class WareApiService {
                                                     .action("PUSH")
                                                     .request(request)
                                                     .response(pushResponse)
+                                                    .wareBatch(wareBatch)
                                                     .build()
                                     );
                                     return ResponseEntity.ok((Object) pushResponse);

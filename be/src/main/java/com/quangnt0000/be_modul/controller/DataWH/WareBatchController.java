@@ -1,5 +1,6 @@
 package com.quangnt0000.be_modul.controller.DataWH;
 
+import com.quangnt0000.be_modul.dto.TWH_Get.GetRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchPush;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchSearch;
@@ -44,4 +45,8 @@ public class WareBatchController {
         return wareBatchService.delete(wareBatchId);
     }
 
+    @GetMapping("/master-data/{batch-id}")
+    public ResponseEntity<?> getMasterData(@PathVariable ("batch-id") Integer batchId, @ModelAttribute GetRequest request) {
+        return wareBatchService.getMasterData(batchId, request);
+    }
 }

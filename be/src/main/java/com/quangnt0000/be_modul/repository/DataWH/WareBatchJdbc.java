@@ -27,7 +27,16 @@ public class WareBatchJdbc {
                         wb.description AS description,
                         wb.created_at AS created_at,
                         wb.updated_at AS updated_at,
-                        e.name AS employee_name
+                        e.name AS employee_name,
+                        CASE
+                            WHEN EXISTS (
+                                SELECT 1
+                                FROM ware_batch_action wba
+                                WHERE wba.ware_batch_id = wb.id
+                            )
+                            THEN 'true'
+                            ELSE 'false'
+                        END AS is_pushed
                     FROM ware_batch wb
                     LEFT JOIN employee e ON wb.employee_id = e.id
                     WHERE wb.deleted = false

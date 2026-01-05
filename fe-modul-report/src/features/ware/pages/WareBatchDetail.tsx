@@ -1,12 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { Table, Input, Row, Col, Button, message, Switch } from "antd";
+import {
+  Table,
+  Input,
+  Row,
+  Col,
+  Button,
+  message,
+  Modal,
+  Form,
+  Radio,
+} from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useParams } from "react-router-dom";
 import { wareDataRowApi } from "../api/wareDataRowApi";
 import { wareMappingApi } from "../api/wareMappingApi";
+import { wareBatchApi } from "../api/wareBathApi";
 import type { WareDataRowResponse } from "../types/wareDataRow";
 import type { WareMappingResponse } from "../types/wareMapping";
-import { wareBatchApi } from "../api/wareBathApi";
 
 export const WareBatchDetail: React.FC = () => {
   const wareBatchId = Number(
@@ -17,8 +27,11 @@ export const WareBatchDetail: React.FC = () => {
   const [mappings, setMappings] = useState<WareMappingResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState("");
+  const [pushModalVisible, setPushModalVisible] = useState(false);
   const [deleteMissing, setDeleteMissing] = useState(false);
   const [messageApi, contextHolderMessage] = message.useMessage();
+
+  const [form] = Form.useForm();
 
   const fetchMappings = async () => {
     try {
@@ -57,14 +70,12 @@ export const WareBatchDetail: React.FC = () => {
 
   const defaultColumns: ColumnsType<WareDataRowResponse> = [
     { title: "ID", dataIndex: "id", key: "id", width: 60 },
-
     {
       title: "Ngày tạo",
       dataIndex: "createdAt",
       key: "createdAt",
       render: (value: string) => formatVNDate(value),
     },
-
     {
       title: "Cập nhật",
       dataIndex: "updatedAt",
@@ -72,6 +83,17 @@ export const WareBatchDetail: React.FC = () => {
       render: (value: string) => formatVNDate(value),
     },
   ];
+
+  const mappingColumns: ColumnsType<WareDataRowResponse> = mappings.map(
+    (m) => ({
+      title: m.fieldName,
+      dataIndex: ["data", m.fieldName],
+      key: m.fieldName,
+      render: (value) => (value == null ? "" : value.toString()),
+    })
+  );
+
+  const columns = [...defaultColumns, ...mappingColumns];
 
   const formatVNDate = (iso: string) => {
     const d = new Date(iso);
@@ -85,26 +107,28 @@ export const WareBatchDetail: React.FC = () => {
     });
   };
 
-  const mappingColumns: ColumnsType<WareDataRowResponse> = mappings.map(
-    (m) => ({
-      title: m.fieldName,
-      dataIndex: ["data", m.fieldName],
-      key: m.fieldName,
-      render: (value) => (value == null ? "" : value.toString()),
-    })
-  );
+  // Click Push → hiện modal
+  const handlePushClick = () => {
+    setPushModalVisible(true);
+  };
 
-  const columns = [...defaultColumns, ...mappingColumns];
-
-  const handlePush = async () => {
+  // Xác nhận push
+  const handlePushConfirm = async (values: {
+    username: string;
+    password: string;
+    deleteMissing: boolean;
+  }) => {
     if (!wareBatchId) return;
 
     try {
       const res = await wareBatchApi.pushWareBatch({
         id: wareBatchId,
-        deleteMissing,
+        deleteMissing: values.deleteMissing,
+        username: values.username,
+        password: values.password,
       });
       messageApi.success(JSON.stringify(res));
+      setPushModalVisible(false);
     } catch (error: any) {
       messageApi.error(error?.data || "Push batch thất bại");
     }
@@ -113,6 +137,7 @@ export const WareBatchDetail: React.FC = () => {
   return (
     <div>
       {contextHolderMessage}
+
       <Row style={{ marginBottom: 16 }} gutter={8} align="middle">
         <Col span={6}>
           <Input
@@ -122,18 +147,9 @@ export const WareBatchDetail: React.FC = () => {
             onPressEnter={fetchRows}
           />
         </Col>
-
         <Col>
-          <span>Delete Missing:</span>
-          <Switch
-            style={{ marginLeft: 8 }}
-            checked={deleteMissing}
-            onChange={setDeleteMissing}
-          />
-        </Col>
-        <Col>
-          <Button type="default" onClick={handlePush}>
-            Update
+          <Button type="primary" onClick={handlePushClick}>
+            Push
           </Button>
         </Col>
       </Row>
@@ -143,7 +159,54 @@ export const WareBatchDetail: React.FC = () => {
         columns={columns}
         dataSource={rows}
         loading={loading}
+        pagination={false}
       />
+
+      {/* Modal Push */}
+      <Modal
+        title="Push dữ liệu"
+        open={pushModalVisible}
+        onCancel={() => setPushModalVisible(false)}
+        footer={null}
+      >
+        <Form layout="vertical" form={form} onFinish={handlePushConfirm}>
+          <Form.Item
+            label="Xoá dữ liệu cũ"
+            name="deleteMissing"
+            rules={[{ required: true, message: "Chọn có hoặc không!" }]}
+          >
+            <Radio.Group
+              onChange={(e) => setDeleteMissing(e.target.value)}
+              value={deleteMissing}
+            >
+              <Radio value={true}>Có</Radio>
+              <Radio value={false}>Không</Radio>
+            </Radio.Group>
+          </Form.Item>
+
+          <Form.Item
+            label="Username"
+            name="username"
+            rules={[{ required: true, message: "Nhập username!" }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            label="Password"
+            name="password"
+            rules={[{ required: true, message: "Nhập password!" }]}
+          >
+            <Input.Password />
+          </Form.Item>
+
+          <Form.Item>
+            <Button type="primary" htmlType="submit">
+              Push
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

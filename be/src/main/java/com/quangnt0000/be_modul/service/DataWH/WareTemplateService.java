@@ -41,9 +41,10 @@ public class WareTemplateService {
     }
 
     public ResponseEntity<?> delete(Integer templateId) {
-        WareCategory wareCategory = wareCategoryRepository.findById(templateId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "category not found"));
-        wareTemplateRepository.deleteById(templateId);
+
+        WareTemplate wareTemplate = wareTemplateRepository.findById(templateId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "template not found"));
+        wareTemplateRepository.delete(wareTemplate);
         return ResponseEntity.ok("Deleted template");
     }
 

@@ -12,5 +12,7 @@ import lombok.NoArgsConstructor;
 public class WareBatchPush {
     private Integer id;
     private Boolean deleteMissing;
+    private String username;
+    private String password;
 
 }

@@ -8,6 +8,7 @@ import {
   Upload,
   message,
   Space,
+  Tooltip,
 } from "antd";
 import type { UploadFile } from "antd/es/upload/interface";
 import type { ColumnsType } from "antd/es/table";
@@ -19,7 +20,7 @@ import type {
 import type { PageResponse } from "../../department/types/department";
 import { wareBatchApi } from "../api/wareBathApi";
 import { useNavigate, useParams } from "react-router-dom";
-import { ExclamationCircleOutlined } from "@ant-design/icons";
+import { ExclamationCircleOutlined, EyeOutlined } from "@ant-design/icons";
 
 const { Search } = Input;
 
@@ -38,7 +39,6 @@ export const WareBatch: React.FC = () => {
   const [messageApi, contextHolderMessage] = message.useMessage();
   const [modal, contextHolderModal] = Modal.useModal();
 
-  // ------------------ Fetch batch list ------------------
   const fetchBatches = async () => {
     setLoading(true);
     try {
@@ -102,14 +102,57 @@ export const WareBatch: React.FC = () => {
     });
   };
 
+  const handleEyeClick = (record: WareBatchResponse) => {
+    if (record.isPushed) {
+      nav(`/ware/batch/${record.id}/actions`);
+    } else {
+      messageApi.info("Batch chưa đẩy dữ liệu");}
+  };
+  
+  const formatVNDate = (iso: string) => {
+    const d = new Date(iso);
+    return d.toLocaleString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+  };
+  
   const columns: ColumnsType<WareBatchResponse> = [
-    { title: "Code", dataIndex: "code", key: "code" },
-    { title: "Name", dataIndex: "name", key: "name" },
-    { title: "Description", dataIndex: "description", key: "description" },
-    { title: "Employee", dataIndex: "employeeName", key: "employeeName" },
-    { title: "Created At", dataIndex: "createdAt", key: "createdAt" },
+    { title: "Mã", dataIndex: "code", key: "code" },
+    { title: "Tên", dataIndex: "name", key: "name" },
+    { title: "Mô tả", dataIndex: "description", key: "description" },
+    { title: "Người tạo", dataIndex: "employeeName", key: "employeeName" },
     {
-      title: "Action",
+      title: "Ngày tạo",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (value: string) => formatVNDate(value),
+    },
+    {
+      title: "Trạng thái",
+      dataIndex: "isPushed",
+      key: "isPushed",
+      align: "center",
+      render: (value: boolean, record) => (
+        <Tooltip title={value ? "Xem dữ liệu đã đẩy" : "Chưa đẩy dữ liệu"}>
+          <EyeOutlined
+            style={{
+              fontSize: 18,
+              cursor: "pointer",
+              color: value ? "#1677ff" : "#bfbfbf",
+            }}
+            onClick={() => handleEyeClick(record)}
+          />
+        </Tooltip>
+      ),
+    },
+    
+    {
+      title: "Thao tác",
       key: "action",
       render: (_, record) => (
         <Space>
