@@ -16,7 +16,10 @@ import { ExclamationCircleOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import { wareTemplateApi } from "../api/wareTemplateApi";
 import { wareCategoryApi } from "../api/wareCategoryApi";
-import type { WareTemplateResponse, WareTemplateRequest } from "../types/wareTemplate";
+import type {
+  WareTemplateResponse,
+  WareTemplateRequest,
+} from "../types/wareTemplate";
 import type { WareCategoryResponse } from "../types/wareCategory";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -84,7 +87,6 @@ const WareTemplate = () => {
 
       let data = res;
 
-
       const newGroups = [...groups];
       newGroups[idx].templates = data;
       setGroups(newGroups);
@@ -99,7 +101,6 @@ const WareTemplate = () => {
     form.resetFields();
     setModalOpen(true);
   };
-
 
   const handleDelete = (id: number, categoryId: number) => {
     modal.confirm({
@@ -152,17 +153,26 @@ const WareTemplate = () => {
       width: 160,
       render: (_: any, record) => (
         <Space>
-          <Button size="small" onClick={() => nav(`/ware/template/detail/${record.id}`)}>Chi tiết</Button>
-          <Button size="small" onClick={() => nav(`/ware/template/${record.id}`)}>Upload</Button>
+          <Button
+            size="small"
+            onClick={() => nav(`/ware/template/detail/${record.id}`)}
+          >
+            Cấu hình
+          </Button>
+          <Button
+            size="small"
+            onClick={() => nav(`/ware/template/${record.id}`)}
+          >
+            Nhập Liệu
+          </Button>
           <Button
             size="small"
             danger
             onClick={() =>
               handleDelete(
                 record.id!,
-                groups.find((g) =>
-                  g.templates.some((t) => t.id === record.id)
-                )?.id!
+                groups.find((g) => g.templates.some((t) => t.id === record.id))
+                  ?.id!
               )
             }
           >
@@ -189,8 +199,6 @@ const WareTemplate = () => {
           />
         </Col>
 
-        
-
         <Col>
           <Button type="primary" onClick={handleAdd}>
             + Thêm mới
@@ -198,7 +206,6 @@ const WareTemplate = () => {
         </Col>
       </Row>
 
-      {/* ===== COLLAPSE ===== */}
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {groups.map((grp) => (
           <Collapse
@@ -206,13 +213,20 @@ const WareTemplate = () => {
             accordion={false}
             style={{
               borderRadius: 8,
-              backgroundColor: "#e0f7fa",
-              border: "1px solid #d9d9d9",
+              backgroundColor: "#001529",
+              border: "0px solid #d9d9d9",
               overflow: "hidden",
             }}
             onChange={() => loadTemplatesByCategory(grp.id)}
           >
-            <Panel header={`${grp.name} - ${grp.code}`} key={grp.id}>
+            <Panel
+              header={
+                <span className="text-white font-semibold">
+                  {grp.name} - {grp.code}
+                </span>
+              }
+              key={grp.id}
+            >
               <Table
                 dataSource={grp.templates}
                 columns={columns}
@@ -238,7 +252,11 @@ const WareTemplate = () => {
             <Input />
           </Form.Item>
 
-          <Form.Item name="wareCategoryId" label="Category" rules={[{ required: true }]}>
+          <Form.Item
+            name="wareCategoryId"
+            label="Category"
+            rules={[{ required: true }]}
+          >
             <Select>
               {groups.map((g) => (
                 <Option key={g.id} value={g.id}>
@@ -263,9 +281,6 @@ const WareTemplate = () => {
           <Form.Item name="description" label="Mô tả">
             <Input />
           </Form.Item>
-
-        
-    
         </Form>
       </Modal>
     </div>

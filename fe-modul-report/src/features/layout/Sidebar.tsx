@@ -18,7 +18,6 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
   const location = useLocation();
-  //const role = useAuthStore((s) => s.role);
 
   return (
     <Sider
@@ -88,9 +87,17 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
           </Menu.Item>
         </Menu.SubMenu>
 
-        <Menu.Item key="/ware" icon={<DiffOutlined />}>
-          <Link to="/ware">QL dữ liệu</Link>
-        </Menu.Item>
+        <Menu.SubMenu
+          key="wares"
+          icon={<DiffOutlined />}
+          title="QL dữ liệu"
+        >
+          <Menu.Item key="/ware">
+            <Link to="/ware">Đẩy dữ liệu</Link>
+          </Menu.Item>
+
+        </Menu.SubMenu>
+
       </Menu>
     </Sider>
   );

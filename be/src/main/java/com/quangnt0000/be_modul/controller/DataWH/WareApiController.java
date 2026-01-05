@@ -4,7 +4,6 @@ import com.quangnt0000.be_modul.dto.TWH_Auth.LoginRequest;
 import com.quangnt0000.be_modul.dto.TWH_Get.GetRequest;
 import com.quangnt0000.be_modul.dto.TWH_Get.GetResponse;
 import com.quangnt0000.be_modul.dto.TWH_Push.PushRequest;
-import com.quangnt0000.be_modul.dto.TWH_Push.PushResponse;
 import com.quangnt0000.be_modul.service.DataWH.WareApiService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,12 +28,12 @@ public class WareApiController {
     }
 
     @GetMapping("/master-data")
-    public Mono<ResponseEntity<GetResponse>> getMasterData(@Valid @ModelAttribute GetRequest request) {
+    public Mono<ResponseEntity<GetResponse>> getMasterData(@Valid @RequestBody GetRequest request) {
         return wareApiService.getMasterData(request);
     }
 
     @PostMapping("/push")
     public Mono<ResponseEntity<Object>> push(@Valid @RequestBody PushRequest request) {
-        return wareApiService.push(request);
+        return wareApiService.push(request, null, null);
     }
 }
