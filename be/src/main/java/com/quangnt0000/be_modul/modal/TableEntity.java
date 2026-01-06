@@ -1,6 +1,5 @@
 package com.quangnt0000.be_modul.modal;
 
-import com.quangnt0000.be_modul.dto.TableItemDTO;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

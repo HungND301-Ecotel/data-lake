@@ -1,13 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  Table,
-  Input,
-  Button,
-  message,
-  Checkbox,
-  Select,
-  Modal,
-} from "antd";
+import { Table, Input, Button, message, Checkbox, Select, Modal } from "antd";
 import {
   EditOutlined,
   DeleteOutlined,
@@ -39,7 +31,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
     setLoading(true);
     try {
       const res = await wareMappingApi.searchWareMapping({
-        wareTemplateId: templateId
+        wareTemplateId: templateId,
       });
 
       const typeOrder = ["CELL", "TEXT", "ROW"];
@@ -49,10 +41,14 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
           typeOrder.indexOf(b.fieldType ?? "");
         if (typeDiff !== 0) return typeDiff;
 
-        return (a.cellAddress ?? "").localeCompare(b.cellAddress ?? "", undefined, {
-          numeric: true,
-          sensitivity: "base",
-        });
+        return (a.cellAddress ?? "").localeCompare(
+          b.cellAddress ?? "",
+          undefined,
+          {
+            numeric: true,
+            sensitivity: "base",
+          }
+        );
       });
 
       setData(sorted);
@@ -75,6 +71,18 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
     value: WareMappingRequest[K]
   ) => {
     setEditingRequest((prev) => (prev ? { ...prev, [key]: value } : prev));
+  };
+
+  const FIELD_TYPE_LABEL: Record<string, string> = {
+    ROW: "Đối chiếu cột",
+    CELL: "Đối chiếu ô",
+    TEXT: "Nhập dữ liệu",
+  };
+
+  const FIELD_VALUE_LABEL: Record<string, string> = {
+    INTEGER: "Số nguyên",
+    NUMBER: "Giá trị",
+    STRING: "Chuỗi kí tự",
   };
 
   const handleAdd = () => {
@@ -167,13 +175,12 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
         }
       },
     });
-    
   };
 
   /* ================= COLUMNS ================= */
   const columns: ColumnsType<WareMappingResponse> = [
     {
-      title: "Field Name",
+      title: "Tên dữ liệu",
       width: 150,
       render: (_, record) =>
         isEditing(record) ? (
@@ -186,7 +193,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
         ),
     },
     {
-      title: "Field Type",
+      title: "Kiểu trọc",
       width: 130,
       align: "center",
       render: (_, record) =>
@@ -202,11 +209,11 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
             ]}
           />
         ) : (
-          record.fieldType
+          FIELD_TYPE_LABEL[record.fieldType ?? ""]
         ),
     },
     {
-      title: "Cell Address",
+      title: "Địa chỉ ô/cột",
       width: 120,
       align: "center",
       render: (_, record) =>
@@ -220,17 +227,23 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
         ),
     },
     {
-      title: "Value / Default",
+      title: "Kiểu giá trị",
       width: 150,
       align: "center",
       render: (_, record) =>
         isEditing(record) ? (
-          <Input
+          <Select
             value={editingRequest?.fieldValue}
-            onChange={(e) => updateRequest("fieldValue", e.target.value)}
+            style={{ width: "100%" }}
+            onChange={(v) => updateRequest("fieldValue", v)}
+            options={[
+              { value: "INTEGER", label: "Số nguyên" },
+              { value: "NUMBER", label: "Giá trị" },
+              { value: "STRING", label: "Chuỗi kí tự" },
+            ]}
           />
         ) : (
-          record.fieldValue
+          FIELD_VALUE_LABEL[record.fieldValue ?? ""] ?? record.fieldValue
         ),
     },
     {
@@ -250,7 +263,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
         ),
     },
     {
-      title: "Scope",
+      title: "Scope_Filter",
       width: 80,
       align: "center",
       render: (_, record) =>
@@ -266,7 +279,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
         ),
     },
     {
-      title: "Action",
+      title: "Thao tác",
       width: 160,
       align: "center",
       render: (_, record) =>
@@ -288,18 +301,21 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
             >
               Sửa
             </Button>
-            
 
-              <Button type="link" icon={<DeleteOutlined />} onClick={() => handleDelete(record.id!)} danger>
-                Xóa
-              </Button>
+            <Button
+              type="link"
+              icon={<DeleteOutlined />}
+              onClick={() => handleDelete(record.id!)}
+              danger
+            >
+              Xóa
+            </Button>
           </>
         ),
     },
   ];
 
   return (
-    
     <div style={{ paddingTop: 16 }}>
       {contextHolderMessage}
       {contextHolderModal}

@@ -20,7 +20,14 @@ import type {
 import type { PageResponse } from "../../department/types/department";
 import { wareBatchApi } from "../api/wareBathApi";
 import { useNavigate, useParams } from "react-router-dom";
-import { ExclamationCircleOutlined, EyeOutlined } from "@ant-design/icons";
+import {
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  ExclamationCircleOutlined,
+  // EyeOutlined,
+} from "@ant-design/icons";
 
 const { Search } = Input;
 
@@ -106,9 +113,10 @@ export const WareBatch: React.FC = () => {
     if (record.isPushed) {
       nav(`/ware/batch/${record.id}/actions`);
     } else {
-      messageApi.info("Batch chưa đẩy dữ liệu");}
+      messageApi.info("Batch chưa đẩy dữ liệu");
+    }
   };
-  
+
   const formatVNDate = (iso: string) => {
     const d = new Date(iso);
     return d.toLocaleString("vi-VN", {
@@ -120,7 +128,7 @@ export const WareBatch: React.FC = () => {
       second: "2-digit",
     });
   };
-  
+
   const columns: ColumnsType<WareBatchResponse> = [
     { title: "Mã", dataIndex: "code", key: "code" },
     { title: "Tên", dataIndex: "name", key: "name" },
@@ -133,33 +141,64 @@ export const WareBatch: React.FC = () => {
       render: (value: string) => formatVNDate(value),
     },
     {
-      title: "Trạng thái",
+      title: "Upload",
       dataIndex: "isPushed",
       key: "isPushed",
       align: "center",
       render: (value: boolean, record) => (
-        <Tooltip title={value ? "Xem dữ liệu đã đẩy" : "Chưa đẩy dữ liệu"}>
-          <EyeOutlined
-            style={{
-              fontSize: 18,
-              cursor: "pointer",
-              color: value ? "#1677ff" : "#bfbfbf",
-            }}
-            onClick={() => handleEyeClick(record)}
-          />
+        <Tooltip title={value ? "Đã đẩy dữ liệu" : "Chưa đẩy dữ liệu"}>
+          {value ? (
+            <CheckCircleOutlined
+              style={{
+                fontSize: 18,
+                color: "#52c41a",
+                cursor: "pointer",
+              }}
+              onClick={() => handleEyeClick(record)}
+            />
+          ) : (
+            <CloseCircleOutlined
+              style={{
+                fontSize: 18,
+                color: "#ff4d4f",
+                cursor: "pointer",
+              }}
+            />
+          )}
         </Tooltip>
       ),
     },
-    
+
     {
       title: "Thao tác",
       key: "action",
       render: (_, record) => (
         <Space>
-          <Button onClick={() => nav(`/ware/batch/${record.id}`)}>Xem</Button>
-          <Button danger onClick={() => handleDelete(record.id)}>
-            Xoá
-          </Button>
+          <Button
+              type="link"
+              icon={<EditOutlined />}
+              onClick={() => nav(`/ware/batch/${record.id}`)}
+            >
+              Xem
+            </Button>
+          <Button
+              type="link"
+              icon={<DeleteOutlined />}
+              onClick={() => handleDelete(record.id!)}
+              danger
+            >
+              Xóa
+            </Button>
+          {/* <Tooltip title="Xem chi tiết">
+            <EyeOutlined
+              style={{
+                fontSize: 18,
+                cursor: "pointer",
+                color: "#1677ff",
+              }}
+              onClick={() => handleEyeClick(record)}
+            />
+          </Tooltip> */}
         </Space>
       ),
     },

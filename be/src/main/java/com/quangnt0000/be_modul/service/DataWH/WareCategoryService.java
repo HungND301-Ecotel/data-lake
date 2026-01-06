@@ -2,10 +2,8 @@ package com.quangnt0000.be_modul.service.DataWH;
 
 import com.quangnt0000.be_modul.dto.PageResponse;
 import com.quangnt0000.be_modul.dto.WareCategory.WareCategoryRequest;
-import com.quangnt0000.be_modul.dto.WareCategory.WareCategoryRequest;
 import com.quangnt0000.be_modul.dto.WareCategory.WareCategoryResponse;
 import com.quangnt0000.be_modul.dto.WareCategory.WareCategorySearch;
-import com.quangnt0000.be_modul.dto.WareTemplate.WareTemplateSearch;
 import com.quangnt0000.be_modul.modal.DataLake.Department;
 import com.quangnt0000.be_modul.modal.DataWH.WareCategory;
 import com.quangnt0000.be_modul.repository.DataLake.DepartmentRepository;
@@ -18,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor

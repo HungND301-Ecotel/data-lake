@@ -107,12 +107,10 @@ export const WareBatchDetail: React.FC = () => {
     });
   };
 
-  // Click Push → hiện modal
   const handlePushClick = () => {
     setPushModalVisible(true);
   };
 
-  // Xác nhận push
   const handlePushConfirm = async (values: {
     username: string;
     password: string;
@@ -141,7 +139,7 @@ export const WareBatchDetail: React.FC = () => {
       <Row style={{ marginBottom: 16 }} gutter={8} align="middle">
         <Col span={6}>
           <Input
-            placeholder="Nhập keyword"
+            placeholder="Tìm kiếm theo ID ... "
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             onPressEnter={fetchRows}
@@ -149,7 +147,7 @@ export const WareBatchDetail: React.FC = () => {
         </Col>
         <Col>
           <Button type="primary" onClick={handlePushClick}>
-            Push
+            Upload dữ liệu
           </Button>
         </Col>
       </Row>
@@ -162,7 +160,6 @@ export const WareBatchDetail: React.FC = () => {
         pagination={false}
       />
 
-      {/* Modal Push */}
       <Modal
         title="Push dữ liệu"
         open={pushModalVisible}

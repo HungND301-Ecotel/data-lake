@@ -20,6 +20,7 @@ import WareTemplate from "../features/ware/pages/WareTemplate";
 import { WareBatch } from "../features/ware/pages/WareBatch";
 import { TemplateDetail } from "../features/ware/pages/WareTemplateDetail";
 import { WareBatchDetail } from "../features/ware/pages/WareBatchDetail";
+import DashboardWare from "../features/ware/pages/WareBatchDasboard";
 
 export const router = createBrowserRouter([
   {
@@ -27,6 +28,7 @@ export const router = createBrowserRouter([
     element: <MainLayout />,
     children: [
       { path: "/", element: <DashboardPage /> },
+      { path: "/ware/dashboard", element: <DashboardWare /> },
       { path: "/employee", element: <EmployeePage /> },
       { path: "/employee/:employeeId", element: <ProfilePage /> },
       { path: "/ware", element: <DepartmentMy /> },

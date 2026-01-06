@@ -1,6 +1,5 @@
 package com.quangnt0000.be_modul.repository.DataWH;
 
-import com.quangnt0000.be_modul.modal.DataWH.WareDataRow;
 import com.quangnt0000.be_modul.modal.DataWH.WareMapping;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

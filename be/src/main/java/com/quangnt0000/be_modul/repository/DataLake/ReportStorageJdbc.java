@@ -2,7 +2,6 @@ package com.quangnt0000.be_modul.repository.DataLake;
 
 import com.quangnt0000.be_modul.dto.ReportStorage.ReportStorageResponse;
 import com.quangnt0000.be_modul.dto.ReportStorage.ReportStorageSearch;
-import com.quangnt0000.be_modul.dto.ReportTemplate.ReportTemplateResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;

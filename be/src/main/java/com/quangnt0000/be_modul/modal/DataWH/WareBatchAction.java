@@ -1,16 +1,14 @@
 package com.quangnt0000.be_modul.modal.DataWH;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.quangnt0000.be_modul.dto.TWH_Push.PushRequest;
 import com.quangnt0000.be_modul.dto.TWH_Push.PushResponse;
-import com.quangnt0000.be_modul.utils.PushRequestConverter;
-import com.quangnt0000.be_modul.utils.PushResponseConverter;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.Type;
 import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -30,6 +28,12 @@ public class WareBatchAction {
     private Integer id;
 
     private String action;
+    private String actionName; //Insert-Update
+    private String tableName;
+
+    private Integer inserted;
+    private Integer updated;
+
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")

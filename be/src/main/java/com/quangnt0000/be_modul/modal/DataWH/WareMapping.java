@@ -1,6 +1,5 @@
 package com.quangnt0000.be_modul.modal.DataWH;
 
-import com.quangnt0000.be_modul.dto.PageResponse;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

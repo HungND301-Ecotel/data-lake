@@ -2,7 +2,6 @@ package com.quangnt0000.be_modul.controller.DataWH;
 
 import com.quangnt0000.be_modul.dto.WareTemplate.WareTemplateRequest;
 import com.quangnt0000.be_modul.dto.WareTemplate.WareTemplateSearch;
-import com.quangnt0000.be_modul.modal.DataWH.WareTemplate;
 import com.quangnt0000.be_modul.service.DataWH.WareTemplateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
