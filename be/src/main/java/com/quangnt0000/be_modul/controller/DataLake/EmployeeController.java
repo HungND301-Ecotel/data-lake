@@ -2,9 +2,7 @@ package com.quangnt0000.be_modul.controller.DataLake;
 
 import com.quangnt0000.be_modul.dto.Employee.EmployeeRequest;
 import com.quangnt0000.be_modul.dto.Employee.EmployeeSearch;
-import com.quangnt0000.be_modul.modal.DataLake.Employee;
 import com.quangnt0000.be_modul.modal.DataLake.User;
-import com.quangnt0000.be_modul.repository.DataLake.EmployeeRepository;
 import com.quangnt0000.be_modul.repository.DataLake.UserRepository;
 import com.quangnt0000.be_modul.service.DataLake.EmployeeService;
 import lombok.RequiredArgsConstructor;

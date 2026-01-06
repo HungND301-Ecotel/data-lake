@@ -30,4 +30,3 @@ export interface WareBatchPush {
   username: string;
   password: string;
 }
-

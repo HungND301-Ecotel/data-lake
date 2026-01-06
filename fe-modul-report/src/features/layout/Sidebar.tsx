@@ -2,7 +2,7 @@ import { Layout, Menu } from "antd";
 import { Link, useLocation } from "react-router-dom";
 import {
   DiffOutlined,
-  FileTextOutlined,
+  // FileTextOutlined,
   HomeOutlined,
   OrderedListOutlined,
   UserOutlined,
@@ -50,8 +50,12 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
         mode="inline"
         selectedKeys={[location.pathname]}
       >
-        <Menu.Item key="/" icon={<HomeOutlined />}>
+        {/* <Menu.Item key="/" icon={<HomeOutlined />}>
           <Link to="/">Trang chủ</Link>
+        </Menu.Item> */}
+{/* ///ware/dashboard */}
+        <Menu.Item key="/" icon={<HomeOutlined />}>
+          <Link to="/ware/dashboard">Trang chủ</Link>
         </Menu.Item>
 
         <Menu.SubMenu
@@ -62,11 +66,11 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
           <Menu.Item key="/category/departments">
             <Link to="/category/departments">Phòng ban</Link>
           </Menu.Item>
-          <Menu.Item key="/category/report">
+          {/* <Menu.Item key="/category/report">
             <Link to="/category/report">Danh mục báo cáo</Link>
-          </Menu.Item>
+          </Menu.Item> */}
           <Menu.Item key="/category/ware">
-            <Link to="/category/ware">Danh mục DTL</Link>
+            <Link to="/category/ware">Danh mục TKV</Link>
           </Menu.Item>
         </Menu.SubMenu>
 
@@ -74,7 +78,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
           <Link to="/employee">Nhân viên</Link>
         </Menu.Item>
 
-        <Menu.SubMenu
+        {/* <Menu.SubMenu
           key="reports"
           icon={<FileTextOutlined />}
           title="Báo cáo"
@@ -85,15 +89,15 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
           <Menu.Item key="/reports/storage">
             <Link to="/reports/storage">Kho lưu trữ</Link>
           </Menu.Item>
-        </Menu.SubMenu>
+        </Menu.SubMenu> */}
 
         <Menu.SubMenu
           key="wares"
           icon={<DiffOutlined />}
-          title="QL dữ liệu"
+          title="Báo cáo"
         >
           <Menu.Item key="/ware">
-            <Link to="/ware">Đẩy dữ liệu</Link>
+            <Link to="/ware">Báo cáo TKV</Link>
           </Menu.Item>
 
         </Menu.SubMenu>

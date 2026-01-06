@@ -1,7 +1,5 @@
 package com.quangnt0000.be_modul.modal.DataWH;
 
-import com.quangnt0000.be_modul.utils.JsonDataConverter;
-import com.quangnt0000.be_modul.utils.JsonStringListConverter;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,8 +11,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 @AllArgsConstructor
 @NoArgsConstructor

@@ -1,6 +1,5 @@
 package com.quangnt0000.be_modul.repository.DataWH;
 
-import com.quangnt0000.be_modul.dto.ReportStorage.ReportStorageResponse;
 import com.quangnt0000.be_modul.dto.WareCategory.WareCategoryResponse;
 import com.quangnt0000.be_modul.dto.WareCategory.WareCategorySearch;
 import lombok.RequiredArgsConstructor;

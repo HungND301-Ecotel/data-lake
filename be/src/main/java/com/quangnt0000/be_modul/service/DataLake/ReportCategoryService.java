@@ -1,6 +1,5 @@
 package com.quangnt0000.be_modul.service.DataLake;
 
-import com.quangnt0000.be_modul.dto.Department.DepartmentResponse;
 import com.quangnt0000.be_modul.dto.PageResponse;
 import com.quangnt0000.be_modul.dto.ReportCategory.ReportCategoryRequest;
 import com.quangnt0000.be_modul.dto.ReportCategory.ReportCategoryResponse;

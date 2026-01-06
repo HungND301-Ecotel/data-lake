@@ -1,7 +1,6 @@
 package com.quangnt0000.be_modul.controller.DataLake;
 
 import com.quangnt0000.be_modul.dto.ReportTemplate.ReportTemplateRequest;
-import com.quangnt0000.be_modul.modal.DataLake.ReportTemplate;
 import com.quangnt0000.be_modul.service.DataLake.ReportTemplateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

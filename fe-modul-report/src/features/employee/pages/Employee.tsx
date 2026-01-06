@@ -232,7 +232,7 @@ const EmployeePage = () => {
       {/* Header search + filter + add */}
       <div className="flex gap-2 mb-4">
         <Input
-          placeholder="Tìm kiếm nhân viên"
+          placeholder="Tìm kiếm theo tên, chức vụ..."
           prefix={<SearchOutlined />}
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}

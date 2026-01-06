@@ -24,7 +24,6 @@ const HeaderBar = () => {
     title = "Chi tiết báo cáo";
   else title = "";
 
-  // MENU DROPDOWN
   const items: MenuProps["items"] = [
     {
       key: "profile",
@@ -38,11 +37,10 @@ const HeaderBar = () => {
       danger: true,
       icon: <LogoutOutlined />,
       onClick: () => {
-        // Xóa token và refreshToken
+        // Xóa token + refreshToken
         localStorage.removeItem("token");
         localStorage.removeItem("refreshToken");
 
-        // Chuyển hướng về trang login
         navigate("/login");
       },
     },

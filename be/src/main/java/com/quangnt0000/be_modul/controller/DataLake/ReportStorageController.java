@@ -2,7 +2,6 @@ package com.quangnt0000.be_modul.controller.DataLake;
 
 import com.quangnt0000.be_modul.dto.ReportStorage.ReportStorageRequest;
 import com.quangnt0000.be_modul.dto.ReportStorage.ReportStorageSearch;
-import com.quangnt0000.be_modul.modal.DataLake.ReportStorage;
 import com.quangnt0000.be_modul.service.DataLake.ReportStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

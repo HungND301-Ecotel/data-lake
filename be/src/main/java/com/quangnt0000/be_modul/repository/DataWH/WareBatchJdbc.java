@@ -2,8 +2,6 @@ package com.quangnt0000.be_modul.repository.DataWH;
 
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchResponse;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchSearch;
-import com.quangnt0000.be_modul.dto.WareCategory.WareCategoryResponse;
-import com.quangnt0000.be_modul.dto.WareCategory.WareCategorySearch;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;

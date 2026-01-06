@@ -7,7 +7,6 @@ import com.quangnt0000.be_modul.dto.TWH_Get.GetResponse;
 import com.quangnt0000.be_modul.dto.TWH_Push.PushRequest;
 import com.quangnt0000.be_modul.dto.TWH_Push.PushResponse;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchPush;
-import com.quangnt0000.be_modul.dto.WareBatch.WareBatchRequest;
 import com.quangnt0000.be_modul.modal.DataWH.WareBatch;
 import com.quangnt0000.be_modul.modal.DataWH.WareBatchAction;
 import com.quangnt0000.be_modul.repository.DataWH.WareBatchActionRepository;
@@ -158,6 +157,10 @@ public class WareApiService {
                                                     .action("PUSH")
                                                     .request(request)
                                                     .response(pushResponse)
+                                                    .actionName(pushResponse.getInserted() > 0 ? "Insert" : "Update")
+                                                    .inserted(pushResponse.getInserted())
+                                                    .updated(pushResponse.getUpdated())
+                                                    .tableName(request.getTable())
                                                     .wareBatch(wareBatch)
                                                     .build()
                                     );
