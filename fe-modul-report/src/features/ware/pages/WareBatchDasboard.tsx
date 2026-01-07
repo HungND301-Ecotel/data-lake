@@ -131,6 +131,7 @@ const DashboardWare = () => {
     data: chartColumData,
     xField: "label",
     yField: "total",
+    
     label: {
       position: "top",
     },

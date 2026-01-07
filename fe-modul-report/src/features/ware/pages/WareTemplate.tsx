@@ -143,7 +143,6 @@ const WareTemplate = () => {
     }
   };
 
-  /* ================= TABLE ================= */
   const columns: ColumnsType<WareTemplateResponse> = [
     { title: "Mã", dataIndex: "code", width: 140 },
     { title: "Tên", dataIndex: "name", width: 220 },
@@ -188,7 +187,6 @@ const WareTemplate = () => {
       {contextHolderMessage}
       {contextHolderModal}
 
-      {/* ===== SEARCH + FILTER + ADD ===== */}
       <Row gutter={16} style={{ marginBottom: 16 }}>
         <Col flex="auto">
           <Input
@@ -200,7 +198,7 @@ const WareTemplate = () => {
         </Col>
 
         <Col>
-          <Button type="primary" onClick={handleAdd}>
+          <Button type="primary" className="bg-[#1a8649]! hover:bg-[#15703d]!" onClick={handleAdd}>
             + Thêm mới
           </Button>
         </Col>
@@ -213,7 +211,7 @@ const WareTemplate = () => {
             accordion={false}
             style={{
               borderRadius: 8,
-              backgroundColor: "#001529",
+              backgroundColor: "#1a8649",
               border: "0px solid #d9d9d9",
               overflow: "hidden",
             }}
@@ -240,7 +238,6 @@ const WareTemplate = () => {
         ))}
       </div>
 
-      {/* ===== MODAL ADD / EDIT ===== */}
       <Modal
         title={editing ? "Sửa template" : "Thêm template"}
         open={modalOpen}

@@ -215,7 +215,7 @@ export const WareBatch: React.FC = () => {
           allowClear
           className="flex-1"
         />
-        <Button type="primary" onClick={() => setIsModalOpen(true)}>
+        <Button type="primary" className="bg-[#1a8649]! hover:bg-[#15703d]!" onClick={() => setIsModalOpen(true)}>
           + Thêm dữ liệu
         </Button>
       </div>

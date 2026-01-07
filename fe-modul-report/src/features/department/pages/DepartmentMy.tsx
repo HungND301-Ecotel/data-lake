@@ -17,7 +17,7 @@ const DepartmentMy = () => {
     try {
       setLoading(true);
       const res = await departmentApi.getMyDepartment(
-        "", // không keyword
+        "", 
         0,
         1000 // max
       );
@@ -48,6 +48,12 @@ const DepartmentMy = () => {
                 title={dept.name}
                 bordered
                 hoverable
+                headStyle={{
+                  background: "#1a8649",
+                  color: "#fff",
+                  fontWeight: 600,
+                }}
+                
                 onClick={() => {
                   handleClickDepartment(dept.id);
                 }}
