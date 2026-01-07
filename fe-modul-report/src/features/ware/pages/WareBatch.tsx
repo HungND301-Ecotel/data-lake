@@ -85,9 +85,8 @@ export const WareBatch: React.FC = () => {
       setFileList([]);
       form.resetFields();
       fetchBatches();
-    } catch (error) {
-      console.error(error);
-      messageApi.error("Thêm batch thất bại");
+    } catch (error: any) {
+      messageApi.error(error?.data || "Thêm batch thất bại");
     }
   };
 

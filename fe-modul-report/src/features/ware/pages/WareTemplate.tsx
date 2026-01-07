@@ -220,7 +220,7 @@ const WareTemplate = () => {
             <Panel
               header={
                 <span className="text-white font-semibold">
-                  {grp.name} - {grp.code}
+                  {grp.name}
                 </span>
               }
               key={grp.id}
