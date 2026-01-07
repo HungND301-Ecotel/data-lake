@@ -48,11 +48,9 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
     setRequest((prev) => (prev ? { ...prev, [key]: value } : prev));
   };
 
-  /* ================= ACTIONS ================= */
   const handleSave = async () => {
     if (!request) return;
 
-    // Validation FE cơ bản
     if (!request.name) {
       message.warning("Template Name không được để trống");
       return;
@@ -101,7 +99,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
             </Button>
           </div>
         ) : (
-          <Button type="primary" icon={<EditOutlined />} onClick={() => setIsEditing(true)}>
+          <Button type="primary" className="bg-[#1a8649]! hover:bg-[#15703d]!" icon={<EditOutlined />} onClick={() => setIsEditing(true)}>
             Chỉnh sửa
           </Button>
         )}
