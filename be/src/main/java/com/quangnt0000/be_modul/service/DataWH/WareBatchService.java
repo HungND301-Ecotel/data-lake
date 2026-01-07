@@ -140,27 +140,52 @@ public class WareBatchService {
         }
     }
 
-    private boolean isRowEmpty(Row row, List<WareMapping> mappings) {
-        for (WareMapping mapping : mappings) {
-            if ("ROW".equals(mapping.getFieldType())) {
-                try {
-                    int colIndex = Integer.parseInt(mapping.getCellAddress()) - 1;
-                    Cell cell = row.getCell(colIndex);
+//    private boolean isRowEmpty(Row row, List<WareMapping> mappings) {
+//        for (WareMapping mapping : mappings) {
+//            if ("ROW".equals(mapping.getFieldType())) {
+//                try {
+//                    int colIndex = Integer.parseInt(mapping.getCellAddress()) - 1;
+//                    Cell cell = row.getCell(colIndex);
+//
+//                    if (cell != null && cell.getCellType() != CellType.BLANK) {
+//                        if (cell.getCellType() == CellType.FORMULA) {
+//                            if (!cell.getStringCellValue().trim().isEmpty()) {
+//                                return false;
+//                            }
+//                        } else {
+//                            return false;
+//                        }
+//                    }
+//                } catch (Exception ignored) {}
+//            }
+//        }
+//        return true;
+//    }
 
-                    if (cell != null && cell.getCellType() != CellType.BLANK) {
-                        if (cell.getCellType() == CellType.FORMULA) {
-                            if (!cell.getStringCellValue().trim().isEmpty()) {
-                                return false;
-                            }
-                        } else {
-                            return false;
-                        }
-                    }
-                } catch (Exception ignored) {}
+    private boolean isRowEmpty(Row row, List<WareMapping> mappings) {
+        DataFormatter formatter = new DataFormatter();
+
+        for (WareMapping mapping : mappings) {
+            if (!"ROW".equals(mapping.getFieldType())) continue;
+
+            int colIndex;
+            try {
+                colIndex = Integer.parseInt(mapping.getCellAddress()) - 1;
+            } catch (Exception e) {
+                continue;
+            }
+
+            Cell cell = row.getCell(colIndex);
+            if (cell == null) continue;
+
+            String value = formatter.formatCellValue(cell).trim();
+            if (!value.isEmpty()) {
+                return false; // có dữ liệu → KHÔNG rỗng
             }
         }
-        return true;
+        return true; // tất cả cột ROW đều rỗng
     }
+
 
 
 
