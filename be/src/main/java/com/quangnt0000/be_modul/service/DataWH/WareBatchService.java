@@ -156,7 +156,9 @@ public class WareBatchService {
                             return false;
                         }
                     }
-                } catch (Exception ignored) {}
+                } catch (Exception e) {
+                    throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+                }
             }
         }
         return true;
