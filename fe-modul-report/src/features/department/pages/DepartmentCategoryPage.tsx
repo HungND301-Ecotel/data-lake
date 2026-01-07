@@ -150,7 +150,7 @@ const DepartmentCategoryPage = () => {
           onPressEnter={() => loadDepartments(search, 0, pageResponse.limit)}
           style={{ flex: 1 }}
         />
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAddNew}>
+        <Button type="primary" className="bg-[#1a8649]! hover:bg-[#15703d]!" icon={<PlusOutlined />} onClick={handleAddNew}>
           Thêm mới
         </Button>
       </div>

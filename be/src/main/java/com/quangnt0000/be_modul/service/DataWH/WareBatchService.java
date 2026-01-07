@@ -156,7 +156,9 @@ public class WareBatchService {
                             return false;
                         }
                     }
-                } catch (Exception ignored) {}
+                } catch (Exception e) {
+                    throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+                }
             }
         }
         return true;
@@ -173,10 +175,18 @@ public class WareBatchService {
         }
 
         switch (fieldType) {
-            case "STRING":
-                return (type == CellType.NUMERIC)
-                        ? String.valueOf(cell.getNumericCellValue())
-                        : cell.getStringCellValue();
+            case "STRING": {
+                String value;
+                if (type == CellType.NUMERIC) {
+                    value = String.valueOf(cell.getNumericCellValue());
+                } else {
+                    value = cell.getStringCellValue();
+                }
+                if (value == null || value.trim().isEmpty()) {
+                    return null;
+                }
+                return value;
+            }
             case "NUMBER":
                 return cell.getNumericCellValue();
             case "BOOLEAN":

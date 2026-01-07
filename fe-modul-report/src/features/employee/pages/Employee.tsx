@@ -260,6 +260,7 @@ const EmployeePage = () => {
           type="primary"
           icon={<PlusOutlined />}
           onClick={() => setCreateEmployeeModal(true)}
+          className="bg-[#1a8649]! hover:bg-[#15703d]!"
         >
           Thêm nhân viên
         </Button>

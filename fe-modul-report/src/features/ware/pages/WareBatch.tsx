@@ -85,9 +85,8 @@ export const WareBatch: React.FC = () => {
       setFileList([]);
       form.resetFields();
       fetchBatches();
-    } catch (error) {
-      console.error(error);
-      messageApi.error("Thêm batch thất bại");
+    } catch (error: any) {
+      messageApi.error(error?.data || "Thêm batch thất bại");
     }
   };
 
@@ -215,7 +214,7 @@ export const WareBatch: React.FC = () => {
           allowClear
           className="flex-1"
         />
-        <Button type="primary" onClick={() => setIsModalOpen(true)}>
+        <Button type="primary" className="bg-[#1a8649]! hover:bg-[#15703d]!" onClick={() => setIsModalOpen(true)}>
           + Thêm dữ liệu
         </Button>
       </div>

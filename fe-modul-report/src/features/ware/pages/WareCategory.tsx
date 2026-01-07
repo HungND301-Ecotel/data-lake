@@ -189,6 +189,7 @@ const WareCategoryPage = () => {
           type="primary"
           icon={<PlusOutlined />}
           onClick={handleAdd}
+          className="bg-[#1a8649]! hover:bg-[#15703d]!"
         >
           Thêm mới
         </Button>

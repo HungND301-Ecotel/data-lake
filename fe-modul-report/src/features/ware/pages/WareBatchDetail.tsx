@@ -146,7 +146,7 @@ export const WareBatchDetail: React.FC = () => {
           />
         </Col>
         <Col>
-          <Button type="primary" onClick={handlePushClick}>
+          <Button type="primary" className="bg-[#1a8649]! hover:bg-[#15703d]!" onClick={handlePushClick}>
             Upload dữ liệu
           </Button>
         </Col>
