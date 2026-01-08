@@ -1,7 +1,6 @@
 import axios from "axios";
 import type { ApiError } from "./erorr";
 import { message } from "antd";
-
 const axiosClient = axios.create({
   baseURL: import.meta.env.VITE_API,
   headers: {
@@ -77,15 +76,14 @@ axiosClient.interceptors.response.use(
         };
         break;
 
-        case 500:
-          apiError = {
-            status,
-            message:
-              typeof data === "string" ? data : data?.message || "Lỗi server",
-            data,
-          };
-          break;
-        
+      case 500:
+        apiError = {
+          status,
+          message:
+            typeof data === "string" ? data : data?.message || "Lỗi server",
+          data,
+        };
+        break;
 
       default:
         apiError = {
