@@ -26,6 +26,7 @@ public class WareDataRow {
     private Integer id;
 
     @Convert(converter = JsonDataConverter.class)
+    @Column(length = 10000)
     private Map<String, Object> data;
 
     @ManyToOne
