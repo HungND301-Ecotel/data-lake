@@ -1,5 +1,6 @@
 package com.quangnt0000.be_modul.service.DataWH;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.quangnt0000.be_modul.dto.TWH_Auth.LoginRequest;
 import com.quangnt0000.be_modul.dto.TWH_Auth.LoginResponse;
 import com.quangnt0000.be_modul.dto.TWH_Get.GetRequest;
@@ -10,6 +11,7 @@ import com.quangnt0000.be_modul.dto.WareBatch.WareBatchPush;
 import com.quangnt0000.be_modul.modal.DataWH.WareBatch;
 import com.quangnt0000.be_modul.modal.DataWH.WareBatchAction;
 import com.quangnt0000.be_modul.repository.DataWH.WareBatchActionRepository;
+import feign.FeignException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +30,8 @@ import tools.jackson.databind.ObjectMapper;
 public class WareApiService {
     private final WareBatchActionRepository wareBatchActionRepository;
     private final WebClient webClient;
+    private final VinacominApiClient vinacominApiClient;
+    private final ObjectMapper objectMapper;
 
     public ResponseEntity<LoginResponse> login(LoginRequest request) {
         LoginResponse response = webClient.post()
@@ -181,4 +185,40 @@ public class WareApiService {
     }
 
 
+    public ResponseEntity<Object> get(@Valid GetRequest request) {
+        try {
+            LoginResponse loginResponse = login(LoginRequest.builder()
+                    .username("VHTC")
+                    .password("Vin@comin123")
+                    .ttlSeconds(3600)
+                    .build()).getBody();
+            String token = loginResponse.getAccessToken();
+            String filtersJson;
+            if (request.getFilters() == null || request.getFilters().isEmpty()) {
+                filtersJson = null;
+            } else {
+                filtersJson = objectMapper.writeValueAsString(request.getFilters());
+            }
+
+            GetResponse response = vinacominApiClient.getMasterData(
+                    request.getTable(),
+                    filtersJson,
+                    request.getColumns(),
+                    request.getOrderBy(),
+                    request.getLimit(),
+                    request.getOffset(),
+                    "Bearer " + token
+            );
+
+            return ResponseEntity.ok(response);
+
+        } catch (FeignException.BadRequest ex) {
+            log.error("API 400 Bad Request: {}", ex.contentUTF8(), ex);
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(null);
+        } catch (Exception ex) {
+            log.error("Get master-data failed", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+
+    }
 }

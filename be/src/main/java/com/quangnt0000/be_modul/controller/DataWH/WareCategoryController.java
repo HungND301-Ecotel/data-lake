@@ -19,6 +19,11 @@ public class WareCategoryController {
         return wareCategoryService.addCategory(request);
     }
 
+    @PutMapping
+    public ResponseEntity<?> update(@RequestBody WareCategoryRequest request) {
+        return wareCategoryService.update(request);
+    }
+
     @DeleteMapping("/{category-id}")
     public ResponseEntity<?> deleteCategory(@PathVariable ("category-id") Integer categoryId) {
         return wareCategoryService.deleteCategory(categoryId);
