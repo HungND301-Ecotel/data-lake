@@ -1,6 +1,5 @@
 package com.quangnt0000.be_modul.modal.DataWH;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.quangnt0000.be_modul.dto.TWH_Push.PushRequest;
 import com.quangnt0000.be_modul.dto.TWH_Push.PushResponse;
 import jakarta.persistence.*;

@@ -111,8 +111,8 @@ const DashboardWare = () => {
     {
       title: "Action",
       dataIndex: "actionName",
-      render: (value: string) =>
-        value === "INSERT" ? (
+      render: (value: string) => 
+        value === "Insert" ? (
           <Tag color="green">INSERT</Tag>
         ) : (
           <Tag color="blue">UPDATE</Tag>
