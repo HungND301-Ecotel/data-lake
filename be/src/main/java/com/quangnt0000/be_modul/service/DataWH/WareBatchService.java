@@ -140,29 +140,67 @@ public class WareBatchService {
         }
     }
 
+//    private boolean isRowEmpty(Row row, List<WareMapping> mappings) {
+//        for (WareMapping mapping : mappings) {
+//            if ("ROW".equals(mapping.getFieldType())) {
+//                try {
+//                    int colIndex = Integer.parseInt(mapping.getCellAddress()) - 1;
+//                    Cell cell = row.getCell(colIndex);
+//
+//                    if (cell != null && cell.getCellType() != CellType.BLANK) {
+//                        if (cell.getCellType() == CellType.FORMULA) {
+//                            if (!cell.getStringCellValue().trim().isEmpty()) {
+//                                return false;
+//                            }
+//                        } else {
+//                            return false;
+//                        }
+//                    }
+//                } catch (Exception e) {
+//                    throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+//                }
+//            }
+//        }
+//        return true;
+//    }
+
     private boolean isRowEmpty(Row row, List<WareMapping> mappings) {
         for (WareMapping mapping : mappings) {
-            if ("ROW".equals(mapping.getFieldType())) {
-                try {
-                    int colIndex = Integer.parseInt(mapping.getCellAddress()) - 1;
-                    Cell cell = row.getCell(colIndex);
+            if (!"ROW".equals(mapping.getFieldType())) continue;
 
-                    if (cell != null && cell.getCellType() != CellType.BLANK) {
-                        if (cell.getCellType() == CellType.FORMULA) {
-                            if (!cell.getStringCellValue().trim().isEmpty()) {
-                                return false;
-                            }
-                        } else {
+            try {
+                int colIndex = Integer.parseInt(mapping.getCellAddress()) - 1;
+                Cell cell = row.getCell(colIndex);
+
+                if (cell == null) continue;
+
+                CellType type = cell.getCellType();
+                if (type == CellType.FORMULA) {
+                    type = cell.getCachedFormulaResultType();
+                }
+
+                switch (type) {
+                    case STRING:
+                        if (!cell.getStringCellValue().trim().isEmpty()) {
                             return false;
                         }
-                    }
-                } catch (Exception e) {
-                    throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+                        break;
+                    case NUMERIC:
+                    case BOOLEAN:
+                        return false;
+                    default:
+                        break;
                 }
+            } catch (Exception e) {
+                throw new ResponseStatusException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Error checking empty row: " + e.getMessage()
+                );
             }
         }
         return true;
     }
+
 
 
 

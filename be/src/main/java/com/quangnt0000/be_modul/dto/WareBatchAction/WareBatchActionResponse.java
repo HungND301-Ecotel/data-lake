@@ -1,9 +1,5 @@
 package com.quangnt0000.be_modul.dto.WareBatchAction;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.quangnt0000.be_modul.dto.TWH_Push.PushRequest;
-import com.quangnt0000.be_modul.dto.TWH_Push.PushResponse;
-import com.quangnt0000.be_modul.modal.DataWH.WareBatch;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
