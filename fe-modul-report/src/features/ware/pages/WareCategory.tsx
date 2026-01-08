@@ -31,7 +31,7 @@ const WareCategoryPage = () => {
   const [editing, setEditing] = useState<WareCategoryResponse | null>(null);
   const [form] = Form.useForm();
   const [messageApi, contextHolder] = message.useMessage();
-
+  const [modal, contextHolderModal] = Modal.useModal();
   const [search, setSearch] = useState("");
   const [departmentId, setDepartmentId] = useState<string | null>(null);
 
@@ -79,7 +79,6 @@ const WareCategoryPage = () => {
     loadData();
   }, []);
 
-  /* ================= CRUD ================= */
 
   const handleAdd = () => {
     setEditing(null);
@@ -94,7 +93,7 @@ const WareCategoryPage = () => {
   };
 
   const handleDelete = (record: WareCategoryResponse) => {
-    Modal.confirm({
+    modal.confirm({
       title: `Xóa danh mục "${record.name}"?`,
       okType: "danger",
       onOk: async () => {
@@ -159,6 +158,7 @@ const WareCategoryPage = () => {
   return (
     <div>
       {contextHolder}
+      {contextHolderModal}
 
       {/* SEARCH */}
       <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>

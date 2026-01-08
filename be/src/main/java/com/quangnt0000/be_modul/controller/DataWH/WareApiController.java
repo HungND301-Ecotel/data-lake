@@ -36,4 +36,9 @@ public class WareApiController {
     public Mono<ResponseEntity<Object>> push(@Valid @RequestBody PushRequest request) {
         return wareApiService.push(request, null, null);
     }
+
+    @GetMapping("/get")
+    public ResponseEntity<Object> get(@Valid @RequestBody GetRequest request) {
+        return wareApiService.get(request);
+    }
 }

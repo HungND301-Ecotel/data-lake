@@ -13,7 +13,7 @@ export const wareCategoryApi = {
   saveWareCategory: async (
     request: WareCategoryRequest
   ): Promise<string> => {
-    const res = await axiosClient.post(`/wh-category`, request);
+    const res = await axiosClient.put(`/wh-category`, request);
     return res.data;
   },
 
