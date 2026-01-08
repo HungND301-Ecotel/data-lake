@@ -72,4 +72,18 @@ public class WareCategoryService {
                 .build();
         return ResponseEntity.ok(response);
     }
+
+    public ResponseEntity<?> update(WareCategoryRequest request) {
+        WareCategory wareCategory = wareCategoryRepository.findByIdAndDeletedFalse(request.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "not found"));
+        wareCategory.setName(request.getName());
+        wareCategory.setDescription(request.getDescription());
+        if (request.getDepartmentId() != null && request.getDepartmentId() != wareCategory.getDepartment().getId()) {
+            Department department = departmentRepository.findByIdAndDeletedFalse(request.getDepartmentId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "department not found"));
+            wareCategory.setDepartment(department);
+        }
+        wareCategory = wareCategoryRepository.save(wareCategory);
+        return ResponseEntity.ok(wareCategory.getId());
+    }
 }
