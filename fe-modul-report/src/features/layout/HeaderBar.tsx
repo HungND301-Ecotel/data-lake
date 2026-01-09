@@ -9,6 +9,7 @@ import {
 } from "@ant-design/icons";
 import { Button, Dropdown, Menu } from "antd";
 import { useEffect, useState } from "react";
+import logoUb from "../../file/logo-ub.jpg";
 
 const Header = () => {
   const location = useLocation();
@@ -83,7 +84,7 @@ const Header = () => {
       >
         <div className="flex items-center justify-center px-6 py-3 text-white">
           <img
-            src="/src/file/logo-ub.jpg"
+            src={logoUb}
             className="h-14 w-14 rounded-full cursor-pointer"
             onClick={() => navigate("/dashboard")}
           />

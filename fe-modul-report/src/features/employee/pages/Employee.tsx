@@ -225,7 +225,7 @@ const EmployeePage = () => {
   ];
 
   return (
-    <div className="w-full h-full bg-white ">
+    <div className="px-4 py-4 w-full h-full bg-white ">
       {contextHolderModal}
       {contextHolderMessage}
 
