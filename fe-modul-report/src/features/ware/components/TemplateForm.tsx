@@ -76,7 +76,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
   if (!request) return null;
 
   return (
-    <div style={{ background: "#fff" }}>
+    <div className="px-4 py-4" style={{ background: "#fff" }}>
       <div
         style={{
           display: "flex",

@@ -46,7 +46,6 @@ const WareCategoryPage = () => {
       content: [],
     });
 
-  /* ================= LOAD DATA ================= */
 
   const loadDepartments = async () => {
     const res = await departmentApi.searchDepartment("", 0, 1000);
@@ -112,6 +111,21 @@ const WareCategoryPage = () => {
       ...values,
     };
 
+    await wareCategoryApi.updateWareCategory(req);
+    messageApi.success(editing ? "Cập nhật thành công" : "Tạo thành công");
+
+    setModalVisible(false);
+    loadData(search, 0);
+  };
+
+  const handleAddNew = async () => {
+    const values = await form.validateFields();
+
+    const req: WareCategoryRequest = {
+      id: null,
+      ...values,
+    };
+
     await wareCategoryApi.saveWareCategory(req);
     messageApi.success(editing ? "Cập nhật thành công" : "Tạo thành công");
 
@@ -119,7 +133,6 @@ const WareCategoryPage = () => {
     loadData(search, 0);
   };
 
-  /* ================= TABLE ================= */
 
   const columns = [
     { title: "Mã", dataIndex: "code", width: "15%" },
@@ -153,10 +166,9 @@ const WareCategoryPage = () => {
     },
   ];
 
-  /* ================= RENDER ================= */
 
   return (
-    <div>
+    <div className="px-4 py-4 min-h-screen">
       {contextHolder}
       {contextHolderModal}
 
@@ -212,7 +224,7 @@ const WareCategoryPage = () => {
       <Modal
         open={modalVisible}
         onCancel={() => setModalVisible(false)}
-        onOk={handleSave}
+        onOk={editing ? handleSave : handleAddNew}
         title={editing ? "Cập nhật danh mục" : "Tạo danh mục"}
       >
         <Form form={form} layout="vertical">

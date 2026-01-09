@@ -316,7 +316,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
   ];
 
   return (
-    <div style={{ paddingTop: 16 }}>
+    <div className="px-4 py-4" style={{ paddingTop: 16 }}>
       {contextHolderMessage}
       {contextHolderModal}
       <div

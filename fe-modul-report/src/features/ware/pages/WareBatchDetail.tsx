@@ -133,7 +133,7 @@ export const WareBatchDetail: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className="px-4 py-4 min-h-screen">
       {contextHolderMessage}
 
       <Row style={{ marginBottom: 16 }} gutter={8} align="middle">

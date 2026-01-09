@@ -229,8 +229,18 @@ public class WareBatchService {
                 return cell.getNumericCellValue();
             case "BOOLEAN":
                 return cell.getBooleanCellValue();
-            case "INTEGER":
-                return (int) cell.getNumericCellValue();
+            case "INTEGER": {
+                if (type == CellType.NUMERIC) {
+                    return (int) cell.getNumericCellValue();
+                } else if (type == CellType.STRING) {
+                    try {
+                        return Integer.parseInt(cell.getStringCellValue().trim());
+                    } catch (NumberFormatException e) {
+                        return null; // hoặc ném exception nếu muốn báo lỗi
+                    }
+                }
+                return null;
+            }
             default:
                 return null;
         }
