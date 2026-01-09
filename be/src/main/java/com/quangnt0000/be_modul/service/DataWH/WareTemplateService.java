@@ -52,7 +52,7 @@ public class WareTemplateService {
 
 
     public ResponseEntity<?> getAll(WareTemplateSearch request) {
-        List<WareTemplate> wareTemplates = wareTemplateRepository.findByWareCategory_Id(request.getWareCategoryId());
+        List<WareTemplate> wareTemplates = wareTemplateRepository.findByWareCategory_IdOrderByNameAsc(request.getWareCategoryId());
         List<WareTemplateResponse> responses = wareTemplates.stream().map(
                 wareTemplate -> WareTemplateResponse.builder()
                         .id(wareTemplate.getId())

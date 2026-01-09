@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface WareTemplateRepository extends JpaRepository<WareTemplate, Integer> {
-    List<WareTemplate> findByWareCategory_Id(Integer wareCategoryId);
+    List<WareTemplate> findByWareCategory_IdOrderByNameAsc(Integer wareCategoryId);
 
     Optional<WareTemplate> findByIdAndDeletedFalse(Integer templateId);
 
@@ -25,6 +25,7 @@ public interface WareTemplateRepository extends JpaRepository<WareTemplate, Inte
           AND wt.tableCode IS NOT NULL
           AND wt.tableCode <> ''
           AND wt.tableName LIKE CONCAT('%', :keyword, '%')
+        ORDER BY wt.tableName
     """)
     List<TableOption> getTableOption(@Param("keyword") String keyword);
 
