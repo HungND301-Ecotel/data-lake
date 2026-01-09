@@ -1,5 +1,7 @@
 package com.quangnt0000.be_modul.service.DataWH;
 
+import com.quangnt0000.be_modul.dto.PageResponse;
+import com.quangnt0000.be_modul.dto.WareTemplate.TableOption;
 import com.quangnt0000.be_modul.dto.WareTemplate.WareTemplateRequest;
 import com.quangnt0000.be_modul.dto.WareTemplate.WareTemplateResponse;
 import com.quangnt0000.be_modul.dto.WareTemplate.WareTemplateSearch;
@@ -12,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -21,7 +24,6 @@ import java.util.List;
 public class WareTemplateService {
     private final WareTemplateRepository wareTemplateRepository;
     private final WareCategoryRepository wareCategoryRepository;
-
     @Transactional
     public ResponseEntity<?> add(WareTemplateRequest request) {
         WareCategory wareCategory = wareCategoryRepository.findById(request.getWareCategoryId())
@@ -94,5 +96,13 @@ public class WareTemplateService {
         wareTemplate.setStartRow(request.getStartRow());
         wareTemplate = wareTemplateRepository.save(wareTemplate);
         return ResponseEntity.ok(wareTemplate.getId());
+    }
+
+    public ResponseEntity<?> getTableOption(String keyword) {
+        if (keyword == null || keyword.isEmpty()) {
+            keyword = "";
+        }
+        List<TableOption> tableOptions = wareTemplateRepository.getTableOption(keyword);
+        return ResponseEntity.ok(tableOptions);
     }
 }

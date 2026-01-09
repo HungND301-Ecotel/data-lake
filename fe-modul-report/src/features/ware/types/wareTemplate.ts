@@ -29,3 +29,10 @@ export interface WareTemplateResponse {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface TableOption {
+  id: number;
+  tableName: string;
+  tableCode: string;
+}
+

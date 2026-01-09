@@ -193,7 +193,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
         ),
     },
     {
-      title: "Kiểu trọc",
+      title: "Kiểu đối chiếu",
       width: 130,
       align: "center",
       render: (_, record) =>

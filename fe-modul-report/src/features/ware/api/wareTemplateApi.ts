@@ -1,5 +1,5 @@
 import axiosClient from "../../../services/axiosClient";
-import type { WareTemplateRequest, WareTemplateResponse, WareTemplateSearch } from "../types/wareTemplate";
+import type { TableOption, WareTemplateRequest, WareTemplateResponse, WareTemplateSearch } from "../types/wareTemplate";
 
 export const wareTemplateApi = {
   searchWareTemplate: async (
@@ -31,6 +31,11 @@ export const wareTemplateApi = {
 
   getWareTemplateById: async (id: number): Promise<WareTemplateResponse> => {
     const res = await axiosClient.get(`/wh-template/${id}`);
+    return res.data;
+  },
+
+  getOptionTable: async (keyword: string): Promise<TableOption[]> => {
+    const res = await axiosClient.get(`/wh-template/table-option`, { params: { keyword } });
     return res.data;
   },
 
