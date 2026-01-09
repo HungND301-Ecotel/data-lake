@@ -1,3 +1,9 @@
+import { useState } from "react";
+import { Modal, Input, List, Spin } from "antd";
+import type { TableOption } from "../types/wareTemplate";
+import { wareTemplateApi } from "../api/wareTemplateApi";
+import { VerticalLeftOutlined, VerticalRightOutlined } from "@ant-design/icons";
+
 interface Filter {
   key: string;
   value: string;
@@ -22,7 +28,9 @@ interface SidebarSearchProps {
   sidebarOpen: boolean;
   setSidebarOpen: (val: boolean) => void;
 }
+
 const FILTER_KEYS = ["PERIOD", "ngay", "matnr"];
+
 const SidebarSearch = ({
   table,
   setTable,
@@ -42,6 +50,21 @@ const SidebarSearch = ({
   sidebarOpen,
   setSidebarOpen,
 }: SidebarSearchProps) => {
+  const [tableLabel, setTableLabel] = useState("");
+  const [tableModalOpen, setTableModalOpen] = useState(false);
+  const [tableOptions, setTableOptions] = useState<TableOption[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const searchTable = async (keyword: string) => {
+    setLoading(true);
+    try {
+      const res = await wareTemplateApi.getOptionTable(keyword || "");
+      setTableOptions(res);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div
       className={`bg-green-50 border-r border-green-300 transition-all duration-300 ${
@@ -49,101 +72,112 @@ const SidebarSearch = ({
       }`}
     >
       <button
-        className="mb-4 w-full text-left font-bold text-green-800"
+        className="mb-4 w-full text-center font-bold text-green-800"
         onClick={() => setSidebarOpen(!sidebarOpen)}
       >
-        {sidebarOpen ? "« " : "»"}
+        {sidebarOpen ? <VerticalRightOutlined /> : <VerticalLeftOutlined />}
       </button>
 
       {sidebarOpen && (
         <>
-          {/* Table */}
-          <div className="mb-2">
-            <label onClick={() => setSidebarOpen(!sidebarOpen)} className="block mb-1 font-semibold text-green-800">
-              Table
+          <div className="mb-3">
+            <div className="text-center text-base font-extrabold text-green-700 mb-2 tracking-wide">
+              {tableLabel || "CHƯA CHỌN BẢNG"}
+            </div>
+            <label className="block mb-1 font-semibold text-green-800">
+              Nhập mã bảng
             </label>
-            <input
-              type="text"
-              value={table}
-              onChange={(e) => setTable(e.target.value)}
-              className="w-full border rounded px-2 py-1"
-            />
+            <div className="relative">
+              <input
+                value={table}
+                onChange={(e) => {
+                  setTable(e.target.value);
+                  setTableLabel("");
+                }}
+                placeholder="Nhập tableCode"
+                className="w-full border border-green-400 rounded px-2 py-1 pr-8 text-sm"
+              />
+
+              <button
+                onClick={() => {
+                  setTableModalOpen(true);
+                  searchTable("");
+                }}
+                className="absolute right-1 top-1/2 -translate-y-1/2 text-green-600 font-bold text-lg"
+              >
+                +
+              </button>
+            </div>
           </div>
 
-          {/* Columns */}
           <div className="mb-2">
             <label className="block mb-1 font-semibold text-green-800">
-              Lọc cột (cách nhau bằng dấu , )
+              Cột hiển thị (cách nhau bằng dấu , )
             </label>
             <input
-              type="text"
               value={columns.join(",")}
               onChange={(e) =>
-                setColumns(e.target.value.split(",").map((c) => c.trim()))
+                setColumns(e.target.value.split(",").map((x) => x.trim()))
               }
-              className="w-full border rounded px-2 py-1"
+              className="w-full border border-green-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-500"
             />
           </div>
 
-          {/* Order By */}
           <div className="mb-2">
             <label className="block mb-1 font-semibold text-green-800">
-              Sắp xếp theo ... (cách nhau bằng dấu , )
+              Sắp xếp theo ..(cách nhau bằng dấu , )
             </label>
             <input
-              type="text"
               value={orderBy.join(",")}
               onChange={(e) =>
-                setOrderBy(e.target.value.split(",").map((c) => c.trim()))
+                setOrderBy(e.target.value.split(",").map((x) => x.trim()))
               }
-              className="w-full border rounded px-2 py-1"
+              className="w-full border border-green-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-500"
             />
           </div>
 
-          <div className="flex gap-2 mb-2">
-            <div className="flex-1">
-              <label className="block mb-1 font-semibold text-green-800">
-                Limit
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <label className="block mb-1 text-sm font-semibold text-green-800">
+                Số dữ liệu
               </label>
               <input
                 type="number"
                 value={limit}
-                onChange={(e) => setLimit(Number(e.target.value))}
-                className="w-full border rounded px-2 py-1"
+                onChange={(e) => setLimit(+e.target.value)}
+                placeholder="Limit"
+                className="w-full border border-green-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-500"
               />
             </div>
-            <div className="flex-1">
-              <label className="block mb-1 font-semibold text-green-800">
-                Offset
+
+            <div>
+              <label className="block mb-1 text-sm font-semibold text-green-800">
+                Từ vị trí
               </label>
               <input
                 type="number"
                 value={offset}
-                onChange={(e) => setOffset(Number(e.target.value))}
-                className="w-full border rounded px-2 py-1"
+                onChange={(e) => setOffset(+e.target.value)}
+                placeholder="Offset"
+                className="w-full border border-green-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-500"
               />
             </div>
           </div>
 
-          {/* Year */}
-          <div className="mb-2">
-            <label className="block mb-1 font-semibold text-green-800">
-              Năm
-            </label>
-            <input
-              type="number"
-              value={year || ""}
-              onChange={(e) =>
-                setYear(e.target.value ? +e.target.value : undefined)
-              }
-              className="w-full border rounded px-2 py-1"
-            />
-          </div>
+          <label className="block mb-1 font-semibold text-green-800">Năm</label>
+          <input
+            type="number"
+            value={year || ""}
+            onChange={(e) =>
+              setYear(e.target.value ? +e.target.value : undefined)
+            }
+            placeholder="Year"
+            className="w-full border border-green-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-500"
+          />
 
-          {/* Filters */}
           <div className="mb-2">
-            <label className="block mb-1 font-semibold text-green-800">
-              Filters
+            <label className="block mb-1 font-semibold text-green-800 py-2">
+              Lọc dữ liệu
             </label>
 
             {sidebarOpen && (
@@ -152,25 +186,25 @@ const SidebarSearch = ({
                   <div key={idx} className="flex gap-1 items-center">
                     <input
                       list="filterKeys"
-                      placeholder="Key"
+                      placeholder="Cột dữ liệu"
                       value={f.key}
                       onChange={(e) => {
                         const newFilters = [...filters];
                         newFilters[idx].key = e.target.value;
                         setFilters(newFilters);
                       }}
-                      className="flex-1 min-w-0 border rounded px-2 py-1"
+                      className="flex-1 min-w-0 border rounded px-2 py-1  border-green-300"
                     />
                     <input
                       type="text"
-                      placeholder="Value"
+                      placeholder="Giá trị"
                       value={f.value}
                       onChange={(e) => {
                         const newFilters = [...filters];
                         newFilters[idx].value = e.target.value;
                         setFilters(newFilters);
                       }}
-                      className="flex-1 min-w-0 border rounded px-2 py-1"
+                      className="flex-1 min-w-0 border rounded px-2 py-1 border-green-300"
                     />
                     <button
                       onClick={() => {
@@ -185,7 +219,6 @@ const SidebarSearch = ({
                   </div>
                 ))}
 
-                {/* datalist gợi ý key */}
                 <datalist id="filterKeys">
                   {FILTER_KEYS.map((k) => (
                     <option key={k} value={k} />
@@ -206,12 +239,52 @@ const SidebarSearch = ({
 
           <button
             onClick={onSearch}
-            className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 mt-2"
+            className="w-full bg-green-600 text-white py-2 rounded mt-2"
           >
             Search
           </button>
         </>
       )}
+
+      <Modal
+        open={tableModalOpen}
+        onCancel={() => setTableModalOpen(false)}
+        footer={null}
+        title="Chọn bảng dữ liệu"
+        className="green-modal"
+      >
+        <Input.Search
+          placeholder="Nhập tên bảng..."
+          onChange={(e) => searchTable(e.target.value)}
+        />
+
+        <div className="mt-3 max-h-80 overflow-auto">
+          {loading ? (
+            <Spin />
+          ) : (
+            <List
+              dataSource={tableOptions}
+              renderItem={(item) => (
+                <List.Item
+                  className="cursor-pointer hover:bg-green-100"
+                  onClick={() => {
+                    setTable(item.tableCode);
+                    setTableLabel(item.tableName);
+                    setTableModalOpen(false);
+                  }}
+                >
+                  <div>
+                    <b>{item.tableName}</b>
+                    <div className="text-xs text-gray-500">
+                      {item.tableCode}
+                    </div>
+                  </div>
+                </List.Item>
+              )}
+            />
+          )}
+        </div>
+      </Modal>
     </div>
   );
 };

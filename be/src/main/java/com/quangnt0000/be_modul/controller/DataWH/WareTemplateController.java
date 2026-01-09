@@ -37,4 +37,8 @@ public class WareTemplateController {
         return wareTemplateService.update(request);
     }
 
+    @GetMapping("/table-option")
+    public ResponseEntity<?> getTableOption(@RequestParam(value = "keyword", required = false) String keyword) {
+        return wareTemplateService.getTableOption(keyword);
+    }
 }
