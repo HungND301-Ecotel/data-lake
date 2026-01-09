@@ -231,7 +231,7 @@ const SidebarSearch = ({
                   }
                   className="mt-1 w-full bg-green-400 text-white py-1 rounded hover:bg-green-500"
                 >
-                  + Add Filter
+                  + Thêm bộ lọc
                 </button>
               </div>
             )}
@@ -241,7 +241,7 @@ const SidebarSearch = ({
             onClick={onSearch}
             className="w-full bg-green-600 text-white py-2 rounded mt-2"
           >
-            Search
+            Tìm kiếm
           </button>
         </>
       )}

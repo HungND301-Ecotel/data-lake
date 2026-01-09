@@ -253,7 +253,7 @@ public class WareBatchService {
     }
 
     public ResponseEntity<?> get(WareBatchSearch request) {
-        List<WareBatch> wareBatchList = wareBatchRepository.findByWareTemplate_Id(request.getWareTemplateId());
+        List<WareBatch> wareBatchList = wareBatchRepository.findByWareTemplate_IdOrderByCreatedAtDesc(request.getWareTemplateId());
         List<WareBatchResponse> wareBathResponses = wareBatchList.stream()
                 .map(
                         item -> WareBatchResponse.builder()
