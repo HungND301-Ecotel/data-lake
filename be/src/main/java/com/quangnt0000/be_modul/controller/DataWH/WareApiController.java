@@ -37,7 +37,7 @@ public class WareApiController {
         return wareApiService.push(request, null, null);
     }
 
-    @GetMapping("/get")
+    @PostMapping("/get")
     public ResponseEntity<Object> get(@Valid @RequestBody GetRequest request) {
         return wareApiService.get(request);
     }

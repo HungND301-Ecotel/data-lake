@@ -137,7 +137,7 @@ const DepartmentCategoryPage = () => {
   ];
 
   return (
-    <div style={{ width: "100%" }}>
+    <div className="px-4 py-4" style={{ width: "100%" }}>
       {contextHolderModal}
       {contextHolderMessage}
 

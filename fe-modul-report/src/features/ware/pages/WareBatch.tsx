@@ -207,7 +207,7 @@ export const WareBatch: React.FC = () => {
     <div>
       {contextHolderMessage}
       {contextHolderModal}
-      <div className="flex items-center gap-4 mb-4 w-full">
+      <div className="flex px-4 py-4 items-center gap-4 mb-4 w-full">
         <Search
           placeholder="Tìm kiếm batch"
           onSearch={(value) => setSearchKeyword(value)}

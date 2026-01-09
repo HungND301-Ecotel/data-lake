@@ -151,7 +151,7 @@ const DashboardWare = () => {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="px-4 py-4 min-h-screen">
       <Row gutter={16} className="mb-6">
         <Col span={6}>
           <Card>
