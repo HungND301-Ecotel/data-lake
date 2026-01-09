@@ -35,7 +35,11 @@ jwt:
   secret: ${JWT_SECRET}
 
 webclient:
-  base-url: https://api.example.com
+  base-url: https://apidatabi.vinacomin.vn
   connection-timeout: 5000
   read-timeout: 10000
+
+account:
+  username: ${USERNAME_VINA}
+  password: ${PASSWORD_VINA}
 

@@ -19,7 +19,6 @@ const Header = () => {
 
   const isActive = (path: string) => location.pathname.startsWith(path);
 
-  /* ===== SCROLL LOGIC ===== */
   useEffect(() => {
     const onScroll = () => {
       const current = window.scrollY;
@@ -50,6 +49,7 @@ const Header = () => {
     <Menu
       items={[
         { key: "ware", label: "Báo cáo TKV", onClick: () => navigate("/ware") },
+        { key: "search", label: "Tra cứu TKV", onClick: () => navigate("/search/master") },
       ]}
     />
   );
@@ -89,7 +89,7 @@ const Header = () => {
           />
 
           <div className="ml-4 text-center">
-            <div className="text-2xl font-bold">PHẦN MỀM QUẢN LÝ NHÂN SỰ</div>
+            <div className="text-2xl font-bold">PHẦN MỀM QUẢN LÝ KHO DỮ LIỆU</div>
             <div className="text-base font-bold">CÔNG TY THAN UÔNG BÍ - TKV</div>
 
             <div className="flex justify-center gap-6 text-sm mt-1">
@@ -143,6 +143,7 @@ const Header = () => {
           >
             Báo cáo <DownOutlined />
           </Button>
+          
         </Dropdown>
 
         <div className="ml-auto">

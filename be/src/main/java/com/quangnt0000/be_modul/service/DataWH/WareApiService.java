@@ -15,6 +15,7 @@ import feign.FeignException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -28,6 +29,11 @@ import tools.jackson.databind.ObjectMapper;
 @RequiredArgsConstructor
 @Slf4j
 public class WareApiService {
+    @Value("${account.username}")
+    private String username;
+    @Value("${account.password}")
+    private String password;
+
     private final WareBatchActionRepository wareBatchActionRepository;
     private final WebClient webClient;
     private final VinacominApiClient vinacominApiClient;
@@ -66,8 +72,8 @@ public class WareApiService {
     public Mono<ResponseEntity<GetResponse>> getMasterData(GetRequest request) {
         ObjectMapper mapper = new ObjectMapper();
         LoginResponse loginResponse = login(LoginRequest.builder()
-                .username("VHTC")
-                .password("Vin@comin123")
+                .username(username)
+                .password(password)
                 .ttlSeconds(3600)
                 .build()).getBody();
         String token = loginResponse.getAccessToken();
@@ -188,8 +194,8 @@ public class WareApiService {
     public ResponseEntity<Object> get(@Valid GetRequest request) {
         try {
             LoginResponse loginResponse = login(LoginRequest.builder()
-                    .username("VHTC")
-                    .password("Vin@comin123")
+                    .username(username)
+                    .password(password)
                     .ttlSeconds(3600)
                     .build()).getBody();
             String token = loginResponse.getAccessToken();

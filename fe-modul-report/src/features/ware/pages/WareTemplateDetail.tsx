@@ -8,7 +8,7 @@ export const TemplateDetail: React.FC = () => {
   if (!templateId) return <div>Template không tồn tại</div>;
 
   return (
-    <div>
+    <div className="px-4 py-4 min-h-screen">
       <TemplateForm templateId={Number(templateId)} />
       <MappingTable templateId={Number(templateId)} />
     </div>
