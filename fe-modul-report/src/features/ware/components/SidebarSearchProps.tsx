@@ -81,7 +81,7 @@ const SidebarSearch = ({
       {sidebarOpen && (
         <>
           <div className="mb-3">
-            <div className="text-center text-base font-extrabold text-green-700 mb-2 tracking-wide">
+            <div className="text-center text-base font-extrabold text-red-500 mb-2 tracking-wide">
               {tableLabel || "CHƯA CHỌN BẢNG"}
             </div>
             <label className="block mb-1 font-semibold text-green-800">
