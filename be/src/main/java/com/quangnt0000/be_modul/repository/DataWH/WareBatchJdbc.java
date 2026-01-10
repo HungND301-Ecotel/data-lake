@@ -55,7 +55,7 @@ public class WareBatchJdbc {
         int limit = request.getLimit();
         int offset = request.getPage() * request.getLimit();
 
-        sql.append(" ORDER BY wb.created_at ASC");
+        sql.append(" ORDER BY wb.created_at DESC");
 
         sql.append(" LIMIT ").append(limit).append(" OFFSET ").append(offset);
         return jdbcTemplate.query(sql.toString(),
