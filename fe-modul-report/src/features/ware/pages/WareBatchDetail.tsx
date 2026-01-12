@@ -147,7 +147,7 @@ export const WareBatchDetail: React.FC = () => {
         </Col>
         <Col>
           <Button type="primary" className="bg-[#1a8649]! hover:bg-[#15703d]!" onClick={handlePushClick}>
-            Upload dữ liệu
+            Upload dữ liệu TKV
           </Button>
         </Col>
       </Row>
@@ -161,7 +161,7 @@ export const WareBatchDetail: React.FC = () => {
       />
 
       <Modal
-        title="Push dữ liệu"
+        title="Upload dữ liệu"
         open={pushModalVisible}
         onCancel={() => setPushModalVisible(false)}
         footer={null}
@@ -182,7 +182,7 @@ export const WareBatchDetail: React.FC = () => {
           </Form.Item>
 
           <Form.Item
-            label="Username"
+            label="Tên đăng nhập"
             name="username"
             rules={[{ required: true, message: "Nhập username!" }]}
           >
@@ -190,7 +190,7 @@ export const WareBatchDetail: React.FC = () => {
           </Form.Item>
 
           <Form.Item
-            label="Password"
+            label="Mật khẩu"
             name="password"
             rules={[{ required: true, message: "Nhập password!" }]}
           >
@@ -199,7 +199,7 @@ export const WareBatchDetail: React.FC = () => {
 
           <Form.Item>
             <Button type="primary" htmlType="submit">
-              Push
+              Upload dữ liệu
             </Button>
           </Form.Item>
         </Form>

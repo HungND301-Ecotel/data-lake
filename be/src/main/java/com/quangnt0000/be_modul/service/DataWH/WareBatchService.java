@@ -216,7 +216,13 @@ public class WareBatchService {
             case "STRING": {
                 String value;
                 if (type == CellType.NUMERIC) {
-                    value = String.valueOf(cell.getNumericCellValue());
+                    double num = cell.getNumericCellValue();
+                    // Nếu là số nguyên, làm tròn bỏ phần thập phân
+                    if (num == Math.floor(num)) {
+                        value = String.valueOf((long) num);
+                    } else {
+                        value = String.valueOf(num); // giữ nguyên nếu có thập phân
+                    }
                 } else {
                     value = cell.getStringCellValue();
                 }
@@ -247,7 +253,7 @@ public class WareBatchService {
     }
 
     public ResponseEntity<?> get(WareBatchSearch request) {
-        List<WareBatch> wareBatchList = wareBatchRepository.findByWareTemplate_Id(request.getWareTemplateId());
+        List<WareBatch> wareBatchList = wareBatchRepository.findByWareTemplate_IdOrderByCreatedAtDesc(request.getWareTemplateId());
         List<WareBatchResponse> wareBathResponses = wareBatchList.stream()
                 .map(
                         item -> WareBatchResponse.builder()

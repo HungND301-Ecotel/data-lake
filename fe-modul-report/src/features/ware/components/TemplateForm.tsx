@@ -107,12 +107,12 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
 
       <Row gutter={16}>
         <Col span={12}>
-          <label>Template Code</label>
+          <label>Mã báo cáo</label>
           <Input value={request.code ?? ""} disabled />
         </Col>
 
         <Col span={12}>
-          <label>Template Name</label>
+          <label>Tên báo cáo</label>
           <Input
             value={request.name}
             disabled={!isEditing}
@@ -123,7 +123,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
 
       <Row gutter={16} style={{ marginTop: 12 }}>
         <Col span={12}>
-          <label>Table Code</label>
+          <label>Mã bảng</label>
           <Input
             value={request.tableCode}
             disabled={!isEditing}
@@ -132,7 +132,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
         </Col>
 
         <Col span={12}>
-          <label>Table Name</label>
+          <label>Tên bảng</label>
           <Input
             value={request.tableName}
             disabled={!isEditing}
@@ -143,7 +143,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
 
       <Row gutter={16} style={{ marginTop: 12 }}>
         <Col span={12}>
-          <label>Description</label>
+          <label>Mô tả</label>
           <Input
             value={request.description}
             disabled={!isEditing}
@@ -152,7 +152,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
         </Col>
 
         <Col span={12}>
-          <label>Start Row</label>
+          <label>Dòng bắt đầu dữ liệu</label>
           <Input
             type="number"
             value={request.startRow}
@@ -164,7 +164,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
 
       <Row gutter={16} style={{ marginTop: 12 }}>
         <Col span={12}>
-          <label>Created At</label>
+          <label>Thời gian tạo</label>
           <Input
             value={
               template ? new Date(template.createdAt).toLocaleString() : ""
@@ -174,7 +174,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
         </Col>
 
         <Col span={12}>
-          <label>Updated At</label>
+          <label>Thời gian cập nhật gần nhất</label>
           <Input
             value={
               template ? new Date(template.updatedAt).toLocaleString() : ""

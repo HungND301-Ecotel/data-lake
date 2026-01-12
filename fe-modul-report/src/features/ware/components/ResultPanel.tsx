@@ -7,11 +7,18 @@ interface ResultPanelProps {
   const ResultPanel = ({ results }: ResultPanelProps) => {
     if (results.length === 0) {
       return (
-        <div className="flex-1 overflow-auto bg-green-50">
-          <p className="text-green-900">No data</p>
+        <div className="flex-1 flex flex-col items-center justify-center p-4 bg-green-50 overflow-auto">
+          <p className="text-green-900 text-lg font-semibold mb-4">
+            Không có dữ liệu để hiển thị
+          </p>
+    
+          {/* Show payload / filters */}
+          <div className="w-full max-w-xl bg-white border border-green-200 rounded p-3 shadow-sm overflow-auto">
+          </div>
         </div>
       );
     }
+    
   
     const allKeys = Object.keys(results[0]);
     const sortedKeys = [
@@ -21,7 +28,7 @@ interface ResultPanelProps {
   
     return (
       <div className="px-4 py-4 overflow-auto bg-green-50">
-        <table className="w-full border border-green-300 rounded">
+        <table className="w-full border border-green-300 rounded ">
           <thead>
             <tr className="bg-green-200">
               {sortedKeys.map((key) => (

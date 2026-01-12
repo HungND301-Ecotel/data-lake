@@ -30,7 +30,7 @@ const ProfilePage: React.FC = () => {
   if (loading) return <Spin fullscreen />;
 
   return (
-    <div className="min-h-screen">
+    <div className="px-4 py-4 min-h-screen">
       <Row gutter={[0, 24]}>
         {/* ===== THÔNG TIN ĐĂNG NHẬP ===== */}
         <Col span={24}>

@@ -30,7 +30,9 @@ const DashboardWare = () => {
   };
   const [lineChartData, setLineChartData] = useState<TimeCountDto[]>([]);
   const [lineType, setLineType] = useState<"DAY" | "MONTH" | "YEAR">("DAY");
-
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
   const [chartColumData, setChartColumData] = useState<TimeCountDto[]>([]);
   const fetchChartLineData = async (type: "DAY" | "MONTH" | "YEAR") => {
     try {
@@ -62,12 +64,13 @@ const DashboardWare = () => {
     }
   };
 
-  const fetchAuditActions = async () => {
+  const fetchAuditActions = async (p = page, s = pageSize) => {
     try {
       setLoading(true);
+
       const req: WareBatchActionSearch = {
-        page: 0,
-        limit: 10,
+        page: p,
+        limit: s,
         actionName: "",
         tableName: "",
         sortBy: "createdAt",
@@ -75,13 +78,19 @@ const DashboardWare = () => {
       };
 
       const res = await wareBatchActionApi.searchWareActionBatch(req);
+
       setActions(res.content);
+      setTotalPages(res.totalPages);
     } catch (err) {
       console.error("Fetch audit actions failed", err);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchAuditActions(page, pageSize);
+  }, [page, pageSize]);
 
   useEffect(() => {
     fetchDashboard();
@@ -92,7 +101,6 @@ const DashboardWare = () => {
   useEffect(() => {
     fetchChartLineData(lineType);
   }, [lineType]);
-  
 
   const columns = [
     {
@@ -111,7 +119,7 @@ const DashboardWare = () => {
     {
       title: "Action",
       dataIndex: "actionName",
-      render: (value: string) => 
+      render: (value: string) =>
         value === "Insert" ? (
           <Tag color="green">INSERT</Tag>
         ) : (
@@ -131,7 +139,7 @@ const DashboardWare = () => {
     data: chartColumData,
     xField: "label",
     yField: "total",
-    
+
     label: {
       position: "top",
     },
@@ -231,10 +239,21 @@ const DashboardWare = () => {
       <Card title="Lịch sử Audit gần đây">
         <Table
           rowKey="id"
-          loading={loading}
           columns={columns}
           dataSource={actions}
-          pagination={false}
+          loading={loading}
+          pagination={{
+            current: page + 1,
+            pageSize,
+            total: totalPages * pageSize,
+            onChange: (p, ps) => {
+              setPage(p - 1);
+              setPageSize(ps);
+              fetchAuditActions(p - 1, ps);
+            },
+            showSizeChanger: true,
+            pageSizeOptions: ["10", "50", "100"],
+          }}
         />
       </Card>
     </div>
