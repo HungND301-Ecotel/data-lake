@@ -198,7 +198,11 @@ const WareTemplate = () => {
         </Col>
 
         <Col>
-          <Button type="primary" className="bg-[#1a8649]! hover:bg-[#15703d]!" onClick={handleAdd}>
+          <Button
+            type="primary"
+            className="bg-[#1677ff]! hover:bg-[#064481]!"
+            onClick={handleAdd}
+          >
             + Thêm mới
           </Button>
         </Col>
@@ -211,7 +215,7 @@ const WareTemplate = () => {
             accordion={false}
             style={{
               borderRadius: 8,
-              backgroundColor: "#1a8649",
+              backgroundColor: "#1677ff",
               border: "0px solid #d9d9d9",
               overflow: "hidden",
             }}
@@ -219,9 +223,7 @@ const WareTemplate = () => {
           >
             <Panel
               header={
-                <span className="text-white font-semibold">
-                  {grp.name}
-                </span>
+                <span className="text-white font-semibold">{grp.name}</span>
               }
               key={grp.id}
             >

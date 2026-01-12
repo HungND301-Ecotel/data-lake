@@ -146,7 +146,11 @@ export const WareBatchDetail: React.FC = () => {
           />
         </Col>
         <Col>
-          <Button type="primary" className="bg-[#1a8649]! hover:bg-[#15703d]!" onClick={handlePushClick}>
+          <Button
+            type="primary"
+            className="bg-[#1677ff]! hover:bg-[#064481]!"
+            onClick={handlePushClick}
+          >
             Upload dữ liệu TKV
           </Button>
         </Col>

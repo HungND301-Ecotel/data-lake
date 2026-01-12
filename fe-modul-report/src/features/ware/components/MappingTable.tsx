@@ -285,7 +285,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
       render: (_, record) =>
         isEditing(record) ? (
           <>
-            <Button type="link"  icon={<SaveOutlined />} onClick={handleSave}>
+            <Button type="link" icon={<SaveOutlined />} onClick={handleSave}>
               Lưu
             </Button>
             <Button type="link" icon={<CloseOutlined />} onClick={handleCancel}>
@@ -330,7 +330,12 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
           Cấu hình dữ liệu
         </h1>
 
-        <Button type="primary" className="bg-[#1a8649]! hover:bg-[#15703d]!" icon={<PlusOutlined />} onClick={handleAdd}>
+        <Button
+          type="primary"
+          className="bg-[#1677ff]! hover:bg-[#064481]!"
+          icon={<PlusOutlined />}
+          onClick={handleAdd}
+        >
           Thêm mới
         </Button>
       </div>

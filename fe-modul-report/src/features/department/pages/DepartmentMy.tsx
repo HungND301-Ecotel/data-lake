@@ -17,7 +17,7 @@ const DepartmentMy = () => {
     try {
       setLoading(true);
       const res = await departmentApi.getMyDepartment(
-        "", 
+        "",
         0,
         1000 // max
       );
@@ -49,11 +49,10 @@ const DepartmentMy = () => {
                 bordered
                 hoverable
                 headStyle={{
-                  background: "#1a8649",
+                  background: "#1677ff",
                   color: "#fff",
                   fontWeight: 600,
                 }}
-                
                 onClick={() => {
                   handleClickDepartment(dept.id);
                 }}

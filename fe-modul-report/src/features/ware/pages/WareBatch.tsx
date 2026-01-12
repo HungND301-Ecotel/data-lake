@@ -174,20 +174,20 @@ export const WareBatch: React.FC = () => {
       render: (_, record) => (
         <Space>
           <Button
-              type="link"
-              icon={<EditOutlined />}
-              onClick={() => nav(`/ware/batch/${record.id}`)}
-            >
-              Xem
-            </Button>
+            type="link"
+            icon={<EditOutlined />}
+            onClick={() => nav(`/ware/batch/${record.id}`)}
+          >
+            Xem
+          </Button>
           <Button
-              type="link"
-              icon={<DeleteOutlined />}
-              onClick={() => handleDelete(record.id!)}
-              danger
-            >
-              Xóa
-            </Button>
+            type="link"
+            icon={<DeleteOutlined />}
+            onClick={() => handleDelete(record.id!)}
+            danger
+          >
+            Xóa
+          </Button>
           {/* <Tooltip title="Xem chi tiết">
             <EyeOutlined
               style={{
@@ -214,7 +214,11 @@ export const WareBatch: React.FC = () => {
           allowClear
           className="flex-1"
         />
-        <Button type="primary" className="bg-[#1a8649]! hover:bg-[#15703d]!" onClick={() => setIsModalOpen(true)}>
+        <Button
+          type="primary"
+          className="bg-[#064481]! hover:bg-[#1677ff]!"
+          onClick={() => setIsModalOpen(true)}
+        >
           + Thêm dữ liệu
         </Button>
       </div>

@@ -99,7 +99,12 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
             </Button>
           </div>
         ) : (
-          <Button type="primary" className="bg-[#1a8649]! hover:bg-[#15703d]!" icon={<EditOutlined />} onClick={() => setIsEditing(true)}>
+          <Button
+            type="primary"
+            className="bg-[#1677ff]! hover:bg-[#064481]!"
+            icon={<EditOutlined />}
+            onClick={() => setIsEditing(true)}
+          >
             Chỉnh sửa
           </Button>
         )}

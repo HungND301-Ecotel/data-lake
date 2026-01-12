@@ -67,12 +67,12 @@ const SidebarSearch = ({
 
   return (
     <div
-      className={`bg-green-50 border-r border-green-300 transition-all duration-300 ${
+      className={`bg-blue-50 border-r border-blue-300 transition-all duration-300 ${
         sidebarOpen ? "w-80 p-4" : "w-12 p-2"
       }`}
     >
       <button
-        className="mb-4 w-full text-center font-bold text-green-800"
+        className="mb-4 w-full text-center font-bold text-blue-800"
         onClick={() => setSidebarOpen(!sidebarOpen)}
       >
         {sidebarOpen ? <VerticalRightOutlined /> : <VerticalLeftOutlined />}
@@ -84,7 +84,7 @@ const SidebarSearch = ({
             <div className="text-center text-base font-extrabold text-red-500 mb-2 tracking-wide">
               {tableLabel || "CHƯA CHỌN BẢNG"}
             </div>
-            <label className="block mb-1 font-semibold text-green-800">
+            <label className="block mb-1 font-semibold text-blue-800">
               Nhập mã bảng
             </label>
             <div className="relative">
@@ -95,7 +95,7 @@ const SidebarSearch = ({
                   setTableLabel("");
                 }}
                 placeholder="Nhập tableCode"
-                className="w-full border border-green-400 rounded px-2 py-1 pr-8 text-sm"
+                className="w-full border border-blue-400 rounded px-2 py-1 pr-8 text-sm"
               />
 
               <button
@@ -103,7 +103,7 @@ const SidebarSearch = ({
                   setTableModalOpen(true);
                   searchTable("");
                 }}
-                className="absolute right-1 top-1/2 -translate-y-1/2 text-green-600 font-bold text-lg"
+                className="absolute right-1 top-1/2 -translate-y-1/2 text-blue-600 font-bold text-lg"
               >
                 +
               </button>
@@ -111,7 +111,7 @@ const SidebarSearch = ({
           </div>
 
           <div className="mb-2">
-            <label className="block mb-1 font-semibold text-green-800">
+            <label className="block mb-1 font-semibold text-blue-800">
               Cột hiển thị (cách nhau bằng dấu , )
             </label>
             <input
@@ -119,12 +119,12 @@ const SidebarSearch = ({
               onChange={(e) =>
                 setColumns(e.target.value.split(",").map((x) => x.trim()))
               }
-              className="w-full border border-green-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-500"
+              className="w-full border border-blue-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
           <div className="mb-2">
-            <label className="block mb-1 font-semibold text-green-800">
+            <label className="block mb-1 font-semibold text-blue-800">
               Sắp xếp theo ..(cách nhau bằng dấu , )
             </label>
             <input
@@ -132,13 +132,13 @@ const SidebarSearch = ({
               onChange={(e) =>
                 setOrderBy(e.target.value.split(",").map((x) => x.trim()))
               }
-              className="w-full border border-green-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-500"
+              className="w-full border border-blue-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div>
-              <label className="block mb-1 text-sm font-semibold text-green-800">
+              <label className="block mb-1 text-sm font-semibold text-blue-800">
                 Số dữ liệu
               </label>
               <input
@@ -146,12 +146,12 @@ const SidebarSearch = ({
                 value={limit}
                 onChange={(e) => setLimit(+e.target.value)}
                 placeholder="Limit"
-                className="w-full border border-green-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-500"
+                className="w-full border border-blue-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className="block mb-1 text-sm font-semibold text-green-800">
+              <label className="block mb-1 text-sm font-semibold text-blue-800">
                 Từ vị trí
               </label>
               <input
@@ -159,12 +159,12 @@ const SidebarSearch = ({
                 value={offset}
                 onChange={(e) => setOffset(+e.target.value)}
                 placeholder="Offset"
-                className="w-full border border-green-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-500"
+                className="w-full border border-blue-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
           </div>
 
-          <label className="block mb-1 font-semibold text-green-800">Năm</label>
+          <label className="block mb-1 font-semibold text-blue-800">Năm</label>
           <input
             type="number"
             value={year || ""}
@@ -172,11 +172,11 @@ const SidebarSearch = ({
               setYear(e.target.value ? +e.target.value : undefined)
             }
             placeholder="Year"
-            className="w-full border border-green-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-500"
+            className="w-full border border-blue-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
 
           <div className="mb-2">
-            <label className="block mb-1 font-semibold text-green-800 py-2">
+            <label className="block mb-1 font-semibold text-blue-800 py-2">
               Lọc dữ liệu
             </label>
 
@@ -193,7 +193,7 @@ const SidebarSearch = ({
                         newFilters[idx].key = e.target.value;
                         setFilters(newFilters);
                       }}
-                      className="flex-1 min-w-0 border rounded px-2 py-1  border-green-300"
+                      className="flex-1 min-w-0 border rounded px-2 py-1  border-blue-300"
                     />
                     <input
                       type="text"
@@ -204,7 +204,7 @@ const SidebarSearch = ({
                         newFilters[idx].value = e.target.value;
                         setFilters(newFilters);
                       }}
-                      className="flex-1 min-w-0 border rounded px-2 py-1 border-green-300"
+                      className="flex-1 min-w-0 border rounded px-2 py-1 border-blue-300"
                     />
                     <button
                       onClick={() => {
@@ -229,7 +229,7 @@ const SidebarSearch = ({
                   onClick={() =>
                     setFilters([...filters, { key: "", value: "" }])
                   }
-                  className="mt-1 w-full bg-green-400 text-white py-1 rounded hover:bg-green-500"
+                  className="mt-1 w-full bg-blue-400 text-white py-1 rounded hover:bg-blue-500"
                 >
                   + Thêm bộ lọc
                 </button>
@@ -239,7 +239,7 @@ const SidebarSearch = ({
 
           <button
             onClick={onSearch}
-            className="w-full bg-green-600 text-white py-2 rounded mt-2"
+            className="w-full bg-blue-600 text-white py-2 rounded mt-2"
           >
             Tìm kiếm
           </button>
@@ -251,7 +251,7 @@ const SidebarSearch = ({
         onCancel={() => setTableModalOpen(false)}
         footer={null}
         title="Chọn bảng dữ liệu"
-        className="green-modal"
+        className="blue-modal"
       >
         <Input.Search
           placeholder="Nhập tên bảng..."
@@ -266,7 +266,7 @@ const SidebarSearch = ({
               dataSource={tableOptions}
               renderItem={(item) => (
                 <List.Item
-                  className="cursor-pointer hover:bg-green-100"
+                  className="cursor-pointer hover:bg-blue-100"
                   onClick={() => {
                     setTable(item.tableCode);
                     setTableLabel(item.tableName);

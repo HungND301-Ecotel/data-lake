@@ -69,7 +69,7 @@ const Header = () => {
   return (
     <header className="w-full">
       <div
-        className={`bg-[#1a8649] border-b border-green-600 transition-all duration-300 overflow-hidden`}
+        className={`bg-[#064481] border-b border-white transition-all duration-300 overflow-hidden`}
       >
         <div
           className={`flex items-center justify-center px-6 py-3 text-white transition-all duration-300 `}
@@ -85,7 +85,7 @@ const Header = () => {
               PHẦN MỀM QUẢN LÝ KHO DỮ LIỆU
             </div>
             <div className="text-base font-bold">
-              CÔNG TY THAN UÔNG BÍ - TKV
+              CÔNG TY THAN HÀ TU - VINACOMIN
             </div>
 
             <div className="flex justify-center gap-6 text-sm mt-1">
@@ -100,19 +100,19 @@ const Header = () => {
         </div>
       </div>
 
-      <nav className="top-0 z-50 bg-[#1a8649] flex items-center px-6 py-2 gap-2 shadow-md">
+      <nav className="top-0 z-50 bg-[#064481] flex items-center px-6 py-2 gap-2 shadow-md">
         <Button
           type="text"
           icon={<ArrowLeftOutlined />}
           onClick={() => navigate(-1)}
-          className="text-white! hover:text-white! hover:bg-green-600"
+          className="text-white! hover:text-white! hover:bg-blue-800"
         ></Button>
         <Link
           to="/dashboard"
           className={`px-4 py-2 rounded-lg text-sm font-medium ${
             isActive("/dashboard")
-              ? "bg-white text-green-700"
-              : "text-white hover:bg-green-600"
+              ? "bg-white text-blue-900"
+              : "text-white hover:bg-blue-800"
           }`}
         >
           Trang chủ
@@ -121,7 +121,7 @@ const Header = () => {
         <Dropdown overlay={categoryMenu}>
           <Button
             type="text"
-            className="text-white! hover:text-white! hover:bg-green-600"
+            className="text-white! hover:text-white! hover:bg-blue-800"
           >
             Danh mục <DownOutlined />
           </Button>
@@ -131,8 +131,8 @@ const Header = () => {
           to="/employee"
           className={`px-4 py-2 rounded-lg text-sm font-medium ${
             isActive("/employee")
-              ? "bg-white text-green-700"
-              : "text-white hover:bg-green-600"
+              ? "bg-white text-blue-900"
+              : "text-white hover:bg-blue-800"
           }`}
         >
           Nhân viên
@@ -141,7 +141,7 @@ const Header = () => {
         <Dropdown overlay={reportMenu}>
           <Button
             type="text"
-            className="text-white! hover:text-white! hover:bg-green-600"
+            className="text-white! hover:text-white! hover:bg-blue-800"
           >
             Báo cáo <DownOutlined />
           </Button>
