@@ -9,7 +9,7 @@ import {
   ArrowLeftOutlined,
 } from "@ant-design/icons";
 import { Button, Dropdown, Menu } from "antd";
-import logoUb from "../../file/logo-ub.jpg";
+import logo from "../../file/logo.png";
 
 const Header = () => {
   const location = useLocation();
@@ -75,7 +75,7 @@ const Header = () => {
           className={`flex items-center justify-center px-6 py-3 text-white transition-all duration-300 `}
         >
           <img
-            src={logoUb}
+            src={logo}
             className="h-14 w-14 rounded-full cursor-pointer"
             onClick={() => navigate("/dashboard")}
           />
