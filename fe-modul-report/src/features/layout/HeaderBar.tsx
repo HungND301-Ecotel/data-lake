@@ -1,8 +1,4 @@
-import {useNavigate } from "react-router-dom";
-import {
-  MailOutlined,
-  PhoneOutlined,
-} from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
 import logo from "../../file/logo.png";
 
 const Header = () => {
@@ -32,11 +28,9 @@ const Header = () => {
 
             <div className="flex justify-center gap-6 text-sm mt-1">
               <span className="flex items-center gap-1">
-                <PhoneOutlined /> 024.35180141
+                Điện thoại: (84)0203 3862 337
               </span>
-              <span className="flex items-center gap-1">
-                <MailOutlined /> caosoncoal@gmail.com
-              </span>
+              <span className="flex items-center gap-1">Fax: 0203 3863 945</span>
             </div>
           </div>
         </div>
