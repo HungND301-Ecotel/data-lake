@@ -237,24 +237,26 @@ const DashboardWare = () => {
       </Row>
 
       <Card title="Lịch sử Audit gần đây">
-        <Table
-          rowKey="id"
-          columns={columns}
-          dataSource={actions}
-          loading={loading}
-          pagination={{
-            current: page + 1,
-            pageSize,
-            total: totalPages * pageSize,
-            onChange: (p, ps) => {
-              setPage(p - 1);
-              setPageSize(ps);
-              fetchAuditActions(p - 1, ps);
-            },
-            showSizeChanger: true,
-            pageSizeOptions: ["10", "50", "100"],
-          }}
-        />
+        <div className="overflow-auto">
+          <Table
+            rowKey="id"
+            columns={columns}
+            dataSource={actions}
+            loading={loading}
+            pagination={{
+              current: page + 1,
+              pageSize,
+              total: totalPages * pageSize,
+              onChange: (p, ps) => {
+                setPage(p - 1);
+                setPageSize(ps);
+                fetchAuditActions(p - 1, ps);
+              },
+              showSizeChanger: true,
+              pageSizeOptions: ["10", "50", "100"],
+            }}
+          />
+        </div>
       </Card>
     </div>
   );

@@ -37,22 +37,20 @@ const WareCategoryPage = () => {
 
   const [departments, setDepartments] = useState<DepartmentResponse[]>([]);
 
-  const [pageResponse, setPageResponse] =
-    useState<PageResponse<WareCategoryResponse>>({
-      page: 0,
-      limit: 10,
-      totalElements: 0,
-      totalPages: 0,
-      content: [],
-    });
-
+  const [pageResponse, setPageResponse] = useState<
+    PageResponse<WareCategoryResponse>
+  >({
+    page: 0,
+    limit: 10,
+    totalElements: 0,
+    totalPages: 0,
+    content: [],
+  });
 
   const loadDepartments = async () => {
     const res = await departmentApi.searchDepartment("", 0, 1000);
     setDepartments(res.content);
   };
-  
-  
 
   const loadData = async (
     keyword = search,
@@ -77,7 +75,6 @@ const WareCategoryPage = () => {
     loadDepartments();
     loadData();
   }, []);
-
 
   const handleAdd = () => {
     setEditing(null);
@@ -133,7 +130,6 @@ const WareCategoryPage = () => {
     loadData(search, 0);
   };
 
-
   const columns = [
     { title: "Mã", dataIndex: "code", width: "15%" },
     { title: "Tên", dataIndex: "name", width: "25%" },
@@ -148,10 +144,7 @@ const WareCategoryPage = () => {
       width: "15%",
       render: (_: any, record: WareCategoryResponse) => (
         <Space>
-          <Button
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-          >
+          <Button icon={<EditOutlined />} onClick={() => handleEdit(record)}>
             Sửa
           </Button>
           <Button
@@ -165,7 +158,6 @@ const WareCategoryPage = () => {
       ),
     },
   ];
-
 
   return (
     <div className="px-4 py-4 min-h-screen">
@@ -208,17 +200,19 @@ const WareCategoryPage = () => {
       </div>
 
       {/* TABLE */}
-      <Table
-        rowKey="id"
-        columns={columns}
-        dataSource={pageResponse.content}
-        pagination={{
-          current: pageResponse.page + 1,
-          pageSize: pageResponse.limit,
-          total: pageResponse.totalElements,
-          onChange: (p) => loadData(search, p - 1),
-        }}
-      />
+      <div className="overflow-auto">
+        <Table
+          rowKey="id"
+          columns={columns}
+          dataSource={pageResponse.content}
+          pagination={{
+            current: pageResponse.page + 1,
+            pageSize: pageResponse.limit,
+            total: pageResponse.totalElements,
+            onChange: (p) => loadData(search, p - 1),
+          }}
+        />
+      </div>
 
       {/* MODAL */}
       <Modal

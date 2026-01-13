@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class WareMappingResponse {
     private Integer id;
+    private String fieldTitle;
     private String fieldName;
     private String fieldValue; //string-number
     private String fieldType;   //row - cell - input
