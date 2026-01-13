@@ -90,6 +90,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
 
     setEditingRequest({
       id: null,
+      fieldTitle: "",
       fieldName: "",
       fieldType: "ROW",
       cellAddress: "",
@@ -102,6 +103,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
     setData((prev) => [
       {
         id: null,
+        fieldTitle: "",
         fieldName: "",
         fieldType: "ROW",
         cellAddress: "",
@@ -118,6 +120,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
 
     setEditingRequest({
       id: record.id!,
+      fieldTitle: record.fieldTitle,
       fieldName: record.fieldName,
       fieldType: record.fieldType,
       cellAddress: record.cellAddress,
@@ -190,6 +193,19 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
           />
         ) : (
           record.fieldName
+        ),
+    },
+    {
+      title: "Tên hiển thị",
+      width: 150,
+      render: (_, record) =>
+        isEditing(record) ? (
+          <Input
+            value={editingRequest?.fieldTitle}
+            onChange={(e) => updateRequest("fieldTitle", e.target.value)}
+          />
+        ) : (
+          record.fieldTitle
         ),
     },
     {
@@ -285,7 +301,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
       render: (_, record) =>
         isEditing(record) ? (
           <>
-            <Button type="link"  icon={<SaveOutlined />} onClick={handleSave}>
+            <Button type="link" icon={<SaveOutlined />} onClick={handleSave}>
               Lưu
             </Button>
             <Button type="link" icon={<CloseOutlined />} onClick={handleCancel}>
@@ -330,20 +346,27 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
           Cấu hình dữ liệu
         </h1>
 
-        <Button type="primary" className="bg-[#1a8649]! hover:bg-[#15703d]!" icon={<PlusOutlined />} onClick={handleAdd}>
+        <Button
+          type="primary"
+          className="bg-[#1a8649]! hover:bg-[#15703d]!"
+          icon={<PlusOutlined />}
+          onClick={handleAdd}
+        >
           Thêm mới
         </Button>
       </div>
 
-      <Table
-        rowKey={(record) => record.id ?? "new"}
-        columns={columns}
-        dataSource={data}
-        loading={loading}
-        pagination={false}
-        bordered
-        size="small"
-      />
+      <div className="overflow-auto">
+        <Table
+          rowKey={(record) => record.id ?? "new"}
+          columns={columns}
+          dataSource={data}
+          loading={loading}
+          pagination={false}
+          bordered
+          size="small"
+        />
+      </div>
     </div>
   );
 };

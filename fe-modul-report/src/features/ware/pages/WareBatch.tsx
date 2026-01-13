@@ -174,20 +174,20 @@ export const WareBatch: React.FC = () => {
       render: (_, record) => (
         <Space>
           <Button
-              type="link"
-              icon={<EditOutlined />}
-              onClick={() => nav(`/ware/batch/${record.id}`)}
-            >
-              Xem
-            </Button>
+            type="link"
+            icon={<EditOutlined />}
+            onClick={() => nav(`/ware/batch/${record.id}`)}
+          >
+            Xem
+          </Button>
           <Button
-              type="link"
-              icon={<DeleteOutlined />}
-              onClick={() => handleDelete(record.id!)}
-              danger
-            >
-              Xóa
-            </Button>
+            type="link"
+            icon={<DeleteOutlined />}
+            onClick={() => handleDelete(record.id!)}
+            danger
+          >
+            Xóa
+          </Button>
           {/* <Tooltip title="Xem chi tiết">
             <EyeOutlined
               style={{
@@ -214,23 +214,29 @@ export const WareBatch: React.FC = () => {
           allowClear
           className="flex-1"
         />
-        <Button type="primary" className="bg-[#1a8649]! hover:bg-[#15703d]!" onClick={() => setIsModalOpen(true)}>
+        <Button
+          type="primary"
+          className="bg-[#1a8649]! hover:bg-[#15703d]!"
+          onClick={() => setIsModalOpen(true)}
+        >
           + Thêm dữ liệu
         </Button>
       </div>
 
-      <Table
-        rowKey="id"
-        columns={columns}
-        dataSource={batches}
-        loading={loading}
-        pagination={{
-          current: page + 1,
-          pageSize: limit,
-          total: total,
-          onChange: (pageNumber) => setPage(pageNumber - 1),
-        }}
-      />
+      <div className="overflow-auto">
+        <Table
+          rowKey="id"
+          columns={columns}
+          dataSource={batches}
+          loading={loading}
+          pagination={{
+            current: page + 1,
+            pageSize: limit,
+            total: total,
+            onChange: (pageNumber) => setPage(pageNumber - 1),
+          }}
+        />
+      </div>
 
       <Modal
         title="Thêm Batch"

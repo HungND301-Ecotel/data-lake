@@ -198,7 +198,11 @@ const WareTemplate = () => {
         </Col>
 
         <Col>
-          <Button type="primary" className="bg-[#1a8649]! hover:bg-[#15703d]!" onClick={handleAdd}>
+          <Button
+            type="primary"
+            className="bg-[#1a8649]! hover:bg-[#15703d]!"
+            onClick={handleAdd}
+          >
             + Thêm mới
           </Button>
         </Col>
@@ -219,20 +223,20 @@ const WareTemplate = () => {
           >
             <Panel
               header={
-                <span className="text-white font-semibold">
-                  {grp.name}
-                </span>
+                <span className="text-white font-semibold">{grp.name}</span>
               }
               key={grp.id}
             >
-              <Table
-                dataSource={grp.templates}
-                columns={columns}
-                rowKey="id"
-                pagination={false}
-                bordered={false}
-                showHeader={false}
-              />
+              <div className="overflow-auto">
+                <Table
+                  dataSource={grp.templates}
+                  columns={columns}
+                  rowKey="id"
+                  pagination={false}
+                  bordered={false}
+                  showHeader={false}
+                />
+              </div>
             </Panel>
           </Collapse>
         ))}

@@ -86,7 +86,7 @@ export const WareBatchDetail: React.FC = () => {
 
   const mappingColumns: ColumnsType<WareDataRowResponse> = mappings.map(
     (m) => ({
-      title: m.fieldName,
+      title: m.fieldTitle || m.fieldName,
       dataIndex: ["data", m.fieldName],
       key: m.fieldName,
       render: (value) => (value == null ? "" : value.toString()),
@@ -146,19 +146,25 @@ export const WareBatchDetail: React.FC = () => {
           />
         </Col>
         <Col>
-          <Button type="primary" className="bg-[#1a8649]! hover:bg-[#15703d]!" onClick={handlePushClick}>
+          <Button
+            type="primary"
+            className="bg-[#1a8649]! hover:bg-[#15703d]!"
+            onClick={handlePushClick}
+          >
             Upload dữ liệu TKV
           </Button>
         </Col>
       </Row>
 
-      <Table
-        rowKey={(record) => record.id ?? Math.random()}
-        columns={columns}
-        dataSource={rows}
-        loading={loading}
-        pagination={false}
-      />
+      <div className="overflow-auto">
+        <Table
+          rowKey={(record) => record.id ?? Math.random()}
+          columns={columns}
+          dataSource={rows}
+          loading={loading}
+          pagination={false}
+        />
+      </div>
 
       <Modal
         title="Upload dữ liệu"

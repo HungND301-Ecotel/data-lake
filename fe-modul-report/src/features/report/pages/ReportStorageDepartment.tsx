@@ -314,24 +314,26 @@ const ReportStorageDepartment = () => {
             }}
           >
             <Panel header={`${grp.name} - ${grp.code}`} key={grp.id}>
-              <Table
-                dataSource={grp.reports?.content || []}
-                columns={columns(grp.id)}
-                rowKey="id"
-                pagination={{
-                  current: grp.reports?.page! + 1 || 1,
-                  pageSize: grp.reports?.limit || 10,
-                  total: grp.reports?.totalElements || 0,
-                  onChange: (page, pageSize) =>
-                    fetchReports(
-                      grp.id,
-                      searchText,
-                      page - 1,
-                      pageSize,
-                      statusFilter
-                    ),
-                }}
-              />
+              <div className="overflow-auto">
+                <Table
+                  dataSource={grp.reports?.content || []}
+                  columns={columns(grp.id)}
+                  rowKey="id"
+                  pagination={{
+                    current: grp.reports?.page! + 1 || 1,
+                    pageSize: grp.reports?.limit || 10,
+                    total: grp.reports?.totalElements || 0,
+                    onChange: (page, pageSize) =>
+                      fetchReports(
+                        grp.id,
+                        searchText,
+                        page - 1,
+                        pageSize,
+                        statusFilter
+                      ),
+                  }}
+                />
+              </div>
             </Panel>
           </Collapse>
         ))}
