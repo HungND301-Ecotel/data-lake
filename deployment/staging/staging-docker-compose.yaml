@@ -49,7 +49,7 @@ services:
       - POSTGRES_DB=report
       - PGDATA=/var/lib/postgresql/data
     volumes:
-      - report_postgres_data:/var/lib/postgresql/data
+      - kvdabac_report_postgres_data:/var/lib/postgresql/data
     ports:
       - "5436:5432"
     restart: unless-stopped
@@ -69,24 +69,24 @@ services:
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD:-admin}
       - PGADMIN_CONFIG_SERVER_MODE=False
     volumes:
-      - report_pgadmin_data:/var/lib/pgadmin
+      - kvdabac_report_pgadmin_data:/var/lib/pgadmin
     ports:
       - "5052:80"
     restart: unless-stopped
 
 volumes:
-  report_postgres_data: # ✅ Cho postgres
+  kvdabac_report_postgres_data: # ✅ Cho postgres
     driver: local
     driver_opts:
       type: none
-      device: /mnt/hdd/kvdabac/report_postgres_data
+      device: /mnt/hdd/kvdabac_report_postgres_data
       o: bind
 
-  report_pgadmin_data: # ✅ Cho pgadmin (thêm mới)
+  kvdabac_report_pgadmin_data: # ✅ Cho pgadmin (thêm mới)
     driver: local
     driver_opts:
       type: none
-      device: /mnt/hdd/kvdabac/report_pgadmin_data
+      device: /mnt/hdd/kvdabac_report_pgadmin_data
       o: bind
 
 networks:
