@@ -73,6 +73,8 @@ services:
     ports:
       - "5052:80"
     restart: unless-stopped
+    networks:
+      - backnet
 
 volumes:
   kvdabac_report_postgres_data: # ✅ Cho postgres
