@@ -9,7 +9,7 @@ import {
   ArrowLeftOutlined,
 } from "@ant-design/icons";
 import { Button, Dropdown, Menu } from "antd";
-import logoUb from "../../file/logo-ub.jpg";
+import logoUb from "../../file/logo-company.png";
 
 const Header = () => {
   const location = useLocation();
@@ -69,14 +69,14 @@ const Header = () => {
   return (
     <header className="w-full">
       <div
-        className={`bg-[#1a8649] border-b border-green-600 transition-all duration-300 overflow-hidden`}
+        className={`bg-[#0891b2] border-b border-cyan-600 transition-all duration-300 overflow-hidden`}
       >
         <div
           className={`flex items-center justify-center px-6 py-3 text-white transition-all duration-300 `}
         >
           <img
             src={logoUb}
-            className="h-14 w-14 rounded-full cursor-pointer"
+            className="h-14 w-20 rounded-full cursor-pointer"
             onClick={() => navigate("/dashboard")}
           />
 
@@ -85,34 +85,34 @@ const Header = () => {
               PHẦN MỀM QUẢN LÝ KHO DỮ LIỆU
             </div>
             <div className="text-base font-bold">
-              CÔNG TY THAN UÔNG BÍ - TKV
+              CÔNG TY KHO VẬN ĐÁ BẠC - TKV
             </div>
 
             <div className="flex justify-center gap-6 text-sm mt-1">
               <span className="flex items-center gap-1">
-                <PhoneOutlined /> 02033.854491
+                <PhoneOutlined /> 020.33565388
               </span>
               <span className="flex items-center gap-1">
-                <MailOutlined /> ctythanub@gmail.com
+                <MailOutlined /> 020.33565399
               </span>
             </div>
           </div>
         </div>
       </div>
 
-      <nav className="top-0 z-50 bg-[#1a8649] flex items-center px-6 py-2 gap-2 shadow-md">
+      <nav className="top-0 z-50 bg-[#0891b2] flex items-center px-6 py-2 gap-2 shadow-md">
         <Button
           type="text"
           icon={<ArrowLeftOutlined />}
           onClick={() => navigate(-1)}
-          className="text-white! hover:text-white! hover:bg-green-600"
+          className="text-white! hover:text-white! hover:bg-cyan-600"
         ></Button>
         <Link
           to="/dashboard"
           className={`px-4 py-2 rounded-lg text-sm font-medium ${
             isActive("/dashboard")
-              ? "bg-white text-green-700"
-              : "text-white hover:bg-green-600"
+              ? "bg-white text-cyan-700"
+              : "text-white hover:bg-cyan-600"
           }`}
         >
           Trang chủ
@@ -121,7 +121,7 @@ const Header = () => {
         <Dropdown overlay={categoryMenu}>
           <Button
             type="text"
-            className="text-white! hover:text-white! hover:bg-green-600"
+            className="text-white! hover:text-white! hover:bg-cyan-600"
           >
             Danh mục <DownOutlined />
           </Button>
@@ -131,8 +131,8 @@ const Header = () => {
           to="/employee"
           className={`px-4 py-2 rounded-lg text-sm font-medium ${
             isActive("/employee")
-              ? "bg-white text-green-700"
-              : "text-white hover:bg-green-600"
+              ? "bg-white text-cyan-700"
+              : "text-white hover:bg-cyan-600"
           }`}
         >
           Nhân viên
@@ -141,7 +141,7 @@ const Header = () => {
         <Dropdown overlay={reportMenu}>
           <Button
             type="text"
-            className="text-white! hover:text-white! hover:bg-green-600"
+            className="text-white! hover:text-white! hover:bg-cyan-600"
           >
             Báo cáo <DownOutlined />
           </Button>

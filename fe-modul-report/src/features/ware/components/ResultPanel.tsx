@@ -7,13 +7,13 @@ interface ResultPanelProps {
   const ResultPanel = ({ results }: ResultPanelProps) => {
     if (results.length === 0) {
       return (
-        <div className="flex-1 flex flex-col items-center justify-center p-4 bg-green-50 overflow-auto">
-          <p className="text-green-900 text-lg font-semibold mb-4">
+        <div className="flex-1 flex flex-col items-center justify-center p-4 bg-cyan-50 overflow-auto">
+          <p className="text-cyan-900 text-lg font-semibold mb-4">
             Không có dữ liệu để hiển thị
           </p>
     
           {/* Show payload / filters */}
-          <div className="w-full max-w-xl bg-white border border-green-200 rounded p-3 shadow-sm overflow-auto">
+          <div className="w-full max-w-xl bg-white border border-cyan-200 rounded p-3 shadow-sm overflow-auto">
           </div>
         </div>
       );
@@ -27,14 +27,14 @@ interface ResultPanelProps {
     ];
   
     return (
-      <div className="px-4 py-4 overflow-auto bg-green-50">
-        <table className="w-full border border-green-300 rounded ">
+      <div className="px-4 py-4 overflow-auto bg-cyan-50">
+        <table className="w-full border border-cyann-300 rounded ">
           <thead>
-            <tr className="bg-green-200">
+            <tr className="bg-cyan-200">
               {sortedKeys.map((key) => (
                 <th
                   key={key}
-                  className="border border-green-300 px-2 py-1 text-left text-green-900"
+                  className="border border-cyan-300 px-2 py-1 text-left text-cyan-900"
                 >
                   {key}
                 </th>
@@ -43,7 +43,7 @@ interface ResultPanelProps {
           </thead>
           <tbody>
             {results.map((row, i) => (
-              <tr key={i} className="even:bg-green-100">
+              <tr key={i} className="even:bg-cyan-100">
                 {sortedKeys.map((key) => {
                   let val = row[key];
   
@@ -56,7 +56,7 @@ interface ResultPanelProps {
                   }
   
                   return (
-                    <td key={key} className="border px-2 py-1 text-green-900">
+                    <td key={key} className="border px-2 py-1 text-cyan-900">
                       {val?.toString() || ""}
                     </td>
                   );
