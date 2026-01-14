@@ -6,17 +6,17 @@
 # b. Push:  $ docker compose -f docker-compose-build.yaml push
 #####
 services:
-  hatu/report_reverse_proxy_service:
+  hatu_report_reverse_proxy_service:
     build:
       context: ./reverse_proxy
-    image: ${REGISTRY}/hatu/report_reverse_proxy_img:${VERSION}
+    image: ${REGISTRY}/hatu_report_reverse_proxy_img:${VERSION}
 
-  hatu/report_backend_service:
+  hatu_report_backend_service:
     build:
       context: ./be
-    image: ${REGISTRY}/hatu/report_backend_img:${VERSION}
+    image: ${REGISTRY}/hatu_report_backend_img:${VERSION}
 
-  hatu/report_frontend_service:
+  hatu_report_frontend_service:
     build:
       context: ./fe-modul-report
-    image: ${REGISTRY}/hatu/report_frontend_img:${VERSION}
+    image: ${REGISTRY}/hatu_report_frontend_img:${VERSION}
