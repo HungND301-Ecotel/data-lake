@@ -1,9 +1,9 @@
 services:
-  report_reverse_proxy_service:
-    image: ${REGISTRY}/report_reverse_proxy_img:${VERSION}
+  kvdabac_report_reverse_proxy_service:
+    image: ${REGISTRY}/kvdabac_report_reverse_proxy_img:${VERSION}
     ports:
       # HOST_PORT:CONTAINER_PORT
-      - "6363:8888"
+      - "6969:8888"
     stdin_open: true
     environment:
       - TZ=Asia/Ho_Chi_Minh
@@ -11,23 +11,24 @@ services:
       - backnet
       - frontnet
     depends_on:
-      - report_backend_service
-      - report_frontend_service
+      - kvdabac_report_backend_service
+      - kvdabac_report_frontend_service
 
-  report_backend_service:
+  kvdabac_report_backend_service:
     env_file:
       - .env_backend
-    image: ${REGISTRY}/report_backend_img:${VERSION}
+    image: ${REGISTRY}/kvdabac_report_backend_img:${VERSION}
     depends_on:
-      - postgres
+      kvdabac_postgres:
+        condition: service_healthy
     ports:
-      - "8484:8080"
+      - "8585:8080"
     networks:
       - backnet
     restart: unless-stopped
 
-  report_frontend_service:
-    image: ${REGISTRY}/report_frontend_img:${VERSION}
+  kvdabac_report_frontend_service:
+    image: ${REGISTRY}/kvdabac_report_frontend_img:${VERSION}
     # target: development
     stdin_open: true
     environment:
@@ -39,8 +40,8 @@ services:
     networks:
       - frontnet
 
-  postgres:
-    container_name: pg_report_2211
+  kvdabac_postgres:
+    container_name: kvdabac_pg_report_2211
     image: postgres:16
     environment:
       - POSTGRES_USER=admin
@@ -50,13 +51,18 @@ services:
     volumes:
       - report_postgres_data:/var/lib/postgresql/data
     ports:
-      - "5434:5432"
+      - "5436:5432"
     restart: unless-stopped
     networks:
       - backnet
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  pgadmin:
-    container_name: pgadmin_report_2211
+  kvdabac_pgadmin:
+    container_name: kvdabac_pgadmin_report_2211
     image: dpage/pgadmin4:8.6
     environment:
       - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL:-pgadmin@pgadmin.org}
@@ -65,7 +71,7 @@ services:
     volumes:
       - report_pgadmin_data:/var/lib/pgadmin
     ports:
-      - "5051:80"
+      - "5052:80"
     restart: unless-stopped
 
 volumes:
@@ -73,14 +79,14 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: /mnt/hdd/report_postgres_data
+      device: /mnt/hdd/kvdabac/report_postgres_data
       o: bind
 
   report_pgadmin_data: # ✅ Cho pgadmin (thêm mới)
     driver: local
     driver_opts:
       type: none
-      device: /mnt/hdd/report_pgadmin_data
+      device: /mnt/hdd/kvdabac/report_pgadmin_data
       o: bind
 
 networks:
