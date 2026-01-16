@@ -26,6 +26,7 @@ public class WareBatchJdbc {
                         wb.created_at AS created_at,
                         wb.updated_at AS updated_at,
                         e.name AS employee_name,
+                        wb.status AS ware_batch_status,
                         CASE
                             WHEN EXISTS (
                                 SELECT 1

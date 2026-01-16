@@ -19,5 +19,6 @@ public class WareBatchResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String employeeName;
+    private String wareBatchStatus;
     private Boolean isPushed;
 }

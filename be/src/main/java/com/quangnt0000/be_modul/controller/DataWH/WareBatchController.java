@@ -45,6 +45,11 @@ public class WareBatchController {
         return wareBatchService.delete(wareBatchId);
     }
 
+    @PutMapping("/reject/{ware-batch-id}")
+    public ResponseEntity<?> reject(@PathVariable ("ware-batch-id") Integer wareBatchId) {
+        return wareBatchService.reject(wareBatchId);
+    }
+
     @GetMapping("/master-data/{batch-id}")
     public ResponseEntity<?> getMasterData(@PathVariable ("batch-id") Integer batchId, @ModelAttribute GetRequest request) {
         return wareBatchService.getMasterData(batchId, request);

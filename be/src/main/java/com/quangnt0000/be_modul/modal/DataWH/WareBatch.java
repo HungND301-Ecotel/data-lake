@@ -1,5 +1,6 @@
 package com.quangnt0000.be_modul.modal.DataWH;
 
+import com.quangnt0000.be_modul.enums.WareBatchEnum;
 import com.quangnt0000.be_modul.modal.DataLake.Employee;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -43,6 +44,11 @@ public class WareBatch {
     @OneToMany(mappedBy = "wareBatch")
     private List<WareDataRow> wareDataRows;
 
+    // Trạng thái phê duyệt
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    @Column(nullable = true)
+    private WareBatchEnum status = WareBatchEnum.Cho_Phe_Duyet;
     //base
     @Builder.Default
     private Boolean deleted = false;

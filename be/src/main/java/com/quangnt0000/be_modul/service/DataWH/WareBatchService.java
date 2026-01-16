@@ -7,6 +7,7 @@ import com.quangnt0000.be_modul.dto.WareBatch.WareBatchPush;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchResponse;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchSearch;
+import com.quangnt0000.be_modul.enums.WareBatchEnum;
 import com.quangnt0000.be_modul.modal.DataLake.User;
 import com.quangnt0000.be_modul.modal.DataWH.WareBatch;
 import com.quangnt0000.be_modul.modal.DataWH.WareDataRow;
@@ -118,6 +119,7 @@ public class WareBatchService {
                     .description(request.getDescription())
                     .employee(user.getEmployee())
                     .wareTemplate(wareTemplate)
+                    .status(WareBatchEnum.Cho_Phe_Duyet)
                     .build());
 
             batch.setCode("BATCH" + batch.getId());
@@ -264,6 +266,9 @@ public class WareBatchService {
                                 .createdAt(item.getCreatedAt())
                                 .updatedAt(item.getUpdatedAt())
                                 .employeeName(item.getEmployee() != null ? item.getEmployee().getName() : null)
+                                .wareBatchStatus(
+                                        item.getStatus() != null ? item.getStatus().name() : null
+                                )
                                 .build()
                 )
                 .toList();
@@ -287,7 +292,12 @@ public class WareBatchService {
     public ResponseEntity<?> push(WareBatchPush request) {
         WareBatch wareBatch = wareBatchRepository.findById(request.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "batch not found"));
-
+        if (wareBatch.getStatus() == WareBatchEnum.Tu_Choi_Phe_Duyet) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Batch has been rejected, cannot push"
+            );
+        }
         List<WareDataRow> wareDataRows = wareDataRowService.getByBatchId(request.getId());
 
         List<WareMapping> filters = wareBatch.getWareTemplate().getWareMappings().stream()
@@ -330,7 +340,12 @@ public class WareBatchService {
                 .dataUploadId(UUID.randomUUID().toString())
                 .build();
         try {
-            return wareApiService.push(body, wareBatch, request).block();
+            ResponseEntity<?> response = wareApiService.push(body, wareBatch, request).block();
+            if (response != null && response.getStatusCode().is2xxSuccessful()) {
+                wareBatch.setStatus(WareBatchEnum.Da_Phe_Duyet);
+                wareBatchRepository.save(wareBatch);
+            }
+            return response;
         }catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
@@ -351,6 +366,14 @@ public class WareBatchService {
         wareBatch.setDeleted(true);
         wareBatchRepository.save(wareBatch);
         return ResponseEntity.ok("deleted");
+    }
+
+    public ResponseEntity<?> reject(Integer wareBatchId) {
+        WareBatch wareBatch = wareBatchRepository.findById(wareBatchId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "batch not found"));
+        wareBatch.setStatus(WareBatchEnum.Tu_Choi_Phe_Duyet);
+        wareBatchRepository.save(wareBatch);
+        return ResponseEntity.ok("rejected");
     }
 
     public ResponseEntity<?> getMasterData(Integer batchId, GetRequest request) {
