@@ -22,13 +22,15 @@ import { TemplateDetail } from "../features/ware/pages/WareTemplateDetail";
 import { WareBatchDetail } from "../features/ware/pages/WareBatchDetail";
 import DashboardWare from "../features/ware/pages/WareBatchDasboard";
 import SearchMasterData from "../features/ware/pages/WareMasterData";
+import ReportTargetsPage from "../features/dashboard/pages/ReportTarget";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <MainLayout />,
     children: [
-      { path: "/", element: <DashboardPage /> },
+      { path: "/", element: <DashboardWare /> },
+      { path: "/report-targets", element: <ReportTargetsPage /> },
       { path: "/dashboard", element: <DashboardWare /> },
       { path: "/employee", element: <EmployeePage /> },
       { path: "/employee/:employeeId", element: <ProfilePage /> },
@@ -39,9 +41,9 @@ export const router = createBrowserRouter([
       { path: "/ware/template/detail/:templateId", element: <TemplateDetail /> },
       { path: "/ware/batch/:wareBatchId", element: <WareBatchDetail /> },
 
-      { path: "/category/report", element: <ReportCategoryPage/> },
-      { path: "/category/departments", element: <DepartmentCategoryPage/> },
-      { path: "/category/ware", element: <WareCategoryPage/> },
+      { path: "/category/report", element: <ReportCategoryPage /> },
+      { path: "/category/departments", element: <DepartmentCategoryPage /> },
+      { path: "/category/ware", element: <WareCategoryPage /> },
 
       {
         path: "/reports/view/excel/:fileKey",
@@ -52,26 +54,23 @@ export const router = createBrowserRouter([
         path: "/reports/view/pdf/:fileKey",
         element: <PreviewFilePdf />,
       },
-      
 
-      { path: "/reports/template/us/:reportId", element: <ReportDetail/> },
-      { path: "/reports/template/edit/:reportId", element: <ReportDetail/> },
-      
-      { path: "/reports/template", element: <ReportTemplatePage />},
-      { path: "/reports/template/department/:departmentId", element: <ReportTemplateDepartment />},
 
-      { path: "/reports/storage", element: <ReportStoragePage />},
-      { path: "/reports/storage/department/:departmentId", element: <ReportStorageDepartment />},
+      { path: "/reports/template/us/:reportId", element: <ReportDetail /> },
+      { path: "/reports/template/edit/:reportId", element: <ReportDetail /> },
 
-      { path: "/report/:id", element: <ReportDetailPage/>},
+      { path: "/reports/template", element: <ReportTemplatePage /> },
+      { path: "/reports/template/department/:departmentId", element: <ReportTemplateDepartment /> },
+
+      { path: "/reports/storage", element: <ReportStoragePage /> },
+      { path: "/reports/storage/department/:departmentId", element: <ReportStorageDepartment /> },
+
+      { path: "/report/:id", element: <ReportDetailPage /> },
     ],
   },
 
   {
     path: "/login",
     element: <LoginPage />,
-    
   },
-
-  
 ]);

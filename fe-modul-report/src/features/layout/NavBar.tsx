@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   UserOutlined,
   DownOutlined,
@@ -9,10 +9,25 @@ import {
 import { Button, Dropdown, Menu } from "antd";
 
 export default function NavBar() {
-  const location = useLocation();
   const navigate = useNavigate();
-
-  const isActive = (path: string) => location.pathname.startsWith(path);
+  
+  const dashboardMenu = (
+    <Menu
+      items={[
+        {
+          key: "dashboard",
+          label: "Dashboard",
+          onClick: () => navigate("/dashboard"),
+        },
+        {
+          key: "report-targets",
+          label: "Báo cáo thực hiện các chỉ tiêu chủ yếu",
+          onClick: () => navigate("/report-targets"),
+        },
+      ]}
+    />
+  );
+  
   const categoryMenu = (
     <Menu
       items={[
@@ -26,22 +41,27 @@ export default function NavBar() {
           label: "Danh mục TKV",
           onClick: () => navigate("/category/ware"),
         },
+        {
+          key: "employee",
+          label: "Nhân viên",
+          onClick: () => navigate("/employee"),
+        },
       ]}
     />
   );
 
-  const reportMenu = (
+  const dataEntryMenu = (
     <Menu
       items={[
         {
           key: "ware",
-          label: "Báo cáo TKV",
+          label: "Nhập dữ liệu",
           onClick: () => navigate("/ware"),
         },
         {
-          key: "search",
-          label: "Tra cứu TKV",
-          onClick: () => navigate("/search/master"),
+          key: "review",
+          label: "Duyệt dữ liệu",
+          onClick: () => navigate("/review"),
         },
       ]}
     />
@@ -67,6 +87,7 @@ export default function NavBar() {
       ]}
     />
   );
+  
   return (
     <nav className="top-0 z-50 bg-[#1a8649] flex items-center px-6 py-2 gap-2 shadow-md">
       <Button
@@ -75,45 +96,42 @@ export default function NavBar() {
         onClick={() => navigate(-1)}
         className="text-white! hover:text-white! hover:bg-green-600"
       ></Button>
-      <Link
-        to="/dashboard"
-        className={`px-4 py-2 rounded-lg text-sm font-medium ${
-          isActive("/dashboard")
-            ? "bg-white text-green-700"
-            : "text-white hover:bg-green-600"
-        }`}
-      >
-        Trang chủ
-      </Link>
+
+      <Dropdown overlay={dashboardMenu}>
+        <Button
+          type="text"
+          className="text-white! hover:text-white! hover:bg-green-600"
+        >
+          Trang chủ <DownOutlined />
+        </Button>
+      </Dropdown>
 
       <Dropdown overlay={categoryMenu}>
         <Button
           type="text"
           className="text-white! hover:text-white! hover:bg-green-600"
         >
-          Danh mục <DownOutlined />
+          Hệ thống <DownOutlined />
         </Button>
       </Dropdown>
 
-      <Link
-        to="/employee"
-        className={`px-4 py-2 rounded-lg text-sm font-medium ${
-          isActive("/employee")
-            ? "bg-white text-green-700"
-            : "text-white hover:bg-green-600"
-        }`}
-      >
-        Nhân viên
-      </Link>
-
-      <Dropdown overlay={reportMenu}>
+      <Dropdown overlay={dataEntryMenu}>
         <Button
           type="text"
           className="text-white! hover:text-white! hover:bg-green-600"
         >
-          Báo cáo <DownOutlined />
+          Nhập dữ liệu <DownOutlined />
         </Button>
       </Dropdown>
+
+      <Link to="/search/master">
+        <Button
+          type="text"
+          className="text-white! hover:text-white! hover:bg-green-600"
+        >
+          Báo cáo tác nghiệp
+        </Button>
+      </Link>
 
       <div className="ml-auto">
         <Dropdown overlay={accountMenu} placement="bottomRight">
