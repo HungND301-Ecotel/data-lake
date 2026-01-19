@@ -3,16 +3,21 @@ package com.quangnt0000.be_modul.service.DataWH;
 import com.quangnt0000.be_modul.dto.PageResponse;
 import com.quangnt0000.be_modul.dto.TWH_Get.GetRequest;
 import com.quangnt0000.be_modul.dto.TWH_Push.PushRequest;
+import com.quangnt0000.be_modul.dto.WareBatch.WareBatchApproveRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchPush;
+import com.quangnt0000.be_modul.dto.WareBatch.WareBatchRejectRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchResponse;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchSearch;
+import com.quangnt0000.be_modul.dto.WareBatch.MyApprovalBatchResponse;
 import com.quangnt0000.be_modul.enums.WareBatchEnum;
 import com.quangnt0000.be_modul.modal.DataLake.User;
 import com.quangnt0000.be_modul.modal.DataWH.WareBatch;
+import com.quangnt0000.be_modul.modal.DataWH.WareBatchApproval;
 import com.quangnt0000.be_modul.modal.DataWH.WareDataRow;
 import com.quangnt0000.be_modul.modal.DataWH.WareMapping;
 import com.quangnt0000.be_modul.modal.DataWH.WareTemplate;
+import com.quangnt0000.be_modul.modal.DataWH.WareTemplateApprovalConfig;
 import com.quangnt0000.be_modul.repository.DataLake.EmployeeRepository;
 import com.quangnt0000.be_modul.repository.DataLake.UserRepository;
 import com.quangnt0000.be_modul.repository.DataWH.*;
@@ -25,6 +30,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @RequiredArgsConstructor
@@ -39,6 +45,8 @@ public class WareBatchService {
     private final WareMappingRepository wareMappingRepository;
     private final EmployeeRepository employeeRepository;
     private final UserRepository userRepository;
+    private final WareApprovalConfigRepository approvalConfigRepository;
+    private final WareBatchApprovalRepository batchApprovalRepository;
 
     @Transactional
     public ResponseEntity<?> addWareBatch(WareBatchRequest request) {
@@ -134,6 +142,9 @@ public class WareBatchService {
             }
 
             wareDataRowRepository.saveAll(wareDataRows);
+
+            // Khởi tạo approval workflow - tạo snapshot từ WareApprovalConfig
+            initializeApprovalWorkflow(batch);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(batch.getId());
 
@@ -292,12 +303,22 @@ public class WareBatchService {
     public ResponseEntity<?> push(WareBatchPush request) {
         WareBatch wareBatch = wareBatchRepository.findById(request.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "batch not found"));
+
+        // Chỉ cho phép push khi WareBatch đã được phê duyệt hoàn tất
         if (wareBatch.getStatus() == WareBatchEnum.Tu_Choi_Phe_Duyet) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Batch has been rejected, cannot push"
+                    "Batch đã bị từ chối, không thể push dữ liệu"
             );
         }
+
+        if (wareBatch.getStatus() == WareBatchEnum.Cho_Phe_Duyet) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Batch chưa hoàn tất phê duyệt, không thể push dữ liệu"
+            );
+        }
+
         List<WareDataRow> wareDataRows = wareDataRowService.getByBatchId(request.getId());
 
         List<WareMapping> filters = wareBatch.getWareTemplate().getWareMappings().stream()
@@ -368,12 +389,129 @@ public class WareBatchService {
         return ResponseEntity.ok("deleted");
     }
 
-    public ResponseEntity<?> reject(Integer wareBatchId) {
-        WareBatch wareBatch = wareBatchRepository.findById(wareBatchId)
+    /**
+     * Reject WareBatch theo quy tắc Sequential Approval
+     * Chỉ người có approvalOrder nhỏ nhất còn PENDING mới được reject
+     */
+    @Transactional
+    public ResponseEntity<?> rejectApproval(WareBatchRejectRequest request) {
+        String employeeId = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findById(employeeId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "user not found"));
+
+        WareBatch wareBatch = wareBatchRepository.findById(request.getWareBatchId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "batch not found"));
+
+        if (wareBatch.getDeleted()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Batch đã bị xóa");
+        }
+
+        if (wareBatch.getStatus() != WareBatchEnum.Cho_Phe_Duyet) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Batch không ở trạng thái chờ phê duyệt. Trạng thái hiện tại: " + wareBatch.getStatus());
+        }
+
+        // Lấy tất cả approvals theo thứ tự
+        List<WareBatchApproval> approvals = batchApprovalRepository
+                .findByWareBatchIdOrderByApprovalOrder(request.getWareBatchId());
+
+        if (approvals.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Không có cấu hình phê duyệt cho batch này");
+        }
+
+        // Tìm approval đầu tiên còn PENDING (thứ tự nhỏ nhất)
+        WareBatchApproval nextPendingApproval = approvals.stream()
+                .filter(a -> a.getStatus() == WareBatchEnum.Cho_Phe_Duyet)
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Không còn approval nào đang chờ duyệt"));
+
+        // Validate: người reject phải là người ở thứ tự tiếp theo
+        if (!nextPendingApproval.getApprover().getId().equals(user.getEmployee().getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Bạn không có quyền từ chối ở thứ tự này. Người phê duyệt hiện tại: " +
+                    nextPendingApproval.getApprover().getName());
+        }
+
+        // Reject: cập nhật status
+        nextPendingApproval.setStatus(WareBatchEnum.Tu_Choi_Phe_Duyet);
+        batchApprovalRepository.save(nextPendingApproval);
+
+        // Cập nhật WareBatch sang REJECTED
         wareBatch.setStatus(WareBatchEnum.Tu_Choi_Phe_Duyet);
         wareBatchRepository.save(wareBatch);
-        return ResponseEntity.ok("rejected");
+
+        return ResponseEntity.ok("Từ chối phê duyệt thành công. Batch không thể push dữ liệu.");
+    }
+
+    /**
+     * Approve WareBatch theo quy tắc Sequential Approval
+     * Chỉ người có approvalOrder nhỏ nhất còn PENDING mới được approve
+     */
+    @Transactional
+    public ResponseEntity<?> approve(WareBatchApproveRequest request) {
+        String employeeId = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findById(employeeId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "user not found"));
+
+        WareBatch wareBatch = wareBatchRepository.findById(request.getWareBatchId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "batch not found"));
+
+        if (wareBatch.getDeleted()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Batch đã bị xóa");
+        }
+
+        if (wareBatch.getStatus() == WareBatchEnum.Tu_Choi_Phe_Duyet) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Batch đã bị từ chối, không thể phê duyệt");
+        }
+
+        if (wareBatch.getStatus() != WareBatchEnum.Cho_Phe_Duyet) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                    "Batch không ở trạng thái chờ phê duyệt. Trạng thái hiện tại: " + wareBatch.getStatus());
+        }
+
+        // Lấy tất cả approvals theo thứ tự
+        List<WareBatchApproval> approvals = batchApprovalRepository
+                .findByWareBatchIdOrderByApprovalOrder(request.getWareBatchId());
+
+        if (approvals.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                    "Không có cấu hình phê duyệt cho batch này");
+        }
+
+        // Tìm approval đầu tiên còn PENDING (thứ tự nhỏ nhất)
+        WareBatchApproval nextPendingApproval = approvals.stream()
+                .filter(a -> a.getStatus() == WareBatchEnum.Cho_Phe_Duyet)
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                        "Không còn approval nào đang chờ duyệt"));
+
+        // Validate: người approve phải là người ở thứ tự tiếp theo
+        if (!nextPendingApproval.getApprover().getId().equals(user.getEmployee().getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, 
+                    "Bạn không có quyền phê duyệt ở thứ tự này. Người phê duyệt hiện tại: " + 
+                    nextPendingApproval.getApprover().getName());
+        }
+
+        // Approve: cập nhật status
+        nextPendingApproval.setStatus(WareBatchEnum.Da_Phe_Duyet);
+        batchApprovalRepository.save(nextPendingApproval);
+
+        // Kiểm tra xem còn approval nào PENDING không
+        boolean hasMorePending = approvals.stream()
+                .anyMatch(a -> a.getStatus() == WareBatchEnum.Cho_Phe_Duyet && 
+                               !a.getId().equals(nextPendingApproval.getId()));
+
+        // Nếu không còn PENDING → cập nhật status của WareBatch
+        if (!hasMorePending) {
+            wareBatch.setStatus(WareBatchEnum.Da_Phe_Duyet);
+            wareBatchRepository.save(wareBatch);
+            return ResponseEntity.ok("Phê duyệt thành công. Tất cả các bước phê duyệt đã hoàn tất.");
+        }
+
+        return ResponseEntity.ok("Phê duyệt thành công. Đang chờ phê duyệt bước tiếp theo.");
     }
 
     public ResponseEntity<?> getMasterData(Integer batchId, GetRequest request) {
@@ -404,5 +542,117 @@ public class WareBatchService {
         }
         request.setFilters(filters);
         return wareApiService.getMasterData(request).block();
+    }
+
+    /**
+     * API: Lấy danh sách WareBatch của người duyệt hiện tại
+     * GET /wh-batch/my-approvals
+     * 
+     * Trả về TẤT CẢ batch mà user tham gia phê duyệt,
+     * kèm theo đầy đủ context để FE quyết định hiển thị
+     */
+    public ResponseEntity<?> getMyApprovalBatches() {
+        String employeeId = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findById(employeeId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "user not found"));
+
+        // Lấy tất cả WareBatchApproval của user hiện tại
+        List<WareBatchApproval> myApprovals = batchApprovalRepository
+                .findByApproverId(user.getEmployee().getId());
+
+        // Group theo WareBatch để xử lý
+        Map<Integer, WareBatchApproval> batchIdToMyApproval = new HashMap<>();
+        for (WareBatchApproval approval : myApprovals) {
+            batchIdToMyApproval.put(approval.getWareBatch().getId(), approval);
+        }
+
+        // Tạo response list
+        List<MyApprovalBatchResponse> responses = new ArrayList<>();
+
+        for (WareBatchApproval myApproval : myApprovals) {
+            WareBatch batch = myApproval.getWareBatch();
+
+            // Lấy tất cả approvals của batch này để tính toán
+            List<WareBatchApproval> allBatchApprovals = batchApprovalRepository
+                    .findByWareBatchIdOrderByApprovalOrder(batch.getId());
+
+            // Tính toán thông tin luồng phê duyệt
+            Integer currentApprovalOrder = null;
+
+            for (WareBatchApproval approval : allBatchApprovals) {
+                if (approval.getStatus() == WareBatchEnum.Cho_Phe_Duyet) {
+                    // Tìm thứ tự nhỏ nhất còn PENDING
+                    if (currentApprovalOrder == null) {
+                        currentApprovalOrder = approval.getApprovalOrder();
+                        break;
+                    }
+                }
+            }
+
+            // Xác định canApprove
+            boolean canApprove = false;
+
+            if (batch.getStatus() != WareBatchEnum.Tu_Choi_Phe_Duyet) {
+                if (myApproval.getStatus() == WareBatchEnum.Cho_Phe_Duyet) {
+                    if (currentApprovalOrder != null && 
+                        myApproval.getApprovalOrder().equals(currentApprovalOrder)) {
+                        canApprove = true;
+                    }
+                }
+            }
+
+            // Build response
+            MyApprovalBatchResponse response = MyApprovalBatchResponse.builder()
+                    // Batch info
+                    .batchId(batch.getId())
+                    .batchCode(batch.getCode())
+                    .batchName(batch.getName())
+                    .batchDescription(batch.getDescription())
+                    .createdAt(batch.getCreatedAt())
+                    // Trạng thái batch
+                    .batchStatus(batch.getStatus())
+                    // Approval context của user hiện tại
+                    .myApprovalId(myApproval.getId())
+                    .myApprovalStatus(myApproval.getStatus())
+                    .myApprovalOrder(myApproval.getApprovalOrder())
+                    .currentApprovalOrder(currentApprovalOrder)
+                    // Quyết định action
+                    .canApprove(canApprove)
+                    .build();
+
+            responses.add(response);
+        }
+
+        return ResponseEntity.ok(responses);
+    }
+
+    /**
+     * Khởi tạo approval workflow khi tạo WareBatch
+     * Copy snapshot từ WareApprovalConfig sang WareBatchApproval
+     */
+    private void initializeApprovalWorkflow(WareBatch wareBatch) {
+        // Lấy danh sách approval config ACTIVE của WareTemplate, sắp xếp theo approvalOrder
+        List<WareTemplateApprovalConfig> activeConfigs = approvalConfigRepository
+                .findActiveConfigsByWareTemplateId(wareBatch.getWareTemplate().getId());
+
+        if (activeConfigs.isEmpty()) {
+            // Không có config nào thì không cần tạo approval
+            return;
+        }
+
+        // Tạo snapshot: copy sang WareBatchApproval
+        List<WareBatchApproval> batchApprovals = new ArrayList<>();
+        for (WareTemplateApprovalConfig config : activeConfigs) {
+            WareBatchApproval batchApproval = WareBatchApproval.builder()
+                    .wareBatch(wareBatch)
+                    .approver(config.getApprover())
+                    .approvalOrder(config.getApprovalOrder())
+                    .status(WareBatchEnum.Cho_Phe_Duyet)  // Trạng thái ban đầu
+                    .build();
+            batchApprovals.add(batchApproval);
+        }
+
+        // Lưu tất cả approvals
+        batchApprovalRepository.saveAll(batchApprovals);
     }
 }

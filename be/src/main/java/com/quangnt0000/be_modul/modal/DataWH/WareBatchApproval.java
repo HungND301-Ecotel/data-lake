@@ -44,11 +44,6 @@ public class WareBatchApproval {
     @Column(nullable = false)
     private WareBatchEnum status = WareBatchEnum.Cho_Phe_Duyet;
 
-//    private LocalDateTime approvedAt;
-
-//    @Column(columnDefinition = "TEXT")
-//    private String comment;
-
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
