@@ -1,5 +1,4 @@
 import { createBrowserRouter } from "react-router-dom";
-import DashboardPage from "../features/dashboard/pages/DashboardPage";
 import ReportTemplatePage from "../features/report/pages/ReportTemplatePage";
 import ReportStoragePage from "../features/report/pages/ReportStoragePage";
 import ReportDetailPage from "../features/report/pages/ReportDetailPage";

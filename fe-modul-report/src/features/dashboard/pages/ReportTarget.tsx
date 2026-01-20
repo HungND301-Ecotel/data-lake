@@ -1,31 +1,9 @@
 import { Spin } from "antd";
 import { useState, useEffect } from "react";
 
-interface DashboardData {
-  thanNguyenKhaiSx?: {
-    soTan: number;
-    keHoachNam: number;
-    datPercent: number;
-  };
-  thanSachSx?: {
-    soTan: number;
-    keHoachNam: number;
-    datPercent: number;
-  };
-  sanXuatKhoangSan?: Record<string, number>;
-  sxVatLieuNo?: Record<string, number>;
-  nhapKhau?: {
-    soTan: number;
-    giaUsd: number;
-    keHoachNam: number;
-  };
-  [key: string]: any;
-}
-
 export default function ReportTargetsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [tableauUrl, setTableauUrl] = useState<string>("");
   const [loadingTicket, setLoadingTicket] = useState(false);
 
@@ -77,36 +55,6 @@ export default function ReportTargetsPage() {
     try {
       setLoading(true);
 
-      // Mock data cho local
-      const mockData: DashboardData = {
-        thanNguyenKhaiSx: {
-          soTan: 38615.885,
-          keHoachNam: 37533.22,
-          datPercent: 102.88,
-        },
-        thanSachSx: {
-          soTan: 38654.345,
-          keHoachNam: 36852.0,
-          datPercent: 104.89,
-        },
-        sanXuatKhoangSan: {
-          alumin: 1440.827,
-          thieoToi: 162,
-          kemToi: 9.076,
-          tinhQuang: 100.436,
-        },
-        sxVatLieuNo: {
-          sxNitratAmon: 200.0,
-          sxThuocNo: 81.697,
-        },
-        nhapKhau: {
-          soTan: 8851.842,
-          giaUsd: 897.054,
-          keHoachNam: 13200000,
-        },
-      };
-
-      setDashboardData(mockData);
     } catch (err) {
       console.error("Error loading dashboard data:", err);
     } finally {
@@ -162,7 +110,7 @@ export default function ReportTargetsPage() {
           {/* Hiển thị iframe với Trusted URL */}
           {tableauUrl ? (
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-3 flex justify-between items-center">
+              <div className="bg-linear-to-r from-blue-500 to-blue-600 text-white p-3 flex justify-between items-center">
                 <span className="font-semibold">📊 Dashboard Tableau</span>
                 <span className="text-xs bg-blue-700 px-2 py-1 rounded">
                   Trusted Authentication
