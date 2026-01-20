@@ -32,6 +32,11 @@ public class WareBatchController {
         return wareBatchService.search(request);
     }
 
+    @GetMapping("/{ware-batch-id}")
+    public ResponseEntity<?> getDetail(@PathVariable("ware-batch-id") Integer wareBatchId) {
+        return wareBatchService.getWareBatchDetail(wareBatchId);
+    }
+
     @PostMapping("/push")
     public ResponseEntity<?> push(@RequestBody  WareBatchPush request) {
         return wareBatchService.push(request);

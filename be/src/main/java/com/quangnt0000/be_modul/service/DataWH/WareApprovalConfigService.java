@@ -175,13 +175,6 @@ public class WareApprovalConfigService {
                 return ValidationResult.invalid("ApprovalOrder bị trùng: " + item.getApprovalOrder() + 
                         ". Mỗi approvalOrder phải là duy nhất trong WareTemplate.");
             }
-
-            // Kiểm tra xem approvalOrder đã tồn tại trong DB chưa (cho các config khác)
-            if (approvalConfigRepository.existsByWareTemplateIdAndApprovalOrder(
-                    wareTemplateId, item.getApprovalOrder(), item.getId())) {
-                return ValidationResult.invalid("ApprovalOrder " + item.getApprovalOrder() + 
-                        " đã tồn tại trong hệ thống cho WareTemplate này");
-            }
         }
 
         // Rule 2: Unique active approverId
@@ -191,13 +184,6 @@ public class WareApprovalConfigService {
                 if (!activeApproverIds.add(item.getApproverId())) {
                     return ValidationResult.invalid("ApproverId " + item.getApproverId() + 
                             " bị trùng trong các config ACTIVE. Một người chỉ được phê duyệt 1 lần.");
-                }
-
-                // Kiểm tra trong DB
-                if (approvalConfigRepository.existsActiveConfigByWareTemplateIdAndApproverId(
-                        wareTemplateId, item.getApproverId(), item.getId())) {
-                    return ValidationResult.invalid("ApproverId " + item.getApproverId() + 
-                            " đã có config ACTIVE trong hệ thống cho WareTemplate này");
                 }
             }
         }
