@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -37,23 +38,16 @@ public class WareApprovalConfigService {
     public ResponseEntity<?> getApprovalConfigs(Integer wareTemplateId) {
         log.info("Getting approval configs for WareTemplate ID: {}", wareTemplateId);
 
-        // Validate WareTemplate exists
         WareTemplate wareTemplate = wareTemplateRepository.findById(wareTemplateId)
-                .orElseThrow(() -> new RuntimeException("WareTemplate không tồn tại với ID: " + wareTemplateId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "WareTemplate không tồn tại với ID: " + wareTemplateId));
 
         if (wareTemplate.getDeleted()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(ApiResponse.builder()
-                            .status(HttpStatus.BAD_REQUEST)
-                            .msg("WareTemplate đã bị xóa")
-                            .build());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "WareTemplate đã bị xóa");
         }
 
-        // Lấy tất cả configs (bao gồm active và inactive)
         List<WareTemplateApprovalConfig> configs = approvalConfigRepository
                 .findByWareTemplateIdOrderByApprovalOrder(wareTemplateId);
 
-        // Convert sang DTO
         List<WareApprovalConfigDTO> configDTOs = configs.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -79,57 +73,38 @@ public class WareApprovalConfigService {
     public ResponseEntity<?> updateApprovalConfigs(Integer wareTemplateId, WareApprovalConfigUpdateRequest request) {
         log.info("Updating approval configs for WareTemplate ID: {}", wareTemplateId);
 
-        // 1. Validate WareTemplate
         WareTemplate wareTemplate = wareTemplateRepository.findById(wareTemplateId)
-                .orElseThrow(() -> new RuntimeException("WareTemplate không tồn tại với ID: " + wareTemplateId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "WareTemplate không tồn tại với ID: " + wareTemplateId));
 
         if (wareTemplate.getDeleted()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(ApiResponse.builder()
-                            .status(HttpStatus.BAD_REQUEST)
-                            .msg("WareTemplate đã bị xóa")
-                            .build());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "WareTemplate đã bị xóa");
         }
 
-        // 2. Validate tất cả rules
-        ValidationResult validationResult = validateApprovalConfigs(wareTemplateId, request);
-        if (!validationResult.isValid()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(ApiResponse.builder()
-                            .status(HttpStatus.BAD_REQUEST)
-                            .msg(validationResult.getMessage())
-                            .build());
-        }
+        validateApprovalConfigsOrThrow(wareTemplateId, request);
 
-        // 3. Process update
         List<WareTemplateApprovalConfig> savedConfigs = new ArrayList<>();
 
         for (WareApprovalConfigItemRequest item : request.getConfigs()) {
             WareTemplateApprovalConfig config;
 
             if (item.getId() != null) {
-                // UPDATE existing config
                 config = approvalConfigRepository.findById(item.getId())
-                        .orElseThrow(() -> new RuntimeException("Approval config không tồn tại với ID: " + item.getId()));
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Approval config không tồn tại với ID: " + item.getId()));
 
-                // Validate config belongs to this WareTemplate
                 if (!config.getWareTemplate().getId().equals(wareTemplateId)) {
-                    throw new RuntimeException("Approval config ID " + item.getId() + " không thuộc WareTemplate này");
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Approval config ID " + item.getId() + " không thuộc WareTemplate này");
                 }
 
-                // Update fields
                 Employee approver = employeeRepository.findByIdAndDeletedFalse(item.getApproverId())
-                        .orElseThrow(() -> new RuntimeException("Employee không tồn tại: " + item.getApproverId()));
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Employee không tồn tại: " + item.getApproverId()));
 
                 config.setApprover(approver);
                 config.setApprovalOrder(item.getApprovalOrder());
                 config.setIsActive(item.getIsActive());
-                // config.setRoleName(item.getRoleName()); // future field
 
             } else {
-                // CREATE new config
                 Employee approver = employeeRepository.findByIdAndDeletedFalse(item.getApproverId())
-                        .orElseThrow(() -> new RuntimeException("Employee không tồn tại: " + item.getApproverId()));
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Employee không tồn tại: " + item.getApproverId()));
 
                 config = WareTemplateApprovalConfig.builder()
                         .wareTemplate(wareTemplate)
@@ -144,7 +119,6 @@ public class WareApprovalConfigService {
 
         log.info("Đã cập nhật {} approval configs cho WareTemplate ID: {}", savedConfigs.size(), wareTemplateId);
 
-        // Return updated list
         List<WareApprovalConfigDTO> configDTOs = savedConfigs.stream()
                 .map(this::convertToDTO)
                 .sorted(Comparator.comparing(WareApprovalConfigDTO::getApprovalOrder))
@@ -165,52 +139,53 @@ public class WareApprovalConfigService {
 
     /**
      * Validate toàn bộ approval configs theo các rules bắt buộc
+     * Throw ResponseStatusException nếu có lỗi
      */
-    private ValidationResult validateApprovalConfigs(Integer wareTemplateId, WareApprovalConfigUpdateRequest request) {
+    private void validateApprovalConfigsOrThrow(Integer wareTemplateId, WareApprovalConfigUpdateRequest request) {
         
-        // Rule 1: Unique approvalOrder
+        // Rule 1: Unique approvalOrder trong request
         Set<Integer> approvalOrders = new HashSet<>();
         for (WareApprovalConfigItemRequest item : request.getConfigs()) {
             if (!approvalOrders.add(item.getApprovalOrder())) {
-                return ValidationResult.invalid("ApprovalOrder bị trùng: " + item.getApprovalOrder() + 
-                        ". Mỗi approvalOrder phải là duy nhất trong WareTemplate.");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                        "ApprovalOrder bị trùng: " + item.getApprovalOrder() + ". Mỗi approvalOrder phải là duy nhất trong WareTemplate.");
             }
         }
 
-        // Rule 2: Unique active approverId
+        // Rule 2: Unique active approverId trong request
         Set<String> activeApproverIds = new HashSet<>();
         for (WareApprovalConfigItemRequest item : request.getConfigs()) {
             if (item.getIsActive()) {
                 if (!activeApproverIds.add(item.getApproverId())) {
-                    return ValidationResult.invalid("ApproverId " + item.getApproverId() + 
-                            " bị trùng trong các config ACTIVE. Một người chỉ được phê duyệt 1 lần.");
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                            "ApproverId " + item.getApproverId() + " bị trùng trong các config ACTIVE. Một người chỉ được phê duyệt 1 lần.");
                 }
             }
         }
 
-        // Rule 3: Validate tất cả approvers exist và active
+        // Rule 3: Validate tất cả approvers phải tồn tại và chưa bị xóa
         for (WareApprovalConfigItemRequest item : request.getConfigs()) {
             Optional<Employee> employee = employeeRepository.findByIdAndDeletedFalse(item.getApproverId());
             if (employee.isEmpty()) {
-                return ValidationResult.invalid("Employee không tồn tại hoặc đã bị xóa: " + item.getApproverId());
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                        "Employee không tồn tại hoặc đã bị xóa: " + item.getApproverId());
             }
         }
 
-        // Rule 4: Validate tất cả configs phải thuộc về WareTemplate này (nếu update)
+        // Rule 4: Validate configs phải thuộc về WareTemplate này (khi update)
         for (WareApprovalConfigItemRequest item : request.getConfigs()) {
             if (item.getId() != null) {
                 Optional<WareTemplateApprovalConfig> existing = approvalConfigRepository.findById(item.getId());
                 if (existing.isEmpty()) {
-                    return ValidationResult.invalid("Approval config không tồn tại: " + item.getId());
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                            "Approval config không tồn tại: " + item.getId());
                 }
                 if (!existing.get().getWareTemplate().getId().equals(wareTemplateId)) {
-                    return ValidationResult.invalid("Approval config ID " + item.getId() + 
-                            " không thuộc WareTemplate " + wareTemplateId);
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                            "Approval config ID " + item.getId() + " không thuộc WareTemplate " + wareTemplateId);
                 }
             }
         }
-
-        return ValidationResult.valid();
     }
 
     /**
@@ -223,36 +198,6 @@ public class WareApprovalConfigService {
                 .approverName(entity.getApprover().getName())
                 .approvalOrder(entity.getApprovalOrder())
                 .isActive(entity.getIsActive())
-                // .roleName(entity.getRoleName()) // future field
                 .build();
-    }
-
-    /**
-     * Helper class cho validation result
-     */
-    private static class ValidationResult {
-        private final boolean valid;
-        private final String message;
-
-        private ValidationResult(boolean valid, String message) {
-            this.valid = valid;
-            this.message = message;
-        }
-
-        public static ValidationResult valid() {
-            return new ValidationResult(true, null);
-        }
-
-        public static ValidationResult invalid(String message) {
-            return new ValidationResult(false, message);
-        }
-
-        public boolean isValid() {
-            return valid;
-        }
-
-        public String getMessage() {
-            return message;
-        }
     }
 }

@@ -35,6 +35,5 @@ public class WareBatchDetailResponse {
     // Timestamps
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
     private WareBatchEnum status;
 }
