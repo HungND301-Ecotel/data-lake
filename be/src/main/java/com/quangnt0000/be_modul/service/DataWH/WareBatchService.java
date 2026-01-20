@@ -4,6 +4,7 @@ import com.quangnt0000.be_modul.dto.PageResponse;
 import com.quangnt0000.be_modul.dto.TWH_Get.GetRequest;
 import com.quangnt0000.be_modul.dto.TWH_Push.PushRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchApproveRequest;
+import com.quangnt0000.be_modul.dto.WareBatch.WareBatchDetailResponse;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchPush;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchRejectRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchRequest;
@@ -284,6 +285,37 @@ public class WareBatchService {
                 )
                 .toList();
         return ResponseEntity.ok(wareBathResponses);
+    }
+
+    /**
+     * API: Lấy detail của WareBatch
+     * GET /wh-batch/{id}
+     * 
+     * Bao gồm thông tin status để xác định được phép push/edit hay không
+     */
+    public ResponseEntity<?> getWareBatchDetail(Integer wareBatchId) {
+        WareBatch wareBatch = wareBatchRepository.findById(wareBatchId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "batch not found"));
+
+        if (wareBatch.getDeleted()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Batch đã bị xóa");
+        }
+
+        WareBatchDetailResponse response = WareBatchDetailResponse.builder()
+                .id(wareBatch.getId())
+                .code(wareBatch.getCode())
+                .name(wareBatch.getName())
+                .description(wareBatch.getDescription())
+                .templateId(wareBatch.getWareTemplate().getId())
+                .templateName(wareBatch.getWareTemplate().getName())
+                .employeeId(wareBatch.getEmployee().getId())
+                .employeeName(wareBatch.getEmployee().getName())
+                .createdAt(wareBatch.getCreatedAt())
+                .updatedAt(wareBatch.getUpdatedAt())
+                .status(wareBatch.getStatus())
+                .build();
+
+        return ResponseEntity.ok(response);
     }
 
     public ResponseEntity<?> search(WareBatchSearch request) {
