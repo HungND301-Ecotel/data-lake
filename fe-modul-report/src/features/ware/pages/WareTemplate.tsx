@@ -22,6 +22,7 @@ import type {
 } from "../types/wareTemplate";
 import type { WareCategoryResponse } from "../types/wareCategory";
 import { useNavigate, useParams } from "react-router-dom";
+import { jwtDecode } from "jwt-decode"; // npm install jwt-decode
 
 const { Panel } = Collapse;
 const { Option } = Select;
@@ -33,6 +34,11 @@ type WareTemplateGroup = {
   templates: WareTemplateResponse[];
 };
 
+type DecodedToken = {
+  role: string;
+  [key: string]: any;
+};
+
 const WareTemplate = () => {
   const [groups, setGroups] = useState<WareTemplateGroup[]>([]);
   const [searchText, setSearchText] = useState("");
@@ -41,8 +47,23 @@ const WareTemplate = () => {
   const [form] = Form.useForm();
   const [messageApi, contextHolderMessage] = message.useMessage();
   const [modal, contextHolderModal] = Modal.useModal();
+  const [userRole, setUserRole] = useState<string | null>(null);
   const { departmentId } = useParams<{ departmentId: string }>();
   const nav = useNavigate();
+
+  // Lấy token và decode để lấy role
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded = jwtDecode<DecodedToken>(token);
+        console.log("Decoded token:", decoded);
+        setUserRole(decoded.role);
+      } catch (err) {
+        console.error("Error decoding token:", err);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -143,13 +164,16 @@ const WareTemplate = () => {
     }
   };
 
+  // Kiểm tra role có phải ADMIN hoặc MANAGER không
+  const canApprove = userRole === "ADMIN" || userRole === "MANAGER";
+
   const columns: ColumnsType<WareTemplateResponse> = [
     { title: "Mã", dataIndex: "code", width: 140 },
     { title: "Tên", dataIndex: "name", width: 220 },
     { title: "Table", dataIndex: "tableName", width: 200 },
     {
       title: "Thao tác",
-      width: 160,
+      width: canApprove ? 240 : 160,
       render: (_: any, record) => (
         <Space>
           <Button
@@ -158,12 +182,23 @@ const WareTemplate = () => {
           >
             Cấu hình
           </Button>
-          <Button
-            size="small"
-            onClick={() => nav(`/ware/template/${record.id}`)}
-          >
-            Nhập Liệu
-          </Button>
+
+          {canApprove ? (
+            <Button
+              size="small"
+              type="primary"
+              onClick={() => nav(`/ware/template/approve/${record.id}`)}
+            >
+              Duyệt
+            </Button>
+          ) : (
+            <Button
+              size="small"
+              onClick={() => nav(`/ware/template/${record.id}`)}
+            >
+              Nhập Liệu
+            </Button>
+          )}
           <Button
             size="small"
             danger

@@ -16,6 +16,7 @@ interface TemplateFormProps {
 interface ApprovalConfig {
   id?: number;
   approverId: string;
+  approverName?: string;
   approvalOrder: number;
   isActive: boolean;
 }
@@ -43,7 +44,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
   const [loadingConfigs, setLoadingConfigs] = useState(false);
   const [isApprovalModalVisible, setIsApprovalModalVisible] = useState(false);
   const [editingApproverIndex, setEditingApproverIndex] = useState<number | null>(null);
-  
+
   const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
   const [loadingEmployees, setLoadingEmployees] = useState(false);
   const [tempApprovers, setTempApprovers] = useState<string[]>([]);
@@ -115,9 +116,9 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
         const email = emp.email || "";
         const id = emp.id || "";
         const searchLower = searchEmployee.toLowerCase();
-        return name.toLowerCase().includes(searchLower) || 
-               email.toLowerCase().includes(searchLower) ||
-               id.toLowerCase().includes(searchLower);
+        return name.toLowerCase().includes(searchLower) ||
+          email.toLowerCase().includes(searchLower) ||
+          id.toLowerCase().includes(searchLower);
       });
       setFilteredEmployees(filtered);
     }
@@ -230,14 +231,33 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
     }
 
     try {
-      const configs = tempApprovers.map((approverId, idx) => ({
-        ...(approvalConfigs[idx]?.id ? { id: approvalConfigs[idx].id } : {}),
+      // Tạo map các approver hiện tại
+      const currentApproverIds = new Set(tempApprovers);
+
+      // Xử lý các config hiện có
+      const updatedConfigs = approvalConfigs.map((config) => {
+        const isStillSelected = currentApproverIds.has(config.approverId);
+        return {
+          id: config.id,
+          approverId: config.approverId,
+          approvalOrder: isStillSelected ? tempApprovers.indexOf(config.approverId) + 1 : config.approvalOrder,
+          isActive: isStillSelected, // Chuyển thành false nếu không còn chọn
+        };
+      });
+
+      // Thêm các approver mới
+      const existingApproverIds = new Set(approvalConfigs.map(c => c.approverId));
+      const newApprovers = tempApprovers.filter(id => !existingApproverIds.has(id));
+
+      const newConfigs = newApprovers.map((approverId) => ({
         approverId,
-        approvalOrder: idx + 1,
+        approvalOrder: tempApprovers.indexOf(approverId) + 1,
         isActive: true,
       }));
 
-      await approvalConfigsApi.update(templateId.toString(), { configs });
+      const allConfigs = [...updatedConfigs, ...newConfigs];
+
+      await approvalConfigsApi.update(templateId.toString(), { configs: allConfigs });
       message.success("Lưu cấu hình thành công");
       setIsApprovalModalVisible(false);
       setEditingApproverIndex(null);
@@ -247,11 +267,6 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
     } catch (err) {
       message.error("Lưu cấu hình thất bại");
     }
-  };
-
-  const getEmployeeName = (employeeId: string) => {
-    const employee = allEmployees.find(emp => emp.id === employeeId);
-    return employee ? employee.name : employeeId;
   };
 
   const getEmployeeInfo = (employeeId: string) => {
@@ -429,7 +444,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                 >
                   <Col span={8}>
                     <label>Người duyệt</label>
-                    <Input value={getEmployeeName(config.approverId)} disabled />
+                    <Input value={config.approverName} disabled />
                   </Col>
                   <Col span={8}>
                     <label>Thứ tự duyệt</label>
@@ -466,7 +481,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
   return (
     <>
       <Tabs defaultActiveKey="1" items={tabItems} />
-      
+
       <Modal
         title={hasApprovalConfigs ? "Chỉnh sửa cấu hình người duyệt" : "Thêm cấu hình người duyệt"}
         open={isApprovalModalVisible}
@@ -480,13 +495,13 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
           <label style={{ display: "block", marginBottom: 8, fontWeight: 500 }}>
             Danh sách người duyệt
           </label>
-          
+
           {tempApprovers.length > 0 ? (
             <div style={{ marginBottom: 20 }}>
               {tempApprovers.map((approverId, idx) => {
                 const employee = getEmployeeInfo(approverId);
                 const isEditing = editingApproverIndex === idx;
-                
+
                 return (
                   <div
                     key={idx}
@@ -500,11 +515,11 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                   >
                     {isEditing ? (
                       <div>
-                        <div style={{ 
-                          display: "flex", 
-                          justifyContent: "space-between", 
+                        <div style={{
+                          display: "flex",
+                          justifyContent: "space-between",
                           alignItems: "center",
-                          marginBottom: 12 
+                          marginBottom: 12
                         }}>
                           <div>
                             <strong>Đang chỉnh sửa: {employee?.name}</strong>
@@ -518,7 +533,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                             Hủy
                           </Button>
                         </div>
-                        
+
                         <Input.Search
                           placeholder="Tìm kiếm nhân viên mới"
                           value={searchEmployee}
@@ -526,12 +541,12 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                           loading={loadingEmployees}
                           style={{ marginBottom: 8 }}
                         />
-                        
+
                         {searchEmployee && filteredEmployees.length > 0 && (
-                          <div style={{ 
-                            border: "1px solid #d9d9d9", 
-                            borderRadius: 4, 
-                            maxHeight: 200, 
+                          <div style={{
+                            border: "1px solid #d9d9d9",
+                            borderRadius: 4,
+                            maxHeight: 200,
                             overflowY: "auto"
                           }}>
                             {filteredEmployees.map(emp => (
@@ -557,10 +572,10 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                         )}
                       </div>
                     ) : (
-                      <div style={{ 
-                        display: "flex", 
-                        justifyContent: "space-between", 
-                        alignItems: "center" 
+                      <div style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center"
                       }}>
                         <div>
                           <div><strong>{employee?.name || approverId}</strong></div>
@@ -611,12 +626,12 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                 loading={loadingEmployees}
                 style={{ marginBottom: 8 }}
               />
-              
+
               {searchEmployee && filteredEmployees.length > 0 && (
-                <div style={{ 
-                  border: "1px solid #d9d9d9", 
-                  borderRadius: 4, 
-                  maxHeight: 200, 
+                <div style={{
+                  border: "1px solid #d9d9d9",
+                  borderRadius: 4,
+                  maxHeight: 200,
                   overflowY: "auto",
                   marginBottom: 8
                 }}>
@@ -642,7 +657,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                 </div>
               )}
 
-              <Button 
+              <Button
                 type="primary"
                 className="bg-[#1a8649]! hover:bg-[#15703d]!"
                 onClick={handleAddNewApprover}

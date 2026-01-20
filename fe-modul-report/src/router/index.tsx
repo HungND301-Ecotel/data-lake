@@ -22,6 +22,7 @@ import { WareBatchDetail } from "../features/ware/pages/WareBatchDetail";
 import DashboardWare from "../features/ware/pages/WareBatchDasboard";
 import SearchMasterData from "../features/ware/pages/WareMasterData";
 import ReportTargetsPage from "../features/dashboard/pages/ReportTarget";
+import { WareBatchForManagement } from "../features/ware/pages/WareBatchForManage";
 
 export const router = createBrowserRouter([
   {
@@ -37,6 +38,7 @@ export const router = createBrowserRouter([
       { path: "/search/master", element: <SearchMasterData /> },
       { path: "/ware/department/:departmentId", element: <WareTemplate /> },
       { path: "/ware/template/:templateId", element: <WareBatch /> },
+      { path: "/ware/template/approve/:templateId", element: <WareBatchForManagement /> },
       { path: "/ware/template/detail/:templateId", element: <TemplateDetail /> },
       { path: "/ware/batch/:wareBatchId", element: <WareBatchDetail /> },
 

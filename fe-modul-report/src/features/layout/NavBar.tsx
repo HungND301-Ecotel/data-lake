@@ -50,23 +50,6 @@ export default function NavBar() {
     />
   );
 
-  const dataEntryMenu = (
-    <Menu
-      items={[
-        {
-          key: "ware",
-          label: "Nhập dữ liệu",
-          onClick: () => navigate("/ware"),
-        },
-        {
-          key: "review",
-          label: "Duyệt dữ liệu",
-          onClick: () => navigate("/review"),
-        },
-      ]}
-    />
-  );
-
   const accountMenu = (
     <Menu
       items={[
@@ -115,14 +98,14 @@ export default function NavBar() {
         </Button>
       </Dropdown>
 
-      <Dropdown overlay={dataEntryMenu}>
+      <Link to="/ware">
         <Button
           type="text"
           className="text-white! hover:text-white! hover:bg-green-600"
         >
-          Nhập dữ liệu <DownOutlined />
+          Nhập dữ liệu
         </Button>
-      </Dropdown>
+      </Link>
 
       <Link to="/search/master">
         <Button
