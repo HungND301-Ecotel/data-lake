@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface WareMappingRepository extends JpaRepository<WareMapping, Integer> {
-    List<WareMapping> findByWareTemplate_Id(Integer wareTemplateId);
+    List<WareMapping> findByWareTemplate_IdOrderByIdAsc(Integer wareTemplateId);
 
 
 
