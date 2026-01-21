@@ -27,5 +27,16 @@ public interface WareBatchApprovalRepository extends JpaRepository<WareBatchAppr
            "AND w.wareBatch.deleted = false " +
            "ORDER BY w.wareBatch.createdAt DESC")
     List<WareBatchApproval> findByApproverId(@Param("approverId") String approverId);
+    
+    /**
+     * Lấy approval của một user cụ thể cho một batch cụ thể
+     * Sử dụng để kiểm tra trạng thái phê duyệt của user hiện tại
+     */
+    @Query("SELECT w FROM WareBatchApproval w " +
+           "WHERE w.wareBatch.id = :wareBatchId " +
+           "AND w.approver.id = :approverId")
+    java.util.Optional<WareBatchApproval> findByWareBatchIdAndApproverId(
+            @Param("wareBatchId") Integer wareBatchId, 
+            @Param("approverId") String approverId);
 }
 

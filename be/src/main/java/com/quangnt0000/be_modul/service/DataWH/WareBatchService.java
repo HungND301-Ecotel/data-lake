@@ -290,16 +290,24 @@ public class WareBatchService {
     /**
      * API: Lấy detail của WareBatch
      * GET /wh-batch/{id}
-     * 
      * Bao gồm thông tin status để xác định được phép push/edit hay không
      */
     public ResponseEntity<?> getWareBatchDetail(Integer wareBatchId) {
+        String employeeId = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findById(employeeId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "user not found"));
         WareBatch wareBatch = wareBatchRepository.findById(wareBatchId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "batch not found"));
 
         if (wareBatch.getDeleted()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Batch đã bị xóa");
         }
+
+        // Lấy trạng thái phê duyệt của user hiện tại
+        WareBatchEnum myApprovalStatus = batchApprovalRepository
+                .findByWareBatchIdAndApproverId(wareBatchId, user.getEmployee().getId())
+                .map(WareBatchApproval::getStatus)
+                .orElse(null);
 
         WareBatchDetailResponse response = WareBatchDetailResponse.builder()
                 .id(wareBatch.getId())
@@ -313,6 +321,7 @@ public class WareBatchService {
                 .createdAt(wareBatch.getCreatedAt())
                 .updatedAt(wareBatch.getUpdatedAt())
                 .status(wareBatch.getStatus())
+                .myApprovalStatus(myApprovalStatus)
                 .build();
 
         return ResponseEntity.ok(response);
@@ -579,7 +588,6 @@ public class WareBatchService {
     /**
      * API: Lấy danh sách WareBatch của người duyệt hiện tại
      * GET /wh-batch/my-approvals
-     * 
      * Trả về TẤT CẢ batch mà user tham gia phê duyệt,
      * kèm theo đầy đủ context để FE quyết định hiển thị
      */

@@ -36,4 +36,6 @@ public class WareBatchDetailResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private WareBatchEnum status;
+    
+    private WareBatchEnum myApprovalStatus;
 }
