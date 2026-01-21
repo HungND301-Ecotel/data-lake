@@ -5,31 +5,45 @@ import {
   LogoutOutlined,
   ProfileOutlined,
   ArrowLeftOutlined,
+  HomeOutlined,
+  AppstoreOutlined,
+  TeamOutlined,
+  FileTextOutlined,
+  IdcardOutlined,
+  FormOutlined,
+  BarChartOutlined,
 } from "@ant-design/icons";
 import { Button, Dropdown, Menu } from "antd";
 
 export default function NavBar() {
   const navigate = useNavigate();
-  
+
   const categoryMenu = (
     <Menu
       items={[
         {
           key: "departments",
-          label: "Danh mục phòng ban",
+          icon: <TeamOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Danh mục phòng ban</span>,
           onClick: () => navigate("/category/departments"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
         },
         {
           key: "ware",
-          label: "Danh mục báo cáo",
+          icon: <FileTextOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Danh mục báo cáo</span>,
           onClick: () => navigate("/category/ware"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
         },
         {
           key: "employee",
-          label: "Danh mục tài khoản",
+          icon: <IdcardOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Danh mục tài khoản</span>,
           onClick: () => navigate("/employee"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
         },
       ]}
+      className="rounded-xl! shadow-2xl! min-w-[260px] py-2"
     />
   );
 
@@ -38,72 +52,94 @@ export default function NavBar() {
       items={[
         {
           key: "profile",
-          icon: <ProfileOutlined />,
-          label: "Hồ sơ cá nhân",
+          icon: <ProfileOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Hồ sơ cá nhân</span>,
           onClick: () => navigate("/employee/profile"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
         },
-        { type: "divider" },
+        { type: "divider", className: "my-2" },
         {
           key: "logout",
-          icon: <LogoutOutlined />,
+          icon: <LogoutOutlined className="text-lg" />,
           danger: true,
-          label: "Đăng xuất",
+          label: <span className="text-base font-medium">Đăng xuất</span>,
           onClick: () => navigate("/login"),
+          className: "py-3 px-4 hover:bg-[#fff1f0]!",
         },
       ]}
+      className="rounded-xl! shadow-2xl! min-w-[220px] py-2"
     />
   );
-  
+
   return (
-    <nav className="top-0 z-50 bg-[#1a8649] flex items-center px-6 py-2 gap-2 shadow-md">
+    <nav className="top-0 z-50 bg-[#1a8649] flex items-center px-8 py-3 gap-2 shadow-lg border-b border-[#0a5232]">
+      {/* Back Button */}
       <Button
         type="text"
-        icon={<ArrowLeftOutlined />}
+        icon={<ArrowLeftOutlined className="text-xl" />}
         onClick={() => navigate(-1)}
-        className="text-white! hover:text-white! hover:bg-green-600"
-      ></Button>
+        className="text-white! border-0! bg-transparent! hover:bg-white/15! transition-all duration-300 rounded-lg"
+        size="large"
+      />
 
+      {/* Home */}
       <Link to="/dashboard">
         <Button
           type="text"
-          className="text-white! hover:text-white! hover:bg-white"
+          icon={<HomeOutlined className="text-lg mr-2" />}
+          className="text-white! border-0! bg-transparent! font-semibold text-base tracking-wide hover:bg-white/15! transition-all duration-300 rounded-lg"
+          size="large"
         >
           Trang chủ
         </Button>
       </Link>
 
-      <Dropdown overlay={categoryMenu}>
+      {/* System Dropdown */}
+      <Dropdown overlay={categoryMenu} placement="bottomLeft">
         <Button
           type="text"
-          className="text-white! hover:text-white! hover:bg-green-600"
+          icon={<AppstoreOutlined className="text-lg mr-2" />}
+          className="text-white! border-0! bg-transparent! font-semibold text-base tracking-wide hover:bg-white/15! transition-all duration-300 rounded-lg cursor-pointer group"
+          size="large"
         >
-          Hệ thống <DownOutlined />
+          <span>Hệ thống</span>
+          <DownOutlined className="text-xs ml-2 group-hover:translate-y-0.5 transition-transform duration-300" />
         </Button>
       </Dropdown>
 
+      {/* Data Input */}
       <Link to="/ware">
         <Button
           type="text"
-          className="text-white! hover:text-white! hover:bg-green-600"
+          icon={<FormOutlined className="text-lg mr-2" />}
+          className="text-white! border-0! bg-transparent! font-semibold text-base tracking-wide hover:bg-white/15! transition-all duration-300 rounded-lg"
+          size="large"
         >
           Nhập dữ liệu
         </Button>
       </Link>
 
+      {/* Reports */}
       <Link to="/search/master">
         <Button
           type="text"
-          className="text-white! hover:text-white! hover:bg-green-600"
+          icon={<BarChartOutlined className="text-lg mr-2" />}
+          className="text-white! border-0! bg-transparent! font-semibold text-base tracking-wide hover:bg-white/15! transition-all duration-300 rounded-lg"
+          size="large"
         >
           Báo cáo tác nghiệp
         </Button>
       </Link>
 
+      {/* Account Menu */}
       <div className="ml-auto">
         <Dropdown overlay={accountMenu} placement="bottomRight">
-          <Button type="text" className="text-white!">
-            <UserOutlined />
-          </Button>
+          <Button
+            type="text"
+            icon={<UserOutlined className="text-xl" />}
+            className="text-white! border-0! bg-transparent! hover:bg-white/15! transition-all duration-300 rounded-lg h-10 w-10"
+            size="large"
+          />
         </Dropdown>
       </div>
     </nav>

@@ -11,6 +11,9 @@ import {
   Radio,
   Alert,
   Space,
+  Card,
+  Tag,
+  Tooltip,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useParams } from "react-router-dom";
@@ -21,6 +24,14 @@ import type { WareDataRowResponse } from "../types/wareDataRow";
 import type { WareMappingResponse } from "../types/wareMapping";
 import type { WareBatchResponse } from "../types/wareBacth";
 import { jwtDecode } from "jwt-decode";
+import {
+  CheckCircleOutlined,
+  SearchOutlined,
+  CloudUploadOutlined,
+  CheckOutlined,
+  CloseOutlined,
+  ReloadOutlined,
+} from "@ant-design/icons";
 
 type DecodedToken = {
   role: string;
@@ -47,7 +58,6 @@ export const WareBatchDetail: React.FC = () => {
   const [form] = Form.useForm();
   const [rejectForm] = Form.useForm();
 
-  // Lấy token và decode để lấy role
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -107,18 +117,30 @@ export const WareBatchDetail: React.FC = () => {
   }, [wareBatchId, keyword]);
 
   const defaultColumns: ColumnsType<WareDataRowResponse> = [
-    { title: "ID", dataIndex: "id", key: "id", width: 60 },
+    {
+      title: "ID",
+      dataIndex: "id",
+      key: "id",
+      width: 80,
+      render: (text: number) => (
+        <span className="font-medium text-gray-800">#{text}</span>
+      ),
+    },
     {
       title: "Ngày tạo",
       dataIndex: "createdAt",
       key: "createdAt",
-      render: (value: string) => formatVNDate(value),
+      render: (value: string) => (
+        <span className="text-gray-600 text-sm">{formatVNDate(value)}</span>
+      ),
     },
     {
       title: "Cập nhật",
       dataIndex: "updatedAt",
       key: "updatedAt",
-      render: (value: string) => formatVNDate(value),
+      render: (value: string) => (
+        <span className="text-gray-600 text-sm">{formatVNDate(value)}</span>
+      ),
     },
   ];
 
@@ -127,7 +149,11 @@ export const WareBatchDetail: React.FC = () => {
       title: m.fieldTitle || m.fieldName,
       dataIndex: ["data", m.fieldName],
       key: m.fieldName,
-      render: (value) => (value == null ? "" : value.toString()),
+      render: (value) => (
+        <span className="text-gray-700">
+          {value == null ? "-" : value.toString()}
+        </span>
+      ),
     })
   );
 
@@ -171,14 +197,15 @@ export const WareBatchDetail: React.FC = () => {
     }
   };
 
-
   const handleApprove = async () => {
     if (!wareBatchId) return;
     modal.confirm({
       title: "Duyệt batch",
+      icon: <CheckCircleOutlined />,
       content: "Bạn có chắc chắn muốn duyệt batch này?",
       okText: "Duyệt",
       cancelText: "Hủy",
+      okType: "primary",
       onOk: async () => {
         try {
           await wareBatchApi.approveBatch(wareBatchId);
@@ -212,11 +239,40 @@ export const WareBatchDetail: React.FC = () => {
   const canApprove = userRole === "ADMIN" || userRole === "MANAGER";
   const isPending = batchDetail?.status === "Cho_Phe_Duyet";
   const isRejected = batchDetail?.status === "Tu_Choi_Phe_Duyet";
-
   const isMyApprovalPending = batchDetail?.myApprovalStatus === "Cho_Phe_Duyet";
 
+  const getStatusBadge = (status: string) => {
+    const statusConfig: {
+      [key: string]: { color: string; label: string };
+    } = {
+      Cho_Phe_Duyet: {
+        color: "orange",
+        label: "Chờ duyệt",
+      },
+      Da_Phe_Duyet: {
+        color: "success",
+        label: "Đã duyệt",
+      },
+      Tu_Choi_Phe_Duyet: {
+        color: "error",
+        label: "Từ chối",
+      },
+    };
+
+    const config = statusConfig[status] || {
+      color: "default",
+      label: status,
+    };
+
+    return (
+      <Tag color={config.color} className="px-3 py-1 text-sm font-medium">
+        {config.label}
+      </Tag>
+    );
+  };
+
   return (
-    <div className="px-4 py-4 min-h-screen">
+    <div className="px-6 py-6 bg-linear-to-br from-gray-50 to-gray-100 min-h-screen">
       {contextHolderMessage}
       {contextHolderModal}
 
@@ -224,74 +280,170 @@ export const WareBatchDetail: React.FC = () => {
         <Alert
           message="Batch này đã bị từ chối duyệt"
           type="error"
-          style={{ marginBottom: 16 }}
+          showIcon
           closable
+          className="mb-6 rounded-lg"
         />
       )}
 
-      <Row style={{ marginBottom: 16 }} gutter={8} align="middle">
-        <Col span={6}>
-          <Input
-            placeholder="Tìm kiếm theo ID ... "
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            onPressEnter={fetchRows}
-          />
-        </Col>
-        <Col>
-          {canApprove && isPending && isMyApprovalPending ? (
-            <Space>
-              <Button
-                type="primary"
-                style={{ backgroundColor: "#52c41a" }}
-                onClick={handleApprove}
-              >
-                Duyệt
-              </Button>
-              <Button
-                danger
-                onClick={handleRejectClick}
-              >
-                Từ chối
-              </Button>
-            </Space>
-          ) : !isRejected && !isPending ? (
-            <Button
-              type="primary"
-              className="bg-[#1a8649]! hover:bg-[#15703d]!"
-              onClick={handlePushClick}
-            >
-              Upload dữ liệu TKV
-            </Button>
-          ) : null}
-        </Col>
-      </Row>
+      <Card className="shadow-sm border-0 rounded-xl mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="bg-linear-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
+            <p className="text-gray-600 text-sm font-medium mb-1">Mã Batch</p>
+            <p className="text-gray-900 font-semibold text-lg">
+              {batchDetail?.code || "-"}
+            </p>
+          </div>
+          <div className="bg-linear-to-br from-purple-50 to-purple-100 p-4 rounded-lg">
+            <p className="text-gray-600 text-sm font-medium mb-1">Tên Batch</p>
+            <p className="text-gray-900 font-semibold text-lg">
+              {batchDetail?.name || "-"}
+            </p>
+          </div>
+          <div className="bg-linear-to-br from-green-50 to-green-100 p-4 rounded-lg">
+            <p className="text-gray-600 text-sm font-medium mb-1">Trạng thái</p>
+            <div className="mt-2">
+              {batchDetail?.status && getStatusBadge(batchDetail.status)}
+            </div>
+          </div>
+        </div>
 
-      <div className="overflow-auto">
-        <Table
-          rowKey={(record) => record.id ?? Math.random()}
-          columns={columns}
-          dataSource={rows}
-          loading={loading}
-          pagination={false}
-        />
-      </div>
+        <Row gutter={[16, 16]} align="middle">
+          <Col xs={24} sm={12} lg={19}>
+            <Input
+              placeholder="Tìm kiếm theo ID..."
+              prefix={<SearchOutlined className="text-gray-400" />}
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              onPressEnter={fetchRows}
+              size="large"
+              className="rounded-lg"
+            />
+          </Col>
+          <Col xs={24} sm={12} lg={5} className="text-start">
+            <Space>
+              <Tooltip title="Tải lại dữ liệu">
+                <Button
+                  size="large"
+                  icon={<ReloadOutlined />}
+                  onClick={fetchRows}
+                  loading={loading}
+                  className="h-10 px-6"
+                >
+                  Tải lại
+                </Button>
+              </Tooltip>
+
+              {canApprove && isPending && isMyApprovalPending ? (
+                <>
+                  <Tooltip title="Duyệt batch này">
+                    <Button
+                      type="primary"
+                      size="large"
+                      icon={<CheckOutlined />}
+                      onClick={handleApprove}
+                      className="bg-green-600! hover:bg-green-700! h-10 px-6"
+                    >
+                      Duyệt
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="Từ chối batch này">
+                    <Button
+                      danger
+                      size="large"
+                      icon={<CloseOutlined />}
+                      onClick={handleRejectClick}
+                      className="h-10 px-6"
+                    >
+                      Từ chối
+                    </Button>
+                  </Tooltip>
+                </>
+              ) : !isRejected && !isPending ? (
+                <Tooltip title="Upload dữ liệu lên TKV">
+                  <Button
+                    type="primary"
+                    size="large"
+                    icon={<CloudUploadOutlined />}
+                    onClick={handlePushClick}
+                    className="bg-blue-600! hover:bg-blue-700! h-10 px-6"
+                  >
+                    Upload dữ liệu
+                  </Button>
+                </Tooltip>
+              ) : null}
+            </Space>
+          </Col>
+        </Row>
+      </Card>
+
+      <Card className="shadow-sm border-0 rounded-xl">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100">
+            <SearchOutlined className="text-blue-600 text-lg" />
+          </div>
+          <h2 className="text-xl font-bold text-gray-800 m-0">
+            Dữ liệu chi tiết ({rows.length})
+          </h2>
+        </div>
+
+        <div className="overflow-x-auto rounded-lg border border-gray-200">
+          <Table
+            rowKey={(record) => record.id ?? Math.random()}
+            columns={columns}
+            dataSource={rows}
+            loading={loading}
+            pagination={false}
+            size="middle"
+            bordered
+            rowClassName={(index: any) =>
+              index % 2 === 0
+                ? "bg-white hover:bg-gray-50 transition-colors"
+                : "bg-gray-50 hover:bg-gray-100 transition-colors"
+            }
+            scroll={{ x: 1300 }}
+          />
+        </div>
+
+        {rows.length === 0 && !loading && (
+          <div className="text-center py-16 bg-gray-50 rounded-lg mt-4">
+            <SearchOutlined className="text-4xl text-gray-300 mb-3" />
+            <p className="text-gray-500 text-lg">Không có dữ liệu</p>
+          </div>
+        )}
+      </Card>
 
       <Modal
-        title="Upload dữ liệu"
+        title={
+          <div className="flex items-center gap-3 pb-3 border-b">
+            <div className="w-10 h-10 flex items-center justify-center bg-blue-100">
+              <CloudUploadOutlined className="text-blue-600 text-lg" />
+            </div>
+            <div className="text-lg font-semibold text-gray-800">
+              Upload dữ liệu TKV
+            </div>
+          </div>
+        }
         open={pushModalVisible}
         onCancel={() => setPushModalVisible(false)}
         footer={null}
+        width={600}
       >
-        <Form layout="vertical" form={form} onFinish={handlePushConfirm}>
+        <Form
+          layout="vertical"
+          form={form}
+          onFinish={handlePushConfirm}
+          className="py-4"
+        >
           <Form.Item
-            label="Xoá dữ liệu cũ"
+            label={<span className="font-medium text-gray-800">Xoá dữ liệu cũ</span>}
             name="deleteMissing"
-            rules={[{ required: true, message: "Chọn có hoặc không!" }]}
+            rules={[{ required: true, message: "Vui lòng chọn có hoặc không!" }]}
           >
             <Radio.Group
               onChange={(e) => setDeleteMissing(e.target.value)}
               value={deleteMissing}
+              className="text-gray-700"
             >
               <Radio value={true}>Có</Radio>
               <Radio value={false}>Không</Radio>
@@ -299,23 +451,38 @@ export const WareBatchDetail: React.FC = () => {
           </Form.Item>
 
           <Form.Item
-            label="Tên đăng nhập"
+            label={<span className="font-medium text-gray-800">Tên đăng nhập</span>}
             name="username"
-            rules={[{ required: true, message: "Nhập username!" }]}
+            rules={[{ required: true, message: "Vui lòng nhập username!" }]}
           >
-            <Input />
+            <Input
+              placeholder="Nhập tên đăng nhập"
+              size="large"
+              className="rounded-lg"
+            />
           </Form.Item>
 
           <Form.Item
-            label="Mật khẩu"
+            label={<span className="font-medium text-gray-800">Mật khẩu</span>}
             name="password"
-            rules={[{ required: true, message: "Nhập password!" }]}
+            rules={[{ required: true, message: "Vui lòng nhập password!" }]}
           >
-            <Input.Password />
+            <Input.Password
+              placeholder="Nhập mật khẩu"
+              size="large"
+              className="rounded-lg"
+            />
           </Form.Item>
 
           <Form.Item>
-            <Button type="primary" htmlType="submit">
+            <Button
+              type="primary"
+              htmlType="submit"
+              block
+              size="large"
+              icon={<CloudUploadOutlined />}
+              className="bg-green-600! hover:bg-green-700! h-11 font-medium rounded-lg"
+            >
               Upload dữ liệu
             </Button>
           </Form.Item>
@@ -323,27 +490,83 @@ export const WareBatchDetail: React.FC = () => {
       </Modal>
 
       <Modal
-        title="Từ chối batch"
+        title={
+          <div className="flex items-center gap-3 pb-3 border-b">
+            <div className="w-10 h-10 flex items-center justify-center bg-red-100">
+              <CloseOutlined className="text-red-600 text-lg" />
+            </div>
+            <div className="text-lg font-semibold text-gray-800">
+              Từ chối batch
+            </div>
+          </div>
+        }
         open={rejectModalVisible}
         onCancel={() => setRejectModalVisible(false)}
         footer={null}
+        width={600}
       >
-        <Form layout="vertical" form={rejectForm} onFinish={handleRejectConfirm}>
+        <Form
+          layout="vertical"
+          form={rejectForm}
+          onFinish={handleRejectConfirm}
+          className="py-4"
+        >
           <Form.Item
-            label="Lý do từ chối"
+            label={<span className="font-medium text-gray-800">Lý do từ chối</span>}
             name="reason"
-            rules={[{ required: true, message: "Vui lòng nhập lý do!" }]}
+            rules={[{ required: true, message: "Vui lòng nhập lý do từ chối!" }]}
           >
-            <Input.TextArea rows={4} />
+            <Input.TextArea
+              rows={4}
+              placeholder="Nhập lý do từ chối batch"
+              className="rounded-lg"
+            />
           </Form.Item>
 
           <Form.Item>
-            <Button type="primary" htmlType="submit" danger>
-              Từ chối
+            <Button
+              danger
+              htmlType="submit"
+              block
+              size="large"
+              icon={<CloseOutlined />}
+              className="h-11 font-medium rounded-lg"
+            >
+              Từ chối batch
             </Button>
           </Form.Item>
         </Form>
       </Modal>
+
+      <style>{`
+        .bg-linear-to-br {
+          background: linear-gradient(to bottom right, #f9fafb, #f3f4f6);
+        }
+        .ant-table-cell {
+          padding: 12px !important;
+        }
+        .ant-table-header .ant-table-cell {
+          background: linear-gradient(to right, #f3f4f6, #e5e7eb);
+          font-weight: 600;
+          color: #374151;
+        }
+        .ant-table-row {
+          transition: all 0.2s ease;
+        }
+        .ant-table-row:hover {
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        .ant-input:focus,
+        .ant-input-affix-wrapper:focus,
+        .ant-input-affix-wrapper-focused {
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+        .ant-input-password:focus-within {
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+      `}</style>
     </div>
   );
 };

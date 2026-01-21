@@ -9,6 +9,8 @@ import {
   message,
   Space,
   Tooltip,
+  Card,
+  Tag,
 } from "antd";
 import type { UploadFile } from "antd/es/upload/interface";
 import type { ColumnsType } from "antd/es/table";
@@ -26,7 +28,10 @@ import {
   DeleteOutlined,
   EditOutlined,
   ExclamationCircleOutlined,
-  // EyeOutlined,
+  PlusOutlined,
+  SearchOutlined,
+  FileTextOutlined,
+  ReloadOutlined,
 } from "@ant-design/icons";
 
 const { Search } = Input;
@@ -94,7 +99,7 @@ export const WareBatch: React.FC = () => {
     modal.confirm({
       title: "Xác nhận xóa",
       icon: <ExclamationCircleOutlined />,
-      content: "Bạn có chắc chắn muốn xóa template này?",
+      content: "Bạn có chắc chắn muốn xóa batch này?",
       okType: "danger",
       onOk: async () => {
         try {
@@ -130,89 +135,92 @@ export const WareBatch: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const statusConfig: {
-      [key: string]: { bg: string; text: string; label: string };
+      [key: string]: { color: string; label: string };
     } = {
       Cho_Phe_Duyet: {
-        bg: "#ff9c6e",
-        text: "#fff",
+        color: "orange",
         label: "Chờ duyệt",
       },
       Da_Phe_Duyet: {
-        bg: "#52c41a",
-        text: "#fff",
+        color: "success",
         label: "Đã duyệt",
       },
       Tu_Choi_Phe_Duyet: {
-        bg: "#ff4d4f",
-        text: "#fff",
+        color: "error",
         label: "Từ chối",
       },
     };
 
     const config = statusConfig[status] || {
-      bg: "#d9d9d9",
-      text: "#000",
+      color: "default",
       label: status,
     };
 
     return (
-      <span
-        style={{
-          display: "inline-block",
-          padding: "4px 12px",
-          borderRadius: "12px",
-          backgroundColor: config.bg,
-          color: config.text,
-          fontWeight: "500",
-          fontSize: "12px",
-        }}
-      >
+      <Tag color={config.color} className="px-3 py-1 text-sm font-medium">
         {config.label}
-      </span>
+      </Tag>
     );
   };
 
   const columns: ColumnsType<WareBatchResponse> = [
-    { title: "Mã", dataIndex: "code", key: "code" },
-    { title: "Tên", dataIndex: "name", key: "name" },
-    { title: "Mô tả", dataIndex: "description", key: "description" },
-    { title: "Người tạo", dataIndex: "employeeName", key: "employeeName" },
+    {
+      title: "Mã",
+      dataIndex: "code",
+      key: "code",
+      render: (text: string) => (
+        <span className="font-medium text-gray-800">{text}</span>
+      ),
+    },
+    {
+      title: "Tên",
+      dataIndex: "name",
+      key: "name",
+      render: (text: string) => <span className="text-gray-700">{text}</span>,
+    },
+    {
+      title: "Mô tả",
+      dataIndex: "description",
+      key: "description",
+      render: (text: string) => (
+        <span className="text-gray-600 line-clamp-2">{text || "-"}</span>
+      ),
+    },
+    {
+      title: "Người tạo",
+      dataIndex: "employeeName",
+      key: "employeeName",
+      render: (text: string) => <span className="text-gray-700">{text}</span>,
+    },
     {
       title: "Ngày tạo",
       dataIndex: "createdAt",
       key: "createdAt",
-      render: (value: string) => formatVNDate(value),
+      render: (value: string) => (
+        <span className="text-gray-600 text-sm">{formatVNDate(value)}</span>
+      ),
     },
     {
       title: "Upload",
       dataIndex: "isPushed",
       key: "isPushed",
       align: "center",
+      width: 100,
       render: (value: boolean, record) => (
         <Tooltip title={value ? "Đã đẩy dữ liệu" : "Chưa đẩy dữ liệu"}>
           {value ? (
             <CheckCircleOutlined
-              style={{
-                fontSize: 18,
-                color: "#52c41a",
-                cursor: "pointer",
-              }}
+              className="text-lg text-green-600 cursor-pointer hover:text-green-700 transition-colors"
               onClick={() => handleEyeClick(record)}
             />
           ) : (
-            <CloseCircleOutlined
-              style={{
-                fontSize: 18,
-                color: "#ff4d4f",
-                cursor: "pointer",
-              }}
-            />
+            <CloseCircleOutlined className="text-lg text-red-600 cursor-pointer hover:text-red-700 transition-colors" />
           )}
         </Tooltip>
       ),
     },
     {
-      title: "Trạng thái duyệt",
+      title: "Trạng thái",
       dataIndex: "wareBatchStatus",
       key: "wareBatchStatus",
       render: (status: string) => getStatusBadge(status),
@@ -221,105 +229,241 @@ export const WareBatch: React.FC = () => {
       title: "Thao tác",
       key: "action",
       align: "center",
+      width: 140,
       render: (_, record) => (
         <Space>
-          <Button
-            type="link"
-            icon={<EditOutlined />}
-            onClick={() => nav(`/ware/batch/${record.id}`)}
-          >
-            Xem
-          </Button>
-          <Button
-            type="link"
-            icon={<DeleteOutlined />}
-            onClick={() => handleDelete(record.id!)}
-            danger
-          >
-            Xóa
-          </Button>
-          {/* <Tooltip title="Xem chi tiết">
-            <EyeOutlined
-              style={{
-                fontSize: 18,
-                cursor: "pointer",
-                color: "#1677ff",
-              }}
-              onClick={() => handleEyeClick(record)}
-            />
-          </Tooltip> */}
+          <Tooltip title="Xem chi tiết">
+            <Button
+              type="primary"
+              icon={<EditOutlined />}
+              onClick={() => nav(`/ware/batch/${record.id}`)}
+              className="bg-green-600! hover:bg-green-700!"
+              size="large"
+            >
+              Xem
+            </Button>
+          </Tooltip>
+          <Tooltip title="Xóa batch">
+            <Button
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => handleDelete(record.id!)}
+              size="large"
+            >
+              Xóa
+            </Button>
+          </Tooltip>
         </Space>
       ),
     },
   ];
 
   return (
-    <div>
+    <div className="px-6 py-6 bg-linear-to-br from-gray-50 to-gray-100 min-h-screen">
       {contextHolderMessage}
       {contextHolderModal}
-      <div className="flex px-4 py-4 items-center gap-4 mb-4 w-full">
-        <Search
-          placeholder="Tìm kiếm batch"
-          onSearch={(value) => setSearchKeyword(value)}
-          allowClear
-          className="flex-1"
-        />
-        <Button
-          type="primary"
-          className="bg-[#1a8649]! hover:bg-[#15703d]!"
-          onClick={() => setIsModalOpen(true)}
-        >
-          + Thêm dữ liệu
-        </Button>
-      </div>
 
-      <div className="overflow-auto">
-        <Table
-          rowKey="id"
-          columns={columns}
-          dataSource={batches}
-          loading={loading}
-          pagination={{
-            current: page + 1,
-            pageSize: limit,
-            total: total,
-            onChange: (pageNumber) => setPage(pageNumber - 1),
-          }}
-        />
-      </div>
+      <Card className="shadow-sm border-0 rounded-xl mb-6">
+        <div className="flex justify-between items-center gap-4">
+          <div className="flex items-center gap-3 flex-1">
+            <Search
+              placeholder="Tìm kiếm theo mã, tên hoặc mô tả..."
+              onSearch={(value) => setSearchKeyword(value || null)}
+              allowClear
+              size="large"
+              prefix={<SearchOutlined className="text-gray-400" />}
+              className="flex-1 rounded-lg"
+              enterButton={
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                  Tìm kiếm
+                </Button>
+              }
+            />
+          </div>
+          <Button
+            type="primary"
+            size="large"
+            icon={<PlusOutlined />}
+            onClick={() => setIsModalOpen(true)}
+            className="bg-green-600! hover:bg-green-700! h-10 px-6"
+          >
+            Thêm dữ liệu
+          </Button>
+        </div>
+      </Card>
+
+      <Card className="shadow-sm border-0 rounded-xl">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100">
+              <FileTextOutlined className="text-blue-600 text-lg" />
+            </div>
+            <h1 className="text-xl font-bold text-gray-800 m-0">
+              Danh sách Batch
+            </h1>
+          </div>
+          <Button
+            size="large"
+            icon={<ReloadOutlined />}
+            onClick={() => fetchBatches()}
+            loading={loading}
+            className="h-10 px-6"
+          >
+            Tải lại
+          </Button>
+        </div>
+
+        <div className="overflow-x-auto rounded-lg border border-gray-200">
+          <Table
+            rowKey="id"
+            columns={columns}
+            dataSource={batches}
+            loading={loading}
+            pagination={{
+              current: page + 1,
+              pageSize: limit,
+              total: total,
+              onChange: (pageNumber) => setPage(pageNumber - 1),
+              showSizeChanger: true,
+              showTotal: (total) => `Tổng cộng ${total} batch`,
+              pageSizeOptions: [10, 20, 50],
+            }}
+            size="middle"
+            bordered
+            rowClassName={(index: any) =>
+              index % 2 === 0
+                ? "bg-white hover:bg-gray-50 transition-colors"
+                : "bg-gray-50 hover:bg-gray-100 transition-colors"
+            }
+            scroll={{ x: 1200 }}
+          />
+        </div>
+
+        {batches.length === 0 && !loading && (
+          <div className="text-center py-16 bg-gray-50 rounded-lg mt-4">
+            <FileTextOutlined className="text-4xl text-gray-300 mb-3" />
+            <p className="text-gray-500 text-lg mb-6">Không có batch nào</p>
+            <Button
+              type="primary"
+              size="large"
+              icon={<PlusOutlined />}
+              onClick={() => setIsModalOpen(true)}
+              className="bg-green-600! hover:bg-green-700! h-11 px-8"
+            >
+              Thêm batch mới
+            </Button>
+          </div>
+        )}
+      </Card>
 
       <Modal
-        title="Thêm Batch"
+        title={
+          <div className="flex items-center gap-3 pb-3 border-b">
+            <div className="w-10 h-10 flex items-center justify-center bg-green-100">
+              <PlusOutlined className="text-green-600 text-lg" />
+            </div>
+            <div className="text-lg font-semibold text-gray-800">
+              Thêm Batch
+            </div>
+          </div>
+        }
         open={isModalOpen}
-        onCancel={() => setIsModalOpen(false)}
+        onCancel={() => {
+          setIsModalOpen(false);
+          setFileList([]);
+          form.resetFields();
+        }}
+        width={700}
         okText="Thêm"
+        cancelText="Hủy"
         onOk={() => form.submit()}
+        okButtonProps={{
+          className:
+            "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
+          size: "large",
+        }}
+        cancelButtonProps={{
+          size: "large",
+          className: "h-10 px-6 text-base",
+        }}
       >
-        <Form form={form} layout="vertical" onFinish={handleAddBatch}>
+        <Form form={form} layout="vertical" onFinish={handleAddBatch} className="py-4">
           <Form.Item
             name="name"
-            label="Tên Batch"
-            rules={[{ required: true, message: "Vui lòng nhập tên" }]}
+            label={<span className="font-medium text-gray-800">Tên Batch</span>}
+            rules={[{ required: true, message: "Vui lòng nhập tên batch" }]}
           >
-            <Input />
+            <Input
+              placeholder="Nhập tên batch"
+              size="large"
+              className="rounded-lg"
+            />
           </Form.Item>
 
-          <Form.Item name="description" label="Mô tả">
-            <Input.TextArea />
+          <Form.Item
+            name="description"
+            label={<span className="font-medium text-gray-800">Mô tả</span>}
+          >
+            <Input.TextArea
+              placeholder="Nhập mô tả (tùy chọn)"
+              rows={4}
+              className="rounded-lg"
+            />
           </Form.Item>
 
-          <Form.Item label="File">
+          <Form.Item
+            label={<span className="font-medium text-gray-800">File</span>}
+          >
             <Upload
               beforeUpload={() => false}
               fileList={fileList}
               onChange={({ fileList }) => setFileList(fileList)}
               maxCount={1}
+              accept=".xlsx,.xls,.csv"
             >
-              <Button>Chọn file</Button>
+              <Button
+                icon={<PlusOutlined />}
+                size="large"
+                className="w-full h-10 rounded-lg"
+              >
+                Chọn file (Excel hoặc CSV)
+              </Button>
             </Upload>
           </Form.Item>
         </Form>
       </Modal>
+
+      <style>{`
+        .bg-linear-to-br {
+          background: linear-gradient(to bottom right, #f9fafb, #f3f4f6);
+        }
+        .ant-table-cell {
+          padding: 12px !important;
+        }
+        .ant-table-header .ant-table-cell {
+          background: linear-gradient(to right, #f3f4f6, #e5e7eb);
+          font-weight: 600;
+          color: #374151;
+        }
+        .ant-table-row {
+          transition: all 0.2s ease;
+        }
+        .ant-table-row:hover {
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        .ant-input:focus,
+        .ant-input-affix-wrapper:focus,
+        .ant-input-affix-wrapper-focused {
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+        .line-clamp-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+      `}</style>
     </div>
   );
 };
