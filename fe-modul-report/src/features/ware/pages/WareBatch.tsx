@@ -128,6 +128,50 @@ export const WareBatch: React.FC = () => {
     });
   };
 
+  const getStatusBadge = (status: string) => {
+    const statusConfig: {
+      [key: string]: { bg: string; text: string; label: string };
+    } = {
+      Cho_Phe_Duyet: {
+        bg: "#ff9c6e",
+        text: "#fff",
+        label: "Chờ duyệt",
+      },
+      Da_Phe_Duyet: {
+        bg: "#52c41a",
+        text: "#fff",
+        label: "Đã duyệt",
+      },
+      Tu_Choi_Phe_Duyet: {
+        bg: "#ff4d4f",
+        text: "#fff",
+        label: "Từ chối",
+      },
+    };
+
+    const config = statusConfig[status] || {
+      bg: "#d9d9d9",
+      text: "#000",
+      label: status,
+    };
+
+    return (
+      <span
+        style={{
+          display: "inline-block",
+          padding: "4px 12px",
+          borderRadius: "12px",
+          backgroundColor: config.bg,
+          color: config.text,
+          fontWeight: "500",
+          fontSize: "12px",
+        }}
+      >
+        {config.label}
+      </span>
+    );
+  };
+
   const columns: ColumnsType<WareBatchResponse> = [
     { title: "Mã", dataIndex: "code", key: "code" },
     { title: "Tên", dataIndex: "name", key: "name" },
@@ -167,10 +211,16 @@ export const WareBatch: React.FC = () => {
         </Tooltip>
       ),
     },
-
+    {
+      title: "Trạng thái duyệt",
+      dataIndex: "wareBatchStatus",
+      key: "wareBatchStatus",
+      render: (status: string) => getStatusBadge(status),
+    },
     {
       title: "Thao tác",
       key: "action",
+      align: "center",
       render: (_, record) => (
         <Space>
           <Button

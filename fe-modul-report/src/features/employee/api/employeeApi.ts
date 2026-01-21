@@ -13,6 +13,11 @@ export const employeeApi = {
       });
       return res.data;
     },
+    
+    getAll: async (): Promise<EmployeeResponse[]> => {
+      const res = await axiosClient.get("/employee");
+      return res.data.content;
+    },
   
     saveEmployee: async (request: EmployeeRequest): Promise<string> => {
       const res = await axiosClient.post("/employee", request);
