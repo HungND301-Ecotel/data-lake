@@ -35,7 +35,7 @@ const DepartmentMy = () => {
   }, []);
 
   return (
-    <div className="px-4 py-4 min-h-screen">
+    <div className="px-10 py-8 min-h-screen">
       {contextHolder}
 
       {loading ? (

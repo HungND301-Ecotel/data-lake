@@ -9,10 +9,22 @@ import {
   Select,
   message,
   Space,
-  Col,
-  Row,
+  Card,
+  Tag,
 } from "antd";
-import { ExclamationCircleOutlined } from "@ant-design/icons";
+import {
+  ExclamationCircleOutlined,
+  AlertOutlined,
+  CheckCircleOutlined,
+  SearchOutlined,
+  PlusOutlined,
+  SettingOutlined,
+  CheckOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  FileTextOutlined,
+  AppstoreOutlined,
+} from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import { wareTemplateApi } from "../api/wareTemplateApi";
 import { wareCategoryApi } from "../api/wareCategoryApi";
@@ -22,7 +34,7 @@ import type {
 } from "../types/wareTemplate";
 import type { WareCategoryResponse } from "../types/wareCategory";
 import { useNavigate, useParams } from "react-router-dom";
-import { jwtDecode } from "jwt-decode"; // npm install jwt-decode
+import { jwtDecode } from "jwt-decode";
 
 const { Panel } = Collapse;
 const { Option } = Select;
@@ -50,8 +62,10 @@ const WareTemplate = () => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const { departmentId } = useParams<{ departmentId: string }>();
   const nav = useNavigate();
+  const [configCheckModal, setConfigCheckModal] = useState(false);
+  const [selectedRecord, setSelectedRecord] =
+    useState<WareTemplateResponse | null>(null);
 
-  // Lấy token và decode để lấy role
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -164,20 +178,71 @@ const WareTemplate = () => {
     }
   };
 
-  // Kiểm tra role có phải ADMIN hoặc MANAGER không
+  const handleApproveOrInput = (
+    record: WareTemplateResponse,
+    action: "approve" | "input"
+  ) => {
+    if (!record.hasApprovalConfig) {
+      setSelectedRecord(record);
+      setConfigCheckModal(true);
+    } else {
+      if (action === "approve") {
+        nav(`/ware/template/approve/${record.id}`);
+      } else {
+        nav(`/ware/template/${record.id}`);
+      }
+    }
+  };
+
+  const handleGoToConfig = () => {
+    if (selectedRecord) {
+      setConfigCheckModal(false);
+      nav(`/ware/template/detail/${selectedRecord.id}`);
+    }
+  };
+
   const canApprove = userRole === "ADMIN" || userRole === "MANAGER";
 
   const columns: ColumnsType<WareTemplateResponse> = [
-    { title: "Mã", dataIndex: "code", width: 140 },
-    { title: "Tên", dataIndex: "name", width: 220 },
-    { title: "Table", dataIndex: "tableName", width: 200 },
+    {
+      title: "Mã Template",
+      dataIndex: "code",
+      width: 160,
+      render: (text: string) => (
+        <div className="flex items-center gap-2">
+          <FileTextOutlined className="text-blue-500" />
+          <span className="font-medium text-gray-800">{text}</span>
+        </div>
+      ),
+    },
+    {
+      title: "Tên Template",
+      dataIndex: "name",
+      width: 280,
+      render: (text: string) => (
+        <span className="text-gray-700 font-medium">{text}</span>
+      ),
+    },
+    {
+      title: "Tên Bảng",
+      dataIndex: "tableName",
+      width: 240,
+      render: (text: string) => (
+        <Tag color="purple" className="px-3 py-1">
+          {text}
+        </Tag>
+      ),
+    },
     {
       title: "Thao tác",
-      width: canApprove ? 240 : 160,
+      width: canApprove ? 400 : 320,
+      align: "center" as const,
       render: (_: any, record) => (
-        <Space>
+        <Space size="small">
           <Button
-            size="small"
+            icon={<SettingOutlined />}
+            size="large"
+            className="bg-blue-600! hover:bg-blue-700! text-white! border-0"
             onClick={() => nav(`/ware/template/detail/${record.id}`)}
           >
             Cấu hình
@@ -185,23 +250,27 @@ const WareTemplate = () => {
 
           {canApprove ? (
             <Button
-              size="small"
-              type="primary"
-              onClick={() => nav(`/ware/template/approve/${record.id}`)}
+              icon={<CheckOutlined />}
+              size="large"
+              className="bg-green-600! hover:bg-green-700! text-white! border-0"
+              onClick={() => handleApproveOrInput(record, "approve")}
             >
               Duyệt
             </Button>
           ) : (
             <Button
-              size="small"
-              onClick={() => nav(`/ware/template/${record.id}`)}
+              icon={<EditOutlined />}
+              size="large"
+              className="bg-orange-500! hover:bg-orange-600! text-white! border-0"
+              onClick={() => handleApproveOrInput(record, "input")}
             >
               Nhập Liệu
             </Button>
           )}
           <Button
-            size="small"
             danger
+            icon={<DeleteOutlined />}
+            size="large"
             onClick={() =>
               handleDelete(
                 record.id!,
@@ -218,107 +287,390 @@ const WareTemplate = () => {
   ];
 
   return (
-    <div className="px-4 py-4 min-h-screen">
+    <div className="px-6 py-6 min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
       {contextHolderMessage}
       {contextHolderModal}
 
-      <Row gutter={16} style={{ marginBottom: 16 }}>
-        <Col flex="auto">
+      <Card className="shadow-lg border-0 rounded-xl">
+        {/* Search and Action Bar */}
+        <div className="flex gap-3 mb-6">
           <Input
-            placeholder="Tìm kiếm template..."
-            allowClear
+            placeholder="Tìm kiếm template theo tên, mã..."
+            prefix={<SearchOutlined className="text-gray-400" />}
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
-          />
-        </Col>
-
-        <Col>
-          <Button
-            type="primary"
-            className="bg-[#1a8649]! hover:bg-[#15703d]!"
-            onClick={handleAdd}
-          >
-            + Thêm mới
-          </Button>
-        </Col>
-      </Row>
-
-      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        {groups.map((grp) => (
-          <Collapse
-            key={grp.id}
-            accordion={false}
+            size="large"
+            className="flex-1"
             style={{
-              borderRadius: 8,
-              backgroundColor: "#1a8649",
-              border: "0px solid #d9d9d9",
-              overflow: "hidden",
+              borderRadius: "8px",
+              border: "1px solid #e5e7eb",
             }}
-            onChange={() => loadTemplatesByCategory(grp.id)}
-          >
-            <Panel
-              header={
-                <span className="text-white font-semibold">{grp.name}</span>
-              }
-              key={grp.id}
-            >
-              <div className="overflow-auto">
-                <Table
-                  dataSource={grp.templates}
-                  columns={columns}
-                  rowKey="id"
-                  pagination={false}
-                  bordered={false}
-                  showHeader={false}
-                />
-              </div>
-            </Panel>
-          </Collapse>
-        ))}
-      </div>
+          />
 
+          <Button
+            size="large"
+            icon={<PlusOutlined />}
+            onClick={handleAdd}
+            className="bg-green-600! hover:bg-green-700! text-white! border-0 shadow-md"
+            style={{ borderRadius: "8px", minWidth: "160px" }}
+          >
+            Thêm mới
+          </Button>
+        </div>
+
+        {/* Statistics Bar */}
+        <div className="mb-6 p-4 bg-linear-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
+          <div className="flex items-center gap-2">
+            <AppstoreOutlined className="text-blue-500 text-xl" />
+            <span className="font-medium text-gray-700">
+              Tổng số danh mục:
+            </span>
+            <Tag color="blue" className="font-bold text-base px-3 py-1">
+              {groups.length}
+            </Tag>
+          </div>
+        </div>
+
+        {/* Template Categories */}
+        <div className="flex flex-col gap-4">
+          {groups.map((grp) => (
+            <Collapse
+              key={grp.id}
+              accordion={false}
+              onChange={() => loadTemplatesByCategory(grp.id)}
+              className="modern-collapse "
+            >
+              <Panel
+                header={
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20">
+                        <AppstoreOutlined className="text-white! text-lg" />
+                      </div>
+                      <div>
+                        <span className="text-white font-semibold text-base">
+                          {grp.name}
+                        </span>
+                        <div className="text-white/80 text-sm">
+                          Mã: {grp.code}
+                        </div>
+                      </div>
+                    </div>
+                    <Tag
+                      color="white"
+                      className="text-green-700! font-medium! px-3 py-1"
+                    >
+                      {grp.templates.length} template
+                    </Tag>
+                  </div>
+                }
+                key={grp.id}
+              >
+                <div className="overflow-auto bg-white rounded-lg">
+                  <Table
+                    dataSource={grp.templates}
+                    columns={columns}
+                    rowKey="id"
+                    pagination={false}
+                    size="middle"
+                    className="modern-template-table"
+                    rowClassName="hover:bg-blue-50 transition-colors"
+                  />
+                </div>
+              </Panel>
+            </Collapse>
+          ))}
+        </div>
+      </Card>
+
+      {/* Modal Thêm/Sửa Template */}
       <Modal
-        title={editing ? "Sửa template" : "Thêm template"}
+        title={
+          <div className="flex items-center gap-3 pb-3 border-b">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-green-100">
+              {editing ? (
+                <EditOutlined className="text-green-600 text-lg" />
+              ) : (
+                <PlusOutlined className="text-green-600 text-lg" />
+              )}
+            </div>
+            <div className="text-lg font-semibold text-gray-800">
+              {editing ? "Sửa template" : "Thêm template mới"}
+            </div>
+          </div>
+        }
         open={modalOpen}
         onOk={handleOk}
         onCancel={() => setModalOpen(false)}
+        okText={editing ? "Lưu" : "Thêm"}
+        cancelText="Hủy"
+        width={700}
+        okButtonProps={{
+          className:
+            "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
+          size: "large",
+        }}
+        cancelButtonProps={{
+          size: "large",
+          className: "h-10 px-6 text-base",
+        }}
       >
-        <Form form={form} layout="vertical">
-          <Form.Item name="name" label="Tên" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
+        <Form form={form} layout="vertical" className="mt-6">
+          <div className="grid grid-cols-2 gap-4">
+            <Form.Item
+              name="name"
+              label={
+                <span className="font-medium text-gray-700">
+                  Tên template <span className="text-red-500">*</span>
+                </span>
+              }
+              rules={[{ required: true, message: "Vui lòng nhập tên" }]}
+              labelCol={{ span: 24 }}
+              wrapperCol={{ span: 24 }}
+            >
+              <Input
+                placeholder="VD: Template báo cáo"
+                size="large"
+                className="rounded-lg"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="wareCategoryId"
+              label={
+                <span className="font-medium text-gray-700">
+                  Danh mục <span className="text-red-500">*</span>
+                </span>
+              }
+              rules={[{ required: true, message: "Vui lòng chọn danh mục" }]}
+              labelCol={{ span: 24 }}
+              wrapperCol={{ span: 24 }}
+            >
+              <Select
+                placeholder="Chọn danh mục"
+                size="large"
+                className="rounded-lg"
+              >
+                {groups.map((g) => (
+                  <Option key={g.id} value={g.id}>
+                    {g.name}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+
+            <Form.Item
+              name="tableName"
+              label={
+                <span className="font-medium text-gray-700">Tên bảng</span>
+              }
+              labelCol={{ span: 24 }}
+              wrapperCol={{ span: 24 }}
+            >
+              <Input
+                placeholder="VD: table_report"
+                size="large"
+                className="rounded-lg"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="tableCode"
+              label={
+                <span className="font-medium text-gray-700">Mã bảng</span>
+              }
+              labelCol={{ span: 24 }}
+              wrapperCol={{ span: 24 }}
+            >
+              <Input
+                placeholder="VD: TBL001"
+                size="large"
+                className="rounded-lg"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="startRow"
+              label={
+                <span className="font-medium text-gray-700">Dòng bắt đầu</span>
+              }
+              labelCol={{ span: 24 }}
+              wrapperCol={{ span: 24 }}
+            >
+              <Input
+                placeholder="VD: 1"
+                size="large"
+                className="rounded-lg"
+                type="number"
+              />
+            </Form.Item>
+          </div>
 
           <Form.Item
-            name="wareCategoryId"
-            label="Category"
-            rules={[{ required: true }]}
+            name="description"
+            label={<span className="font-medium text-gray-700">Mô tả</span>}
+            labelCol={{ span: 24 }}
+            wrapperCol={{ span: 24 }}
           >
-            <Select>
-              {groups.map((g) => (
-                <Option key={g.id} value={g.id}>
-                  {g.name}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item name="tableName" label="Table name">
-            <Input />
-          </Form.Item>
-
-          <Form.Item name="tableCode" label="Table code">
-            <Input />
-          </Form.Item>
-
-          <Form.Item name="startRow" label="Bắt đầu">
-            <Input />
-          </Form.Item>
-
-          <Form.Item name="description" label="Mô tả">
-            <Input />
+            <Input.TextArea
+              placeholder="Nhập mô tả chi tiết..."
+              rows={3}
+              size="large"
+              className="rounded-lg"
+            />
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* Modal Cấu hình chưa hoàn thành */}
+      <Modal
+        title={
+          <div className="flex items-center gap-3 pb-3 border-b">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-orange-100">
+              <AlertOutlined className="text-orange-600 text-lg" />
+            </div>
+            <div className="text-lg font-semibold text-gray-800">
+              Cấu hình chưa hoàn thành
+            </div>
+          </div>
+        }
+        open={configCheckModal}
+        onCancel={() => {
+          setConfigCheckModal(false);
+          setSelectedRecord(null);
+        }}
+        footer={null}
+        centered
+        width={500}
+      >
+        <div className="py-6">
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+            <div className="flex gap-3">
+              <AlertOutlined className="text-orange-500 text-xl shrink-0 mt-1" />
+              <div>
+                <p className="font-semibold text-gray-800 mb-2 text-base">
+                  Bảng này chưa có cấu hình người duyệt
+                </p>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  Vui lòng chọn cấu hình để xác định người duyệt cho bảng này
+                  trước khi tiếp tục thao tác.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start gap-2">
+              <CheckCircleOutlined className="text-blue-600 text-base mt-0.5" />
+              <p className="text-blue-900 text-sm m-0">
+                Hãy vào phần <strong>Cấu hình</strong> để thiết lập thông tin
+                cần thiết cho template này
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <Button
+              onClick={() => {
+                setConfigCheckModal(false);
+                setSelectedRecord(null);
+              }}
+              size="large"
+              className="flex-1 h-10"
+            >
+              Huỷ
+            </Button>
+            <Button
+              type="primary"
+              onClick={handleGoToConfig}
+              size="large"
+              className="flex-1 bg-green-600! hover:bg-green-700! h-10 font-medium"
+            >
+              Đi tới cấu hình
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <style>{`
+        .modern-template-table .ant-table {
+          font-size: 14px;
+        }
+        .modern-template-table .ant-table-thead > tr > th {
+          background: linear-gradient(to right, #f8fafc, #f1f5f9);
+          color: #1e293b;
+          font-weight: 600;
+          border-bottom: 2px solid #e2e8f0;
+          padding: 16px;
+        }
+        .modern-template-table .ant-table-tbody > tr > td {
+          padding: 16px;
+          border-bottom: 1px solid #f1f5f9;
+        }
+        .modern-template-table .ant-table-tbody > tr:hover > td {
+          background: #eff6ff !important;
+        }
+        
+        .modern-collapse .ant-collapse-item {
+          border-radius: 12px !important;
+          overflow: hidden;
+          margin-bottom: 0;
+          border: none !important;
+        }
+        
+        .modern-collapse .ant-collapse-header {
+          background: linear-gradient(135deg, #1a8649 0%, #15703d 100%) !important;
+          padding: 20px 24px !important;
+          border-radius: 12px !important;
+          align-items: center !important;
+        }
+        
+        .modern-collapse .ant-collapse-content {
+          border-top: none !important;
+          background: #f8fafc;
+          border-radius: 0 0 12px 12px;
+        }
+        
+        .modern-collapse .ant-collapse-content-box {
+          padding: 16px !important;
+        }
+        
+        .modern-collapse .ant-collapse-item-active .ant-collapse-header {
+          border-radius: 12px 12px 0 0 !important;
+        }
+        
+        .ant-card {
+          border-radius: 16px;
+        }
+        .ant-modal-header {
+          border-radius: 12px 12px 0 0;
+          padding: 20px 24px;
+        }
+        .ant-modal-content {
+          border-radius: 12px;
+        }
+        .ant-input,
+        .ant-input-affix-wrapper,
+        .ant-select .ant-select-selector {
+          transition: all 0.3s ease;
+        }
+        .ant-input:focus,
+        .ant-input-affix-wrapper:focus,
+        .ant-input-affix-wrapper-focused {
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+        .ant-select-focused .ant-select-selector {
+          border-color: #3b82f6 !important;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1) !important;
+        }
+        .bg-gradient-to-br {
+          background: linear-gradient(to bottom right, #f9fafb, #f3f4f6);
+        }
+        .bg-gradient-to-r {
+          background: linear-gradient(to right, #eff6ff, #eef2ff);
+        }
+      `}</style>
     </div>
   );
 };
