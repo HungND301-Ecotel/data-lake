@@ -11,39 +11,22 @@ import { Button, Dropdown, Menu } from "antd";
 export default function NavBar() {
   const navigate = useNavigate();
   
-  const dashboardMenu = (
-    <Menu
-      items={[
-        {
-          key: "dashboard",
-          label: "Dashboard",
-          onClick: () => navigate("/dashboard"),
-        },
-        {
-          key: "report-targets",
-          label: "Báo cáo thực hiện các chỉ tiêu chủ yếu",
-          onClick: () => navigate("/report-targets"),
-        },
-      ]}
-    />
-  );
-  
   const categoryMenu = (
     <Menu
       items={[
         {
           key: "departments",
-          label: "Phòng ban",
+          label: "Danh mục phòng ban",
           onClick: () => navigate("/category/departments"),
         },
         {
           key: "ware",
-          label: "Danh mục TKV",
+          label: "Danh mục báo cáo",
           onClick: () => navigate("/category/ware"),
         },
         {
           key: "employee",
-          label: "Nhân viên",
+          label: "Danh mục tài khoản",
           onClick: () => navigate("/employee"),
         },
       ]}
@@ -80,14 +63,14 @@ export default function NavBar() {
         className="text-white! hover:text-white! hover:bg-green-600"
       ></Button>
 
-      <Dropdown overlay={dashboardMenu}>
+      <Link to="/dashboard">
         <Button
           type="text"
-          className="text-white! hover:text-white! hover:bg-green-600"
+          className="text-white! hover:text-white! hover:bg-white"
         >
-          Trang chủ <DownOutlined />
+          Trang chủ
         </Button>
-      </Dropdown>
+      </Link>
 
       <Dropdown overlay={categoryMenu}>
         <Button

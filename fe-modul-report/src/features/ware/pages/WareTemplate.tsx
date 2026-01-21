@@ -12,7 +12,7 @@ import {
   Col,
   Row,
 } from "antd";
-import { ExclamationCircleOutlined } from "@ant-design/icons";
+import { ExclamationCircleOutlined, AlertOutlined, CheckCircleOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import { wareTemplateApi } from "../api/wareTemplateApi";
 import { wareCategoryApi } from "../api/wareCategoryApi";
@@ -22,7 +22,7 @@ import type {
 } from "../types/wareTemplate";
 import type { WareCategoryResponse } from "../types/wareCategory";
 import { useNavigate, useParams } from "react-router-dom";
-import { jwtDecode } from "jwt-decode"; // npm install jwt-decode
+import { jwtDecode } from "jwt-decode";
 
 const { Panel } = Collapse;
 const { Option } = Select;
@@ -50,8 +50,10 @@ const WareTemplate = () => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const { departmentId } = useParams<{ departmentId: string }>();
   const nav = useNavigate();
+  const [configCheckModal, setConfigCheckModal] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<WareTemplateResponse | null>(null);
+  // Removed unused state 'pendingAction'
 
-  // Lấy token và decode để lấy role
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -164,7 +166,26 @@ const WareTemplate = () => {
     }
   };
 
-  // Kiểm tra role có phải ADMIN hoặc MANAGER không
+  const handleApproveOrInput = (record: WareTemplateResponse, action: "approve" | "input") => {
+    if (!record.hasApprovalConfig) {
+      setSelectedRecord(record);
+      setConfigCheckModal(true);
+    } else {
+      if (action === "approve") {
+        nav(`/ware/template/approve/${record.id}`);
+      } else {
+        nav(`/ware/template/${record.id}`);
+      }
+    }
+  };
+
+  const handleGoToConfig = () => {
+    if (selectedRecord) {
+      setConfigCheckModal(false);
+      nav(`/ware/template/detail/${selectedRecord.id}`);
+    }
+  };
+
   const canApprove = userRole === "ADMIN" || userRole === "MANAGER";
 
   const columns: ColumnsType<WareTemplateResponse> = [
@@ -187,14 +208,14 @@ const WareTemplate = () => {
             <Button
               size="small"
               type="primary"
-              onClick={() => nav(`/ware/template/approve/${record.id}`)}
+              onClick={() => handleApproveOrInput(record, "approve")}
             >
               Duyệt
             </Button>
           ) : (
             <Button
               size="small"
-              onClick={() => nav(`/ware/template/${record.id}`)}
+              onClick={() => handleApproveOrInput(record, "input")}
             >
               Nhập Liệu
             </Button>
@@ -318,6 +339,81 @@ const WareTemplate = () => {
             <Input />
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title={
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <AlertOutlined style={{ color: "#faad14", fontSize: 20 }} />
+            <span>Cấu hình chưa hoàn thành</span>
+          </div>
+        }
+        open={configCheckModal}
+        onCancel={() => {
+          setConfigCheckModal(false);
+          setSelectedRecord(null);
+        }}
+        footer={null}
+        centered
+        width={450}
+      >
+        <div style={{ padding: "20px 0" }}>
+          <div
+            style={{
+              backgroundColor: "#fef7e0",
+              border: "1px solid #ffe58f",
+              borderRadius: 8,
+              padding: 16,
+              marginBottom: 24,
+              display: "flex",
+              gap: 12,
+            }}
+          >
+            <AlertOutlined style={{ color: "#faad14", fontSize: 18, flexShrink: 0 }} />
+            <div>
+              <p style={{ margin: 0, fontWeight: 600, color: "#000" }}>
+                Bảng này chưa có cấu hình người duyệt
+              </p>
+              <p style={{ margin: "8px 0 0 0", color: "#666", fontSize: 14 }}>
+                Vui lòng chọn cấu hình để xác định người duyệt cho bảng này.
+              </p>
+            </div>
+          </div>
+
+          <div
+            style={{
+              backgroundColor: "#f0f7ff",
+              border: "1px solid #91caff",
+              borderRadius: 8,
+              padding: 12,
+              marginBottom: 24,
+            }}
+          >
+            <p style={{ margin: 0, fontSize: 13, color: "#0050b3 " }}>
+              <CheckCircleOutlined style={{ marginRight: 6 }} />
+              Hãy vào phần <strong>Cấu hình</strong> để thiết lập thông tin cần thiết
+            </p>
+          </div>
+
+          <div style={{ display: "flex", gap: 12 }}>
+            <Button
+              onClick={() => {
+                setConfigCheckModal(false);
+                setSelectedRecord(null);
+              }}
+              style={{ flex: 1 }}
+            >
+              Huỷ
+            </Button>
+            <Button
+              type="primary"
+              onClick={handleGoToConfig}
+              style={{ flex: 1, backgroundColor: "#1a8649" }}
+            >
+              Đi tới cấu hình
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

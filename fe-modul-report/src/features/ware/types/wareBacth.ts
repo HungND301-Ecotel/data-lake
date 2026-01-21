@@ -16,6 +16,7 @@ export interface WareBatchResponse {
   employeeName?: string | null;
   isPushed: boolean;
   status: string;
+  myApprovalStatus: string;
 }
 
 export interface WareBatchSearch {

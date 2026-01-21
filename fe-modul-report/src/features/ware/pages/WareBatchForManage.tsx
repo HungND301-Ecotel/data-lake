@@ -9,6 +9,7 @@ import {
     message,
     Space,
     Tooltip,
+    Spin,
 } from "antd";
 import type { UploadFile } from "antd/es/upload/interface";
 import type { ColumnsType } from "antd/es/table";
@@ -23,13 +24,14 @@ import {
     DeleteOutlined,
     EditOutlined,
     ExclamationCircleOutlined,
-    // EyeOutlined,
 } from "@ant-design/icons";
 
 const { Search } = Input;
 
+type BatchRecord = any & { id?: string | number };
+
 export const WareBatchForManagement: React.FC = () => {
-    const [batches, setBatches] = useState([]);
+    const [batches, setBatches] = useState<BatchRecord[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchKeyword, setSearchKeyword] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,13 +41,23 @@ export const WareBatchForManagement: React.FC = () => {
     const nav = useNavigate();
     const [messageApi, contextHolderMessage] = message.useMessage();
     const [modal, contextHolderModal] = Modal.useModal();
+    const [selectedRowKeys, setSelectedRowKeys] = useState<(string | number)[]>([]);
+    const [approvalLoading, setApprovalLoading] = useState(false);
 
     const fetchBatches = async () => {
         setLoading(true);
         try {
             const res = await wareBatchApi.getMyApprovals();
             console.log("Fetched batches:", res);
-            setBatches(res);
+
+            // KHÔNG CẦN set canApprove global nữa
+            // Chỉ cần map data
+            const batchesWithId = res.map((batch: any, index: number) => ({
+                ...batch,
+                id: batch.batchId || index,
+            }));
+
+            setBatches(batchesWithId);
         } catch (error) {
             messageApi.error("Lấy danh sách batch thất bại");
         } finally {
@@ -103,6 +115,92 @@ export const WareBatchForManagement: React.FC = () => {
         }
     };
 
+    const handleBulkApprove = async () => {
+        if (selectedRowKeys.length === 0) {
+            messageApi.warning("Vui lòng chọn ít nhất một batch để duyệt");
+            return;
+        }
+
+        modal.confirm({
+            title: "Xác nhận duyệt",
+            icon: <CheckCircleOutlined />,
+            content: `Bạn có chắc chắn muốn duyệt ${selectedRowKeys.length} batch này?`,
+            okType: "primary",
+            okText: "Duyệt",
+            cancelText: "Huỷ",
+            onOk: async () => {
+                setApprovalLoading(true);
+                try {
+                    // Lấy batchId từ selectedRowKeys
+                    const selectedBatches = batches.filter((b) =>
+                        selectedRowKeys.includes(b.id)
+                    );
+
+                    // Call approve API lặp cho từng batch
+                    const approvePromises = selectedBatches.map((batch) =>
+                        wareBatchApi.approveBatch(batch.batchId)
+                    );
+
+                    await Promise.all(approvePromises);
+
+                    messageApi.success(
+                        `Đã duyệt thành công ${selectedRowKeys.length} batch`
+                    );
+                    setSelectedRowKeys([]);
+                    fetchBatches();
+                } catch (error: any) {
+                    messageApi.error(
+                        error?.data || "Duyệt batch thất bại"
+                    );
+                } finally {
+                    setApprovalLoading(false);
+                }
+            },
+        });
+    };
+
+    const handleBulkReject = async () => {
+        if (selectedRowKeys.length === 0) {
+            messageApi.warning("Vui lòng chọn ít nhất một batch để từ chối");
+            return;
+        }
+
+        modal.confirm({
+            title: "Xác nhận từ chối",
+            icon: <CloseCircleOutlined />,
+            content: `Bạn có chắc chắn muốn từ chối ${selectedRowKeys.length} batch này?`,
+            okType: "danger",
+            okText: "Từ chối",
+            cancelText: "Huỷ",
+            onOk: async () => {
+                setApprovalLoading(true);
+                try {
+                    const selectedBatches = batches.filter((b) =>
+                        selectedRowKeys.includes(b.id)
+                    );
+
+                    const rejectPromises = selectedBatches.map((batch) =>
+                        wareBatchApi.rejectBatch(batch.batchId)
+                    );
+
+                    await Promise.all(rejectPromises);
+
+                    messageApi.success(
+                        `Đã từ chối thành công ${selectedRowKeys.length} batch`
+                    );
+                    setSelectedRowKeys([]);
+                    fetchBatches();
+                } catch (error: any) {
+                    messageApi.error(
+                        error?.data || "Từ chối batch thất bại"
+                    );
+                } finally {
+                    setApprovalLoading(false);
+                }
+            },
+        });
+    };
+
     const getStatusBadge = (status: string) => {
         const statusConfig: {
             [key: string]: { bg: string; text: string; label: string };
@@ -147,11 +245,60 @@ export const WareBatchForManagement: React.FC = () => {
         );
     };
 
-    const columns: ColumnsType<any> = [
+    const getStatusBadge2 = (status: string, canApproveNow?: boolean) => {
+        const statusConfig: {
+            [key: string]: { bg: string; text: string; label: string };
+        } = {
+            Cho_Phe_Duyet: {
+                bg: canApproveNow ? "#faad14" : "#ff9c6e",
+                text: "#fff",
+                label: canApproveNow ? "Đến lượt duyệt" : "Chưa đến lượt",
+            },
+            Da_Phe_Duyet: {
+                bg: "#52c41a",
+                text: "#fff",
+                label: "Đã duyệt",
+            },
+            Tu_Choi_Phe_Duyet: {
+                bg: "#ff4d4f",
+                text: "#fff",
+                label: "Từ chối",
+            },
+        };
+
+        const config = statusConfig[status] || {
+            bg: "#d9d9d9",
+            text: "#000",
+            label: status,
+        };
+
+        return (
+            <span
+                style={{
+                    display: "inline-block",
+                    padding: "4px 12px",
+                    borderRadius: "12px",
+                    backgroundColor: config.bg,
+                    color: config.text,
+                    fontWeight: "500",
+                    fontSize: "12px",
+                }}
+            >
+                {config.label}
+            </span>
+        );
+    };
+
+    const columns: ColumnsType<BatchRecord> = [
         { title: "Mã", dataIndex: "batchCode", key: "batchCode" },
         { title: "Tên", dataIndex: "batchName", key: "batchName" },
         { title: "Mô tả", dataIndex: "batchDescription", key: "batchDescription" },
-        { title: "Trạng thái duyệt của bạn", dataIndex: "myApprovalStatus", key: "myApprovalStatus", render: (status: string) => getStatusBadge(status), },
+        {
+            title: "Trạng thái duyệt của bạn",
+            dataIndex: "myApprovalStatus",
+            key: "myApprovalStatus",
+            render: (status: string, record: BatchRecord) => getStatusBadge2(status, record.canApprove), // Lấy canApprove từ record
+        },
         {
             title: "Trạng thái duyệt tổng",
             dataIndex: "batchStatus",
@@ -186,7 +333,6 @@ export const WareBatchForManagement: React.FC = () => {
                 </Tooltip>
             ),
         },
-
         {
             title: "Thao tác",
             key: "action",
@@ -208,25 +354,28 @@ export const WareBatchForManagement: React.FC = () => {
                     >
                         Xóa
                     </Button>
-                    {/* <Tooltip title="Xem chi tiết">
-            <EyeOutlined
-              style={{
-                fontSize: 18,
-                cursor: "pointer",
-                color: "#1677ff",
-              }}
-              onClick={() => handleEyeClick(record)}
-            />
-          </Tooltip> */}
                 </Space>
             ),
         },
     ];
 
+    const rowSelection = {
+        selectedRowKeys,
+        onChange: (newSelectedRowKeys: React.Key[]) => {
+            setSelectedRowKeys(newSelectedRowKeys as (string | number)[]);
+        },
+        getCheckboxProps: (record: BatchRecord) => ({
+            disabled: !record.canApprove, // Disable checkbox nếu batch này không được phép duyệt
+        }),
+    };
+
+    const hasApprovableBatch = batches.some(b => b.canApprove);
+
     return (
         <div>
             {contextHolderMessage}
             {contextHolderModal}
+
             <div className="flex px-4 py-4 items-center gap-4 mb-4 w-full">
                 <Search
                     placeholder="Tìm kiếm batch"
@@ -234,6 +383,29 @@ export const WareBatchForManagement: React.FC = () => {
                     allowClear
                     className="flex-1"
                 />
+
+                <Space>
+                    <Button
+                        type="primary"
+                        style={{ backgroundColor: "#52c41a" }}
+                        onClick={handleBulkApprove}
+                        loading={approvalLoading}
+                        disabled={!hasApprovableBatch || selectedRowKeys.length === 0}
+                    >
+                        ✓ Duyệt ({selectedRowKeys.length})
+                    </Button>
+
+                    <Button
+                        type="primary"
+                        danger
+                        onClick={handleBulkReject}
+                        loading={approvalLoading}
+                        disabled={!hasApprovableBatch || selectedRowKeys.length === 0}
+                    >
+                        ✕ Từ chối ({selectedRowKeys.length})
+                    </Button>
+                </Space>
+
                 <Button
                     type="primary"
                     className="bg-[#1a8649]! hover:bg-[#15703d]!"
@@ -243,14 +415,17 @@ export const WareBatchForManagement: React.FC = () => {
                 </Button>
             </div>
 
-            <div className="overflow-auto">
-                <Table
-                    rowKey="id"
-                    columns={columns}
-                    dataSource={batches}
-                    loading={loading}
-                />
-            </div>
+            <Spin spinning={approvalLoading}>
+                <div className="overflow-auto">
+                    <Table
+                        rowKey="id"
+                        columns={columns}
+                        dataSource={batches}
+                        loading={loading}
+                        rowSelection={rowSelection}
+                    />
+                </div>
+            </Spin>
 
             <Modal
                 title="Thêm Batch"

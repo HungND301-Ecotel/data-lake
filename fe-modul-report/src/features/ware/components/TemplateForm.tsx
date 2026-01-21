@@ -231,33 +231,19 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
     }
 
     try {
-      // Tạo map các approver hiện tại
-      const currentApproverIds = new Set(tempApprovers);
+      // Chỉ gửi danh sách người duyệt còn lại
+      const configs = tempApprovers.map((approverId, index) => {
+        const existingConfig = approvalConfigs.find(c => c.approverId === approverId);
 
-      // Xử lý các config hiện có
-      const updatedConfigs = approvalConfigs.map((config) => {
-        const isStillSelected = currentApproverIds.has(config.approverId);
         return {
-          id: config.id,
-          approverId: config.approverId,
-          approvalOrder: isStillSelected ? tempApprovers.indexOf(config.approverId) + 1 : config.approvalOrder,
-          isActive: isStillSelected, // Chuyển thành false nếu không còn chọn
+          ...(existingConfig?.id && { id: existingConfig.id }),
+          approverId,
+          approvalOrder: index + 1,
+          // Không gửi isActive, API tự xử lý
         };
       });
 
-      // Thêm các approver mới
-      const existingApproverIds = new Set(approvalConfigs.map(c => c.approverId));
-      const newApprovers = tempApprovers.filter(id => !existingApproverIds.has(id));
-
-      const newConfigs = newApprovers.map((approverId) => ({
-        approverId,
-        approvalOrder: tempApprovers.indexOf(approverId) + 1,
-        isActive: true,
-      }));
-
-      const allConfigs = [...updatedConfigs, ...newConfigs];
-
-      await approvalConfigsApi.update(templateId.toString(), { configs: allConfigs });
+      await approvalConfigsApi.update(templateId.toString(), { configs });
       message.success("Lưu cấu hình thành công");
       setIsApprovalModalVisible(false);
       setEditingApproverIndex(null);

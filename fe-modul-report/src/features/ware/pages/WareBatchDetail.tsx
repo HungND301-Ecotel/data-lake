@@ -213,6 +213,8 @@ export const WareBatchDetail: React.FC = () => {
   const isPending = batchDetail?.status === "Cho_Phe_Duyet";
   const isRejected = batchDetail?.status === "Tu_Choi_Phe_Duyet";
 
+  const isMyApprovalPending = batchDetail?.myApprovalStatus === "Cho_Phe_Duyet";
+
   return (
     <div className="px-4 py-4 min-h-screen">
       {contextHolderMessage}
@@ -237,7 +239,7 @@ export const WareBatchDetail: React.FC = () => {
           />
         </Col>
         <Col>
-          {canApprove && isPending ? (
+          {canApprove && isPending && isMyApprovalPending ? (
             <Space>
               <Button
                 type="primary"
