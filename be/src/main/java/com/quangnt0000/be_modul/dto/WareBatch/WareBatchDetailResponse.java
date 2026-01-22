@@ -37,5 +37,5 @@ public class WareBatchDetailResponse {
     private LocalDateTime updatedAt;
     private WareBatchEnum status;
     
-    private WareBatchEnum myApprovalStatus;
+    private boolean canApprove;
 }

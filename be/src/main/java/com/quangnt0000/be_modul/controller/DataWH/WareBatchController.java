@@ -67,10 +67,6 @@ public class WareBatchController {
         return wareBatchService.getMasterData(batchId, request);
     }
 
-    /**
-     * API: Lấy danh sách WareBatch của người duyệt hiện tại
-     * Trả về TẤT CẢ batch mà user tham gia phê duyệt
-     */
     @GetMapping("/my-approvals")
     public ResponseEntity<?> getMyApprovalBatches() {
         return wareBatchService.getMyApprovalBatches();

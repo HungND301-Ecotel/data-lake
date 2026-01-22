@@ -303,11 +303,32 @@ public class WareBatchService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Batch đã bị xóa");
         }
 
-        // Lấy trạng thái phê duyệt của user hiện tại
-        WareBatchEnum myApprovalStatus = batchApprovalRepository
-                .findByWareBatchIdAndApproverId(wareBatchId, user.getEmployee().getId())
-                .map(WareBatchApproval::getStatus)
-                .orElse(null);
+        boolean canApprove = false;
+        
+        Optional<WareBatchApproval> myApprovalOpt = batchApprovalRepository
+                .findByWareBatchIdAndApproverId(wareBatchId, user.getEmployee().getId());
+        
+        if (myApprovalOpt.isPresent()) {
+            WareBatchApproval myApproval = myApprovalOpt.get();
+            
+            if (wareBatch.getStatus() != WareBatchEnum.Tu_Choi_Phe_Duyet) {
+                if (myApproval.getStatus() == WareBatchEnum.Cho_Phe_Duyet) {
+                    List<WareBatchApproval> allBatchApprovals = batchApprovalRepository
+                            .findByWareBatchIdOrderByApprovalOrder(wareBatchId);
+                    
+                    Integer currentApprovalOrder = allBatchApprovals.stream()
+                            .filter(a -> a.getStatus() == WareBatchEnum.Cho_Phe_Duyet)
+                            .map(WareBatchApproval::getApprovalOrder)
+                            .min(Integer::compareTo)
+                            .orElse(null);
+                    
+                    if (currentApprovalOrder != null && 
+                        myApproval.getApprovalOrder().equals(currentApprovalOrder)) {
+                        canApprove = true;
+                    }
+                }
+            }
+        }
 
         WareBatchDetailResponse response = WareBatchDetailResponse.builder()
                 .id(wareBatch.getId())
@@ -321,7 +342,7 @@ public class WareBatchService {
                 .createdAt(wareBatch.getCreatedAt())
                 .updatedAt(wareBatch.getUpdatedAt())
                 .status(wareBatch.getStatus())
-                .myApprovalStatus(myApprovalStatus)
+                .canApprove(canApprove)
                 .build();
 
         return ResponseEntity.ok(response);
