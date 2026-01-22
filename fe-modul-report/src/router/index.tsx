@@ -23,6 +23,8 @@ import DashboardWare from "../features/ware/pages/WareBatchDasboard";
 import SearchMasterData from "../features/ware/pages/WareMasterData";
 import ReportTargetsPage from "../features/dashboard/pages/ReportTarget";
 import { WareBatchForManagement } from "../features/ware/pages/WareBatchForManage";
+import { ApproveBatch } from "../features/ware/pages/ApproveBatch";
+import { SyncBatch } from "../features/ware/pages/SyncBatch";
 
 export const router = createBrowserRouter([
   {
@@ -41,7 +43,8 @@ export const router = createBrowserRouter([
       { path: "/ware/template/approve/:templateId", element: <WareBatchForManagement /> },
       { path: "/ware/template/detail/:templateId", element: <TemplateDetail /> },
       { path: "/ware/batch/:wareBatchId", element: <WareBatchDetail /> },
-
+      { path: "/approve/batch", element: <ApproveBatch /> },
+      { path: "/sync/batch", element: <SyncBatch /> },
       { path: "/category/report", element: <ReportCategoryPage /> },
       { path: "/category/departments", element: <DepartmentCategoryPage /> },
       { path: "/category/ware", element: <WareCategoryPage /> },

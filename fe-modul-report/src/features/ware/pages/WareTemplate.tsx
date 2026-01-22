@@ -19,7 +19,6 @@ import {
   SearchOutlined,
   PlusOutlined,
   SettingOutlined,
-  CheckOutlined,
   DeleteOutlined,
   EditOutlined,
   FileTextOutlined,
@@ -201,7 +200,7 @@ const WareTemplate = () => {
     }
   };
 
-  const canApprove = userRole === "ADMIN" || userRole === "MANAGER";
+  const canApprove = userRole === "ADMIN" || userRole === "USER";
 
   const columns: ColumnsType<WareTemplateResponse> = [
     {
@@ -239,7 +238,8 @@ const WareTemplate = () => {
       align: "center" as const,
       render: (_: any, record) => (
         <Space size="small">
-          <Button
+          {canApprove ? (
+            <Button
             icon={<SettingOutlined />}
             size="large"
             className="bg-blue-600! hover:bg-blue-700! text-white! border-0"
@@ -247,26 +247,20 @@ const WareTemplate = () => {
           >
             Cấu hình
           </Button>
-
-          {canApprove ? (
-            <Button
-              icon={<CheckOutlined />}
-              size="large"
-              className="bg-green-600! hover:bg-green-700! text-white! border-0"
-              onClick={() => handleApproveOrInput(record, "approve")}
-            >
-              Duyệt
-            </Button>
-          ) : (
-            <Button
-              icon={<EditOutlined />}
-              size="large"
-              className="bg-orange-500! hover:bg-orange-600! text-white! border-0"
-              onClick={() => handleApproveOrInput(record, "input")}
-            >
-              Nhập Liệu
-            </Button>
+          ): (
+            <></>
           )}
+
+
+          <Button
+            icon={<EditOutlined />}
+            size="large"
+            className="bg-orange-500! hover:bg-orange-600! text-white! border-0"
+            onClick={() => handleApproveOrInput(record, "input")}
+          >
+            Nhập Liệu
+          </Button>
+
           <Button
             danger
             icon={<DeleteOutlined />}

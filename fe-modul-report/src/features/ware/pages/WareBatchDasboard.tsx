@@ -1,5 +1,5 @@
 import { Card, Row, Col, Statistic, Table, Tag, Select } from "antd";
-import { DatabaseOutlined, EditOutlined, WarningOutlined } from "@ant-design/icons";
+import { DatabaseOutlined, EditOutlined } from "@ant-design/icons";
 import { Column, Line } from "@ant-design/charts";
 import { useEffect, useState } from "react";
 import type {
@@ -274,12 +274,6 @@ const DashboardWare = () => {
                   style={{ fontSize: "24px", marginRight: "8px" }}
                 />
               }
-              suffix={
-                <div className="flex items-center text-white text-opacity-80 text-sm mt-2">
-                  <WarningOutlined className="mr-1" />
-                  <span>+12.5%</span>
-                </div>
-              }
             />
           </Card>
         </Col>
@@ -307,12 +301,6 @@ const DashboardWare = () => {
                 <EditOutlined
                   style={{ fontSize: "24px", marginRight: "8px" }}
                 />
-              }
-              suffix={
-                <div className="flex items-center text-white text-opacity-80 text-sm mt-2">
-                  <WarningOutlined className="mr-1" />
-                  <span>+8.3%</span>
-                </div>
               }
             />
           </Card>
