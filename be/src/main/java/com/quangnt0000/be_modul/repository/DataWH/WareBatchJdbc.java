@@ -27,6 +27,9 @@ public class WareBatchJdbc {
                         wb.updated_at AS updated_at,
                         e.name AS employee_name,
                         wb.status AS ware_batch_status,
+                        wb.report_year AS report_year,
+                        wb.report_month AS report_month,
+                        wb.report_day AS report_day,
                         CASE
                             WHEN EXISTS (
                                 SELECT 1
@@ -51,6 +54,16 @@ public class WareBatchJdbc {
         if (request.getWareTemplateId() != null) {
             sql.append(" and wb.ware_template_id = ? ");
             params.add(request.getWareTemplateId());
+        }
+
+        if (request.getDepartmentId() != null) {
+            sql.append(" and e.department_id = ? ");
+            params.add(request.getDepartmentId());
+        }
+
+        if (request.getStatus() != null) {
+            sql.append(" and wb.status = ? ");
+            params.add(request.getStatus().name());
         }
 
         int limit = request.getLimit();
@@ -85,6 +98,16 @@ public class WareBatchJdbc {
         if (request.getWareTemplateId() != null) {
             sql.append(" and wb.ware_template_id = ? ");
             params.add(request.getWareTemplateId());
+        }
+
+        if (request.getDepartmentId() != null) {
+            sql.append(" and e.department_id = ? ");
+            params.add(request.getDepartmentId());
+        }
+
+        if (request.getStatus() != null) {
+            sql.append(" and wb.status = ? ");
+            params.add(request.getStatus().name());
         }
 
         return jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray());

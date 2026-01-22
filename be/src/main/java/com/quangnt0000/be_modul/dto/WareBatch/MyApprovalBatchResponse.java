@@ -36,4 +36,7 @@ public class MyApprovalBatchResponse {
 
     // Quyết định action
     private Boolean canApprove;
+    
+    // Push status
+    private Boolean isPushed;
 }

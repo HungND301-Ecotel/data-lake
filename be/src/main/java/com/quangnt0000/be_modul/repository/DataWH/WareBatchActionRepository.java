@@ -21,5 +21,7 @@ public interface WareBatchActionRepository extends JpaRepository<WareBatchAction
             @Param("tableName") String tableName,
             Pageable pageable
     );
+    
+    boolean existsByWareBatchId(Integer wareBatchId);
 
 }

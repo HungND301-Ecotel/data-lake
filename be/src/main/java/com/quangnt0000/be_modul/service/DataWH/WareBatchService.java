@@ -48,6 +48,7 @@ public class WareBatchService {
     private final UserRepository userRepository;
     private final WareApprovalConfigRepository approvalConfigRepository;
     private final WareBatchApprovalRepository batchApprovalRepository;
+    private final WareBatchActionRepository batchActionRepository;
 
     @Transactional
     public ResponseEntity<?> addWareBatch(WareBatchRequest request) {
@@ -128,6 +129,9 @@ public class WareBatchService {
                     .description(request.getDescription())
                     .employee(user.getEmployee())
                     .wareTemplate(wareTemplate)
+                    .reportYear(request.getReportYear())
+                    .reportMonth(request.getReportMonth())
+                    .reportDay(request.getReportDay())
                     .status(WareBatchEnum.Cho_Phe_Duyet)
                     .build());
 
@@ -439,6 +443,9 @@ public class WareBatchService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "batch not found"));
         wareBatch.setName(request.getName());
         wareBatch.setDescription(request.getDescription());
+        wareBatch.setReportYear(request.getReportYear());
+        wareBatch.setReportMonth(request.getReportMonth());
+        wareBatch.setReportDay(request.getReportDay());
         wareBatch = wareBatchRepository.save(wareBatch);
         return ResponseEntity.ok(wareBatch.getId());
     }
@@ -662,6 +669,9 @@ public class WareBatchService {
                 }
             }
 
+            // Kiểm tra isPushed
+            boolean isPushed = batchActionRepository.existsByWareBatchId(batch.getId());
+            
             // Build response
             MyApprovalBatchResponse response = MyApprovalBatchResponse.builder()
                     // Batch info
@@ -679,6 +689,8 @@ public class WareBatchService {
                     .currentApprovalOrder(currentApprovalOrder)
                     // Quyết định action
                     .canApprove(canApprove)
+                    // Push status
+                    .isPushed(isPushed)
                     .build();
 
             responses.add(response);

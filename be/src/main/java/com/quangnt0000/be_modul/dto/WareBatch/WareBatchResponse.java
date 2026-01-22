@@ -21,4 +21,9 @@ public class WareBatchResponse {
     private String employeeName;
     private String wareBatchStatus;
     private Boolean isPushed;
+    
+    // Thời gian báo cáo
+    private Integer reportYear;
+    private Integer reportMonth;
+    private Integer reportDay;
 }
