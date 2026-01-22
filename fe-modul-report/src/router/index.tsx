@@ -25,6 +25,7 @@ import ReportTargetsPage from "../features/dashboard/pages/ReportTarget";
 import { WareBatchForManagement } from "../features/ware/pages/WareBatchForManage";
 import { ApproveBatch } from "../features/ware/pages/ApproveBatch";
 import { SyncBatch } from "../features/ware/pages/SyncBatch";
+import { WareBatchDetailApprove } from "../features/ware/pages/WareBatchDetailApprove";
 
 export const router = createBrowserRouter([
   {
@@ -43,6 +44,7 @@ export const router = createBrowserRouter([
       { path: "/ware/template/approve/:templateId", element: <WareBatchForManagement /> },
       { path: "/ware/template/detail/:templateId", element: <TemplateDetail /> },
       { path: "/ware/batch/:wareBatchId", element: <WareBatchDetail /> },
+      { path: "/ware/batch-approve/:wareBatchId", element: <WareBatchDetailApprove /> },
       { path: "/approve/batch", element: <ApproveBatch /> },
       { path: "/sync/batch", element: <SyncBatch /> },
       { path: "/category/report", element: <ReportCategoryPage /> },

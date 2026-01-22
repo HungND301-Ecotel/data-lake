@@ -301,25 +301,6 @@ export const ApproveBatch: React.FC = () => {
             render: (status: string) => getStatusBadge(status),
         },
         {
-            title: "Upload",
-            dataIndex: "isPushed",
-            key: "isPushed",
-            align: "center",
-            width: 100,
-            render: (value: boolean, record) => (
-                <Tooltip title={value ? "Đã đẩy dữ liệu" : "Chưa đẩy dữ liệu"}>
-                    {value ? (
-                        <CheckCircleOutlined
-                            className="text-lg text-green-600 cursor-pointer hover:text-green-700 transition-colors"
-                            onClick={() => handleEyeClick(record)}
-                        />
-                    ) : (
-                        <CloseCircleOutlined className="text-lg text-red-600 cursor-pointer hover:text-red-700 transition-colors" />
-                    )}
-                </Tooltip>
-            ),
-        },
-        {
             title: "Thao tác",
             key: "action",
             align: "center",
@@ -330,7 +311,7 @@ export const ApproveBatch: React.FC = () => {
                         <Button
                             type="primary"
                             icon={<EditOutlined />}
-                            onClick={() => nav(`/ware/batch/${record.batchId}`)}
+                            onClick={() => nav(`/ware/batch-approve/${record.batchId}`)}
                             className="bg-green-600! hover:bg-green-700!"
                             size="large"
                         >
