@@ -28,6 +28,7 @@ export interface WareTemplateResponse {
 
   createdAt: string;
   updatedAt: string;
+  hasApprovalConfig: boolean;
 }
 
 export interface TableOption {

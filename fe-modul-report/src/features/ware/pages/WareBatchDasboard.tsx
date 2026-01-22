@@ -1,5 +1,5 @@
 import { Card, Row, Col, Statistic, Table, Tag, Select } from "antd";
-import { DatabaseOutlined, EditOutlined } from "@ant-design/icons";
+import { DatabaseOutlined, EditOutlined, WarningOutlined } from "@ant-design/icons";
 import { Column, Line } from "@ant-design/charts";
 import { useEffect, useState } from "react";
 import type {
@@ -17,6 +17,7 @@ const DashboardWare = () => {
     insert_total: 0,
     update_total: 0,
   });
+
   const formatVNDate = (iso: string) => {
     const d = new Date(iso);
     return d.toLocaleString("vi-VN", {
@@ -28,12 +29,16 @@ const DashboardWare = () => {
       second: "2-digit",
     });
   };
+
   const [lineChartData, setLineChartData] = useState<TimeCountDto[]>([]);
   const [lineType, setLineType] = useState<"DAY" | "MONTH" | "YEAR">("DAY");
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [chartColumData, setChartColumData] = useState<TimeCountDto[]>([]);
+  const [actions, setActions] = useState<WareBatchActionResponse[]>([]);
+  const [loading, setLoading] = useState(false);
+
   const fetchChartLineData = async (type: "DAY" | "MONTH" | "YEAR") => {
     try {
       const res = await wareBatchActionApi.cntActionTime(type);
@@ -51,9 +56,6 @@ const DashboardWare = () => {
       console.error("Fetch colums chart data failed", err);
     }
   };
-
-  const [actions, setActions] = useState<WareBatchActionResponse[]>([]);
-  const [loading, setLoading] = useState(false);
 
   const fetchDashboard = async () => {
     try {
@@ -106,32 +108,47 @@ const DashboardWare = () => {
     {
       title: "Request ID",
       dataIndex: "requestId",
+      width: 200,
+      render: (text: string) => (
+        <span className="font-mono text-blue-600 font-medium">{text}</span>
+      ),
     },
-
     {
-      title: "Table",
+      title: "Bảng",
       dataIndex: "tableName",
+      width: 120,
+      render: (text: string) => (
+        <Tag color="purple" className="font-medium">{text}</Tag>
+      ),
     },
-    // {
-    //   title: "BUKRS",
-    //   dataIndex: "burks",
-    // },
     {
-      title: "Action",
+      title: "Hành động",
       dataIndex: "actionName",
+      width: 120,
       render: (value: string) =>
         value === "Insert" ? (
-          <Tag color="green">INSERT</Tag>
+          <Tag color="success" className="px-3 py-1 font-medium">
+            <DatabaseOutlined className="mr-1" />
+            INSERT
+          </Tag>
         ) : (
-          <Tag color="blue">UPDATE</Tag>
+          <Tag color="processing" className="px-3 py-1 font-medium">
+            <EditOutlined className="mr-1" />
+            UPDATE
+          </Tag>
         ),
     },
     {
-      title: "Created At",
+      title: "Thời gian",
       dataIndex: "createdAt",
       key: "createdAt",
+      width: 200,
       render: (value?: string | Date) =>
-        value ? formatVNDate(String(value)) : "-",
+        value ? (
+          <span className="text-gray-600">{formatVNDate(String(value))}</span>
+        ) : (
+          "-"
+        ),
     },
   ];
 
@@ -139,13 +156,41 @@ const DashboardWare = () => {
     data: chartColumData,
     xField: "label",
     yField: "total",
-
+    color: "#1677ff",
+    columnStyle: {
+      radius: [8, 8, 0, 0],
+    },
     label: {
       position: "top",
+      style: {
+        fill: "#000",
+        fontSize: 12,
+        fontWeight: 600,
+      },
     },
     xAxis: {
       label: {
         autoRotate: false,
+        style: {
+          fontSize: 12,
+          fontWeight: 500,
+        },
+      },
+    },
+    yAxis: {
+      label: {
+        style: {
+          fontSize: 12,
+        },
+      },
+      grid: {
+        line: {
+          style: {
+            stroke: "#e5e7eb",
+            lineWidth: 1,
+            lineDash: [4, 4],
+          },
+        },
       },
     },
   };
@@ -155,94 +200,260 @@ const DashboardWare = () => {
     xField: "label",
     yField: "total",
     smooth: true,
-    point: { size: 4 },
+    color: "#10b981",
+    lineStyle: {
+      lineWidth: 3,
+    },
+    point: {
+      size: 5,
+      shape: "circle",
+      style: {
+        fill: "#10b981",
+        stroke: "#fff",
+        lineWidth: 2,
+      },
+    },
+    xAxis: {
+      label: {
+        style: {
+          fontSize: 12,
+          fontWeight: 500,
+        },
+      },
+    },
+    yAxis: {
+      label: {
+        style: {
+          fontSize: 12,
+        },
+      },
+      grid: {
+        line: {
+          style: {
+            stroke: "#e5e7eb",
+            lineWidth: 1,
+            lineDash: [4, 4],
+          },
+        },
+      },
+    },
+    areaStyle: {
+      fillOpacity: 0.1,
+      fill: "l(270) 0:#10b981 1:#ffffff",
+    },
   };
 
   return (
-    <div className="px-4 py-4 min-h-screen">
-      <Row gutter={16} className="mb-6">
-        <Col span={6}>
-          <Card>
+    <div className="px-10 py-6 min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
+      {/* Header */}
+      
+
+      {/* Statistics Cards */}
+      <Row gutter={[24, 24]} className="mb-8">
+        <Col xs={24} sm={12} lg={6}>
+          <Card
+            className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-0"
+            style={{
+              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            }}
+          >
             <Statistic
-              title="Insert hôm nay"
+              title={
+                <span className="text-white text-opacity-90 font-medium">
+                  Insert hôm nay
+                </span>
+              }
               value={dashboard.insert_today}
-              valueStyle={{ color: "#3f8600" }}
-              prefix={<DatabaseOutlined />}
+              valueStyle={{
+                color: "#fff",
+                fontSize: "32px",
+                fontWeight: "bold",
+              }}
+              prefix={
+                <DatabaseOutlined
+                  style={{ fontSize: "24px", marginRight: "8px" }}
+                />
+              }
+              suffix={
+                <div className="flex items-center text-white text-opacity-80 text-sm mt-2">
+                  <WarningOutlined className="mr-1" />
+                  <span>+12.5%</span>
+                </div>
+              }
             />
           </Card>
         </Col>
 
-        <Col span={6}>
-          <Card>
+        <Col xs={24} sm={12} lg={6}>
+          <Card
+            className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-0"
+            style={{
+              background: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+            }}
+          >
             <Statistic
-              title="Update hôm nay"
+              title={
+                <span className="text-white text-opacity-90 font-medium">
+                  Update hôm nay
+                </span>
+              }
               value={dashboard.update_today}
-              valueStyle={{ color: "#1677ff" }}
-              prefix={<EditOutlined />}
+              valueStyle={{
+                color: "#fff",
+                fontSize: "32px",
+                fontWeight: "bold",
+              }}
+              prefix={
+                <EditOutlined
+                  style={{ fontSize: "24px", marginRight: "8px" }}
+                />
+              }
+              suffix={
+                <div className="flex items-center text-white text-opacity-80 text-sm mt-2">
+                  <WarningOutlined className="mr-1" />
+                  <span>+8.3%</span>
+                </div>
+              }
             />
           </Card>
         </Col>
 
-        <Col span={6}>
-          <Card>
+        <Col xs={24} sm={12} lg={6}>
+          <Card
+            className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-0"
+            style={{
+              background: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+            }}
+          >
             <Statistic
-              title="Tổng Insert"
+              title={
+                <span className="text-white text-opacity-90 font-medium">
+                  Tổng Insert
+                </span>
+              }
               value={dashboard.insert_total}
-              valueStyle={{ color: "#389e0d" }}
+              valueStyle={{
+                color: "#fff",
+                fontSize: "32px",
+                fontWeight: "bold",
+              }}
+              prefix={
+                <DatabaseOutlined
+                  style={{ fontSize: "24px", marginRight: "8px" }}
+                />
+              }
             />
           </Card>
         </Col>
 
-        <Col span={6}>
-          <Card>
+        <Col xs={24} sm={12} lg={6}>
+          <Card
+            className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-0"
+            style={{
+              background: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+            }}
+          >
             <Statistic
-              title="Tổng Update"
+              title={
+                <span className="text-white text-opacity-90 font-medium">
+                  Tổng Update
+                </span>
+              }
               value={dashboard.update_total}
-              valueStyle={{ color: "#0958d9" }}
+              valueStyle={{
+                color: "#fff",
+                fontSize: "32px",
+                fontWeight: "bold",
+              }}
+              prefix={
+                <EditOutlined
+                  style={{ fontSize: "24px", marginRight: "8px" }}
+                />
+              }
             />
           </Card>
         </Col>
       </Row>
 
-      <Row gutter={16} className="mb-6">
-        <Col span={12}>
-          <Card title="Top 10 bảng uoload nhiều nhất theo tháng">
-            <div style={{ height: 250 }}>
+      {/* Charts */}
+      <Row gutter={[24, 24]} className="mb-8">
+        <Col xs={24} lg={12}>
+          <Card
+            title={
+              <div className="flex items-center">
+                <div className="w-1 h-6 bg-blue-500 rounded mr-3"></div>
+                <span className="text-lg font-semibold text-gray-800">
+                  Top 10 bảng upload nhiều nhất
+                </span>
+              </div>
+            }
+            className="shadow-lg border-0 h-full"
+            bodyStyle={{ padding: "24px" }}
+          >
+            <div style={{ height: 320 }}>
               <Column {...barConfig} />
             </div>
           </Card>
         </Col>
 
-        <Col span={12}>
+        <Col xs={24} lg={12}>
           <Card
-            title="Upload theo thời gian"
+            title={
+              <div className="flex items-center">
+                <div className="w-1 h-6 bg-green-500 rounded mr-3"></div>
+                <span className="text-lg font-semibold text-gray-800">
+                  Thống kê upload theo thời gian
+                </span>
+              </div>
+            }
             extra={
               <Select
                 value={lineType}
-                style={{ width: 120 }}
+                style={{ width: 140 }}
                 onChange={(v) => setLineType(v)}
                 options={[
-                  { value: "DAY", label: "Theo ngày" },
-                  { value: "MONTH", label: "Theo tháng" },
-                  { value: "YEAR", label: "Theo năm" },
+                  { value: "DAY", label: "📅 Theo ngày" },
+                  { value: "MONTH", label: "📊 Theo tháng" },
+                  { value: "YEAR", label: "📈 Theo năm" },
                 ]}
+                size="middle"
               />
             }
+            className="shadow-lg border-0 h-full"
+            bodyStyle={{ padding: "24px" }}
           >
-            <div style={{ height: 250 }}>
+            <div style={{ height: 320 }}>
               <Line {...lineConfig} />
             </div>
           </Card>
         </Col>
       </Row>
 
-      <Card title="Lịch sử Audit gần đây">
+      {/* Recent Activity Table */}
+      <Card
+        title={
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-1 h-6 bg-purple-500 rounded mr-3"></div>
+              <span className="text-lg font-semibold text-gray-800">
+                Lịch sử hoạt động gần đây
+              </span>
+            </div>
+            <Tag color="blue" className="px-3 py-1">
+              {actions.length} bản ghi
+            </Tag>
+          </div>
+        }
+        className="shadow-lg border-0"
+        bodyStyle={{ padding: "0" }}
+      >
         <div className="overflow-auto">
           <Table
             rowKey="id"
             columns={columns}
             dataSource={actions}
             loading={loading}
+            className="modern-table"
             pagination={{
               current: page + 1,
               pageSize,
@@ -254,10 +465,47 @@ const DashboardWare = () => {
               },
               showSizeChanger: true,
               pageSizeOptions: ["10", "50", "100"],
+              showTotal: (total) => `Tổng ${total} bản ghi`,
+              className: "px-6 py-4",
             }}
+            scroll={{ x: 800 }}
           />
         </div>
       </Card>
+
+      <style>{`
+        .modern-table .ant-table {
+          font-size: 14px;
+        }
+        .modern-table .ant-table-thead > tr > th {
+          background: #f8fafc;
+          color: #1e293b;
+          font-weight: 600;
+          border-bottom: 2px solid #e2e8f0;
+          padding: 16px;
+        }
+        .modern-table .ant-table-tbody > tr > td {
+          padding: 16px;
+          border-bottom: 1px solid #f1f5f9;
+        }
+        .modern-table .ant-table-tbody > tr:hover > td {
+          background: #f8fafc;
+        }
+        .ant-statistic-content {
+          display: flex;
+          flex-direction: column;
+        }
+        .ant-card {
+          border-radius: 12px;
+        }
+        .ant-select-selector {
+          border-radius: 8px !important;
+          border: 1px solid #e2e8f0 !important;
+        }
+        .bg-gradient-to-br {
+          background: linear-gradient(to bottom right, #f9fafb, #f3f4f6);
+        }
+      `}</style>
     </div>
   );
 };

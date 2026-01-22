@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Table, Input, Button, message, Checkbox, Select, Modal } from "antd";
+import { Table, Input, Button, message, Checkbox, Select, Modal, Card, Space, Tag, Tooltip } from "antd";
 import {
   EditOutlined,
   DeleteOutlined,
@@ -7,6 +7,7 @@ import {
   CloseOutlined,
   PlusOutlined,
   ExclamationCircleOutlined,
+  DatabaseOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import type {
@@ -77,6 +78,12 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
     ROW: "Đối chiếu cột",
     CELL: "Đối chiếu ô",
     TEXT: "Nhập dữ liệu",
+  };
+
+  const FIELD_TYPE_COLOR: Record<string, string> = {
+    ROW: "blue",
+    CELL: "cyan",
+    TEXT: "green",
   };
 
   const FIELD_VALUE_LABEL: Record<string, string> = {
@@ -166,7 +173,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
     modal.confirm({
       title: "Xác nhận xóa",
       icon: <ExclamationCircleOutlined />,
-      content: "Bạn có chắc chắn muốn xóa template này?",
+      content: "Bạn có chắc chắn muốn xóa mapping này?",
       okType: "danger",
       onOk: async () => {
         try {
@@ -190,9 +197,12 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
           <Input
             value={editingRequest?.fieldName}
             onChange={(e) => updateRequest("fieldName", e.target.value)}
+            placeholder="Nhập tên dữ liệu"
+            size="large"
+            className="rounded-lg"
           />
         ) : (
-          record.fieldName
+          <span className="font-medium text-gray-800">{record.fieldName}</span>
         ),
     },
     {
@@ -203,14 +213,17 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
           <Input
             value={editingRequest?.fieldTitle}
             onChange={(e) => updateRequest("fieldTitle", e.target.value)}
+            placeholder="Nhập tên hiển thị"
+            size="large"
+            className="rounded-lg"
           />
         ) : (
-          record.fieldTitle
+          <span className="text-gray-700">{record.fieldTitle}</span>
         ),
     },
     {
       title: "Kiểu đối chiếu",
-      width: 130,
+      width: 140,
       align: "center",
       render: (_, record) =>
         isEditing(record) ? (
@@ -223,23 +236,31 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
               { value: "CELL", label: "Đối chiếu ô" },
               { value: "TEXT", label: "Nhập dữ liệu" },
             ]}
+            size="large"
           />
         ) : (
-          FIELD_TYPE_LABEL[record.fieldType ?? ""]
+          <Tag color={FIELD_TYPE_COLOR[record.fieldType ?? ""]}>
+            {FIELD_TYPE_LABEL[record.fieldType ?? ""]}
+          </Tag>
         ),
     },
     {
       title: "Địa chỉ ô/cột",
-      width: 120,
+      width: 140,
       align: "center",
       render: (_, record) =>
         isEditing(record) ? (
           <Input
             value={editingRequest?.cellAddress}
             onChange={(e) => updateRequest("cellAddress", e.target.value)}
+            placeholder="VD: A1, B2"
+            size="large"
+            className="rounded-lg"
           />
         ) : (
-          record.cellAddress
+          <Tag color="default" className="px-3 py-1 font-mono">
+            {record.cellAddress || "-"}
+          </Tag>
         ),
     },
     {
@@ -257,9 +278,10 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
               { value: "NUMBER", label: "Giá trị" },
               { value: "STRING", label: "Chuỗi kí tự" },
             ]}
+            size="large"
           />
         ) : (
-          FIELD_VALUE_LABEL[record.fieldValue ?? ""] ?? record.fieldValue
+          <Tag>{FIELD_VALUE_LABEL[record.fieldValue ?? ""] ?? record.fieldValue}</Tag>
         ),
     },
     {
@@ -273,14 +295,16 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
             onChange={(e) => updateRequest("isKeyColumn", e.target.checked)}
           />
         ) : record.isKeyColumn ? (
-          "✔️"
+          <Tag icon={<EditOutlined />} color="success">
+            Key
+          </Tag>
         ) : (
-          ""
+          <span className="text-gray-400">-</span>
         ),
     },
     {
       title: "Scope_Filter",
-      width: 80,
+      width: 120,
       align: "center",
       render: (_, record) =>
         isEditing(record) ? (
@@ -289,84 +313,161 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
             onChange={(e) => updateRequest("isScopFilter", e.target.checked)}
           />
         ) : record.isScopFilter ? (
-          "✔️"
+          <Tag color="warning">Filter</Tag>
         ) : (
-          ""
+          <span className="text-gray-400">-</span>
         ),
     },
     {
       title: "Thao tác",
-      width: 160,
+      width: 180,
       align: "center",
       render: (_, record) =>
         isEditing(record) ? (
-          <>
-            <Button type="link" icon={<SaveOutlined />} onClick={handleSave}>
-              Lưu
-            </Button>
-            <Button type="link" icon={<CloseOutlined />} onClick={handleCancel}>
-              Hủy
-            </Button>
-          </>
+          <Space>
+            <Tooltip title="Lưu thay đổi">
+              <Button
+                type="primary"
+                icon={<SaveOutlined />}
+                onClick={handleSave}
+                className="bg-green-600! hover:bg-green-700!"
+                size="large"
+              >
+                Lưu
+              </Button>
+            </Tooltip>
+            <Tooltip title="Hủy thay đổi">
+              <Button
+                icon={<CloseOutlined />}
+                onClick={handleCancel}
+                size="large"
+              >
+                Hủy
+              </Button>
+            </Tooltip>
+          </Space>
         ) : (
-          <>
-            <Button
-              type="link"
-              icon={<EditOutlined />}
-              onClick={() => handleEdit(record)}
-            >
-              Sửa
-            </Button>
+          <Space>
+            <Tooltip title="Chỉnh sửa mapping">
+              <Button
+                type="primary"
+                icon={<EditOutlined />}
+                onClick={() => handleEdit(record)}
+                className="bg-green-600! hover:bg-green-700!"
+                size="large"
+              >
+                Sửa
+              </Button>
+            </Tooltip>
 
-            <Button
-              type="link"
-              icon={<DeleteOutlined />}
-              onClick={() => handleDelete(record.id!)}
-              danger
-            >
-              Xóa
-            </Button>
-          </>
+            <Tooltip title="Xóa mapping">
+              <Button
+                danger
+                icon={<DeleteOutlined />}
+                onClick={() => handleDelete(record.id!)}
+                size="large"
+              >
+                Xóa
+              </Button>
+            </Tooltip>
+          </Space>
         ),
     },
   ];
 
   return (
-    <div className="px-4 py-4" style={{ paddingTop: 16 }}>
+    <div className="px-6 py-6 bg-linear-to-br from-gray-50 to-gray-100 min-h-screen">
       {contextHolderMessage}
       {contextHolderModal}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: 16,
-        }}
-      >
-        <h1 style={{ fontSize: 20, fontWeight: "bold", margin: 0 }}>
-          Cấu hình dữ liệu
-        </h1>
 
-        <Button
-          type="primary"
-          className="bg-[#1a8649]! hover:bg-[#15703d]!"
-          icon={<PlusOutlined />}
-          onClick={handleAdd}
-        >
-          Thêm mới
-        </Button>
-      </div>
+      <Card className="shadow-sm border-0 rounded-xl">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-purple-100">
+              <DatabaseOutlined className="text-purple-600 text-lg" />
+            </div>
+            <h1 className="text-xl font-bold text-gray-800 m-0">
+              Cấu hình dữ liệu Mapping
+            </h1>
+          </div>
 
-      <div className="overflow-auto">
-        <Table
-          rowKey={(record) => record.id ?? "new"}
-          columns={columns}
-          dataSource={data}
-          loading={loading}
-          pagination={false}
-          bordered
-          size="small"
-        />
-      </div>
+          <Button
+            type="primary"
+            size="large"
+            icon={<PlusOutlined />}
+            onClick={handleAdd}
+            className="bg-green-600! hover:bg-green-700! h-10 px-6"
+          >
+            Thêm mới
+          </Button>
+        </div>
+
+        <div className="overflow-x-auto rounded-lg border border-gray-200">
+          <Table
+            rowKey={(record) => record.id ?? "new"}
+            columns={columns}
+            dataSource={data}
+            loading={loading}
+            pagination={false}
+            bordered
+            size="middle"
+            rowClassName={(record, index) =>
+              isEditing(record)
+                ? "bg-blue-50 hover:bg-blue-100 transition-colors"
+                : index % 2 === 0
+                ? "bg-white hover:bg-gray-50 transition-colors"
+                : "bg-gray-50 hover:bg-gray-100 transition-colors"
+            }
+            scroll={{ x: 1200 }}
+          />
+        </div>
+
+        {data.length === 0 && !loading && (
+          <div className="text-center py-16 bg-gray-50 rounded-lg mt-4">
+            <DatabaseOutlined className="text-4xl text-gray-300 mb-3" />
+            <p className="text-gray-500 text-lg mb-6">Không có dữ liệu mapping</p>
+            <Button
+              type="primary"
+              size="large"
+              icon={<PlusOutlined />}
+              onClick={handleAdd}
+              className="bg-green-600! hover:bg-green-700! h-11 px-8"
+            >
+              Thêm mapping mới
+            </Button>
+          </div>
+        )}
+      </Card>
+
+      <style>{`
+        .bg-linear-to-br {
+          background: linear-gradient(to bottom right, #f9fafb, #f3f4f6);
+        }
+        .ant-table-cell {
+          padding: 12px !important;
+        }
+        .ant-table-header .ant-table-cell {
+          background: linear-gradient(to right, #f3f4f6, #e5e7eb);
+          font-weight: 600;
+          color: #374151;
+        }
+        .ant-table-row {
+          transition: all 0.2s ease;
+        }
+        .ant-table-row:hover {
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        .ant-input:focus,
+        .ant-input-affix-wrapper:focus,
+        .ant-input-affix-wrapper-focused {
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+        .ant-select-focused .ant-select-selector {
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+      `}</style>
     </div>
   );
 };
