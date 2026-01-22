@@ -17,6 +17,8 @@ export interface WareBatchResponse {
   isPushed: boolean;
   status: string;
   myApprovalStatus: string;
+  wareBatchStatus: string;
+  canApprove: boolean;
 }
 
 export interface WareBatchSearch {
