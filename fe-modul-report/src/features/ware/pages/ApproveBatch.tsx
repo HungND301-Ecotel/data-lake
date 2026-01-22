@@ -112,14 +112,6 @@ export const ApproveBatch: React.FC = () => {
         });
     };
 
-    const handleEyeClick = (record: any) => {
-        if (record.isPushed) {
-            nav(`/ware/batch/${record.batchId}/actions`);
-        } else {
-            messageApi.info("Batch chưa đẩy dữ liệu");
-        }
-    };
-
     const handleBulkApprove = async () => {
         if (selectedRowKeys.length === 0) {
             messageApi.warning("Vui lòng chọn ít nhất một batch để duyệt");
