@@ -12,6 +12,9 @@ import {
   IdcardOutlined,
   FormOutlined,
   BarChartOutlined,
+  EyeOutlined,
+  CheckCircleOutlined,
+  SyncOutlined,
 } from "@ant-design/icons";
 import { Button, Dropdown, Menu } from "antd";
 
@@ -40,6 +43,35 @@ export default function NavBar() {
           icon: <IdcardOutlined className="text-lg" />,
           label: <span className="text-base font-medium">Danh mục tài khoản</span>,
           onClick: () => navigate("/employee"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+      ]}
+      className="rounded-xl! shadow-2xl! min-w-[260px] py-2"
+    />
+  );
+
+  const reportsMenu = (
+    <Menu
+      items={[
+        {
+          key: "view",
+          icon: <EyeOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Xem báo cáo</span>,
+          onClick: () => navigate("/search/master"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "approve",
+          icon: <CheckCircleOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Duyệt báo cáo</span>,
+          onClick: () => navigate("/approve/batch"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "sync",
+          icon: <SyncOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Đồng bộ báo cáo</span>,
+          onClick: () => navigate("/sync/batch"),
           className: "py-3 px-4 hover:bg-[#f0f9f4]!",
         },
       ]}
@@ -119,17 +151,18 @@ export default function NavBar() {
         </Button>
       </Link>
 
-      {/* Reports */}
-      <Link to="/search/master">
+      {/* Reports Dropdown */}
+      <Dropdown overlay={reportsMenu} placement="bottomLeft">
         <Button
           type="text"
           icon={<BarChartOutlined className="text-lg mr-2" />}
-          className="text-white! border-0! bg-transparent! font-semibold text-base tracking-wide hover:bg-white/15! transition-all duration-300 rounded-lg"
+          className="text-white! border-0! bg-transparent! font-semibold text-base tracking-wide hover:bg-white/15! transition-all duration-300 rounded-lg cursor-pointer group"
           size="large"
         >
-          Báo cáo tác nghiệp
+          <span>Báo cáo tác nghiệp</span>
+          <DownOutlined className="text-xs ml-2 group-hover:translate-y-0.5 transition-transform duration-300" />
         </Button>
-      </Link>
+      </Dropdown>
 
       {/* Account Menu */}
       <div className="ml-auto">

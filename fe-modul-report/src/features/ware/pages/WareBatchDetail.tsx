@@ -23,7 +23,6 @@ import { wareBatchApi } from "../api/wareBathApi";
 import type { WareDataRowResponse } from "../types/wareDataRow";
 import type { WareMappingResponse } from "../types/wareMapping";
 import type { WareBatchResponse } from "../types/wareBacth";
-import { jwtDecode } from "jwt-decode";
 import {
   CheckCircleOutlined,
   SearchOutlined,
@@ -32,11 +31,6 @@ import {
   CloseOutlined,
   ReloadOutlined,
 } from "@ant-design/icons";
-
-type DecodedToken = {
-  role: string;
-  [key: string]: any;
-};
 
 export const WareBatchDetail: React.FC = () => {
   const wareBatchId = Number(
@@ -51,24 +45,11 @@ export const WareBatchDetail: React.FC = () => {
   const [pushModalVisible, setPushModalVisible] = useState(false);
   const [rejectModalVisible, setRejectModalVisible] = useState(false);
   const [deleteMissing, setDeleteMissing] = useState(false);
-  const [userRole, setUserRole] = useState<string | null>(null);
   const [messageApi, contextHolderMessage] = message.useMessage();
   const [modal, contextHolderModal] = Modal.useModal();
 
   const [form] = Form.useForm();
   const [rejectForm] = Form.useForm();
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const decoded = jwtDecode<DecodedToken>(token);
-        setUserRole(decoded.role);
-      } catch (err) {
-        console.error("Error decoding token:", err);
-      }
-    }
-  }, []);
 
   const fetchBatchDetail = async () => {
     if (!wareBatchId) return;
@@ -171,9 +152,7 @@ export const WareBatchDetail: React.FC = () => {
     });
   };
 
-  const handlePushClick = () => {
-    setPushModalVisible(true);
-  };
+
 
   const handlePushConfirm = async (values: {
     username: string;
@@ -236,11 +215,6 @@ export const WareBatchDetail: React.FC = () => {
     }
   };
 
-  const canApprove = userRole === "ADMIN" || userRole === "MANAGER";
-  const isPending = batchDetail?.status === "Cho_Phe_Duyet";
-  const isRejected = batchDetail?.status === "Tu_Choi_Phe_Duyet";
-  const isMyApprovalPending = batchDetail?.myApprovalStatus === "Cho_Phe_Duyet";
-
   const getStatusBadge = (status: string) => {
     const statusConfig: {
       [key: string]: { color: string; label: string };
@@ -271,6 +245,66 @@ export const WareBatchDetail: React.FC = () => {
     );
   };
 
+  // Logic hiển thị nút duyệt và từ chối
+  const getActionButtons = () => {
+    const status = batchDetail?.status;
+    const canApprove = batchDetail?.canApprove;
+
+    // Trường hợp 1: canApprove = true => có hiển thị nút duyệt và từ chối
+    if (canApprove) {
+      return (
+        <>
+          <Tooltip title="Duyệt batch này">
+            <Button
+              type="primary"
+              size="large"
+              icon={<CheckOutlined />}
+              onClick={handleApprove}
+              className="bg-green-600! hover:bg-green-700! h-10 px-6"
+            >
+              Duyệt
+            </Button>
+          </Tooltip>
+          <Tooltip title="Từ chối batch này">
+            <Button
+              danger
+              size="large"
+              icon={<CloseOutlined />}
+              onClick={handleRejectClick}
+              className="h-10 px-6"
+            >
+              Từ chối
+            </Button>
+          </Tooltip>
+        </>
+      );
+    }
+
+
+
+
+    // Trường hợp 4: status = Tu_Choi_Phe_Duyet => Dữ liệu đã bị từ chối
+    if (status === "Tu_Choi_Phe_Duyet") {
+      return (
+        <Tooltip title="Batch đã bị từ chối, không thể duyệt">
+          <Button
+            disabled
+            danger
+            size="large"
+            icon={<CloseOutlined />}
+            className="h-10 px-6"
+          >
+            Đã từ chối
+          </Button>
+        </Tooltip>
+      );
+    }
+
+    return null;
+  };
+
+  const isRejected = batchDetail?.status === "Tu_Choi_Phe_Duyet";
+  
   return (
     <div className="px-6 py-6 bg-linear-to-br from-gray-50 to-gray-100 min-h-screen">
       {contextHolderMessage}
@@ -334,44 +368,8 @@ export const WareBatchDetail: React.FC = () => {
                 </Button>
               </Tooltip>
 
-              {canApprove && isPending && isMyApprovalPending ? (
-                <>
-                  <Tooltip title="Duyệt batch này">
-                    <Button
-                      type="primary"
-                      size="large"
-                      icon={<CheckOutlined />}
-                      onClick={handleApprove}
-                      className="bg-green-600! hover:bg-green-700! h-10 px-6"
-                    >
-                      Duyệt
-                    </Button>
-                  </Tooltip>
-                  <Tooltip title="Từ chối batch này">
-                    <Button
-                      danger
-                      size="large"
-                      icon={<CloseOutlined />}
-                      onClick={handleRejectClick}
-                      className="h-10 px-6"
-                    >
-                      Từ chối
-                    </Button>
-                  </Tooltip>
-                </>
-              ) : !isRejected && !isPending ? (
-                <Tooltip title="Upload dữ liệu lên TKV">
-                  <Button
-                    type="primary"
-                    size="large"
-                    icon={<CloudUploadOutlined />}
-                    onClick={handlePushClick}
-                    className="bg-blue-600! hover:bg-blue-700! h-10 px-6"
-                  >
-                    Upload dữ liệu
-                  </Button>
-                </Tooltip>
-              ) : null}
+              {getActionButtons()}
+
             </Space>
           </Col>
         </Row>
