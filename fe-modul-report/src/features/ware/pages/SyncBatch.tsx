@@ -51,6 +51,7 @@ export const SyncBatch: React.FC = () => {
         page,
         limit,
         keyword: searchKeyword,
+        status: "Da_Phe_Duyet",
       };
       const res: PageResponse<WareBatchResponse> =
         await wareBatchApi.searchWareBatch(params);

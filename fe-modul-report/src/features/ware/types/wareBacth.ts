@@ -26,6 +26,7 @@ export interface WareBatchSearch {
   limit?: number;
   keyword?: string | null;
   wareTemplateId?: number | null;
+  status?: string | null;
 }
 
 export interface WareBatchPush {
