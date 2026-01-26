@@ -41,6 +41,9 @@ public class WareBatchJdbc {
                         END AS is_pushed
                     FROM ware_batch wb
                     LEFT JOIN employee e ON wb.employee_id = e.id
+                    LEFT JOIN ware_template wt ON wb.ware_template_id = wt.id
+                    LEFT JOIN ware_category wc ON wt.ware_category_id = wc.id
+                    LEFT JOIN department d ON wc.department_id = d.id
                     WHERE wb.deleted = false
                 """
         );
@@ -57,7 +60,7 @@ public class WareBatchJdbc {
         }
 
         if (request.getDepartmentId() != null) {
-            sql.append(" and e.department_id = ? ");
+            sql.append(" and d.id = ? ");
             params.add(request.getDepartmentId());
         }
 
@@ -85,6 +88,9 @@ public class WareBatchJdbc {
                         count(*)
                     FROM ware_batch wb
                     LEFT JOIN employee e ON wb.employee_id = e.id
+                    LEFT JOIN ware_template wt ON wb.ware_template_id = wt.id
+                    LEFT JOIN ware_category wc ON wt.ware_category_id = wc.id
+                    LEFT JOIN department d ON wc.department_id = d.id
                     WHERE wb.deleted = false
                 """
         );
@@ -101,7 +107,7 @@ public class WareBatchJdbc {
         }
 
         if (request.getDepartmentId() != null) {
-            sql.append(" and e.department_id = ? ");
+            sql.append(" and d.id = ? ");
             params.add(request.getDepartmentId());
         }
 

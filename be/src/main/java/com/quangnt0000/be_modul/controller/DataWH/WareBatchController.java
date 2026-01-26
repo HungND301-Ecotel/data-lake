@@ -68,7 +68,7 @@ public class WareBatchController {
     }
 
     @GetMapping("/my-approvals")
-    public ResponseEntity<?> getMyApprovalBatches() {
-        return wareBatchService.getMyApprovalBatches();
+    public ResponseEntity<?> getMyApprovalBatches(@RequestParam(required = false) String departmentId) {
+        return wareBatchService.getMyApprovalBatches(departmentId);
     }
 }
