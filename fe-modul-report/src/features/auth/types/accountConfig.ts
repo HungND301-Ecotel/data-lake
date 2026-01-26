@@ -6,5 +6,5 @@ export interface UserPushResponse {
 
 export interface UserPushRequest {
   username: string;
-  password: string;
+  password?: string | null;
 }
