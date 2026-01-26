@@ -693,6 +693,10 @@ public class WareBatchService {
                     .batchName(batch.getName())
                     .batchDescription(batch.getDescription())
                     .createdAt(batch.getCreatedAt())
+                    // Thời gian báo cáo
+                    .reportYear(batch.getReportYear())
+                    .reportMonth(batch.getReportMonth())
+                    .reportDay(batch.getReportDay())
                     // Trạng thái batch
                     .batchStatus(batch.getStatus())
                     // Approval context của user hiện tại
