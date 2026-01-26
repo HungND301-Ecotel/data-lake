@@ -11,6 +11,7 @@ import {
   Tag,
   Checkbox,
   Radio,
+  Alert,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import type {
@@ -27,6 +28,8 @@ import {
   ReloadOutlined,
   CloudUploadOutlined,
 } from "@ant-design/icons";
+import { userPushApi } from "../../auth/api/accountConfigApi";
+import type { UserPushResponse } from "../../auth/types/accountConfig";
 
 const { Search } = Input;
 
@@ -43,7 +46,7 @@ export const SyncBatch: React.FC = () => {
   const [form] = Form.useForm();
   const [syncing, setSyncing] = useState(false);
   const [messageApi, contextHolderMessage] = message.useMessage();
-
+  const [userPushConfig, setUserPushConfig] = useState<UserPushResponse | null>(null);
   const fetchBatches = async () => {
     setLoading(true);
     try {
@@ -51,6 +54,7 @@ export const SyncBatch: React.FC = () => {
         page,
         limit,
         keyword: searchKeyword,
+        status: "Da_Phe_Duyet",
       };
       const res: PageResponse<WareBatchResponse> =
         await wareBatchApi.searchWareBatch(params);
@@ -63,21 +67,36 @@ export const SyncBatch: React.FC = () => {
     }
   };
 
+  const loadUserPushConfig = async () => {
+    try {
+      const res = await userPushApi.getAllUserPush();
+      if (res && res.length > 0) {
+        setUserPushConfig(res[0]);
+      } else {
+        setUserPushConfig(null);
+      }
+    } catch (error) {
+      console.log(error);
+      setUserPushConfig(null);
+    }
+  };
+
   useEffect(() => {
     fetchBatches();
+    loadUserPushConfig();
   }, [page, searchKeyword]);
 
-  const formatVNDate = (iso: string) => {
-    const d = new Date(iso);
-    return d.toLocaleString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
-  };
+  // const formatVNDate = (iso: string) => {
+  //   const d = new Date(iso);
+  //   return d.toLocaleString("vi-VN", {
+  //     day: "2-digit",
+  //     month: "2-digit",
+  //     year: "numeric",
+  //     hour: "2-digit",
+  //     minute: "2-digit",
+  //     second: "2-digit",
+  //   });
+  // };
 
   const getStatusBadge = (status: string) => {
     const statusConfig: {
@@ -114,6 +133,17 @@ export const SyncBatch: React.FC = () => {
       messageApi.warning("Vui lòng chọn ít nhất một batch để đồng bộ");
       return;
     }
+
+    // Fill dữ liệu từ config nếu có
+    if (userPushConfig) {
+      form.setFieldsValue({
+        username: userPushConfig.username,
+        password: userPushConfig.password || "",
+      });
+    } else {
+      form.resetFields();
+    }
+
     setSyncModalVisible(true);
   };
 
@@ -165,12 +195,12 @@ export const SyncBatch: React.FC = () => {
           checked={
             selectedIds.length > 0 &&
             selectedIds.length ===
-              batches.filter((b) => b.wareBatchStatus === "Da_Phe_Duyet").length
+            batches.filter((b) => b.wareBatchStatus === "Da_Phe_Duyet").length
           }
           indeterminate={
             selectedIds.length > 0 &&
             selectedIds.length <
-              batches.filter((b) => b.wareBatchStatus === "Da_Phe_Duyet").length
+            batches.filter((b) => b.wareBatchStatus === "Da_Phe_Duyet").length
           }
           onChange={(e) => {
             if (e.target.checked) {
@@ -220,9 +250,25 @@ export const SyncBatch: React.FC = () => {
       render: (text: string) => <span className="text-gray-700">{text}</span>,
     },
     {
-      title: "Mô tả",
-      dataIndex: "description",
-      key: "description",
+      title: "Năm",
+      dataIndex: "reportYear",
+      key: "reportYear",
+      render: (text: string) => (
+        <span className="text-gray-600 line-clamp-2">{text || "-"}</span>
+      ),
+    },
+    {
+      title: "Tháng",
+      dataIndex: "reportMonth",
+      key: "reportMonth",
+      render: (text: string) => (
+        <span className="text-gray-600 line-clamp-2">{text || "-"}</span>
+      ),
+    },
+    {
+      title: "Ngày",
+      dataIndex: "reportDay",
+      key: "reportDay",
       render: (text: string) => (
         <span className="text-gray-600 line-clamp-2">{text || "-"}</span>
       ),
@@ -232,14 +278,6 @@ export const SyncBatch: React.FC = () => {
       dataIndex: "employeeName",
       key: "employeeName",
       render: (text: string) => <span className="text-gray-700">{text}</span>,
-    },
-    {
-      title: "Ngày tạo",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      render: (value: string) => (
-        <span className="text-gray-600 text-sm">{formatVNDate(value)}</span>
-      ),
     },
     {
       title: "Upload",
@@ -390,6 +428,24 @@ export const SyncBatch: React.FC = () => {
         width={600}
       >
         <div className="py-4">
+          {/* Thêm alert hiển thị thông tin config */}
+          {userPushConfig && (
+            <Alert
+              message="Sử dụng tài khoản đã cấu hình"
+              description={
+                <div>
+                  <p className="mb-1">Tên đăng nhập: <strong>{userPushConfig.username}</strong></p>
+                  {userPushConfig.password && (
+                    <p className="mb-0">Mật khẩu đã được lưu trong hệ thống</p>
+                  )}
+                </div>
+              }
+              type="info"
+              showIcon
+              className="mb-4 rounded-lg"
+            />
+          )}
+
           {selectedBatches.length > 0 && (
             <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
               <p className="text-sm text-blue-800 font-medium mb-3">
@@ -435,6 +491,8 @@ export const SyncBatch: React.FC = () => {
                 placeholder="Nhập tên đăng nhập"
                 size="large"
                 className="rounded-lg"
+                disabled={!!userPushConfig} // Disable nếu có config
+                prefix={userPushConfig ? <Tag color="blue">Từ cấu hình</Tag> : null}
               />
             </Form.Item>
 
@@ -447,6 +505,8 @@ export const SyncBatch: React.FC = () => {
                 placeholder="Nhập mật khẩu"
                 size="large"
                 className="rounded-lg"
+                disabled={!!userPushConfig && !!userPushConfig.password}
+                prefix={userPushConfig?.password ? <Tag color="green">Đã lưu</Tag> : null}
               />
             </Form.Item>
 
