@@ -335,7 +335,7 @@ export const SyncBatch: React.FC = () => {
         </div>
         
         {/* Checkbox Xóa dữ liệu cũ được đặt ở đây */}
-        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-end">
           <div className="flex items-center gap-3">
             <span className="font-medium text-gray-700">Xóa dữ liệu cũ:</span>
             <Radio.Group
