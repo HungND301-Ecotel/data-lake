@@ -45,6 +45,13 @@ export default function NavBar() {
           onClick: () => navigate("/employee"),
           className: "py-3 px-4 hover:bg-[#f0f9f4]!",
         },
+        {
+          key: "accountConfig",
+          icon: <IdcardOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Cấu hình tài khoản TKV</span>,
+          onClick: () => navigate("/account-config"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
       ]}
       className="rounded-xl! shadow-2xl! min-w-[260px] py-2"
     />
