@@ -120,7 +120,7 @@ const UserPushConfigPage = () => {
                 username,
                 password: savePassword
                     ? form.getFieldValue("password") || ""
-                    : null,
+                    : "",
             };
 
             console.log("FINAL REQUEST:", request);
@@ -335,7 +335,6 @@ const UserPushConfigPage = () => {
                             placeholder={savePassword ? "Nhập mật khẩu" : "Không lưu mật khẩu"}
                             size="large"
                             className="rounded-lg"
-                            readOnly={!savePassword}
                         />
                     </Form.Item>
 
