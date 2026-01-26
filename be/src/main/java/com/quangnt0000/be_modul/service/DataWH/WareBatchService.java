@@ -619,7 +619,7 @@ public class WareBatchService {
      * Trả về TẤT CẢ batch mà user tham gia phê duyệt,
      * kèm theo đầy đủ context để FE quyết định hiển thị
      */
-    public ResponseEntity<?> getMyApprovalBatches() {
+    public ResponseEntity<?> getMyApprovalBatches(String departmentId) {
         String employeeId = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findById(employeeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "user not found"));
@@ -639,6 +639,19 @@ public class WareBatchService {
 
         for (WareBatchApproval myApproval : myApprovals) {
             WareBatch batch = myApproval.getWareBatch();
+
+            // Filter theo departmentId nếu có
+            if (departmentId != null && !departmentId.isEmpty()) {
+                String batchDepartmentId = batch.getWareTemplate() != null 
+                    && batch.getWareTemplate().getWareCategory() != null 
+                    && batch.getWareTemplate().getWareCategory().getDepartment() != null
+                    ? batch.getWareTemplate().getWareCategory().getDepartment().getId()
+                    : null;
+                
+                if (!departmentId.equals(batchDepartmentId)) {
+                    continue;
+                }
+            }
 
             // Lấy tất cả approvals của batch này để tính toán
             List<WareBatchApproval> allBatchApprovals = batchApprovalRepository

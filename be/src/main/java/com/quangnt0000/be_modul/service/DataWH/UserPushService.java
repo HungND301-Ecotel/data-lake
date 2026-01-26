@@ -35,6 +35,7 @@ public class UserPushService {
         return UserPushResponse.builder()
                 .id(saved.getId())
                 .username(saved.getUsername())
+                .password(saved.getPassword())
                 .build();
     }
 
@@ -43,6 +44,7 @@ public class UserPushService {
                 .map(user -> UserPushResponse.builder()
                         .id(user.getId())
                         .username(user.getUsername())
+                        .password(user.getPassword())
                         .build())
                 .collect(Collectors.toList());
     }
@@ -54,7 +56,7 @@ public class UserPushService {
         return UserPushResponse.builder()
                 .id(userPush.getId())
                 .username(userPush.getUsername())
-                .passname(userPush.getPassword())
+                .password(userPush.getPassword())
                 .build();
     }
 
@@ -65,7 +67,7 @@ public class UserPushService {
         return UserPushResponse.builder()
                 .id(userPush.getId())
                 .username(userPush.getUsername())
-                .passname(userPush.getPassword())
+                .password(userPush.getPassword())
                 .build();
     }
 
@@ -81,7 +83,7 @@ public class UserPushService {
 
         userPush.setUsername(request.getUsername());
         if (request.getPassword() != null && !request.getPassword().isEmpty()) {
-            userPush.setPassword(passwordEncoder.encode(request.getPassword()));
+            userPush.setPassword(request.getPassword());
         }
 
         UserPush updated = userPushRepository.save(userPush);
@@ -89,7 +91,7 @@ public class UserPushService {
         return UserPushResponse.builder()
                 .id(updated.getId())
                 .username(updated.getUsername())
-                .passname(userPush.getPassword())
+                .password(userPush.getPassword())
                 .build();
     }
 

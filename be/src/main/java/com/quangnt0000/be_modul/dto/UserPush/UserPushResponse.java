@@ -12,5 +12,5 @@ import lombok.NoArgsConstructor;
 public class UserPushResponse {
     private String id;
     private String username;
-    private String passname;
+    private String password;
 }
