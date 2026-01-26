@@ -47,6 +47,7 @@ export const SyncBatch: React.FC = () => {
   const [syncing, setSyncing] = useState(false);
   const [messageApi, contextHolderMessage] = message.useMessage();
   const [userPushConfig, setUserPushConfig] = useState<UserPushResponse | null>(null);
+  
   const fetchBatches = async () => {
     setLoading(true);
     try {
@@ -85,18 +86,6 @@ export const SyncBatch: React.FC = () => {
     fetchBatches();
     loadUserPushConfig();
   }, [page, searchKeyword]);
-
-  // const formatVNDate = (iso: string) => {
-  //   const d = new Date(iso);
-  //   return d.toLocaleString("vi-VN", {
-  //     day: "2-digit",
-  //     month: "2-digit",
-  //     year: "numeric",
-  //     hour: "2-digit",
-  //     minute: "2-digit",
-  //     second: "2-digit",
-  //   });
-  // };
 
   const getStatusBadge = (status: string) => {
     const statusConfig: {
@@ -150,7 +139,6 @@ export const SyncBatch: React.FC = () => {
   const handleSyncConfirm = async (values: {
     username: string;
     password: string;
-    deleteMissing: boolean;
   }) => {
     if (selectedIds.length === 0) return;
 
@@ -164,7 +152,7 @@ export const SyncBatch: React.FC = () => {
         try {
           await wareBatchApi.pushWareBatch({
             id: batchId as number,
-            deleteMissing: values.deleteMissing,
+            deleteMissing: deleteMissing, // Lấy từ state bên ngoài
             username: values.username,
             password: values.password,
           });
@@ -310,7 +298,7 @@ export const SyncBatch: React.FC = () => {
       {contextHolderMessage}
 
       <Card className="shadow-sm border-0 rounded-xl mb-6">
-        <div className="flex justify-between items-center gap-4">
+        <div className="flex justify-between items-center gap-4 mb-4">
           <div className="flex items-center gap-3 flex-1">
             <Search
               placeholder="Tìm kiếm theo mã, tên hoặc mô tả..."
@@ -344,6 +332,21 @@ export const SyncBatch: React.FC = () => {
               Đồng bộ ({selectedIds.length})
             </Button>
           </Tooltip>
+        </div>
+        
+        {/* Checkbox Xóa dữ liệu cũ được đặt ở đây */}
+        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex items-center gap-3">
+            <span className="font-medium text-gray-700">Xóa dữ liệu cũ:</span>
+            <Radio.Group
+              onChange={(e) => setDeleteMissing(e.target.value)}
+              value={deleteMissing}
+              className="text-gray-700"
+            >
+              <Radio value={true}>Có</Radio>
+              <Radio value={false}>Không</Radio>
+            </Radio.Group>
+          </div>
         </div>
       </Card>
 
@@ -468,21 +471,6 @@ export const SyncBatch: React.FC = () => {
             className="py-4"
           >
             <Form.Item
-              label={<span className="font-medium text-gray-800">Xoá dữ liệu cũ</span>}
-              name="deleteMissing"
-              rules={[{ required: true, message: "Vui lòng chọn có hoặc không!" }]}
-            >
-              <Radio.Group
-                onChange={(e) => setDeleteMissing(e.target.value)}
-                value={deleteMissing}
-                className="text-gray-700"
-              >
-                <Radio value={true}>Có</Radio>
-                <Radio value={false}>Không</Radio>
-              </Radio.Group>
-            </Form.Item>
-
-            <Form.Item
               label={<span className="font-medium text-gray-800">Tên đăng nhập</span>}
               name="username"
               rules={[{ required: true, message: "Vui lòng nhập username!" }]}
@@ -491,7 +479,7 @@ export const SyncBatch: React.FC = () => {
                 placeholder="Nhập tên đăng nhập"
                 size="large"
                 className="rounded-lg"
-                disabled={!!userPushConfig} // Disable nếu có config
+                disabled={!!userPushConfig}
                 prefix={userPushConfig ? <Tag color="blue">Từ cấu hình</Tag> : null}
               />
             </Form.Item>
