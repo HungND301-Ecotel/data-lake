@@ -4,6 +4,9 @@ export interface WareBatchRequest {
   description: string;
   file?: File | null;
   wareTemplateId: number | null;
+  reportYear: number | null;
+  reportMonth: number | null;
+  reportDay: number | null;
 }
 
 export interface WareBatchResponse {

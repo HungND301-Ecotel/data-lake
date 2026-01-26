@@ -100,9 +100,9 @@ const UserPushConfigPage = () => {
         if (edit && userPushConfig) {
             form.setFieldsValue({
                 username: userPushConfig.username,
-                password: userPushConfig.passname || "",
+                password: userPushConfig.password || "",
             });
-            setSavePassword(!!userPushConfig.passname);
+            setSavePassword(!!userPushConfig.password);
         } else {
             form.resetFields();
             setSavePassword(false);
@@ -112,12 +112,18 @@ const UserPushConfigPage = () => {
 
     const handleSave = async () => {
         try {
-            const values = await form.validateFields();
+            await form.validateFields();
+
+            const username = form.getFieldValue("username");
 
             const request: UserPushRequest = {
-                username: values.username,
-                password: savePassword ? values.password : "",
+                username,
+                password: savePassword
+                    ? form.getFieldValue("password") || ""
+                    : null,
             };
+
+            console.log("FINAL REQUEST:", request);
 
             if (isEdit && userPushConfig) {
                 await userPushApi.updateUserPush(userPushConfig.id, request);
@@ -129,12 +135,11 @@ const UserPushConfigPage = () => {
 
             setModalVisible(false);
             form.resetFields();
+            setSavePassword(false);
             loadUserPushConfig();
         } catch (error) {
             console.log(error);
-            messageApi.error(
-                isEdit ? "Lỗi cập nhật tài khoản" : "Lỗi thêm tài khoản"
-            );
+            messageApi.error(isEdit ? "Lỗi cập nhật" : "Lỗi thêm");
         }
     };
 
@@ -210,9 +215,9 @@ const UserPushConfigPage = () => {
                                         </span>
                                     }
                                 >
-                                    {userPushConfig.passname ? (
+                                    {userPushConfig.password ? (
                                         <span className="text-gray-700 font-mono bg-gray-100 px-3 py-1 rounded">
-                                            {userPushConfig.passname}
+                                            {userPushConfig.password}
                                         </span>
                                     ) : (
                                         <Tag color="orange" className="px-3 py-1">
@@ -321,25 +326,29 @@ const UserPushConfigPage = () => {
                         name="password"
                         label={
                             <span className="font-medium text-gray-700">
-                                Mật khẩu <span className="text-red-500">*</span>
+                                Mật khẩu {savePassword && <span className="text-red-500">*</span>}
                             </span>
                         }
-                        rules={[
-                            { required: true, message: "Vui lòng nhập mật khẩu" },
-                        ]}
                     >
                         <Input.Password
-                            prefix={<LockOutlined className="text-gray-400" />}
-                            placeholder="Nhập mật khẩu"
+                            prefix={<LockOutlined />}
+                            placeholder={savePassword ? "Nhập mật khẩu" : "Không lưu mật khẩu"}
                             size="large"
                             className="rounded-lg"
+                            readOnly={!savePassword}
                         />
                     </Form.Item>
 
                     <Form.Item>
                         <Checkbox
                             checked={savePassword}
-                            onChange={(e) => setSavePassword(e.target.checked)}
+                            onChange={(e) => {
+                                setSavePassword(e.target.checked);
+                                // Nếu bỏ tick thì clear password field
+                                if (!e.target.checked) {
+                                    form.setFieldValue('password', '');
+                                }
+                            }}
                             className="text-gray-700"
                         >
                             <span className="font-medium">Lưu mật khẩu</span>

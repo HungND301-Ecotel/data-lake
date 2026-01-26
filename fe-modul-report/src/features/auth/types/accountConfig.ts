@@ -1,7 +1,7 @@
 export interface UserPushResponse {
   id: string;
   username: string;
-  passname: string;
+  password: string;
 }
 
 export interface UserPushRequest {

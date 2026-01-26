@@ -86,17 +86,17 @@ export const SyncBatch: React.FC = () => {
     loadUserPushConfig();
   }, [page, searchKeyword]);
 
-  const formatVNDate = (iso: string) => {
-    const d = new Date(iso);
-    return d.toLocaleString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
-  };
+  // const formatVNDate = (iso: string) => {
+  //   const d = new Date(iso);
+  //   return d.toLocaleString("vi-VN", {
+  //     day: "2-digit",
+  //     month: "2-digit",
+  //     year: "numeric",
+  //     hour: "2-digit",
+  //     minute: "2-digit",
+  //     second: "2-digit",
+  //   });
+  // };
 
   const getStatusBadge = (status: string) => {
     const statusConfig: {
@@ -138,7 +138,7 @@ export const SyncBatch: React.FC = () => {
     if (userPushConfig) {
       form.setFieldsValue({
         username: userPushConfig.username,
-        password: userPushConfig.passname || "",
+        password: userPushConfig.password || "",
       });
     } else {
       form.resetFields();
@@ -250,9 +250,25 @@ export const SyncBatch: React.FC = () => {
       render: (text: string) => <span className="text-gray-700">{text}</span>,
     },
     {
-      title: "Mô tả",
-      dataIndex: "description",
-      key: "description",
+      title: "Năm",
+      dataIndex: "reportYear",
+      key: "reportYear",
+      render: (text: string) => (
+        <span className="text-gray-600 line-clamp-2">{text || "-"}</span>
+      ),
+    },
+    {
+      title: "Tháng",
+      dataIndex: "reportMonth",
+      key: "reportMonth",
+      render: (text: string) => (
+        <span className="text-gray-600 line-clamp-2">{text || "-"}</span>
+      ),
+    },
+    {
+      title: "Ngày",
+      dataIndex: "reportDay",
+      key: "reportDay",
       render: (text: string) => (
         <span className="text-gray-600 line-clamp-2">{text || "-"}</span>
       ),
@@ -262,14 +278,6 @@ export const SyncBatch: React.FC = () => {
       dataIndex: "employeeName",
       key: "employeeName",
       render: (text: string) => <span className="text-gray-700">{text}</span>,
-    },
-    {
-      title: "Ngày tạo",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      render: (value: string) => (
-        <span className="text-gray-600 text-sm">{formatVNDate(value)}</span>
-      ),
     },
     {
       title: "Upload",
@@ -427,7 +435,7 @@ export const SyncBatch: React.FC = () => {
               description={
                 <div>
                   <p className="mb-1">Tên đăng nhập: <strong>{userPushConfig.username}</strong></p>
-                  {userPushConfig.passname && (
+                  {userPushConfig.password && (
                     <p className="mb-0">Mật khẩu đã được lưu trong hệ thống</p>
                   )}
                 </div>
@@ -497,8 +505,8 @@ export const SyncBatch: React.FC = () => {
                 placeholder="Nhập mật khẩu"
                 size="large"
                 className="rounded-lg"
-                disabled={!!userPushConfig && !!userPushConfig.passname}
-                prefix={userPushConfig?.passname ? <Tag color="green">Đã lưu</Tag> : null}
+                disabled={!!userPushConfig && !!userPushConfig.password}
+                prefix={userPushConfig?.password ? <Tag color="green">Đã lưu</Tag> : null}
               />
             </Form.Item>
 

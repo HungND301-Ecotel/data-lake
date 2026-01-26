@@ -3,19 +3,19 @@ import type { UserPushRequest, UserPushResponse } from "../types/accountConfig";
 
 export const userPushApi = {
   getAllUserPush: async (): Promise<UserPushResponse[]> => {
-    const res = await axiosClient.get(`/api/user-push`);
+    const res = await axiosClient.get(`/user-push`);
     return res.data;
   },
 
   getUserPushByUsername: async (username: string): Promise<UserPushResponse> => {
-    const res = await axiosClient.get(`/api/user-push/username/${username}`);
+    const res = await axiosClient.get(`/user-push/username/${username}`);
     return res.data;
   },
 
   createUserPush: async (
     request: UserPushRequest
   ): Promise<UserPushResponse> => {
-    const res = await axiosClient.post(`/api/user-push`, request);
+    const res = await axiosClient.post(`/user-push`, request);
     return res.data;
   },
 
@@ -23,12 +23,12 @@ export const userPushApi = {
     id: string,
     request: UserPushRequest
   ): Promise<UserPushResponse> => {
-    const res = await axiosClient.put(`/api/user-push/${id}`, request);
+    const res = await axiosClient.put(`/user-push/${id}`, request);
     return res.data;
   },
 
   deleteUserPush: async (id: string): Promise<UserPushResponse> => {
-    const res = await axiosClient.delete(`/api/user-push/${id}`);
+    const res = await axiosClient.delete(`/user-push/${id}`);
     return res.data;
   },
 };

@@ -417,16 +417,6 @@ export const WareBatchForManagement: React.FC = () => {
                                 Từ chối ({selectedRowKeys.length})
                             </Button>
                         </Tooltip>
-
-                        <Button
-                            type="primary"
-                            size="large"
-                            icon={<PlusOutlined />}
-                            onClick={() => setIsModalOpen(true)}
-                            className="bg-green-600! hover:bg-green-700! h-10 px-6"
-                        >
-                            Thêm dữ liệu
-                        </Button>
                     </Space.Compact>
                 </div>
             </Card>

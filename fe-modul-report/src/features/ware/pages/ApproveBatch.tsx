@@ -272,9 +272,25 @@ export const ApproveBatch: React.FC = () => {
             render: (text: string) => <span className="text-gray-700">{text}</span>,
         },
         {
-            title: "Mô tả",
-            dataIndex: "batchDescription",
-            key: "batchDescription",
+            title: "Năm",
+            dataIndex: "reportYear",
+            key: "reportYear",
+            render: (text: string) => (
+                <span className="text-gray-600 line-clamp-2">{text || "-"}</span>
+            ),
+        },
+        {
+            title: "Tháng",
+            dataIndex: "reportMonth",
+            key: "reportMonth",
+            render: (text: string) => (
+                <span className="text-gray-600 line-clamp-2">{text || "-"}</span>
+            ),
+        },
+        {
+            title: "Ngày",
+            dataIndex: "reportDay",
+            key: "reportDay",
             render: (text: string) => (
                 <span className="text-gray-600 line-clamp-2">{text || "-"}</span>
             ),
@@ -283,7 +299,7 @@ export const ApproveBatch: React.FC = () => {
             title: "Trạng thái của bạn",
             dataIndex: "myApprovalStatus",
             key: "myApprovalStatus",
-            render: (status: string, record: BatchRecord) => 
+            render: (status: string, record: BatchRecord) =>
                 getStatusBadge2(status, record.canApprove),
         },
         {
@@ -390,15 +406,7 @@ export const ApproveBatch: React.FC = () => {
                             </Button>
                         </Tooltip>
 
-                        <Button
-                            type="primary"
-                            size="large"
-                            icon={<PlusOutlined />}
-                            onClick={() => setIsModalOpen(true)}
-                            className="bg-green-600! hover:bg-green-700! h-10 px-6"
-                        >
-                            Thêm dữ liệu
-                        </Button>
+
                     </Space.Compact>
                 </div>
             </Card>
@@ -436,8 +444,8 @@ export const ApproveBatch: React.FC = () => {
                                         ? "bg-blue-50 hover:bg-blue-100 transition-colors"
                                         : "bg-blue-50 hover:bg-blue-100 transition-colors"
                                     : index % 2 === 0
-                                    ? "bg-white hover:bg-gray-50 transition-colors opacity-75"
-                                    : "bg-gray-50 hover:bg-gray-100 transition-colors opacity-75"
+                                        ? "bg-white hover:bg-gray-50 transition-colors opacity-75"
+                                        : "bg-gray-50 hover:bg-gray-100 transition-colors opacity-75"
                             }
                             scroll={{ x: 1300 }}
                         />
