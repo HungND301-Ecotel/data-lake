@@ -20,6 +20,8 @@
     "axios": "^1.13.2",
     "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
+    "jwt-decode": "^4.0.0",
+    "lucide-react": "^0.562.0",
     "luckyexcel": "^1.0.1",
     "luckysheet": "^2.1.13",
     "react": "^19.2.0",

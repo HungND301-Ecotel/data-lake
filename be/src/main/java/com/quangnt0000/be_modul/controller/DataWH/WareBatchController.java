@@ -1,7 +1,9 @@
 package com.quangnt0000.be_modul.controller.DataWH;
 
 import com.quangnt0000.be_modul.dto.TWH_Get.GetRequest;
+import com.quangnt0000.be_modul.dto.WareBatch.WareBatchApproveRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchPush;
+import com.quangnt0000.be_modul.dto.WareBatch.WareBatchRejectRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchSearch;
 import com.quangnt0000.be_modul.service.DataWH.WareBatchService;
@@ -30,6 +32,11 @@ public class WareBatchController {
         return wareBatchService.search(request);
     }
 
+    @GetMapping("/{ware-batch-id}")
+    public ResponseEntity<?> getDetail(@PathVariable("ware-batch-id") Integer wareBatchId) {
+        return wareBatchService.getWareBatchDetail(wareBatchId);
+    }
+
     @PostMapping("/push")
     public ResponseEntity<?> push(@RequestBody  WareBatchPush request) {
         return wareBatchService.push(request);
@@ -45,8 +52,23 @@ public class WareBatchController {
         return wareBatchService.delete(wareBatchId);
     }
 
+    @PutMapping("/reject")
+    public ResponseEntity<?> rejectApproval(@RequestBody WareBatchRejectRequest request) {
+        return wareBatchService.rejectApproval(request);
+    }
+
+    @PutMapping("/approve")
+    public ResponseEntity<?> approve(@RequestBody WareBatchApproveRequest request) {
+        return wareBatchService.approve(request);
+    }
+
     @GetMapping("/master-data/{batch-id}")
     public ResponseEntity<?> getMasterData(@PathVariable ("batch-id") Integer batchId, @ModelAttribute GetRequest request) {
         return wareBatchService.getMasterData(batchId, request);
+    }
+
+    @GetMapping("/my-approvals")
+    public ResponseEntity<?> getMyApprovalBatches() {
+        return wareBatchService.getMyApprovalBatches();
     }
 }

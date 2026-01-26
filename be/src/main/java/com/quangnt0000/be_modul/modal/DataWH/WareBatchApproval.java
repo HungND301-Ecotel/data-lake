@@ -3,60 +3,51 @@ package com.quangnt0000.be_modul.modal.DataWH;
 import com.quangnt0000.be_modul.enums.WareBatchEnum;
 import com.quangnt0000.be_modul.modal.DataLake.Employee;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
-@AllArgsConstructor
-@NoArgsConstructor
+@Entity
 @Data
 @Builder
-@Entity
+@NoArgsConstructor
+@AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-public class WareBatch {
+@Table(
+        name = "ware_batch_approval",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"ware_batch_id", "approval_order"})
+        }
+)
+public class WareBatchApproval {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false, unique = true)
-    private String code;
+    @ManyToOne()
+    @JoinColumn(name = "ware_batch_id", nullable = false)
+    private WareBatch wareBatch;
 
-    private String name;
-    private String description;
-    
-    private Integer reportYear;
-    private Integer reportMonth;
-    private Integer reportDay;
+    @ManyToOne()
+    @JoinColumn(name = "approver_id", nullable = false)
+    private Employee approver;
 
-    @ManyToOne
-    @JoinColumn(name = "wareTemplateId")
-    private WareTemplate wareTemplate;
+    @Column(name = "approval_order", nullable = false)
+    private Integer approvalOrder;
 
-    @ManyToOne
-    @JoinColumn(name = "employeeId")
-    private Employee employee;
-
-    @OneToMany(mappedBy = "wareBatch")
-    private List<WareDataRow> wareDataRows;
-
-    // Trạng thái phê duyệt
     @Enumerated(EnumType.STRING)
     @Builder.Default
-    @Column(nullable = true)
+    @Column(nullable = false)
     private WareBatchEnum status = WareBatchEnum.Cho_Phe_Duyet;
-    //base
-    @Builder.Default
-    private Boolean deleted = false;
+
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
     @LastModifiedDate
     private LocalDateTime updatedAt;
 }

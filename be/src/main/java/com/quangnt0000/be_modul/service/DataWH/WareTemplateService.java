@@ -9,6 +9,7 @@ import com.quangnt0000.be_modul.modal.DataWH.WareCategory;
 import com.quangnt0000.be_modul.modal.DataWH.WareTemplate;
 import com.quangnt0000.be_modul.repository.DataWH.WareCategoryRepository;
 import com.quangnt0000.be_modul.repository.DataWH.WareTemplateRepository;
+import com.quangnt0000.be_modul.repository.DataWH.WareApprovalConfigRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,7 @@ import java.util.List;
 public class WareTemplateService {
     private final WareTemplateRepository wareTemplateRepository;
     private final WareCategoryRepository wareCategoryRepository;
+    private final WareApprovalConfigRepository wareApprovalConfigRepository;
     @Transactional
     public ResponseEntity<?> add(WareTemplateRequest request) {
         WareCategory wareCategory = wareCategoryRepository.findById(request.getWareCategoryId())
@@ -54,17 +56,23 @@ public class WareTemplateService {
     public ResponseEntity<?> getAll(WareTemplateSearch request) {
         List<WareTemplate> wareTemplates = wareTemplateRepository.findByWareCategory_IdOrderByNameAsc(request.getWareCategoryId());
         List<WareTemplateResponse> responses = wareTemplates.stream().map(
-                wareTemplate -> WareTemplateResponse.builder()
-                        .id(wareTemplate.getId())
-                        .code(wareTemplate.getCode())
-                        .name(wareTemplate.getName())
-                        .description(wareTemplate.getDescription())
-                        .tableName(wareTemplate.getTableName())
-                        .tableCode(wareTemplate.getTableCode())
-                        .startRow(wareTemplate.getStartRow())
-                        .createdAt(wareTemplate.getCreatedAt())
-                        .updatedAt(wareTemplate.getUpdatedAt())
-                        .build()
+                wareTemplate -> {
+                    boolean hasConfig = !wareApprovalConfigRepository
+                            .findByWareTemplateIdOrderByApprovalOrder(wareTemplate.getId())
+                            .isEmpty();
+                    return WareTemplateResponse.builder()
+                            .id(wareTemplate.getId())
+                            .code(wareTemplate.getCode())
+                            .name(wareTemplate.getName())
+                            .description(wareTemplate.getDescription())
+                            .tableName(wareTemplate.getTableName())
+                            .tableCode(wareTemplate.getTableCode())
+                            .startRow(wareTemplate.getStartRow())
+                            .createdAt(wareTemplate.getCreatedAt())
+                            .updatedAt(wareTemplate.getUpdatedAt())
+                            .hasApprovalConfig(hasConfig)
+                            .build();
+                }
         ).toList();
         return ResponseEntity.ok(responses);
     }

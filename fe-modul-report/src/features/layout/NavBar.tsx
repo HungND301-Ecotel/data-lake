@@ -1,49 +1,81 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   UserOutlined,
   DownOutlined,
   LogoutOutlined,
   ProfileOutlined,
   ArrowLeftOutlined,
+  HomeOutlined,
+  AppstoreOutlined,
+  TeamOutlined,
+  FileTextOutlined,
+  IdcardOutlined,
+  FormOutlined,
+  BarChartOutlined,
+  EyeOutlined,
+  CheckCircleOutlined,
+  SyncOutlined,
 } from "@ant-design/icons";
 import { Button, Dropdown, Menu } from "antd";
 
 export default function NavBar() {
-  const location = useLocation();
   const navigate = useNavigate();
 
-  const isActive = (path: string) => location.pathname.startsWith(path);
   const categoryMenu = (
     <Menu
       items={[
         {
           key: "departments",
-          label: "Phòng ban",
+          icon: <TeamOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Danh mục phòng ban</span>,
           onClick: () => navigate("/category/departments"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
         },
         {
           key: "ware",
-          label: "Danh mục TKV",
+          icon: <FileTextOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Danh mục báo cáo</span>,
           onClick: () => navigate("/category/ware"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "employee",
+          icon: <IdcardOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Danh mục tài khoản</span>,
+          onClick: () => navigate("/employee"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
         },
       ]}
+      className="rounded-xl! shadow-2xl! min-w-[260px] py-2"
     />
   );
 
-  const reportMenu = (
+  const reportsMenu = (
     <Menu
       items={[
         {
-          key: "ware",
-          label: "Báo cáo TKV",
-          onClick: () => navigate("/ware"),
+          key: "view",
+          icon: <EyeOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Xem báo cáo</span>,
+          onClick: () => navigate("/search/master"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
         },
         {
-          key: "search",
-          label: "Tra cứu TKV",
-          onClick: () => navigate("/search/master"),
+          key: "approve",
+          icon: <CheckCircleOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Duyệt báo cáo</span>,
+          onClick: () => navigate("/approve/batch"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "sync",
+          icon: <SyncOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Đồng bộ báo cáo</span>,
+          onClick: () => navigate("/sync/batch"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
         },
       ]}
+      className="rounded-xl! shadow-2xl! min-w-[260px] py-2"
     />
   );
 
@@ -52,74 +84,95 @@ export default function NavBar() {
       items={[
         {
           key: "profile",
-          icon: <ProfileOutlined />,
-          label: "Hồ sơ cá nhân",
+          icon: <ProfileOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Hồ sơ cá nhân</span>,
           onClick: () => navigate("/employee/profile"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
         },
-        { type: "divider" },
+        { type: "divider", className: "my-2" },
         {
           key: "logout",
-          icon: <LogoutOutlined />,
+          icon: <LogoutOutlined className="text-lg" />,
           danger: true,
-          label: "Đăng xuất",
+          label: <span className="text-base font-medium">Đăng xuất</span>,
           onClick: () => navigate("/login"),
+          className: "py-3 px-4 hover:bg-[#fff1f0]!",
         },
       ]}
+      className="rounded-xl! shadow-2xl! min-w-[220px] py-2"
     />
   );
+
   return (
-    <nav className="top-0 z-50 bg-[#1a8649] flex items-center px-6 py-2 gap-2 shadow-md">
+    <nav className="top-0 z-50 bg-[#1a8649] flex items-center px-8 py-3 gap-2 shadow-lg border-b border-[#0a5232]">
+      {/* Back Button */}
       <Button
         type="text"
-        icon={<ArrowLeftOutlined />}
+        icon={<ArrowLeftOutlined className="text-xl" />}
         onClick={() => navigate(-1)}
-        className="text-white! hover:text-white! hover:bg-green-600"
-      ></Button>
-      <Link
-        to="/dashboard"
-        className={`px-4 py-2 rounded-lg text-sm font-medium ${
-          isActive("/dashboard")
-            ? "bg-white text-green-700"
-            : "text-white hover:bg-green-600"
-        }`}
-      >
-        Trang chủ
-      </Link>
+        className="text-white! border-0! bg-transparent! hover:bg-white/15! transition-all duration-300 rounded-lg"
+        size="large"
+      />
 
-      <Dropdown overlay={categoryMenu}>
+      {/* Home */}
+      <Link to="/dashboard">
         <Button
           type="text"
-          className="text-white! hover:text-white! hover:bg-green-600"
+          icon={<HomeOutlined className="text-lg mr-2" />}
+          className="text-white! border-0! bg-transparent! font-semibold text-base tracking-wide hover:bg-white/15! transition-all duration-300 rounded-lg"
+          size="large"
         >
-          Danh mục <DownOutlined />
+          Trang chủ
+        </Button>
+      </Link>
+
+      {/* System Dropdown */}
+      <Dropdown overlay={categoryMenu} placement="bottomLeft">
+        <Button
+          type="text"
+          icon={<AppstoreOutlined className="text-lg mr-2" />}
+          className="text-white! border-0! bg-transparent! font-semibold text-base tracking-wide hover:bg-white/15! transition-all duration-300 rounded-lg cursor-pointer group"
+          size="large"
+        >
+          <span>Hệ thống</span>
+          <DownOutlined className="text-xs ml-2 group-hover:translate-y-0.5 transition-transform duration-300" />
         </Button>
       </Dropdown>
 
-      <Link
-        to="/employee"
-        className={`px-4 py-2 rounded-lg text-sm font-medium ${
-          isActive("/employee")
-            ? "bg-white text-green-700"
-            : "text-white hover:bg-green-600"
-        }`}
-      >
-        Nhân viên
-      </Link>
-
-      <Dropdown overlay={reportMenu}>
+      {/* Data Input */}
+      <Link to="/ware">
         <Button
           type="text"
-          className="text-white! hover:text-white! hover:bg-green-600"
+          icon={<FormOutlined className="text-lg mr-2" />}
+          className="text-white! border-0! bg-transparent! font-semibold text-base tracking-wide hover:bg-white/15! transition-all duration-300 rounded-lg"
+          size="large"
         >
-          Báo cáo <DownOutlined />
+          Nhập dữ liệu
+        </Button>
+      </Link>
+
+      {/* Reports Dropdown */}
+      <Dropdown overlay={reportsMenu} placement="bottomLeft">
+        <Button
+          type="text"
+          icon={<BarChartOutlined className="text-lg mr-2" />}
+          className="text-white! border-0! bg-transparent! font-semibold text-base tracking-wide hover:bg-white/15! transition-all duration-300 rounded-lg cursor-pointer group"
+          size="large"
+        >
+          <span>Báo cáo tác nghiệp</span>
+          <DownOutlined className="text-xs ml-2 group-hover:translate-y-0.5 transition-transform duration-300" />
         </Button>
       </Dropdown>
 
+      {/* Account Menu */}
       <div className="ml-auto">
         <Dropdown overlay={accountMenu} placement="bottomRight">
-          <Button type="text" className="text-white!">
-            <UserOutlined />
-          </Button>
+          <Button
+            type="text"
+            icon={<UserOutlined className="text-xl" />}
+            className="text-white! border-0! bg-transparent! hover:bg-white/15! transition-all duration-300 rounded-lg h-10 w-10"
+            size="large"
+          />
         </Dropdown>
       </div>
     </nav>

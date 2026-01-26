@@ -24,13 +24,15 @@ import type { WareDataRowResponse } from "../types/wareDataRow";
 import type { WareMappingResponse } from "../types/wareMapping";
 import type { WareBatchResponse } from "../types/wareBacth";
 import {
+  CheckCircleOutlined,
   SearchOutlined,
   CloudUploadOutlined,
+  CheckOutlined,
   CloseOutlined,
   ReloadOutlined,
 } from "@ant-design/icons";
 
-export const WareBatchDetail: React.FC = () => {
+export const WareBatchDetailApprove: React.FC = () => {
   const wareBatchId = Number(
     useParams<{ wareBatchId: string }>().wareBatchId ?? 0
   );
@@ -44,6 +46,7 @@ export const WareBatchDetail: React.FC = () => {
   const [rejectModalVisible, setRejectModalVisible] = useState(false);
   const [deleteMissing, setDeleteMissing] = useState(false);
   const [messageApi, contextHolderMessage] = message.useMessage();
+  const [modal, contextHolderModal] = Modal.useModal();
 
   const [form] = Form.useForm();
   const [rejectForm] = Form.useForm();
@@ -173,6 +176,30 @@ export const WareBatchDetail: React.FC = () => {
     }
   };
 
+  const handleApprove = async () => {
+    if (!wareBatchId) return;
+    modal.confirm({
+      title: "Duyệt batch",
+      icon: <CheckCircleOutlined />,
+      content: "Bạn có chắc chắn muốn duyệt batch này?",
+      okText: "Duyệt",
+      cancelText: "Hủy",
+      okType: "primary",
+      onOk: async () => {
+        try {
+          await wareBatchApi.approveBatch(wareBatchId);
+          messageApi.success("Duyệt batch thành công");
+          fetchBatchDetail();
+        } catch (error: any) {
+          messageApi.error(error?.data || "Duyệt batch thất bại");
+        }
+      },
+    });
+  };
+
+  const handleRejectClick = () => {
+    setRejectModalVisible(true);
+  };
 
   const handleRejectConfirm = async () => {
     if (!wareBatchId) return;
@@ -221,6 +248,38 @@ export const WareBatchDetail: React.FC = () => {
   // Logic hiển thị nút duyệt và từ chối
   const getActionButtons = () => {
     const status = batchDetail?.status;
+    const canApprove = batchDetail?.canApprove;
+
+    // Trường hợp 1: canApprove = true => có hiển thị nút duyệt và từ chối
+    if (canApprove) {
+      return (
+        <>
+          <Tooltip title="Duyệt batch này">
+            <Button
+              type="primary"
+              size="large"
+              icon={<CheckOutlined />}
+              onClick={handleApprove}
+              className="bg-green-600! hover:bg-green-700! h-10 px-6"
+            >
+              Duyệt
+            </Button>
+          </Tooltip>
+          <Tooltip title="Từ chối batch này">
+            <Button
+              danger
+              size="large"
+              icon={<CloseOutlined />}
+              onClick={handleRejectClick}
+              className="h-10 px-6"
+            >
+              Từ chối
+            </Button>
+          </Tooltip>
+        </>
+      );
+    }
+
 
 
 
@@ -249,6 +308,8 @@ export const WareBatchDetail: React.FC = () => {
   return (
     <div className="px-6 py-6 bg-linear-to-br from-gray-50 to-gray-100 min-h-screen">
       {contextHolderMessage}
+      {contextHolderModal}
+
       {isRejected && (
         <Alert
           message="Batch này đã bị từ chối duyệt"

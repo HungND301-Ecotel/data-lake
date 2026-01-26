@@ -5,51 +5,44 @@ import {
   Input,
   Modal,
   Form,
-  Upload,
   message,
-  Space,
   Tooltip,
   Card,
   Tag,
+  Checkbox,
+  Radio,
 } from "antd";
-import type { UploadFile } from "antd/es/upload/interface";
 import type { ColumnsType } from "antd/es/table";
 import type {
-  WareBatchRequest,
   WareBatchResponse,
   WareBatchSearch,
 } from "../types/wareBacth";
 import type { PageResponse } from "../../department/types/department";
 import { wareBatchApi } from "../api/wareBathApi";
-import { useNavigate, useParams } from "react-router-dom";
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
-  DeleteOutlined,
-  EditOutlined,
-  ExclamationCircleOutlined,
-  PlusOutlined,
   SearchOutlined,
   FileTextOutlined,
   ReloadOutlined,
+  CloudUploadOutlined,
 } from "@ant-design/icons";
 
 const { Search } = Input;
 
-export const WareBatch: React.FC = () => {
+export const SyncBatch: React.FC = () => {
   const [batches, setBatches] = useState<WareBatchResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [limit] = useState(10);
   const [total, setTotal] = useState(0);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [fileList, setFileList] = useState<UploadFile[]>([]);
-  const [form] = Form.useForm<WareBatchRequest>();
-  const { templateId } = useParams<{ templateId: string }>();
-  const nav = useNavigate();
+  const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
+  const [syncModalVisible, setSyncModalVisible] = useState(false);
+  const [deleteMissing, setDeleteMissing] = useState(false);
+  const [form] = Form.useForm();
+  const [syncing, setSyncing] = useState(false);
   const [messageApi, contextHolderMessage] = message.useMessage();
-  const [modal, contextHolderModal] = Modal.useModal();
 
   const fetchBatches = async () => {
     setLoading(true);
@@ -58,7 +51,6 @@ export const WareBatch: React.FC = () => {
         page,
         limit,
         keyword: searchKeyword,
-        wareTemplateId: templateId ? Number(templateId) : undefined,
       };
       const res: PageResponse<WareBatchResponse> =
         await wareBatchApi.searchWareBatch(params);
@@ -74,52 +66,6 @@ export const WareBatch: React.FC = () => {
   useEffect(() => {
     fetchBatches();
   }, [page, searchKeyword]);
-
-  const handleAddBatch = async (values: WareBatchRequest) => {
-    try {
-      const request: WareBatchRequest = {
-        ...values,
-        id: null,
-        wareTemplateId: templateId ? Number(templateId) : null,
-        file: fileList[0]?.originFileObj || null,
-      };
-
-      await wareBatchApi.saveWareBatch(request);
-      messageApi.success("Thêm batch thành công");
-      setIsModalOpen(false);
-      setFileList([]);
-      form.resetFields();
-      fetchBatches();
-    } catch (error: any) {
-      messageApi.error(error?.data || "Thêm batch thất bại");
-    }
-  };
-
-  const handleDelete = async (id: string | number) => {
-    modal.confirm({
-      title: "Xác nhận xóa",
-      icon: <ExclamationCircleOutlined />,
-      content: "Bạn có chắc chắn muốn xóa batch này?",
-      okType: "danger",
-      onOk: async () => {
-        try {
-          await wareBatchApi.deleteWareBatch(String(id));
-          messageApi.success("Xóa batch thành công");
-          fetchBatches();
-        } catch (error) {
-          messageApi.error("Xóa batch thất bại");
-        }
-      },
-    });
-  };
-
-  const handleEyeClick = (record: WareBatchResponse) => {
-    if (record.isPushed) {
-      nav(`/ware/batch/${record.id}/actions`);
-    } else {
-      messageApi.info("Batch chưa đẩy dữ liệu");
-    }
-  };
 
   const formatVNDate = (iso: string) => {
     const d = new Date(iso);
@@ -163,7 +109,102 @@ export const WareBatch: React.FC = () => {
     );
   };
 
+  const handleSyncClick = () => {
+    if (selectedIds.length === 0) {
+      messageApi.warning("Vui lòng chọn ít nhất một batch để đồng bộ");
+      return;
+    }
+    setSyncModalVisible(true);
+  };
+
+  const handleSyncConfirm = async (values: {
+    username: string;
+    password: string;
+    deleteMissing: boolean;
+  }) => {
+    if (selectedIds.length === 0) return;
+
+    setSyncing(true);
+    try {
+      // Đồng bộ từng batch một
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const batchId of selectedIds) {
+        try {
+          await wareBatchApi.pushWareBatch({
+            id: batchId as number,
+            deleteMissing: values.deleteMissing,
+            username: values.username,
+            password: values.password,
+          });
+          successCount++;
+        } catch (error) {
+          failCount++;
+        }
+      }
+
+      messageApi.success(
+        `Đồng bộ thành công ${successCount} batch${failCount > 0 ? `, thất bại ${failCount}` : ""}`
+      );
+      setSyncModalVisible(false);
+      setSelectedIds([]);
+      form.resetFields();
+      fetchBatches();
+    } catch (error: any) {
+      messageApi.error(error?.data || "Đồng bộ batch thất bại");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const columns: ColumnsType<WareBatchResponse> = [
+    {
+      title: (
+        <Checkbox
+          checked={
+            selectedIds.length > 0 &&
+            selectedIds.length ===
+              batches.filter((b) => b.wareBatchStatus === "Da_Phe_Duyet").length
+          }
+          indeterminate={
+            selectedIds.length > 0 &&
+            selectedIds.length <
+              batches.filter((b) => b.wareBatchStatus === "Da_Phe_Duyet").length
+          }
+          onChange={(e) => {
+            if (e.target.checked) {
+              const approvableIds = batches
+                .filter((b) => b.wareBatchStatus === "Da_Phe_Duyet")
+                .map((b) => b.id!);
+              setSelectedIds(approvableIds);
+            } else {
+              setSelectedIds([]);
+            }
+          }}
+        />
+      ),
+      dataIndex: "checkbox",
+      key: "checkbox",
+      width: 60,
+      align: "center",
+      render: (_, record) => {
+        const isApproved = record.wareBatchStatus === "Da_Phe_Duyet";
+        return (
+          <Checkbox
+            checked={selectedIds.includes(record.id!)}
+            disabled={!isApproved}
+            onChange={(e) => {
+              if (e.target.checked) {
+                setSelectedIds([...selectedIds, record.id!]);
+              } else {
+                setSelectedIds(selectedIds.filter((id) => id !== record.id));
+              }
+            }}
+          />
+        );
+      },
+    },
     {
       title: "Mã",
       dataIndex: "code",
@@ -206,15 +247,12 @@ export const WareBatch: React.FC = () => {
       key: "isPushed",
       align: "center",
       width: 100,
-      render: (value: boolean, record) => (
+      render: (value: boolean) => (
         <Tooltip title={value ? "Đã đẩy dữ liệu" : "Chưa đẩy dữ liệu"}>
           {value ? (
-            <CheckCircleOutlined
-              className="text-lg text-green-600 cursor-pointer hover:text-green-700 transition-colors"
-              onClick={() => handleEyeClick(record)}
-            />
+            <CheckCircleOutlined className="text-lg text-green-600!" />
           ) : (
-            <CloseCircleOutlined className="text-lg text-red-600 cursor-pointer hover:text-red-700 transition-colors" />
+            <CloseCircleOutlined className="text-lg text-red-600!" />
           )}
         </Tooltip>
       ),
@@ -225,43 +263,13 @@ export const WareBatch: React.FC = () => {
       key: "wareBatchStatus",
       render: (status: string) => getStatusBadge(status),
     },
-    {
-      title: "Thao tác",
-      key: "action",
-      align: "center",
-      width: 140,
-      render: (_, record) => (
-        <Space>
-          <Tooltip title="Xem chi tiết">
-            <Button
-              type="primary"
-              icon={<EditOutlined />}
-              onClick={() => nav(`/ware/batch/${record.id}`)}
-              className="bg-green-600! hover:bg-green-700!"
-              size="large"
-            >
-              Xem
-            </Button>
-          </Tooltip>
-          <Tooltip title="Xóa batch">
-            <Button
-              danger
-              icon={<DeleteOutlined />}
-              onClick={() => handleDelete(record.id!)}
-              size="large"
-            >
-              Xóa
-            </Button>
-          </Tooltip>
-        </Space>
-      ),
-    },
   ];
+
+  const selectedBatches = batches.filter((b) => selectedIds.includes(b.id!));
 
   return (
     <div className="px-6 py-6 bg-linear-to-br from-gray-50 to-gray-100 min-h-screen">
       {contextHolderMessage}
-      {contextHolderModal}
 
       <Card className="shadow-sm border-0 rounded-xl mb-6">
         <div className="flex justify-between items-center gap-4">
@@ -280,15 +288,24 @@ export const WareBatch: React.FC = () => {
               }
             />
           </div>
-          <Button
-            type="primary"
-            size="large"
-            icon={<PlusOutlined />}
-            onClick={() => setIsModalOpen(true)}
-            className="bg-green-600! hover:bg-green-700! h-10 px-6"
+          <Tooltip
+            title={
+              selectedIds.length === 0
+                ? "Vui lòng chọn ít nhất một batch"
+                : `${selectedIds.length} batch được chọn`
+            }
           >
-            Thêm dữ liệu
-          </Button>
+            <Button
+              type="primary"
+              size="large"
+              icon={<CloudUploadOutlined />}
+              onClick={handleSyncClick}
+              disabled={selectedIds.length === 0}
+              className="bg-blue-600! hover:bg-blue-700! h-10 px-6"
+            >
+              Đồng bộ ({selectedIds.length})
+            </Button>
+          </Tooltip>
         </div>
       </Card>
 
@@ -299,7 +316,7 @@ export const WareBatch: React.FC = () => {
               <FileTextOutlined className="text-blue-600 text-lg" />
             </div>
             <h1 className="text-xl font-bold text-gray-800 m-0">
-              Danh sách Batch
+              Đồng bộ Batch
             </h1>
           </div>
           <Button
@@ -312,6 +329,15 @@ export const WareBatch: React.FC = () => {
             Tải lại
           </Button>
         </div>
+
+        {selectedIds.length > 0 && (
+          <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-sm text-blue-800">
+              <span className="font-semibold">{selectedIds.length}</span> batch
+              được chọn để đồng bộ
+            </p>
+          </div>
+        )}
 
         <div className="overflow-x-auto rounded-lg border border-gray-200">
           <Table
@@ -342,16 +368,7 @@ export const WareBatch: React.FC = () => {
         {batches.length === 0 && !loading && (
           <div className="text-center py-16 bg-gray-50 rounded-lg mt-4">
             <FileTextOutlined className="text-4xl text-gray-300 mb-3" />
-            <p className="text-gray-500 text-lg mb-6">Không có batch nào</p>
-            <Button
-              type="primary"
-              size="large"
-              icon={<PlusOutlined />}
-              onClick={() => setIsModalOpen(true)}
-              className="bg-green-600! hover:bg-green-700! h-11 px-8"
-            >
-              Thêm batch mới
-            </Button>
+            <p className="text-gray-500 text-lg">Không có batch nào</p>
           </div>
         )}
       </Card>
@@ -359,78 +376,95 @@ export const WareBatch: React.FC = () => {
       <Modal
         title={
           <div className="flex items-center gap-3 pb-3 border-b">
-            <div className="w-10 h-10 flex items-center justify-center bg-green-100">
-              <PlusOutlined className="text-green-600 text-lg" />
+            <div className="w-10 h-10 flex items-center justify-center bg-blue-100">
+              <CloudUploadOutlined className="text-blue-600 text-lg" />
             </div>
             <div className="text-lg font-semibold text-gray-800">
-              Thêm Batch
+              Đồng bộ dữ liệu TKV
             </div>
           </div>
         }
-        open={isModalOpen}
-        onCancel={() => {
-          setIsModalOpen(false);
-          setFileList([]);
-          form.resetFields();
-        }}
-        width={700}
-        okText="Thêm"
-        cancelText="Hủy"
-        onOk={() => form.submit()}
-        okButtonProps={{
-          className:
-            "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
-          size: "large",
-        }}
-        cancelButtonProps={{
-          size: "large",
-          className: "h-10 px-6 text-base",
-        }}
+        open={syncModalVisible}
+        onCancel={() => setSyncModalVisible(false)}
+        footer={null}
+        width={600}
       >
-        <Form form={form} layout="vertical" onFinish={handleAddBatch} className="py-4">
-          <Form.Item
-            name="name"
-            label={<span className="font-medium text-gray-800">Tên Batch</span>}
-            rules={[{ required: true, message: "Vui lòng nhập tên batch" }]}
-          >
-            <Input
-              placeholder="Nhập tên batch"
-              size="large"
-              className="rounded-lg"
-            />
-          </Form.Item>
+        <div className="py-4">
+          {selectedBatches.length > 0 && (
+            <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-sm text-blue-800 font-medium mb-3">
+                Batch sẽ được đồng bộ:
+              </p>
+              <ul className="space-y-2">
+                {selectedBatches.map((batch) => (
+                  <li key={batch.id} className="text-sm text-blue-700">
+                    • {batch.code} - {batch.name}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
-          <Form.Item
-            name="description"
-            label={<span className="font-medium text-gray-800">Mô tả</span>}
+          <Form
+            layout="vertical"
+            form={form}
+            onFinish={handleSyncConfirm}
+            className="py-4"
           >
-            <Input.TextArea
-              placeholder="Nhập mô tả (tùy chọn)"
-              rows={4}
-              className="rounded-lg"
-            />
-          </Form.Item>
-
-          <Form.Item
-            label={<span className="font-medium text-gray-800">File</span>}
-          >
-            <Upload
-              beforeUpload={() => false}
-              fileList={fileList}
-              onChange={({ fileList }) => setFileList(fileList)}
-              maxCount={1}
-              accept=".xlsx,.xls,.csv"
+            <Form.Item
+              label={<span className="font-medium text-gray-800">Xoá dữ liệu cũ</span>}
+              name="deleteMissing"
+              rules={[{ required: true, message: "Vui lòng chọn có hoặc không!" }]}
             >
-              <Button
-                icon={<PlusOutlined />}
-                size="large"
-                className="w-full h-10 rounded-lg"
+              <Radio.Group
+                onChange={(e) => setDeleteMissing(e.target.value)}
+                value={deleteMissing}
+                className="text-gray-700"
               >
-                Chọn file (Excel hoặc CSV)
+                <Radio value={true}>Có</Radio>
+                <Radio value={false}>Không</Radio>
+              </Radio.Group>
+            </Form.Item>
+
+            <Form.Item
+              label={<span className="font-medium text-gray-800">Tên đăng nhập</span>}
+              name="username"
+              rules={[{ required: true, message: "Vui lòng nhập username!" }]}
+            >
+              <Input
+                placeholder="Nhập tên đăng nhập"
+                size="large"
+                className="rounded-lg"
+              />
+            </Form.Item>
+
+            <Form.Item
+              label={<span className="font-medium text-gray-800">Mật khẩu</span>}
+              name="password"
+              rules={[{ required: true, message: "Vui lòng nhập password!" }]}
+            >
+              <Input.Password
+                placeholder="Nhập mật khẩu"
+                size="large"
+                className="rounded-lg"
+              />
+            </Form.Item>
+
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                block
+                size="large"
+                icon={<CloudUploadOutlined />}
+                loading={syncing}
+                className="bg-blue-600! hover:bg-blue-700! h-11 font-medium rounded-lg"
+              >
+                Đồng bộ {selectedIds.length} batch
               </Button>
-            </Upload>
-          </Form.Item>
-        </Form>
+            </Form.Item>
+          </Form>
+        </div>
       </Modal>
 
       <style>{`
@@ -454,6 +488,10 @@ export const WareBatch: React.FC = () => {
         .ant-input:focus,
         .ant-input-affix-wrapper:focus,
         .ant-input-affix-wrapper-focused {
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+        .ant-input-password:focus-within {
           border-color: #3b82f6;
           box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
         }

@@ -11,6 +11,7 @@ import {
   Form,
   Select,
   Upload,
+  Card,
 } from "antd";
 import {
   SearchOutlined,
@@ -19,6 +20,9 @@ import {
   EyeOutlined,
   UserAddOutlined,
   UploadOutlined,
+  UserOutlined,
+  EditOutlined,
+  TeamOutlined,
 } from "@ant-design/icons";
 import { employeeApi } from "../api/employeeApi";
 import { departmentApi } from "../../department/api/departmentApi";
@@ -53,8 +57,6 @@ const EmployeePage = () => {
   const [messageApi, contextHolderMessage] = message.useMessage();
   const [modal, contextHolderModal] = Modal.useModal();
 
-  const formItemLayout = { labelCol: { span: 6 }, wrapperCol: { span: 18 } };
-
   const loadEmployees = async (
     keyword = searchText,
     departmentId: string | null = filterDepartmentId
@@ -88,8 +90,9 @@ const EmployeePage = () => {
   const handleDeleteEmployee = async (id: string) => {
     modal.confirm({
       title: "Xoá nhân viên?",
-      content: "Bạn có chắc chắn muốn xoá?",
+      content: "Hành động này không thể hoàn tác!",
       okText: "Xoá",
+      okType: "danger",
       cancelText: "Hủy",
       onOk: async () => {
         try {
@@ -163,32 +166,86 @@ const EmployeePage = () => {
     {
       title: "",
       dataIndex: "keyAvatar",
-      width: 60,
+      key: "avatar",
+      width: "5%",
+      align: "center" as const,
       render: (value: string | null) => (
-        <Avatar src={value || DEFAULT_AVATAR} size={40} />
+        <Avatar src={value || DEFAULT_AVATAR} size={48} />
       ),
     },
-    { title: "Họ và tên", dataIndex: "name" },
-    { title: "Chức vụ", dataIndex: "position" },
-    { title: "SĐT", dataIndex: "phone" },
-    { title: "Phòng ban", dataIndex: "departmentName" },
-    { title: "Ngày sinh", dataIndex: "birthday" },
+    {
+      title: "Họ và tên",
+      dataIndex: "name",
+      key: "name",
+      width: "15%",
+      render: (text: string) => (
+        <div className="flex items-center gap-2">
+          <UserOutlined className="text-gray-400" />
+          <span className="font-medium text-gray-800">{text}</span>
+        </div>
+      ),
+    },
+    {
+      title: "Chức vụ",
+      dataIndex: "position",
+      key: "position",
+      width: "12%",
+      render: (text: string) => (
+        <Tag color="blue" className="px-3 py-1">
+          {text}
+        </Tag>
+      ),
+    },
+    {
+      title: "SĐT",
+      dataIndex: "phone",
+      key: "phone",
+      width: "12%",
+      render: (text: string) => (
+        <span className="text-gray-600">{text}</span>
+      ),
+    },
+    {
+      title: "Phòng ban",
+      dataIndex: "departmentName",
+      key: "departmentName",
+      width: "15%",
+      render: (text: string) => (
+        <div className="flex items-center gap-2">
+          <TeamOutlined className="text-blue-500" />
+          <span className="text-gray-700">{text}</span>
+        </div>
+      ),
+    },
+    {
+      title: "Ngày sinh",
+      dataIndex: "birthday",
+      key: "birthday",
+      width: "10%",
+      render: (text: string) => (
+        <span className="text-gray-600">{text}</span>
+      ),
+    },
     {
       title: "Tài khoản",
       dataIndex: "role",
+      key: "role",
+      width: "13%",
+      align: "center" as const,
       render: (_role: string | null, record: EmployeeResponse) =>
         _role ? (
-          <Tag color="green">
+          <Tag color="green" className="px-3 py-1 cursor-pointer">
             {_role}{" "}
             <EyeOutlined
-              style={{ marginLeft: 8, cursor: "pointer" }}
+              style={{ marginLeft: 8 }}
               onClick={() => handleShowUserDetail(record.id)}
             />
           </Tag>
         ) : (
           <Button
             icon={<UserAddOutlined />}
-            type="link"
+            size="small"
+            className="bg-purple-500 hover:bg-purple-600 text-white border-0"
             onClick={() => {
               setSelectedEmployee(record);
               setSelectedUser(null);
@@ -202,19 +259,21 @@ const EmployeePage = () => {
     },
     {
       title: "Hành động",
+      key: "actions",
+      width: "18%",
+      align: "center" as const,
       render: (_: any, record: EmployeeResponse) => (
-        <Space>
+        <Space size="small">
           <Button
-            type="link"
             icon={<EyeOutlined />}
+            className="bg-green-600! hover:bg-green-700! text-white! border-0"
             onClick={() => handleShowEmployeeDetail(record.id)}
           >
             Chi tiết
           </Button>
           <Button
-            type="link"
-            icon={<DeleteOutlined />}
             danger
+            icon={<DeleteOutlined />}
             onClick={() => handleDeleteEmployee(record.id)}
           >
             Xoá
@@ -225,78 +284,138 @@ const EmployeePage = () => {
   ];
 
   return (
-    <div className="px-4 py-4 w-full h-full bg-white ">
+    <div className="px-6 py-6 min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
       {contextHolderModal}
       {contextHolderMessage}
 
-      {/* Header search + filter + add */}
-      <div className="flex gap-2 mb-4">
-        <Input
-          placeholder="Tìm kiếm theo tên, chức vụ..."
-          prefix={<SearchOutlined />}
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          onPressEnter={() => loadEmployees(searchText, filterDepartmentId)}
-          className="flex-1"
-        />
-        <Select
-          placeholder="Chọn phòng ban"
-          allowClear
-          style={{ width: 200 }}
-          value={filterDepartmentId}
-          onChange={(value) => {
-            const deptId = value || null;
-            setFilterDepartmentId(deptId);
-            loadEmployees(searchText, deptId);
-          }}
-        >
-          {departments.map((dept) => (
-            <Select.Option key={dept.id} value={dept.id}>
-              {dept.name}
-            </Select.Option>
-          ))}
-        </Select>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => setCreateEmployeeModal(true)}
-          className="bg-[#1a8649]! hover:bg-[#15703d]!"
-        >
-          Thêm nhân viên
-        </Button>
-      </div>
+      {/* Main Card */}
+      <Card className="shadow-lg border-0 rounded-xl">
+        {/* Search and Action Bar */}
+        <div className="flex gap-3 mb-6">
+          <Input
+            placeholder="Tìm kiếm theo tên, chức vụ..."
+            prefix={<SearchOutlined className="text-gray-400" />}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            onPressEnter={() => loadEmployees(searchText, filterDepartmentId)}
+            size="large"
+            className="flex-1"
+            style={{
+              borderRadius: "8px",
+              border: "1px solid #e5e7eb",
+            }}
+          />
 
-      {/* Employee Table */}
-      <Table
-        dataSource={employees}
-        columns={columns}
-        rowKey="id"
-        pagination={{ pageSize: 8, total }}
-      />
+          <Select
+            placeholder="Lọc theo phòng ban"
+            allowClear
+            size="large"
+            style={{ width: 240, borderRadius: "8px" }}
+            value={filterDepartmentId}
+            onChange={(value) => {
+              const deptId = value || null;
+              setFilterDepartmentId(deptId);
+              loadEmployees(searchText, deptId);
+            }}
+          >
+            {departments.map((dept) => (
+              <Select.Option key={dept.id} value={dept.id}>
+                {dept.name}
+              </Select.Option>
+            ))}
+          </Select>
+
+          <Button
+            size="large"
+            icon={<PlusOutlined />}
+            onClick={() => setCreateEmployeeModal(true)}
+            className="bg-green-600! hover:bg-green-700! text-white! border-0 shadow-md"
+            style={{ borderRadius: "8px", minWidth: "160px" }}
+          >
+            Thêm nhân viên
+          </Button>
+        </div>
+
+        {/* Statistics Bar */}
+        <div className="mb-4 p-4 bg-linear-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <UserOutlined className="text-blue-500 text-xl" />
+              <span className="font-medium text-gray-700">
+                Tổng số nhân viên:
+              </span>
+              <Tag color="blue" className="font-bold text-base px-3 py-1">
+                {total}
+              </Tag>
+            </div>
+            {(searchText || filterDepartmentId) && (
+              <div className="text-sm text-gray-600">
+                Tìm thấy <span className="font-semibold">{employees.length}</span> kết quả
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Employee Table */}
+        <Table
+          dataSource={employees}
+          columns={columns}
+          rowKey="id"
+          pagination={{
+            pageSize: 8,
+            total,
+            showSizeChanger: false,
+            showTotal: (total) => `Tổng ${total} nhân viên`,
+            className: "mt-4",
+          }}
+          size="middle"
+          scroll={{ x: "100%" }}
+          className="modern-employee-table"
+          rowClassName="hover:bg-blue-50 transition-colors"
+        />
+      </Card>
 
       {/* Modal Thêm nhân viên */}
       <Modal
-        title="Thêm nhân viên"
+        title={
+          <div className="flex items-center gap-3 pb-3 border-b">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-green-100">
+              <PlusOutlined className="text-green-600 text-lg" />
+            </div>
+            <div className="text-lg font-semibold text-gray-800">
+              Thêm nhân viên mới
+            </div>
+          </div>
+        }
         open={createEmployeeModal}
         okText="Thêm"
         cancelText="Hủy"
+        width={700}
         onCancel={() => setCreateEmployeeModal(false)}
+        okButtonProps={{
+          className: "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
+          size: "large",
+        }}
+        cancelButtonProps={{
+          size: "large",
+          className: "h-10 px-6 text-base"
+        }}
         onOk={async () => {
-          const values = await formEmployee.validateFields();
-          const request: EmployeeRequest = {
-            id: null,
-            name: values.name,
-            email: values.email,
-            phone: values.phone,
-            address: values.address,
-            birthday: values.birthday,
-            gender: values.gender,
-            position: values.position,
-            departmentId: values.departmentId,
-            avatarFile: null,
-          };
-
           try {
+            const values = await formEmployee.validateFields();
+            const request: EmployeeRequest = {
+              id: null,
+              name: values.name,
+              email: values.email,
+              phone: values.phone,
+              address: values.address,
+              birthday: values.birthday,
+              gender: values.gender,
+              position: values.position,
+              departmentId: values.departmentId,
+              avatarFile: null,
+            };
+
             await employeeApi.saveEmployee(request);
             messageApi.success("Đã thêm nhân viên");
             setCreateEmployeeModal(false);
@@ -307,53 +426,83 @@ const EmployeePage = () => {
           }
         }}
       >
-        <Form form={formEmployee} layout="horizontal">
-          <Form.Item name="name" label="Tên" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="email" label="Email" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="phone" label="SĐT" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
+        <Form form={formEmployee} layout="horizontal" className="mt-6">
+          <div className="grid grid-cols-2 gap-4">
+            <Form.Item
+              name="name"
+              label={<span className="font-medium text-gray-700">Họ và tên <span className="text-red-500">*</span></span>}
+              rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
+              labelCol={{ span: 24 }}
+              wrapperCol={{ span: 24 }}
+            >
+              <Input placeholder="VD: Nguyễn Văn A" size="large" className="rounded-lg" />
+            </Form.Item>
+            <Form.Item
+              name="email"
+              label={<span className="font-medium text-gray-700">Email <span className="text-red-500">*</span></span>}
+              rules={[{ required: true, message: "Vui lòng nhập email" }]}
+              labelCol={{ span: 24 }}
+              wrapperCol={{ span: 24 }}
+            >
+              <Input placeholder="example@company.com" size="large" className="rounded-lg" />
+            </Form.Item>
+            <Form.Item
+              name="phone"
+              label={<span className="font-medium text-gray-700">Số điện thoại <span className="text-red-500">*</span></span>}
+              rules={[{ required: true, message: "Vui lòng nhập SĐT" }]}
+              labelCol={{ span: 24 }}
+              wrapperCol={{ span: 24 }}
+            >
+              <Input placeholder="0912345678" size="large" className="rounded-lg" />
+            </Form.Item>
+            <Form.Item
+              name="birthday"
+              label={<span className="font-medium text-gray-700">Ngày sinh <span className="text-red-500">*</span></span>}
+              rules={[{ required: true, message: "Vui lòng chọn ngày sinh" }]}
+              labelCol={{ span: 24 }}
+              wrapperCol={{ span: 24 }}
+            >
+              <Input type="date" size="large" className="rounded-lg" />
+            </Form.Item>
+            <Form.Item
+              name="gender"
+              label={<span className="font-medium text-gray-700">Giới tính <span className="text-red-500">*</span></span>}
+              rules={[{ required: true, message: "Vui lòng chọn giới tính" }]}
+              labelCol={{ span: 24 }}
+              wrapperCol={{ span: 24 }}
+            >
+              <Select placeholder="Chọn giới tính" size="large" className="rounded-lg">
+                <Select.Option value="MALE">Nam</Select.Option>
+                <Select.Option value="FEMALE">Nữ</Select.Option>
+              </Select>
+            </Form.Item>
+            <Form.Item
+              name="position"
+              label={<span className="font-medium text-gray-700">Chức vụ <span className="text-red-500">*</span></span>}
+              rules={[{ required: true, message: "Vui lòng nhập chức vụ" }]}
+              labelCol={{ span: 24 }}
+              wrapperCol={{ span: 24 }}
+            >
+              <Input placeholder="VD: Nhân viên, Trưởng phòng" size="large" className="rounded-lg" />
+            </Form.Item>
+          </div>
           <Form.Item
             name="address"
-            label="Địa chỉ"
-            rules={[{ required: true }]}
+            label={<span className="font-medium text-gray-700">Địa chỉ <span className="text-red-500">*</span></span>}
+            rules={[{ required: true, message: "Vui lòng nhập địa chỉ" }]}
+            labelCol={{ span: 24 }}
+            wrapperCol={{ span: 24 }}
           >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="birthday"
-            label="Ngày sinh"
-            rules={[{ required: true }]}
-          >
-            <Input type="date" />
-          </Form.Item>
-          <Form.Item
-            name="gender"
-            label="Giới tính"
-            rules={[{ required: true }]}
-          >
-            <Select>
-              <Select.Option value="MALE">Nam</Select.Option>
-              <Select.Option value="FEMALE">Nữ</Select.Option>
-            </Select>
-          </Form.Item>
-          <Form.Item
-            name="position"
-            label="Chức vụ"
-            rules={[{ required: true }]}
-          >
-            <Input />
+            <Input placeholder="123 Đường ABC, Quận XYZ" size="large" className="rounded-lg" />
           </Form.Item>
           <Form.Item
             name="departmentId"
-            label="Phòng ban"
-            rules={[{ required: true }]}
+            label={<span className="font-medium text-gray-700">Phòng ban <span className="text-red-500">*</span></span>}
+            rules={[{ required: true, message: "Vui lòng chọn phòng ban" }]}
+            labelCol={{ span: 24 }}
+            wrapperCol={{ span: 24 }}
           >
-            <Select>
+            <Select placeholder="Chọn phòng ban" size="large" className="rounded-lg">
               {departments.map((dept) => (
                 <Select.Option key={dept.id} value={dept.id}>
                   {dept.name}
@@ -364,31 +513,54 @@ const EmployeePage = () => {
         </Form>
       </Modal>
 
+      {/* Modal Chi tiết nhân viên */}
       <Modal
-        title="Chi tiết nhân viên"
+        title={
+          <div className="flex items-center gap-3 pb-3 border-b">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100">
+              <EditOutlined className="text-blue-600 text-lg" />
+            </div>
+            <div>
+              <div className="text-lg font-semibold text-gray-800">
+                Chi tiết nhân viên
+              </div>
+              {selectedEmployee && (
+                <div className="text-sm text-gray-500">{selectedEmployee.name}</div>
+              )}
+            </div>
+          </div>
+        }
         open={employeeDetailModal}
         okText="Lưu"
         cancelText="Hủy"
-        width={700}
+        width={800}
         onCancel={() => setEmployeeDetailModal(false)}
+        okButtonProps={{
+          className: "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
+          size: "large",
+        }}
+        cancelButtonProps={{
+          size: "large",
+          className: "h-10 px-6 text-base"
+        }}
         onOk={async () => {
-          const values = await formEmployeeDetail.validateFields();
-          const formData = new FormData();
-          Object.entries(values).forEach(([key, value]) => {
-            if (
-              key === "avatarFile" &&
-              Array.isArray(value) &&
-              value.length > 0
-            ) {
-              formData.append(key, value[0].originFileObj);
-            } else {
-              formData.append(key, value as any);
-            }
-          });
-
-          formData.append("id", selectedEmployee?.id || "");
-
           try {
+            const values = await formEmployeeDetail.validateFields();
+            const formData = new FormData();
+            Object.entries(values).forEach(([key, value]) => {
+              if (
+                key === "avatarFile" &&
+                Array.isArray(value) &&
+                value.length > 0
+              ) {
+                formData.append(key, value[0].originFileObj);
+              } else {
+                formData.append(key, value as any);
+              }
+            });
+
+            formData.append("id", selectedEmployee?.id || "");
+
             await employeeApi.updateEmployee(
               formData as unknown as EmployeeRequest
             );
@@ -400,39 +572,42 @@ const EmployeePage = () => {
           }
         }}
       >
-        <Form form={formEmployeeDetail} layout="horizontal" {...formItemLayout}>
+        <Form form={formEmployeeDetail} layout="vertical" className="mt-6">
           <Form.Item label="" className="flex items-center justify-center">
             <Avatar
-              size={80}
+              size={100}
               src={selectedEmployee?.keyAvatar || DEFAULT_AVATAR}
+              className="border-4 border-gray-200"
             />
           </Form.Item>
-          <Form.Item name="name" label="Tên">
-            <Input />
+          <div className="grid grid-cols-2 gap-4">
+            <Form.Item name="name" label={<span className="font-medium text-gray-700">Họ và tên</span>}>
+              <Input size="large" className="rounded-lg" />
+            </Form.Item>
+            <Form.Item name="email" label={<span className="font-medium text-gray-700">Email</span>}>
+              <Input size="large" className="rounded-lg" />
+            </Form.Item>
+            <Form.Item name="phone" label={<span className="font-medium text-gray-700">SĐT</span>}>
+              <Input size="large" className="rounded-lg" />
+            </Form.Item>
+            <Form.Item name="birthday" label={<span className="font-medium text-gray-700">Ngày sinh</span>}>
+              <Input type="date" size="large" className="rounded-lg" />
+            </Form.Item>
+            <Form.Item name="gender" label={<span className="font-medium text-gray-700">Giới tính</span>}>
+              <Select size="large" className="rounded-lg">
+                <Select.Option value="MALE">Nam</Select.Option>
+                <Select.Option value="FEMALE">Nữ</Select.Option>
+              </Select>
+            </Form.Item>
+            <Form.Item name="position" label={<span className="font-medium text-gray-700">Chức vụ</span>}>
+              <Input size="large" className="rounded-lg" />
+            </Form.Item>
+          </div>
+          <Form.Item name="address" label={<span className="font-medium text-gray-700">Địa chỉ</span>}>
+            <Input size="large" className="rounded-lg" />
           </Form.Item>
-          <Form.Item name="email" label="Email">
-            <Input />
-          </Form.Item>
-          <Form.Item name="phone" label="SĐT">
-            <Input />
-          </Form.Item>
-          <Form.Item name="address" label="Địa chỉ">
-            <Input />
-          </Form.Item>
-          <Form.Item name="birthday" label="Ngày sinh">
-            <Input type="date" />
-          </Form.Item>
-          <Form.Item name="gender" label="Giới tính">
-            <Select>
-              <Select.Option value="MALE">Nam</Select.Option>
-              <Select.Option value="FEMALE">Nữ</Select.Option>
-            </Select>
-          </Form.Item>
-          <Form.Item name="position" label="Chức vụ">
-            <Input />
-          </Form.Item>
-          <Form.Item name="departmentId" label="Phòng ban">
-            <Select>
+          <Form.Item name="departmentId" label={<span className="font-medium text-gray-700">Phòng ban</span>}>
+            <Select size="large" className="rounded-lg">
               {departments.map((dept) => (
                 <Select.Option key={dept.id} value={dept.id}>
                   {dept.name}
@@ -442,12 +617,14 @@ const EmployeePage = () => {
           </Form.Item>
           <Form.Item
             name="avatarFile"
-            label="Thay đổi Avatar"
+            label={<span className="font-medium text-gray-700">Thay đổi Avatar</span>}
             valuePropName="fileList"
             getValueFromEvent={(e) => (Array.isArray(e) ? e : e?.fileList)}
           >
             <Upload beforeUpload={() => false} maxCount={1} listType="picture">
-              <Button icon={<UploadOutlined />}>Chọn ảnh</Button>
+              <Button icon={<UploadOutlined />} size="large" className="rounded-lg">
+                Chọn ảnh
+              </Button>
             </Upload>
           </Form.Item>
         </Form>
@@ -456,49 +633,69 @@ const EmployeePage = () => {
       {/* Modal Chi tiết tài khoản */}
       <Modal
         title={
-          selectedUser
-            ? `Chi tiết tài khoản: ${selectedUser.username}`
-            : "Tạo tài khoản"
+          <div className="flex items-center gap-3 pb-3 border-b">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${selectedUser ? 'bg-blue-100' : 'bg-purple-100'
+              }`}>
+              <UserOutlined className={selectedUser ? "text-blue-600 text-lg" : "text-purple-600 text-lg"} />
+            </div>
+            <div className="text-lg font-semibold text-gray-800">
+              {selectedUser ? `Chi tiết tài khoản: ${selectedUser.username}` : "Tạo tài khoản"}
+            </div>
+          </div>
         }
         open={userDetailModal}
         okText={selectedUser ? "Lưu" : "Tạo"}
         cancelText="Hủy"
         onCancel={() => setUserDetailModal(false)}
         onOk={handleSaveUserDetail}
-        width={500}
+        width={600}
+        okButtonProps={{
+          className: "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
+          size: "large",
+        }}
+        cancelButtonProps={{
+          size: "large",
+          className: "h-10 px-6 text-base"
+        }}
       >
         <Form
           form={formUserDetail}
-          layout="horizontal"
-          labelCol={{ span: 8 }}
-          wrapperCol={{ span: 16 }}
+          layout="vertical"
+          className="mt-6"
         >
           <Form.Item
             name="username"
-            label="Tên đăng nhập"
-            rules={[{ required: true }]}
+            label={<span className="font-medium text-gray-700">Tên đăng nhập <span className="text-red-500">*</span></span>}
+            rules={[{ required: true, message: "Vui lòng nhập tên đăng nhập" }]}
           >
-            <Input />
+            <Input placeholder="username" size="large" className="rounded-lg" />
           </Form.Item>
           {!selectedUser && (
             <Form.Item
               name="password"
-              label="Mật khẩu"
-              rules={[{ required: true }]}
+              label={<span className="font-medium text-gray-700">Mật khẩu <span className="text-red-500">*</span></span>}
+              rules={[{ required: true, message: "Vui lòng nhập mật khẩu" }]}
             >
-              <Input.Password />
+              <Input.Password placeholder="••••••••" size="large" className="rounded-lg" />
             </Form.Item>
           )}
-          <Form.Item name="role" label="Vai trò" rules={[{ required: true }]}>
-            <Select>
+          <Form.Item
+            name="role"
+            label={<span className="font-medium text-gray-700">Vai trò <span className="text-red-500">*</span></span>}
+            rules={[{ required: true, message: "Vui lòng chọn vai trò" }]}
+          >
+            <Select placeholder="Chọn vai trò" size="large" className="rounded-lg">
               <Select.Option value="ADMIN">ADMIN</Select.Option>
               <Select.Option value="USER">Người dùng</Select.Option>
               <Select.Option value="MANAGER">Quản lí</Select.Option>
             </Select>
           </Form.Item>
           {selectedUser && (
-            <Form.Item name="status" label="Trạng thái">
-              <Select>
+            <Form.Item
+              name="status"
+              label={<span className="font-medium text-gray-700">Trạng thái</span>}
+            >
+              <Select size="large" className="rounded-lg">
                 <Select.Option value={true}>Hoạt động</Select.Option>
                 <Select.Option value={false}>Khóa</Select.Option>
               </Select>
@@ -506,6 +703,53 @@ const EmployeePage = () => {
           )}
         </Form>
       </Modal>
+
+      <style>{`
+        .modern-employee-table .ant-table {
+          font-size: 14px;
+        }
+        .modern-employee-table .ant-table-thead > tr > th {
+          background: linear-gradient(to right, #f8fafc, #f1f5f9);
+          color: #1e293b;
+          font-weight: 600;
+          border-bottom: 2px solid #e2e8f0;
+          padding: 16px;
+        }
+        .modern-employee-table .ant-table-tbody > tr > td {
+          padding: 16px;
+          border-bottom: 1px solid #f1f5f9;
+        }
+        .modern-employee-table .ant-table-tbody > tr:hover > td {
+          background: #eff6ff !important;
+        }
+        .ant-card {
+          border-radius: 16px;
+        }
+        .ant-modal-header {
+          border-radius: 12px 12px 0 0;
+          padding: 20px 24px;
+        }
+        .ant-modal-content {
+          border-radius: 12px;
+        }
+        .ant-input, .ant-input-affix-wrapper, .ant-select .ant-select-selector {
+          transition: all 0.3s ease;
+        }
+        .ant-input:focus, .ant-input-affix-wrapper:focus, .ant-input-affix-wrapper-focused {
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+        .ant-select-focused .ant-select-selector {
+          border-color: #3b82f6 !important;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1) !important;
+        }
+        .bg-gradient-to-br {
+          background: linear-gradient(to bottom right, #f9fafb, #f3f4f6);
+        }
+        .bg-gradient-to-r {
+          background: linear-gradient(to right, #eff6ff, #eef2ff);
+        }
+      `}</style>
     </div>
   );
 };
