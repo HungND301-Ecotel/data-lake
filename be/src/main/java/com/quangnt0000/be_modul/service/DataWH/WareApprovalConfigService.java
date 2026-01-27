@@ -85,65 +85,29 @@ public class WareApprovalConfigService {
 
         List<WareTemplateApprovalConfig> existingConfigs = approvalConfigRepository
                 .findByWareTemplateIdOrderByApprovalOrder(wareTemplateId);
-
-        Set<String> requestedApproverIds = request.getConfigs().stream()
-                .map(WareApprovalConfigItemRequest::getApproverId)
-                .collect(Collectors.toSet());
-
-        //Set tất cả về giá trị ÂM UNIQUE để tránh UNIQUE constraint conflict
-        int tempOrder = -1;
-        for (WareTemplateApprovalConfig config : existingConfigs) {
-            config.setApprovalOrder(tempOrder--);
-            approvalConfigRepository.save(config);
+        
+        if (!existingConfigs.isEmpty()) {
+            approvalConfigRepository.deleteAll(existingConfigs);
+            approvalConfigRepository.flush();
+            log.debug("Deleted {} existing configs", existingConfigs.size());
         }
-
-        // Flush để đảm bảo DB được update trước khi tiếp tục
-        approvalConfigRepository.flush();
 
         for (WareApprovalConfigItemRequest item : request.getConfigs()) {
-            Optional<WareTemplateApprovalConfig> existingConfigOpt =
-                    approvalConfigRepository.findByWareTemplateIdAndApproverId(wareTemplateId, item.getApproverId());
+            Employee approver = employeeRepository.findByIdAndDeletedFalse(item.getApproverId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Employee không tồn tại hoặc đã bị xóa: " + item.getApproverId()));
 
-            if (existingConfigOpt.isPresent()) {
-                // CONFIG ĐÃ TỒN TẠI → UPDATE
-                WareTemplateApprovalConfig existingConfig = existingConfigOpt.get();
-                existingConfig.setApprovalOrder(item.getApprovalOrder());
-                existingConfig.setIsActive(true);
-                approvalConfigRepository.save(existingConfig);
+            WareTemplateApprovalConfig newConfig = WareTemplateApprovalConfig.builder()
+                    .wareTemplate(wareTemplate)
+                    .approver(approver)
+                    .approvalOrder(item.getApprovalOrder())
+                    .isActive(true)
+                    .build();
 
-                log.debug("Updated config for approver: {}, order: {}",
-                        item.getApproverId(), item.getApprovalOrder());
-            } else {
-                // CONFIG CHƯA TỒN TẠI → CREATE MỚI
-                Employee approver = employeeRepository.findByIdAndDeletedFalse(item.getApproverId())
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                                "Employee không tồn tại hoặc đã bị xóa: " + item.getApproverId()));
+            approvalConfigRepository.save(newConfig);
 
-                WareTemplateApprovalConfig newConfig = WareTemplateApprovalConfig.builder()
-                        .wareTemplate(wareTemplate)
-                        .approver(approver)
-                        .approvalOrder(item.getApprovalOrder())
-                        .isActive(true)
-                        .build();
-
-                approvalConfigRepository.save(newConfig);
-
-                log.debug("Created new config for approver: {}, order: {}",
-                        item.getApproverId(), item.getApprovalOrder());
-            }
-        }
-
-        //Xử lý configs KHÔNG CÓ TRONG request → Set isActive = false
-        log.debug("Step 3: Deactivating configs not in request");
-        for (WareTemplateApprovalConfig existingConfig : existingConfigs) {
-            String existingApproverId = existingConfig.getApprover().getId();
-
-            if (!requestedApproverIds.contains(existingApproverId)) {
-                existingConfig.setIsActive(false);
-                approvalConfigRepository.save(existingConfig);
-
-                log.debug("Deactivated config for approver: {} (not in request)", existingApproverId);
-            }
+            log.debug("Created config for approver: {}, order: {}",
+                    item.getApproverId(), item.getApprovalOrder());
         }
 
         // Lấy danh sách configs ACTIVE để trả về cho FE
