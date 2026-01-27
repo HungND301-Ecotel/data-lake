@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { message } from "antd";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff } from "lucide-react";
 
 import type { LoginResponse } from "../../employee/types/user";
 import { useAuthStore } from "../../../stores/authStore";
 import { userApi } from "../api/userApi";
 import logo from "../../../file/logo.png";
 import background from "../../../file/background.png";
-
 
 const LoginPage = () => {
   const [loading, setLoading] = useState(false);
@@ -22,12 +21,12 @@ const LoginPage = () => {
     e?.preventDefault();
 
     if (!username.trim()) {
-      message.error('Vui lòng nhập tài khoản');
+      message.error("Vui lòng nhập tài khoản");
       return;
     }
 
     if (!password.trim()) {
-      message.error('Vui lòng nhập mật khẩu');
+      message.error("Vui lòng nhập mật khẩu");
       return;
     }
 
@@ -51,11 +50,11 @@ const LoginPage = () => {
   return (
     <div className="relative flex flex-col min-h-screen overflow-hidden">
       {/* Header */}
-      <header className="h-auto border-b bg-[#1a8649] backdrop-blur flex items-center justify-center px-6 relative z-20">
+      <header className="h-auto border-b bg-[#1976D2] backdrop-blur flex items-center justify-center px-6 relative z-20">
         <div className="flex items-center gap-3 text-primary-foreground py-4">
           <span className="flex flex-col gap-1 text-white">
             <div className="text-base sm:text-5xl font-bold text-center">
-              PHẦN MỀM NHẬP DỮ LIỆU KHO
+              PHẦN MỀM KHO DỮ LIỆU TẬP TRUNG
             </div>
             <div className="text-base sm:text-xl font-bold text-center">
               CÔNG TY THAN CAO SƠN - TKV
@@ -93,7 +92,7 @@ const LoginPage = () => {
 
           {/* Title */}
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-green-600 dark:text-blue-400">
+            <h2 className="text-2xl font-bold text-[#1976D2] dark:text-blue-400">
               Đăng nhập
             </h2>
           </div>
@@ -124,7 +123,7 @@ const LoginPage = () => {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   disabled={loading}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                 />
               </div>
 
@@ -145,7 +144,7 @@ const LoginPage = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={loading}
-                    className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                    className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                   />
                   <span
                     onClick={() => setShowPassword(!showPassword)}
@@ -165,7 +164,7 @@ const LoginPage = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-green-500 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="w-full bg-[#1976D2] hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   {loading ? "Đang đăng nhập..." : "Đăng nhập"}
                 </button>

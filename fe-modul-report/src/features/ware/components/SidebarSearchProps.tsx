@@ -125,7 +125,10 @@ const SidebarSearch = ({
           <div className="space-y-4">
             {/* ================= Table ================= */}
             <Card className="rounded-lg shadow-sm border-0">
-              <Tag color="red" className="w-full text-center py-1 mb-3 font-bold">
+              <Tag
+                color="red"
+                className="w-full text-center py-1 mb-3 font-bold"
+              >
                 {tableLabel || "CHƯA CHỌN BẢNG"}
               </Tag>
 
@@ -160,7 +163,7 @@ const SidebarSearch = ({
                 size="large"
                 type="primary"
                 icon={<SearchOutlined />}
-                className="bg-green-600! hover:bg-green-700!"
+                className="bg-[#1976D2]! hover:bg-blue-700!"
                 onClick={onSearch}
               >
                 Tìm kiếm
@@ -254,17 +257,13 @@ const SidebarSearch = ({
                       placeholder="Cột"
                       size="small"
                       value={f.key}
-                      onChange={(e) =>
-                        updateFilter(i, "key", e.target.value)
-                      }
+                      onChange={(e) => updateFilter(i, "key", e.target.value)}
                     />
                     <Input
                       placeholder="Giá trị"
                       size="small"
                       value={f.value}
-                      onChange={(e) =>
-                        updateFilter(i, "value", e.target.value)
-                      }
+                      onChange={(e) => updateFilter(i, "value", e.target.value)}
                     />
                     <Tooltip title="Xóa">
                       <Button

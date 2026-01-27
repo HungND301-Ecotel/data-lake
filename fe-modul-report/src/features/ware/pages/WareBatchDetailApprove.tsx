@@ -34,12 +34,14 @@ import {
 
 export const WareBatchDetailApprove: React.FC = () => {
   const wareBatchId = Number(
-    useParams<{ wareBatchId: string }>().wareBatchId ?? 0
+    useParams<{ wareBatchId: string }>().wareBatchId ?? 0,
   );
 
   const [rows, setRows] = useState<WareDataRowResponse[]>([]);
   const [mappings, setMappings] = useState<WareMappingResponse[]>([]);
-  const [batchDetail, setBatchDetail] = useState<WareBatchResponse | null>(null);
+  const [batchDetail, setBatchDetail] = useState<WareBatchResponse | null>(
+    null,
+  );
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState("");
   const [pushModalVisible, setPushModalVisible] = useState(false);
@@ -135,7 +137,7 @@ export const WareBatchDetailApprove: React.FC = () => {
           {value == null ? "-" : value.toString()}
         </span>
       ),
-    })
+    }),
   );
 
   const columns = [...defaultColumns, ...mappingColumns];
@@ -151,8 +153,6 @@ export const WareBatchDetailApprove: React.FC = () => {
       second: "2-digit",
     });
   };
-
-
 
   const handlePushConfirm = async (values: {
     username: string;
@@ -260,7 +260,7 @@ export const WareBatchDetailApprove: React.FC = () => {
               size="large"
               icon={<CheckOutlined />}
               onClick={handleApprove}
-              className="bg-green-600! hover:bg-green-700! h-10 px-6"
+              className="bg-[#1976D2]! hover:bg-blue-700! h-10 px-6"
             >
               Duyệt
             </Button>
@@ -279,9 +279,6 @@ export const WareBatchDetailApprove: React.FC = () => {
         </>
       );
     }
-
-
-
 
     // Trường hợp 4: status = Tu_Choi_Phe_Duyet => Dữ liệu đã bị từ chối
     if (status === "Tu_Choi_Phe_Duyet") {
@@ -304,7 +301,7 @@ export const WareBatchDetailApprove: React.FC = () => {
   };
 
   const isRejected = batchDetail?.status === "Tu_Choi_Phe_Duyet";
-  
+
   return (
     <div className="px-6 py-6 bg-linear-to-br from-gray-50 to-gray-100 min-h-screen">
       {contextHolderMessage}
@@ -334,7 +331,7 @@ export const WareBatchDetailApprove: React.FC = () => {
               {batchDetail?.name || "-"}
             </p>
           </div>
-          <div className="bg-linear-to-br from-green-50 to-green-100 p-4 rounded-lg">
+          <div className="bg-linear-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
             <p className="text-gray-600 text-sm font-medium mb-1">Trạng thái</p>
             <div className="mt-2">
               {batchDetail?.status && getStatusBadge(batchDetail.status)}
@@ -369,7 +366,6 @@ export const WareBatchDetailApprove: React.FC = () => {
               </Tooltip>
 
               {getActionButtons()}
-
             </Space>
           </Col>
         </Row>
@@ -434,9 +430,13 @@ export const WareBatchDetailApprove: React.FC = () => {
           className="py-4"
         >
           <Form.Item
-            label={<span className="font-medium text-gray-800">Xoá dữ liệu cũ</span>}
+            label={
+              <span className="font-medium text-gray-800">Xoá dữ liệu cũ</span>
+            }
             name="deleteMissing"
-            rules={[{ required: true, message: "Vui lòng chọn có hoặc không!" }]}
+            rules={[
+              { required: true, message: "Vui lòng chọn có hoặc không!" },
+            ]}
           >
             <Radio.Group
               onChange={(e) => setDeleteMissing(e.target.value)}
@@ -449,7 +449,9 @@ export const WareBatchDetailApprove: React.FC = () => {
           </Form.Item>
 
           <Form.Item
-            label={<span className="font-medium text-gray-800">Tên đăng nhập</span>}
+            label={
+              <span className="font-medium text-gray-800">Tên đăng nhập</span>
+            }
             name="username"
             rules={[{ required: true, message: "Vui lòng nhập username!" }]}
           >
@@ -479,7 +481,7 @@ export const WareBatchDetailApprove: React.FC = () => {
               block
               size="large"
               icon={<CloudUploadOutlined />}
-              className="bg-green-600! hover:bg-green-700! h-11 font-medium rounded-lg"
+              className="bg-[#1976D2]! hover:bg-blue-700! h-11 font-medium rounded-lg"
             >
               Upload dữ liệu
             </Button>
@@ -510,9 +512,13 @@ export const WareBatchDetailApprove: React.FC = () => {
           className="py-4"
         >
           <Form.Item
-            label={<span className="font-medium text-gray-800">Lý do từ chối</span>}
+            label={
+              <span className="font-medium text-gray-800">Lý do từ chối</span>
+            }
             name="reason"
-            rules={[{ required: true, message: "Vui lòng nhập lý do từ chối!" }]}
+            rules={[
+              { required: true, message: "Vui lòng nhập lý do từ chối!" },
+            ]}
           >
             <Input.TextArea
               rows={4}

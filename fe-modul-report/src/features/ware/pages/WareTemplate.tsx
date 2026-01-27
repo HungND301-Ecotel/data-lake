@@ -94,7 +94,7 @@ const WareTemplate = () => {
             code: cat.code!,
             name: cat.name!,
             templates: [],
-          })
+          }),
         );
 
         setGroups(initGroups);
@@ -179,7 +179,7 @@ const WareTemplate = () => {
 
   const handleApproveOrInput = (
     record: WareTemplateResponse,
-    action: "approve" | "input"
+    action: "approve" | "input",
   ) => {
     if (!record.hasApprovalConfig) {
       setSelectedRecord(record);
@@ -240,17 +240,16 @@ const WareTemplate = () => {
         <Space size="small">
           {canApprove ? (
             <Button
-            icon={<SettingOutlined />}
-            size="large"
-            className="bg-blue-600! hover:bg-blue-700! text-white! border-0"
-            onClick={() => nav(`/ware/template/detail/${record.id}`)}
-          >
-            Cấu hình
-          </Button>
-          ): (
+              icon={<SettingOutlined />}
+              size="large"
+              className="bg-blue-600! hover:bg-blue-700! text-white! border-0"
+              onClick={() => nav(`/ware/template/detail/${record.id}`)}
+            >
+              Cấu hình
+            </Button>
+          ) : (
             <></>
           )}
-
 
           <Button
             icon={<EditOutlined />}
@@ -269,7 +268,7 @@ const WareTemplate = () => {
               handleDelete(
                 record.id!,
                 groups.find((g) => g.templates.some((t) => t.id === record.id))
-                  ?.id!
+                  ?.id!,
               )
             }
           >
@@ -305,7 +304,7 @@ const WareTemplate = () => {
             size="large"
             icon={<PlusOutlined />}
             onClick={handleAdd}
-            className="bg-green-600! hover:bg-green-700! text-white! border-0 shadow-md"
+            className="bg-[#1976D2]! hover:bg-blue-700! text-white! border-0 shadow-md"
             style={{ borderRadius: "8px", minWidth: "160px" }}
           >
             Thêm mới
@@ -316,9 +315,7 @@ const WareTemplate = () => {
         <div className="mb-6 p-4 bg-linear-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
           <div className="flex items-center gap-2">
             <AppstoreOutlined className="text-blue-500 text-xl" />
-            <span className="font-medium text-gray-700">
-              Tổng số danh mục:
-            </span>
+            <span className="font-medium text-gray-700">Tổng số danh mục:</span>
             <Tag color="blue" className="font-bold text-base px-3 py-1">
               {groups.length}
             </Tag>
@@ -352,7 +349,7 @@ const WareTemplate = () => {
                     </div>
                     <Tag
                       color="white"
-                      className="text-green-700! font-medium! px-3 py-1"
+                      className="text-blue-700! font-medium! px-3 py-1"
                     >
                       {grp.templates.length} template
                     </Tag>
@@ -381,11 +378,11 @@ const WareTemplate = () => {
       <Modal
         title={
           <div className="flex items-center gap-3 pb-3 border-b">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-green-100">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100">
               {editing ? (
-                <EditOutlined className="text-green-600 text-lg" />
+                <EditOutlined className="text-blue-600 text-lg" />
               ) : (
-                <PlusOutlined className="text-green-600 text-lg" />
+                <PlusOutlined className="text-blue-600 text-lg" />
               )}
             </div>
             <div className="text-lg font-semibold text-gray-800">
@@ -401,7 +398,7 @@ const WareTemplate = () => {
         width={700}
         okButtonProps={{
           className:
-            "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
+            "bg-[#1976D2]! hover:bg-blue-700! text-white! border-0 h-10 px-6 text-base font-medium",
           size: "large",
         }}
         cancelButtonProps={{
@@ -470,9 +467,7 @@ const WareTemplate = () => {
 
             <Form.Item
               name="tableCode"
-              label={
-                <span className="font-medium text-gray-700">Mã bảng</span>
-              }
+              label={<span className="font-medium text-gray-700">Mã bảng</span>}
               labelCol={{ span: 24 }}
               wrapperCol={{ span: 24 }}
             >
@@ -578,7 +573,7 @@ const WareTemplate = () => {
               type="primary"
               onClick={handleGoToConfig}
               size="large"
-              className="flex-1 bg-green-600! hover:bg-green-700! h-10 font-medium"
+              className="flex-1 bg-[#1976D2]! hover:bg-blue-700! h-10 font-medium"
             >
               Đi tới cấu hình
             </Button>
@@ -613,7 +608,7 @@ const WareTemplate = () => {
         }
         
         .modern-collapse .ant-collapse-header {
-          background: linear-gradient(135deg, #1a8649 0%, #15703d 100%) !important;
+          background: linear-gradient(135deg, #1976D2 0%, #15703d 100%) !important;
           padding: 20px 24px !important;
           border-radius: 12px !important;
           align-items: center !important;

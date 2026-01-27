@@ -50,7 +50,10 @@ const ResultPanel = ({ results }: ResultPanelProps) => {
     render: (text: any) => {
       let val = text?.toString() || "-";
       // Xử lý cắt ID cho gọn giống logic cũ của bạn
-      if ((key === "id" || key === "data_upload_id") && typeof text === "string") {
+      if (
+        (key === "id" || key === "data_upload_id") &&
+        typeof text === "string"
+      ) {
         val = text.slice(0, 8) + (text.length > 8 ? "..." : "");
       }
       return <span title={text}>{val}</span>;
@@ -66,9 +69,12 @@ const ResultPanel = ({ results }: ResultPanelProps) => {
             <TableOutlined className="text-blue-600 text-lg" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-gray-800 m-0">Kết quả tìm kiếm</h2>
+            <h2 className="text-lg font-bold text-gray-800 m-0">
+              Kết quả tìm kiếm
+            </h2>
             <p className="text-xs text-gray-500 m-0">
-              Tổng cộng: <span className="font-semibold">{results.length}</span> bản ghi
+              Tổng cộng: <span className="font-semibold">{results.length}</span>{" "}
+              bản ghi
             </p>
           </div>
         </div>
@@ -78,7 +84,7 @@ const ResultPanel = ({ results }: ResultPanelProps) => {
             type="primary"
             icon={<DownloadOutlined />}
             onClick={exportToExcel}
-            className="bg-green-600! hover:bg-green-700!"
+            className="bg-[#1976D2]! hover:bg-blue-700!"
           >
             Tải Excel
           </Button>
@@ -87,10 +93,12 @@ const ResultPanel = ({ results }: ResultPanelProps) => {
 
       {/* Container chứa bảng - flex-1 và overflow-hidden để bảng chiếm trọn phần còn lại */}
       <div className="flex-1 min-h-0 p-4">
-        <Card className="h-full shadow-sm border-0 rounded-xl 
+        <Card
+          className="h-full shadow-sm border-0 rounded-xl 
   [&>.ant-card-body]:p-0 
   [&>.ant-card-body]:h-full 
-  [&>.ant-card-body]:overflow-x-auto">
+  [&>.ant-card-body]:overflow-x-auto"
+        >
           <Table
             dataSource={results}
             columns={columns}
@@ -101,7 +109,7 @@ const ResultPanel = ({ results }: ResultPanelProps) => {
               size: "small",
             }}
             scroll={{ x: "max-content", y: "100%" }}
-            tableLayout="fixed" 
+            tableLayout="fixed"
             size="small"
             bordered
           />

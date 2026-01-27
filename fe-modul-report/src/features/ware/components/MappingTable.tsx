@@ -1,5 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { Table, Input, Button, message, Checkbox, Select, Modal, Card, Space, Tag, Tooltip } from "antd";
+import {
+  Table,
+  Input,
+  Button,
+  message,
+  Checkbox,
+  Select,
+  Modal,
+  Card,
+  Space,
+  Tag,
+  Tooltip,
+} from "antd";
 import {
   EditOutlined,
   DeleteOutlined,
@@ -48,7 +60,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
           {
             numeric: true,
             sensitivity: "base",
-          }
+          },
         );
       });
 
@@ -69,7 +81,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
 
   const updateRequest = <K extends keyof WareMappingRequest>(
     key: K,
-    value: WareMappingRequest[K]
+    value: WareMappingRequest[K],
   ) => {
     setEditingRequest((prev) => (prev ? { ...prev, [key]: value } : prev));
   };
@@ -83,7 +95,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
   const FIELD_TYPE_COLOR: Record<string, string> = {
     ROW: "blue",
     CELL: "cyan",
-    TEXT: "green",
+    TEXT: "blue",
   };
 
   const FIELD_VALUE_LABEL: Record<string, string> = {
@@ -281,7 +293,9 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
             size="large"
           />
         ) : (
-          <Tag>{FIELD_VALUE_LABEL[record.fieldValue ?? ""] ?? record.fieldValue}</Tag>
+          <Tag>
+            {FIELD_VALUE_LABEL[record.fieldValue ?? ""] ?? record.fieldValue}
+          </Tag>
         ),
     },
     {
@@ -330,7 +344,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
                 type="primary"
                 icon={<SaveOutlined />}
                 onClick={handleSave}
-                className="bg-green-600! hover:bg-green-700!"
+                className="bg-[#1976D2]! hover:bg-blue-700!"
                 size="large"
               >
                 Lưu
@@ -353,7 +367,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
                 type="primary"
                 icon={<EditOutlined />}
                 onClick={() => handleEdit(record)}
-                className="bg-green-600! hover:bg-green-700!"
+                className="bg-[#1976D2]! hover:bg-blue-700!"
                 size="large"
               >
                 Sửa
@@ -396,7 +410,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
             size="large"
             icon={<PlusOutlined />}
             onClick={handleAdd}
-            className="bg-green-600! hover:bg-green-700! h-10 px-6"
+            className="bg-[#1976D2]! hover:bg-blue-700! h-10 px-6"
           >
             Thêm mới
           </Button>
@@ -415,8 +429,8 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
               isEditing(record)
                 ? "bg-blue-50 hover:bg-blue-100 transition-colors"
                 : index % 2 === 0
-                ? "bg-white hover:bg-gray-50 transition-colors"
-                : "bg-gray-50 hover:bg-gray-100 transition-colors"
+                  ? "bg-white hover:bg-gray-50 transition-colors"
+                  : "bg-gray-50 hover:bg-gray-100 transition-colors"
             }
             scroll={{ x: 1200 }}
           />
@@ -425,13 +439,15 @@ export const MappingTable: React.FC<{ templateId: number }> = ({
         {data.length === 0 && !loading && (
           <div className="text-center py-16 bg-gray-50 rounded-lg mt-4">
             <DatabaseOutlined className="text-4xl text-gray-300 mb-3" />
-            <p className="text-gray-500 text-lg mb-6">Không có dữ liệu mapping</p>
+            <p className="text-gray-500 text-lg mb-6">
+              Không có dữ liệu mapping
+            </p>
             <Button
               type="primary"
               size="large"
               icon={<PlusOutlined />}
               onClick={handleAdd}
-              className="bg-green-600! hover:bg-green-700! h-11 px-8"
+              className="bg-[#1976D2]! hover:bg-blue-700! h-11 px-8"
             >
               Thêm mapping mới
             </Button>

@@ -122,24 +122,22 @@ const ReportDetail: React.FC = () => {
   const handleExportExcel = async () => {
     try {
       if (!report) return;
-  
+
       const excelBytes = await excelApi.exportExcel(report);
-  
+
       console.log("fetched json:", JSON.stringify(report, null, 2));
-  
+
       const blob = new Blob([excelBytes], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
-  
-      const url = URL.createObjectURL(blob);
-  
-      window.open(url); 
 
+      const url = URL.createObjectURL(blob);
+
+      window.open(url);
     } catch (error: any) {
       messageApi.error(error?.data || "Lỗi xuất Excel");
     }
   };
-
 
   const handleSave = async () => {
     try {
@@ -172,7 +170,7 @@ const ReportDetail: React.FC = () => {
 
           <div className="flex gap-2">
             <button
-              className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700"
+              className="flex items-center gap-1 px-3 py-1.5 bg-[#1976D2] text-white rounded hover:bg-blue-700"
               onClick={() => setEditMode(!editMode)}
             >
               <FaEye /> {editMode ? "Thoát chỉnh sửa" : "Chỉnh sửa"}
@@ -180,7 +178,7 @@ const ReportDetail: React.FC = () => {
 
             {!isUserView && (
               <button
-                className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700"
+                className="flex items-center gap-1 px-3 py-1.5 bg-[#1976D2] text-white rounded hover:bg-blue-700"
                 onClick={handleSave}
               >
                 <FaSave /> Lưu
@@ -188,14 +186,14 @@ const ReportDetail: React.FC = () => {
             )}
 
             <button
-              className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700"
+              className="flex items-center gap-1 px-3 py-1.5 bg-[#1976D2] text-white rounded hover:bg-blue-700"
               onClick={handleExportPdf}
             >
               <FaFilePdf /> Xem PDF
             </button>
 
             <button
-              className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700"
+              className="flex items-center gap-1 px-3 py-1.5 bg-[#1976D2] text-white rounded hover:bg-blue-700"
               onClick={handleExportExcel}
             >
               <FaFileExcel /> Xem EXCEL
@@ -212,7 +210,7 @@ const ReportDetail: React.FC = () => {
             <div className="flex gap-2">
               {/* ADD TEXT */}
               <button
-                className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                className="px-3 py-1 bg-[#1976D2] text-white rounded hover:bg-blue-700"
                 onClick={() => {
                   const newItem: ReportItem = {
                     id: "new-" + v4(),
@@ -235,7 +233,7 @@ const ReportDetail: React.FC = () => {
 
               {/* ADD TABLE */}
               <button
-                className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                className="px-3 py-1 bg-[#1976D2] text-white rounded hover:bg-blue-700"
                 onClick={() => {
                   const newItem: ReportItem = {
                     id: "new-" + v4(),
@@ -256,7 +254,7 @@ const ReportDetail: React.FC = () => {
 
               {/* ADD DATA */}
               <button
-                className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                className="px-3 py-1 bg-[#1976D2] text-white rounded hover:bg-blue-700"
                 onClick={() => {
                   const newItem: ReportItem = {
                     id: "new-" + v4(),
@@ -397,7 +395,7 @@ const ReportDetail: React.FC = () => {
                             </span>
                             <button
                               onClick={() => deleteItem(idx)}
-                              className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700"
+                              className="flex items-center gap-1 px-3 py-1.5 bg-[#1976D2] text-white rounded hover:bg-blue-700"
                             >
                               <FaTrash /> Xoá
                             </button>
@@ -411,7 +409,9 @@ const ReportDetail: React.FC = () => {
                             onChange={(updated) => {
                               if (!report) return;
                               const updatedItems = report.items.map((i) =>
-                                i.id === item.id ? { ...i, object: updated } : i
+                                i.id === item.id
+                                  ? { ...i, object: updated }
+                                  : i,
                               );
                               setReport({ ...report, items: updatedItems });
                             }}
@@ -427,7 +427,7 @@ const ReportDetail: React.FC = () => {
                               const updatedItems = report.items.map((i) =>
                                 i.id === item.id
                                   ? { ...i, object: updatedTable }
-                                  : i
+                                  : i,
                               );
                               setReport({ ...report, items: updatedItems });
                             }}
@@ -441,7 +441,9 @@ const ReportDetail: React.FC = () => {
                             onChange={(updated) => {
                               if (!report) return;
                               const updatedItems = report.items.map((i) =>
-                                i.id === item.id ? { ...i, object: updated } : i
+                                i.id === item.id
+                                  ? { ...i, object: updated }
+                                  : i,
                               );
                               setReport({ ...report, items: updatedItems });
                             }}

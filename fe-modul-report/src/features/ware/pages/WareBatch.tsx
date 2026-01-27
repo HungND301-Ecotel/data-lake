@@ -210,7 +210,7 @@ export const WareBatch: React.FC = () => {
         <Tooltip title={value ? "Đã đẩy dữ liệu" : "Chưa đẩy dữ liệu"}>
           {value ? (
             <CheckCircleOutlined
-              className="text-lg text-green-600 cursor-pointer hover:text-green-700 transition-colors"
+              className="text-lg text-blue-600 cursor-pointer hover:text-blue-700 transition-colors"
               onClick={() => handleEyeClick(record)}
             />
           ) : (
@@ -237,7 +237,7 @@ export const WareBatch: React.FC = () => {
               type="primary"
               icon={<EditOutlined />}
               onClick={() => nav(`/ware/batch/${record.id}`)}
-              className="bg-green-600! hover:bg-green-700!"
+              className="bg-[#1976D2]! hover:bg-blue-700!"
               size="large"
             >
               Xem
@@ -285,7 +285,7 @@ export const WareBatch: React.FC = () => {
             size="large"
             icon={<PlusOutlined />}
             onClick={() => setIsModalOpen(true)}
-            className="bg-green-600! hover:bg-green-700! h-10 px-6"
+            className="bg-[#1976D2]! hover:bg-blue-700! h-10 px-6"
           >
             Thêm dữ liệu
           </Button>
@@ -348,7 +348,7 @@ export const WareBatch: React.FC = () => {
               size="large"
               icon={<PlusOutlined />}
               onClick={() => setIsModalOpen(true)}
-              className="bg-green-600! hover:bg-green-700! h-11 px-8"
+              className="bg-[#1976D2]! hover:bg-blue-700! h-11 px-8"
             >
               Thêm batch mới
             </Button>
@@ -359,8 +359,8 @@ export const WareBatch: React.FC = () => {
       <Modal
         title={
           <div className="flex items-center gap-3 pb-3 border-b">
-            <div className="w-10 h-10 flex items-center justify-center bg-green-100">
-              <PlusOutlined className="text-green-600 text-lg" />
+            <div className="w-10 h-10 flex items-center justify-center bg-blue-100">
+              <PlusOutlined className="text-blue-600 text-lg" />
             </div>
             <div className="text-lg font-semibold text-gray-800">
               Thêm Batch
@@ -379,7 +379,7 @@ export const WareBatch: React.FC = () => {
         onOk={() => form.submit()}
         okButtonProps={{
           className:
-            "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
+            "bg-[#1976D2]! hover:bg-blue-700! text-white! border-0 h-10 px-6 text-base font-medium",
           size: "large",
         }}
         cancelButtonProps={{
@@ -387,7 +387,12 @@ export const WareBatch: React.FC = () => {
           className: "h-10 px-6 text-base",
         }}
       >
-        <Form form={form} layout="vertical" onFinish={handleAddBatch} className="py-4">
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleAddBatch}
+          className="py-4"
+        >
           <Form.Item
             name="name"
             label={<span className="font-medium text-gray-800">Tên Batch</span>}

@@ -13,10 +13,7 @@ import {
   Radio,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import type {
-  WareBatchResponse,
-  WareBatchSearch,
-} from "../types/wareBacth";
+import type { WareBatchResponse, WareBatchSearch } from "../types/wareBacth";
 import type { PageResponse } from "../../department/types/department";
 import { wareBatchApi } from "../api/wareBathApi";
 import {
@@ -145,7 +142,7 @@ export const SyncBatch: React.FC = () => {
       }
 
       messageApi.success(
-        `Đồng bộ thành công ${successCount} batch${failCount > 0 ? `, thất bại ${failCount}` : ""}`
+        `Đồng bộ thành công ${successCount} batch${failCount > 0 ? `, thất bại ${failCount}` : ""}`,
       );
       setSyncModalVisible(false);
       setSelectedIds([]);
@@ -250,7 +247,7 @@ export const SyncBatch: React.FC = () => {
       render: (value: boolean) => (
         <Tooltip title={value ? "Đã đẩy dữ liệu" : "Chưa đẩy dữ liệu"}>
           {value ? (
-            <CheckCircleOutlined className="text-lg text-green-600!" />
+            <CheckCircleOutlined className="text-lg text-blue-600!" />
           ) : (
             <CloseCircleOutlined className="text-lg text-red-600!" />
           )}
@@ -412,9 +409,15 @@ export const SyncBatch: React.FC = () => {
             className="py-4"
           >
             <Form.Item
-              label={<span className="font-medium text-gray-800">Xoá dữ liệu cũ</span>}
+              label={
+                <span className="font-medium text-gray-800">
+                  Xoá dữ liệu cũ
+                </span>
+              }
               name="deleteMissing"
-              rules={[{ required: true, message: "Vui lòng chọn có hoặc không!" }]}
+              rules={[
+                { required: true, message: "Vui lòng chọn có hoặc không!" },
+              ]}
             >
               <Radio.Group
                 onChange={(e) => setDeleteMissing(e.target.value)}
@@ -427,7 +430,9 @@ export const SyncBatch: React.FC = () => {
             </Form.Item>
 
             <Form.Item
-              label={<span className="font-medium text-gray-800">Tên đăng nhập</span>}
+              label={
+                <span className="font-medium text-gray-800">Tên đăng nhập</span>
+              }
               name="username"
               rules={[{ required: true, message: "Vui lòng nhập username!" }]}
             >
@@ -439,7 +444,9 @@ export const SyncBatch: React.FC = () => {
             </Form.Item>
 
             <Form.Item
-              label={<span className="font-medium text-gray-800">Mật khẩu</span>}
+              label={
+                <span className="font-medium text-gray-800">Mật khẩu</span>
+              }
               name="password"
               rules={[{ required: true, message: "Vui lòng nhập password!" }]}
             >

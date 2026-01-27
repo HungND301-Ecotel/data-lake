@@ -121,7 +121,7 @@ const ReportTemplateDepartment = () => {
   };
 
   const typeColor = (type?: string) =>
-    type === "DYNAMIC" || type === "Động" ? "blue" : "green";
+    type === "DYNAMIC" || type === "Động" ? "blue" : "blue";
 
   const handleAddNew = () => {
     setEditingReport(null);
@@ -137,7 +137,7 @@ const ReportTemplateDepartment = () => {
       description: report.description,
       reportType: report.reportType,
       reportCategoryId: groups.find((g) =>
-        g.reports.some((r) => r.id === report.id)
+        g.reports.some((r) => r.id === report.id),
       )?.id,
     });
     setModalOpen(true);
@@ -243,7 +243,7 @@ const ReportTemplateDepartment = () => {
               handleDelete(
                 record.id!,
                 groups.find((g) => g.reports.some((r) => r.id === record.id))
-                  ?.id!
+                  ?.id!,
               )
             }
           >

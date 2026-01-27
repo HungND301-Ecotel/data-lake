@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { FaSave } from "react-icons/fa";
 import { message } from "antd";
-import type { DepartmentResponse, PageResponse } from "../../../department/types/department";
+import type {
+  DepartmentResponse,
+  PageResponse,
+} from "../../../department/types/department";
 import type { ReportCategoryResponse } from "../../types/report";
 import { departmentApi } from "../../../department/api/departmentApi";
 import { reportCategoryApi } from "../../../category/reportCategory/api/reportCategoryApi";
@@ -34,11 +37,8 @@ const PdfPreviewModal: React.FC<PdfPreviewModalProps> = ({
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const res: PageResponse<DepartmentResponse> = await departmentApi.getMyDepartment(
-          "",
-          0,
-          100
-        );
+        const res: PageResponse<DepartmentResponse> =
+          await departmentApi.getMyDepartment("", 0, 100);
         setDepartments(res.content || []);
       } catch (err) {
         console.error("Failed to fetch departments", err);
@@ -74,18 +74,20 @@ const PdfPreviewModal: React.FC<PdfPreviewModalProps> = ({
       messageApi.error("PDF không tồn tại");
       return;
     }
-  
+
     if (!fileName || !selectedCategory) {
       messageApi.error("Vui lòng nhập tên báo cáo và chọn danh mục");
       return;
     }
-  
+
     try {
       const response = await fetch(pdfUrl);
       const blob = await response.blob();
-  
-      const file = new File([blob], `${fileName}.pdf`, { type: "application/pdf" });
-  
+
+      const file = new File([blob], `${fileName}.pdf`, {
+        type: "application/pdf",
+      });
+
       const request: ReportStorageRequest = {
         name: fileName,
         file,
@@ -93,7 +95,7 @@ const PdfPreviewModal: React.FC<PdfPreviewModalProps> = ({
         description,
         note,
       };
-  
+
       const res = await reportStorageApi.addReportStorage(request);
       console.log("Upload PDF result:", res);
       messageApi.success("Lưu PDF thành công!");
@@ -102,7 +104,6 @@ const PdfPreviewModal: React.FC<PdfPreviewModalProps> = ({
       messageApi.error("Lưu PDF thất bại!");
     }
   };
-  
 
   if (!open || !pdfUrl) return null;
 
@@ -174,7 +175,7 @@ const PdfPreviewModal: React.FC<PdfPreviewModalProps> = ({
           />
 
           <button
-            className="mt-auto px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-1"
+            className="mt-auto px-3 py-2 bg-[#1976D2] text-white rounded hover:bg-blue-700 flex items-center gap-1"
             onClick={handleSave}
           >
             <FaSave /> Lưu PDF

@@ -27,21 +27,27 @@ export default function NavBar() {
         {
           key: "departments",
           icon: <TeamOutlined className="text-lg" />,
-          label: <span className="text-base font-medium">Danh mục phòng ban</span>,
+          label: (
+            <span className="text-base font-medium">Danh mục phòng ban</span>
+          ),
           onClick: () => navigate("/category/departments"),
           className: "py-3 px-4 hover:bg-[#f0f9f4]!",
         },
         {
           key: "ware",
           icon: <FileTextOutlined className="text-lg" />,
-          label: <span className="text-base font-medium">Danh mục báo cáo</span>,
+          label: (
+            <span className="text-base font-medium">Danh mục báo cáo</span>
+          ),
           onClick: () => navigate("/category/ware"),
           className: "py-3 px-4 hover:bg-[#f0f9f4]!",
         },
         {
           key: "employee",
           icon: <IdcardOutlined className="text-lg" />,
-          label: <span className="text-base font-medium">Danh mục tài khoản</span>,
+          label: (
+            <span className="text-base font-medium">Danh mục tài khoản</span>
+          ),
           onClick: () => navigate("/employee"),
           className: "py-3 px-4 hover:bg-[#f0f9f4]!",
         },
@@ -104,7 +110,7 @@ export default function NavBar() {
   );
 
   return (
-    <nav className="top-0 z-50 bg-[#1a8649] flex items-center px-8 py-3 gap-2 shadow-lg border-b border-[#0a5232]">
+    <nav className="top-0 z-50 bg-[#1976D2] flex items-center px-8 py-3 gap-2 shadow-lg border-b border-[#0a5232]">
       {/* Back Button */}
       <Button
         type="text"
