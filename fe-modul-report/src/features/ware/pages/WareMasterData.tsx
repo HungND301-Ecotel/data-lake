@@ -5,7 +5,7 @@ import SidebarSearch from "../components/SidebarSearchProps";
 import ResultPanel from "../components/ResultPanel";
 
 const SearchMasterData = () => {
-  const [table, setTable] = useState("T_SXT_62");
+  const [table, setTable] = useState("");
   const [year, setYear] = useState<number | undefined>();
   const [columns, setColumns] = useState<string[]>([]);
   const [orderBy, setOrderBy] = useState<string[]>([]);
@@ -35,10 +35,16 @@ const SearchMasterData = () => {
     };
 
     try {
+      setResults([]);
+
       const res: GetResponse = await wareTkvApi.searchTkv(request);
+
+      // Set kết quả mới - nếu không có dữ liệu thì set array rỗng
       setResults(res.rows || []);
     } catch (err) {
       console.error(err);
+      // Quan trọng: Reset results khi có lỗi
+      setResults([]);
     }
   };
 
@@ -66,7 +72,7 @@ const SearchMasterData = () => {
 
       <main className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
         <ResultPanel results={results} />
-      </main>    
+      </main>
     </div>
   );
 };
