@@ -36,12 +36,13 @@ const DepartmentMy = () => {
     {
       title: "Mã phòng ban",
       dataIndex: "code",
+      align: "center" as const,
       key: "code",
       width: "15%",
       render: (text: string) => (
-        <Tag color="blue" className="font-mono font-semibold px-3 py-1">
-          {text}
-        </Tag>
+        <div className="flex justify-center items-center gap-2 text-center">
+          <span className="font-medium">{text}</span>
+        </div>
       ),
     },
     {

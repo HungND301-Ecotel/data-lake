@@ -160,12 +160,13 @@ const WareCategoryPage = () => {
     {
       title: "Mã danh mục",
       dataIndex: "code",
+      align: "center" as const,
       key: "code",
       width: "15%",
       render: (text: string) => (
-        <Tag color="blue" className="font-mono font-semibold px-3 py-1">
-          {text}
-        </Tag>
+        <div className="flex justify-center items-center gap-2 text-center">
+          <span className="font-medium">{text}</span>
+        </div>
       ),
     },
     {
@@ -249,7 +250,7 @@ const WareCategoryPage = () => {
               border: "1px solid #e5e7eb",
             }}
           />
-          
+
           <Select
             allowClear
             placeholder="Lọc theo phòng ban"
@@ -328,9 +329,8 @@ const WareCategoryPage = () => {
         cancelText="Hủy"
         title={
           <div className="flex items-center gap-3 pb-3 border-b">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-              editing ? 'bg-blue-100' : 'bg-green-100'
-            }`}>
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${editing ? 'bg-blue-100' : 'bg-green-100'
+              }`}>
               {editing ? (
                 <EditOutlined className="text-blue-600 text-lg" />
               ) : (
