@@ -254,82 +254,105 @@ export const WareBatchForManagement: React.FC = () => {
       label: status,
     };
 
-    return (
-      <Tag color={config.color} className="px-3 py-1 text-sm font-medium">
-        {config.label}
-      </Tag>
-    );
-  };
+                        <Tooltip title="Từ chối các batch được chọn">
+                            <Button
+                                type="primary"
+                                danger
+                                icon={<CloseOutlined />}
+                                onClick={handleBulkReject}
+                                loading={approvalLoading}
+                                disabled={!hasApprovableBatch || selectedRowKeys.length === 0}
+                                className="h-10 px-6"
+                                size="large"
+                            >
+                                Từ chối ({selectedRowKeys.length})
+                            </Button>
+                        </Tooltip>
+                    </Space.Compact>
+                </div>
+            </Card>
 
-  const columns: ColumnsType<BatchRecord> = [
-    {
-      title: "Mã",
-      dataIndex: "batchCode",
-      key: "batchCode",
-      render: (text: string) => (
-        <span className="font-medium text-gray-800">{text}</span>
-      ),
-    },
-    {
-      title: "Tên",
-      dataIndex: "batchName",
-      key: "batchName",
-      render: (text: string) => <span className="text-gray-700">{text}</span>,
-    },
-    {
-      title: "Mô tả",
-      dataIndex: "batchDescription",
-      key: "batchDescription",
-      render: (text: string) => (
-        <span className="text-gray-600 line-clamp-2">{text || "-"}</span>
-      ),
-    },
-    {
-      title: "Trạng thái của bạn",
-      dataIndex: "myApprovalStatus",
-      key: "myApprovalStatus",
-      render: (status: string, record: BatchRecord) =>
-        getStatusBadge2(status, record.canApprove),
-    },
-    {
-      title: "Trạng thái tổng",
-      dataIndex: "batchStatus",
-      key: "batchStatus",
-      render: (status: string) => getStatusBadge(status),
-    },
-    {
-      title: "Upload",
-      dataIndex: "isPushed",
-      key: "isPushed",
-      align: "center",
-      width: 100,
-      render: (value: boolean, record) => (
-        <Tooltip title={value ? "Đã đẩy dữ liệu" : "Chưa đẩy dữ liệu"}>
-          {value ? (
-            <CheckCircleOutlined
-              className="text-lg text-blue-600 cursor-pointer hover:text-blue-700 transition-colors"
-              onClick={() => handleEyeClick(record)}
-            />
-          ) : (
-            <CloseCircleOutlined className="text-lg text-red-600 cursor-pointer hover:text-red-700 transition-colors" />
-          )}
-        </Tooltip>
-      ),
-    },
-    {
-      title: "Thao tác",
-      key: "action",
-      align: "center",
-      width: 140,
-      render: (_, record) => (
-        <Space>
-          <Tooltip title="Xem chi tiết">
-            <Button
-              type="primary"
-              icon={<EditOutlined />}
-              onClick={() => nav(`/ware/batch/${record.batchId}`)}
-              className="bg-[#1976D2]! hover:bg-blue-700!"
-              size="large"
+            <Card className="shadow-sm border-0 rounded-xl">
+                <div className="flex justify-between items-center mb-6">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center bg-purple-100">
+                            <FileTextOutlined className="text-purple-600 text-lg" />
+                        </div>
+                        <h1 className="text-xl font-bold text-gray-800 m-0">
+                            Danh sách Batch Chờ Duyệt
+                        </h1>
+                    </div>
+                    <Button
+                        size="large"
+                        icon={<ReloadOutlined />}
+                        onClick={() => fetchBatches()}
+                        loading={loading}
+                        className="h-10 px-6"
+                    >
+                        Tải lại
+                    </Button>
+                </div>
+
+                <Spin spinning={approvalLoading} tip="Đang xử lý...">
+                    <div className="overflow-x-auto rounded-lg border border-gray-200">
+                        <Table
+                            rowKey="id"
+                            columns={columns}
+                            dataSource={batches}
+                            loading={loading}
+                            rowSelection={rowSelection}
+                            size="middle"
+                            bordered
+                            pagination={{
+                                showSizeChanger: true,
+                                showTotal: (total) => `Tổng cộng ${total} batch`,
+                                pageSizeOptions: [10, 20, 50],
+                            }}
+                            rowClassName={(record, index) =>
+                                record.canApprove
+                                    ? index % 2 === 0
+                                        ? "bg-blue-50 hover:bg-blue-100 transition-colors"
+                                        : "bg-blue-50 hover:bg-blue-100 transition-colors"
+                                    : index % 2 === 0
+                                    ? "bg-white hover:bg-gray-50 transition-colors opacity-75"
+                                    : "bg-gray-50 hover:bg-gray-100 transition-colors opacity-75"
+                            }
+                            scroll={{ x: 1300 }}
+                        />
+                    </div>
+                </Spin>
+            </Card>
+
+            <Modal
+                title={
+                    <div className="flex items-center gap-3 pb-3 border-b">
+                        <div className="w-10 h-10 flex items-center justify-center bg-green-100">
+                            <PlusOutlined className="text-green-600 text-lg" />
+                        </div>
+                        <div className="text-lg font-semibold text-gray-800">
+                            Thêm Batch
+                        </div>
+                    </div>
+                }
+                open={isModalOpen}
+                onCancel={() => {
+                    setIsModalOpen(false);
+                    setFileList([]);
+                    form.resetFields();
+                }}
+                width={700}
+                okText="Thêm"
+                cancelText="Hủy"
+                onOk={() => form.submit()}
+                okButtonProps={{
+                    className:
+                        "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
+                    size: "large",
+                }}
+                cancelButtonProps={{
+                    size: "large",
+                    className: "h-10 px-6 text-base",
+                }}
             >
               Xem
             </Button>

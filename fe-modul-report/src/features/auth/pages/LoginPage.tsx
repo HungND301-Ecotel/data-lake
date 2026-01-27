@@ -54,7 +54,7 @@ const LoginPage = () => {
         <div className="flex items-center gap-3 text-primary-foreground py-4">
           <span className="flex flex-col gap-1 text-white">
             <div className="text-base sm:text-5xl font-bold text-center">
-              PHẦN MỀM KHO DỮ LIỆU TẬP TRUNG
+              KHO DỮ LIỆU TẬP TRUNG
             </div>
             <div className="text-base sm:text-xl font-bold text-center">
               CÔNG TY THAN CAO SƠN - TKV

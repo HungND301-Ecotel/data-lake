@@ -26,6 +26,7 @@ import { WareBatchForManagement } from "../features/ware/pages/WareBatchForManag
 import { ApproveBatch } from "../features/ware/pages/ApproveBatch";
 import { SyncBatch } from "../features/ware/pages/SyncBatch";
 import { WareBatchDetailApprove } from "../features/ware/pages/WareBatchDetailApprove";
+import UserPushConfigPage from "../features/auth/pages/accountConfig";
 
 export const router = createBrowserRouter([
   {
@@ -36,6 +37,8 @@ export const router = createBrowserRouter([
       { path: "/report-targets", element: <ReportTargetsPage /> },
       { path: "/dashboard", element: <DashboardWare /> },
       { path: "/employee", element: <EmployeePage /> },
+      { path: "/account-config", element: <UserPushConfigPage /> },
+
       { path: "/employee/:employeeId", element: <ProfilePage /> },
       { path: "/ware", element: <DepartmentMy /> },
       { path: "/search/master", element: <SearchMasterData /> },

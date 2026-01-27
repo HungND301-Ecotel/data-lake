@@ -25,6 +25,11 @@ public class MyApprovalBatchResponse {
     private String batchDescription;
     private LocalDateTime createdAt;
 
+    // Thời gian báo cáo
+    private Integer reportYear;
+    private Integer reportMonth;
+    private Integer reportDay;
+
     // Trạng thái batch
     private WareBatchEnum batchStatus;
 

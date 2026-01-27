@@ -33,6 +33,7 @@ import {
   FileTextOutlined,
   ReloadOutlined,
 } from "@ant-design/icons";
+import { wareTemplateApi } from "../api/wareTemplateApi";
 
 const { Search } = Input;
 
@@ -50,6 +51,22 @@ export const WareBatch: React.FC = () => {
   const nav = useNavigate();
   const [messageApi, contextHolderMessage] = message.useMessage();
   const [modal, contextHolderModal] = Modal.useModal();
+  const [templateName, setTemplateName] = useState<string>("");
+
+  const fetchTemplateName = async () => {
+    if (templateId) {
+      try {
+        const template = await wareTemplateApi.getWareTemplateById(Number(templateId));
+        setTemplateName(template.name || "");
+      } catch (error) {
+        console.error("Lỗi khi lấy tên template:", error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchTemplateName();
+  }, [templateId]);
 
   const fetchBatches = async () => {
     setLoading(true);
@@ -74,6 +91,13 @@ export const WareBatch: React.FC = () => {
   useEffect(() => {
     fetchBatches();
   }, [page, searchKeyword]);
+
+  const handleOpenModal = () => {
+    form.setFieldsValue({
+      name: templateName,
+    });
+    setIsModalOpen(true);
+  };
 
   const handleAddBatch = async (values: WareBatchRequest) => {
     try {
@@ -121,17 +145,17 @@ export const WareBatch: React.FC = () => {
     }
   };
 
-  const formatVNDate = (iso: string) => {
-    const d = new Date(iso);
-    return d.toLocaleString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
-  };
+  // const formatVNDate = (iso: string) => {
+  //   const d = new Date(iso);
+  //   return d.toLocaleString("vi-VN", {
+  //     day: "2-digit",
+  //     month: "2-digit",
+  //     year: "numeric",
+  //     hour: "2-digit",
+  //     minute: "2-digit",
+  //     second: "2-digit",
+  //   });
+  // };
 
   const getStatusBadge = (status: string) => {
     const statusConfig: {
@@ -179,25 +203,33 @@ export const WareBatch: React.FC = () => {
       render: (text: string) => <span className="text-gray-700">{text}</span>,
     },
     {
-      title: "Mô tả",
-      dataIndex: "description",
-      key: "description",
-      render: (text: string) => (
-        <span className="text-gray-600 line-clamp-2">{text || "-"}</span>
-      ),
-    },
-    {
       title: "Người tạo",
       dataIndex: "employeeName",
       key: "employeeName",
       render: (text: string) => <span className="text-gray-700">{text}</span>,
     },
     {
-      title: "Ngày tạo",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      render: (value: string) => (
-        <span className="text-gray-600 text-sm">{formatVNDate(value)}</span>
+      title: "Năm",
+      dataIndex: "reportYear",
+      key: "reportYear",
+      render: (text: string) => (
+        <span className="text-gray-600 line-clamp-2">{text || "-"}</span>
+      ),
+    },
+    {
+      title: "Tháng",
+      dataIndex: "reportMonth",
+      key: "reportMonth",
+       render: (text: string) => (
+        <span className="text-gray-600 line-clamp-2">{text || "-"}</span>
+      ),
+    },
+    {
+      title: "Ngày",
+      dataIndex: "reportDay",
+      key: "reportDay",
+       render: (text: string) => (
+        <span className="text-gray-600 line-clamp-2">{text || "-"}</span>
       ),
     },
     {
@@ -284,8 +316,8 @@ export const WareBatch: React.FC = () => {
             type="primary"
             size="large"
             icon={<PlusOutlined />}
-            onClick={() => setIsModalOpen(true)}
-            className="bg-[#1976D2]! hover:bg-blue-700! h-10 px-6"
+            onClick={handleOpenModal}
+            className="bg-green-600! hover:bg-green-700! h-10 px-6"
           >
             Thêm dữ liệu
           </Button>
@@ -404,6 +436,49 @@ export const WareBatch: React.FC = () => {
               className="rounded-lg"
             />
           </Form.Item>
+
+          <div className="grid grid-cols-3 gap-4">
+            <Form.Item
+              name="reportYear"
+              label={<span className="font-medium text-gray-800">Năm báo cáo <span className="text-red-500">*</span></span>}
+              rules={[{ required: true, message: "Vui lòng nhập năm báo cáo" }]}
+            >
+              <Input
+                placeholder="VD: 2024"
+                size="large"
+                type="number"
+                className="rounded-lg"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="reportMonth"
+              label={<span className="font-medium text-gray-800">Tháng báo cáo</span>}
+            >
+              <Input
+                placeholder="VD: 1-12"
+                size="large"
+                type="number"
+                min={1}
+                max={12}
+                className="rounded-lg"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="reportDay"
+              label={<span className="font-medium text-gray-800">Ngày báo cáo</span>}
+            >
+              <Input
+                placeholder="VD: 1-31"
+                size="large"
+                type="number"
+                min={1}
+                max={31}
+                className="rounded-lg"
+              />
+            </Form.Item>
+          </div>
 
           <Form.Item
             name="description"

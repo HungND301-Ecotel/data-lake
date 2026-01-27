@@ -17,10 +17,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 @Table(
-        name = "ware_batch_approval",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"ware_batch_id", "approval_order"})
-        }
+        name = "ware_batch_approval"
 )
 public class WareBatchApproval {
 

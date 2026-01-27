@@ -90,6 +90,28 @@ const SidebarSearch = ({
     }
   };
 
+  // Thêm function để fetch thông tin 1 bảng cụ thể
+  const fetchTableInfo = async (tableCode: string) => {
+    if (!tableCode) return;
+    try {
+      const res = await wareTemplateApi.getOptionTable(tableCode);
+      if (res && res.length > 0) {
+        setTableLabel(res[0].tableName);
+      }
+    } catch (error) {
+      console.error("Error fetching table info:", error);
+    }
+  };
+
+  // Sửa lại handler search
+  const handleSearch = async () => {
+    await onSearch();
+    // Sau khi search thành công, fetch thông tin bảng để cập nhật label
+    if (table) {
+      await fetchTableInfo(table);
+    }
+  };
+
   const updateFilter = (index: number, field: keyof Filter, value: string) => {
     const next = [...filters];
     next[index][field] = value;
@@ -125,34 +147,38 @@ const SidebarSearch = ({
           <div className="space-y-4">
             {/* ================= Table ================= */}
             <Card className="rounded-lg shadow-sm border-0">
-              <Tag
-                color="red"
-                className="w-full text-center py-1 mb-3 font-bold"
-              >
-                {tableLabel || "CHƯA CHỌN BẢNG"}
-              </Tag>
+              {tableLabel && (<Tag color={tableLabel ? "green" : "red"} className="w-full text-center py-1 mb-3 font-bold">
+                {tableLabel || null}
+              </Tag>)}
 
               <label className="block mb-2 text-sm font-semibold text-blue-900">
                 Nhập mã bảng
               </label>
 
+              {/* Sửa lại cấu trúc input với nút + */}
               <div className="relative mb-3">
                 <Input
                   size="large"
                   value={table}
                   prefix={<TableOutlined />}
                   placeholder="Nhập tableCode"
+                  className="pr-10"
                   onChange={(e) => {
                     setTable(e.target.value);
                     setTableLabel("");
                   }}
                 />
                 <button
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-600 text-lg font-bold"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 
+                             text-blue-600 hover:text-blue-800 text-2xl font-bold 
+                             w-8 h-8 flex items-center justify-center
+                             bg-white rounded hover:bg-blue-50
+                             transition-colors z-10"
                   onClick={() => {
                     setTableModalOpen(true);
                     fetchTables();
                   }}
+                  type="button"
                 >
                   +
                 </button>
@@ -163,8 +189,8 @@ const SidebarSearch = ({
                 size="large"
                 type="primary"
                 icon={<SearchOutlined />}
-                className="bg-[#1976D2]! hover:bg-blue-700!"
-                onClick={onSearch}
+                className="bg-green-600! hover:bg-green-700!"
+                onClick={handleSearch}
               >
                 Tìm kiếm
               </Button>

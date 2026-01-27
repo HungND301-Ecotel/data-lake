@@ -29,7 +29,7 @@ const ResultPanel = ({ results }: ResultPanelProps) => {
   if (results.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 h-full">
-        <Empty description="Vui lòng chọn bảng và nhấn tìm kiếm để xem dữ liệu" />
+        <Empty description="Không có dữ liệu" />
       </div>
     );
   }

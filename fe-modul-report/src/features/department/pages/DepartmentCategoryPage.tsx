@@ -122,11 +122,11 @@ const DepartmentCategoryPage = () => {
       title: "Mã phòng ban",
       dataIndex: "code",
       key: "code",
-      width: "15%",
+      align: "center" as const,
       render: (text: string) => (
-        <Tag color="blue" className="font-mono font-semibold px-3 py-1">
-          {text}
-        </Tag>
+        <div className="flex justify-center items-center gap-2 text-center">
+          <span className="font-medium">{text}</span>
+        </div>
       ),
     },
     {
@@ -268,11 +268,8 @@ const DepartmentCategoryPage = () => {
         cancelText="Hủy"
         title={
           <div className="flex items-center gap-3 pb-3 border-b">
-            <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                editingDept ? "bg-blue-100" : "bg-blue-100"
-              }`}
-            >
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${editingDept ? 'bg-blue-100' : 'bg-green-100'
+              }`}>
               {editingDept ? (
                 <EditOutlined className="text-blue-600 text-lg" />
               ) : (
@@ -291,8 +288,7 @@ const DepartmentCategoryPage = () => {
         }
         width={800}
         okButtonProps={{
-          className:
-            "bg-[#1976D2]! hover:bg-blue-700! text-white border-0 h-10 px-6 text-base font-medium",
+          className: "bg-green-600! hover:bg-green-700! text-white border-0 h-10 px-6 text-base font-medium",
           size: "large",
         }}
         cancelButtonProps={{

@@ -11,6 +11,7 @@ import {
   Tag,
   Checkbox,
   Radio,
+  Alert,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import type { WareBatchResponse, WareBatchSearch } from "../types/wareBacth";
@@ -24,6 +25,8 @@ import {
   ReloadOutlined,
   CloudUploadOutlined,
 } from "@ant-design/icons";
+import { userPushApi } from "../../auth/api/accountConfigApi";
+import type { UserPushResponse } from "../../auth/types/accountConfig";
 
 const { Search } = Input;
 
@@ -40,7 +43,8 @@ export const SyncBatch: React.FC = () => {
   const [form] = Form.useForm();
   const [syncing, setSyncing] = useState(false);
   const [messageApi, contextHolderMessage] = message.useMessage();
-
+  const [userPushConfig, setUserPushConfig] = useState<UserPushResponse | null>(null);
+  
   const fetchBatches = async () => {
     setLoading(true);
     try {
@@ -48,6 +52,7 @@ export const SyncBatch: React.FC = () => {
         page,
         limit,
         keyword: searchKeyword,
+        status: "Da_Phe_Duyet",
       };
       const res: PageResponse<WareBatchResponse> =
         await wareBatchApi.searchWareBatch(params);
@@ -60,21 +65,24 @@ export const SyncBatch: React.FC = () => {
     }
   };
 
+  const loadUserPushConfig = async () => {
+    try {
+      const res = await userPushApi.getAllUserPush();
+      if (res && res.length > 0) {
+        setUserPushConfig(res[0]);
+      } else {
+        setUserPushConfig(null);
+      }
+    } catch (error) {
+      console.log(error);
+      setUserPushConfig(null);
+    }
+  };
+
   useEffect(() => {
     fetchBatches();
+    loadUserPushConfig();
   }, [page, searchKeyword]);
-
-  const formatVNDate = (iso: string) => {
-    const d = new Date(iso);
-    return d.toLocaleString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
-  };
 
   const getStatusBadge = (status: string) => {
     const statusConfig: {
@@ -111,13 +119,23 @@ export const SyncBatch: React.FC = () => {
       messageApi.warning("Vui lòng chọn ít nhất một batch để đồng bộ");
       return;
     }
+
+    // Fill dữ liệu từ config nếu có
+    if (userPushConfig) {
+      form.setFieldsValue({
+        username: userPushConfig.username,
+        password: userPushConfig.password || "",
+      });
+    } else {
+      form.resetFields();
+    }
+
     setSyncModalVisible(true);
   };
 
   const handleSyncConfirm = async (values: {
     username: string;
     password: string;
-    deleteMissing: boolean;
   }) => {
     if (selectedIds.length === 0) return;
 
@@ -131,7 +149,7 @@ export const SyncBatch: React.FC = () => {
         try {
           await wareBatchApi.pushWareBatch({
             id: batchId as number,
-            deleteMissing: values.deleteMissing,
+            deleteMissing: deleteMissing, // Lấy từ state bên ngoài
             username: values.username,
             password: values.password,
           });
@@ -162,12 +180,12 @@ export const SyncBatch: React.FC = () => {
           checked={
             selectedIds.length > 0 &&
             selectedIds.length ===
-              batches.filter((b) => b.wareBatchStatus === "Da_Phe_Duyet").length
+            batches.filter((b) => b.wareBatchStatus === "Da_Phe_Duyet").length
           }
           indeterminate={
             selectedIds.length > 0 &&
             selectedIds.length <
-              batches.filter((b) => b.wareBatchStatus === "Da_Phe_Duyet").length
+            batches.filter((b) => b.wareBatchStatus === "Da_Phe_Duyet").length
           }
           onChange={(e) => {
             if (e.target.checked) {
@@ -217,9 +235,25 @@ export const SyncBatch: React.FC = () => {
       render: (text: string) => <span className="text-gray-700">{text}</span>,
     },
     {
-      title: "Mô tả",
-      dataIndex: "description",
-      key: "description",
+      title: "Năm",
+      dataIndex: "reportYear",
+      key: "reportYear",
+      render: (text: string) => (
+        <span className="text-gray-600 line-clamp-2">{text || "-"}</span>
+      ),
+    },
+    {
+      title: "Tháng",
+      dataIndex: "reportMonth",
+      key: "reportMonth",
+      render: (text: string) => (
+        <span className="text-gray-600 line-clamp-2">{text || "-"}</span>
+      ),
+    },
+    {
+      title: "Ngày",
+      dataIndex: "reportDay",
+      key: "reportDay",
       render: (text: string) => (
         <span className="text-gray-600 line-clamp-2">{text || "-"}</span>
       ),
@@ -229,14 +263,6 @@ export const SyncBatch: React.FC = () => {
       dataIndex: "employeeName",
       key: "employeeName",
       render: (text: string) => <span className="text-gray-700">{text}</span>,
-    },
-    {
-      title: "Ngày tạo",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      render: (value: string) => (
-        <span className="text-gray-600 text-sm">{formatVNDate(value)}</span>
-      ),
     },
     {
       title: "Upload",
@@ -269,7 +295,7 @@ export const SyncBatch: React.FC = () => {
       {contextHolderMessage}
 
       <Card className="shadow-sm border-0 rounded-xl mb-6">
-        <div className="flex justify-between items-center gap-4">
+        <div className="flex justify-between items-center gap-4 mb-4">
           <div className="flex items-center gap-3 flex-1">
             <Search
               placeholder="Tìm kiếm theo mã, tên hoặc mô tả..."
@@ -303,6 +329,21 @@ export const SyncBatch: React.FC = () => {
               Đồng bộ ({selectedIds.length})
             </Button>
           </Tooltip>
+        </div>
+        
+        {/* Checkbox Xóa dữ liệu cũ được đặt ở đây */}
+        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-end">
+          <div className="flex items-center gap-3">
+            <span className="font-medium text-gray-700">Xóa dữ liệu cũ:</span>
+            <Radio.Group
+              onChange={(e) => setDeleteMissing(e.target.value)}
+              value={deleteMissing}
+              className="text-gray-700"
+            >
+              <Radio value={true}>Có</Radio>
+              <Radio value={false}>Không</Radio>
+            </Radio.Group>
+          </div>
         </div>
       </Card>
 
@@ -387,6 +428,24 @@ export const SyncBatch: React.FC = () => {
         width={600}
       >
         <div className="py-4">
+          {/* Thêm alert hiển thị thông tin config */}
+          {userPushConfig && (
+            <Alert
+              message="Sử dụng tài khoản đã cấu hình"
+              description={
+                <div>
+                  <p className="mb-1">Tên đăng nhập: <strong>{userPushConfig.username}</strong></p>
+                  {userPushConfig.password && (
+                    <p className="mb-0">Mật khẩu đã được lưu trong hệ thống</p>
+                  )}
+                </div>
+              }
+              type="info"
+              showIcon
+              className="mb-4 rounded-lg"
+            />
+          )}
+
           {selectedBatches.length > 0 && (
             <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
               <p className="text-sm text-blue-800 font-medium mb-3">
@@ -409,30 +468,7 @@ export const SyncBatch: React.FC = () => {
             className="py-4"
           >
             <Form.Item
-              label={
-                <span className="font-medium text-gray-800">
-                  Xoá dữ liệu cũ
-                </span>
-              }
-              name="deleteMissing"
-              rules={[
-                { required: true, message: "Vui lòng chọn có hoặc không!" },
-              ]}
-            >
-              <Radio.Group
-                onChange={(e) => setDeleteMissing(e.target.value)}
-                value={deleteMissing}
-                className="text-gray-700"
-              >
-                <Radio value={true}>Có</Radio>
-                <Radio value={false}>Không</Radio>
-              </Radio.Group>
-            </Form.Item>
-
-            <Form.Item
-              label={
-                <span className="font-medium text-gray-800">Tên đăng nhập</span>
-              }
+              label={<span className="font-medium text-gray-800">Tên đăng nhập</span>}
               name="username"
               rules={[{ required: true, message: "Vui lòng nhập username!" }]}
             >
@@ -440,6 +476,8 @@ export const SyncBatch: React.FC = () => {
                 placeholder="Nhập tên đăng nhập"
                 size="large"
                 className="rounded-lg"
+                disabled={!!userPushConfig}
+                prefix={userPushConfig ? <Tag color="blue">Từ cấu hình</Tag> : null}
               />
             </Form.Item>
 
@@ -454,6 +492,8 @@ export const SyncBatch: React.FC = () => {
                 placeholder="Nhập mật khẩu"
                 size="large"
                 className="rounded-lg"
+                disabled={!!userPushConfig && !!userPushConfig.password}
+                prefix={userPushConfig?.password ? <Tag color="green">Đã lưu</Tag> : null}
               />
             </Form.Item>
 
