@@ -23,7 +23,7 @@ const Header = () => {
               PHẦN MỀM KHO DỮ LIỆU TẬP TRUNG
             </div>
             <div className="text-base font-bold">
-              CÔNG TY THAN CAO SƠN - TKV
+              CÔNG TY CỔ PHẦN THAN CAO SƠN - TKV
             </div>
 
             <div className="flex justify-center gap-6 text-sm mt-1">
