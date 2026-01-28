@@ -253,7 +253,11 @@ public class WareApiService {
                                         // Find the key in row that matches (case-insensitive)
                                         for (Map.Entry<String, Object> entry : row.entrySet()) {
                                             if (entry.getKey().toLowerCase().equals(fieldNameLower)) {
-                                                transformedRow.put(mapping.getFieldTitle(), entry.getValue());
+                                                // Use fieldTitle if not null, otherwise use original fieldName
+                                                String key = mapping.getFieldTitle() != null && !mapping.getFieldTitle().isEmpty() 
+                                                    ? mapping.getFieldTitle() 
+                                                    : mapping.getFieldName();
+                                                transformedRow.put(key, entry.getValue());
                                                 break;
                                             }
                                         }
