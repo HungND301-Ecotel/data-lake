@@ -227,7 +227,7 @@ public class WareApiService {
             // Transform fieldName to fieldTitle based on table name
             if (request.getTable() != null && response.getRows() != null) {
                 // Find WareTemplate by table code
-                Optional<WareTemplate> optionalTemplate = wareTemplateRepository.findByTableCode(request.getTable());
+                Optional<WareTemplate> optionalTemplate = wareTemplateRepository.findFirstByTableCodeOrderByCreatedAtDesc(request.getTable());
                 
                 if (optionalTemplate.isPresent()) {
                     WareTemplate wareTemplate = optionalTemplate.get();

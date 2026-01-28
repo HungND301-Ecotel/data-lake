@@ -29,5 +29,5 @@ public interface WareTemplateRepository extends JpaRepository<WareTemplate, Inte
     """)
     List<TableOption> getTableOption(@Param("keyword") String keyword);
 
-    Optional<WareTemplate> findByTableCode(String tableCode);
+    Optional<WareTemplate> findFirstByTableCodeOrderByCreatedAtDesc(String tableCode);
 }
