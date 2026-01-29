@@ -27,9 +27,11 @@ public class WareCategoryJdbc {
                     wc.updated_at AS updated_at,
                     d.id AS department_id,
                     d.name AS department_name,
-                    d.code AS department_code
+                    d.code AS department_code,
+                    COUNT(wt.id) AS total_template
                 FROM ware_category wc
                 JOIN department d ON d.id = wc.department_id
+                LEFT JOIN ware_template wt ON wt.ware_category_id = wc.id AND wt.deleted = false
                 WHERE wc.deleted = false
             """
         );
@@ -44,6 +46,8 @@ public class WareCategoryJdbc {
             sql.append(" and wc.department_id = ? ");
             params.add(request.getDepartmentId());
         }
+
+        sql.append(" GROUP BY wc.id, wc.name, wc.code, wc.description, wc.created_at, wc.updated_at, d.id, d.name, d.code ");
 
         int limit = request.getLimit();
         int offset = request.getPage() * request.getLimit();
