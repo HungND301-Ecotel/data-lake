@@ -15,6 +15,9 @@ import {
   EyeOutlined,
   CheckCircleOutlined,
   SyncOutlined,
+  RobotOutlined,
+  DatabaseOutlined,
+  CloudServerOutlined,
 } from "@ant-design/icons";
 import { Button, Dropdown, Menu } from "antd";
 
@@ -50,6 +53,42 @@ export default function NavBar() {
           icon: <IdcardOutlined className="text-lg" />,
           label: <span className="text-base font-medium">Cấu hình tài khoản TKV</span>,
           onClick: () => navigate("/account-config"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+      ]}
+      className="rounded-xl! shadow-2xl! min-w-[260px] py-2"
+    />
+  );
+
+  const datalakeMenu = (
+    <Menu
+      items={[
+        {
+          key: "ai-chat",
+          icon: <RobotOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Chat AI</span>,
+          onClick: () => navigate("/ai-chat"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "datalake-data",
+          icon: <DatabaseOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Quản lý dữ liệu</span>,
+          onClick: () => navigate("/datalake/data"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "datalake-sync",
+          icon: <SyncOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Đồng bộ dữ liệu</span>,
+          onClick: () => navigate("/datalake/sync"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "datalake-status",
+          icon: <CloudServerOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Trạng thái hệ thống</span>,
+          onClick: () => navigate("/datalake/status"),
           className: "py-3 px-4 hover:bg-[#f0f9f4]!",
         },
       ]}
@@ -157,6 +196,19 @@ export default function NavBar() {
           Nhập dữ liệu
         </Button>
       </Link>
+
+      {/* DataLake AI Dropdown */}
+      <Dropdown overlay={datalakeMenu} placement="bottomLeft">
+        <Button
+          type="text"
+          icon={<RobotOutlined className="text-lg mr-2" />}
+          className="text-white! border-0! bg-transparent! font-semibold text-base tracking-wide hover:bg-white/15! transition-all duration-300 rounded-lg cursor-pointer group"
+          size="large"
+        >
+          <span>Kho dữ liệu AI</span>
+          <DownOutlined className="text-xs ml-2 group-hover:translate-y-0.5 transition-transform duration-300" />
+        </Button>
+      </Dropdown>
 
       {/* Reports Dropdown */}
       <Dropdown overlay={reportsMenu} placement="bottomLeft">

@@ -27,6 +27,10 @@ import { ApproveBatch } from "../features/ware/pages/ApproveBatch";
 import { SyncBatch } from "../features/ware/pages/SyncBatch";
 import { WareBatchDetailApprove } from "../features/ware/pages/WareBatchDetailApprove";
 import UserPushConfigPage from "../features/auth/pages/accountConfig";
+import AiChatPage from "../features/ai-chat/pages/AiChatPage";
+import DataManagementPage from "../features/datalake/pages/DataManagementPage";
+import DatalakeStatusPage from "../features/datalake/pages/DatalakeStatusPage";
+import SyncSettingsPage from "../features/datalake-sync/pages/SyncSettingsPage";
 
 export const router = createBrowserRouter([
   {
@@ -36,6 +40,12 @@ export const router = createBrowserRouter([
       { path: "/", element: <DashboardWare /> },
       { path: "/report-targets", element: <ReportTargetsPage /> },
       { path: "/dashboard", element: <DashboardWare /> },
+
+      // DataLake AI routes
+      { path: "/ai-chat", element: <AiChatPage /> },
+      { path: "/datalake/data", element: <DataManagementPage /> },
+      { path: "/datalake/status", element: <DatalakeStatusPage /> },
+      { path: "/datalake/sync", element: <SyncSettingsPage /> },
       { path: "/employee", element: <EmployeePage /> },
       { path: "/account-config", element: <UserPushConfigPage /> },
 
