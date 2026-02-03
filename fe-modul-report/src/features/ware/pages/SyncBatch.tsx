@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   Table,
   Button,
@@ -12,6 +12,7 @@ import {
   Checkbox,
   Radio,
   Alert,
+  Select,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import type { WareBatchResponse, WareBatchSearch } from "../types/wareBacth";
@@ -24,11 +25,14 @@ import {
   FileTextOutlined,
   ReloadOutlined,
   CloudUploadOutlined,
+  FilterOutlined,
 } from "@ant-design/icons";
 import { userPushApi } from "../../auth/api/accountConfigApi";
 import type { UserPushResponse } from "../../auth/types/accountConfig";
+import { departmentApi } from "../../department/api/departmentApi";
 
 const { Search } = Input;
+const { Option } = Select;
 
 export const SyncBatch: React.FC = () => {
   const [batches, setBatches] = useState<WareBatchResponse[]>([]);
@@ -44,7 +48,23 @@ export const SyncBatch: React.FC = () => {
   const [syncing, setSyncing] = useState(false);
   const [messageApi, contextHolderMessage] = message.useMessage();
   const [userPushConfig, setUserPushConfig] = useState<UserPushResponse | null>(null);
-  
+  const [pushStatusFilter, setPushStatusFilter] = useState<boolean | null>(null);
+  const [departments, setDepartments] = useState<any[]>([]);
+  const [departmentFilter, setDepartmentFilter] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const res = await departmentApi.searchDepartment("", 0, 20000);
+        setDepartments(res.content);
+      } catch (error) {
+        console.error("Lấy danh sách phòng ban thất bại", error);
+      }
+    };
+
+    fetchDepartments();
+  }, []);
+
   const fetchBatches = async () => {
     setLoading(true);
     try {
@@ -53,6 +73,7 @@ export const SyncBatch: React.FC = () => {
         limit,
         keyword: searchKeyword,
         status: "Da_Phe_Duyet",
+        departmentId: departmentFilter,
       };
       const res: PageResponse<WareBatchResponse> =
         await wareBatchApi.searchWareBatch(params);
@@ -82,7 +103,15 @@ export const SyncBatch: React.FC = () => {
   useEffect(() => {
     fetchBatches();
     loadUserPushConfig();
-  }, [page, searchKeyword]);
+  }, [page, searchKeyword, departmentFilter]);
+
+  // Filter FE cho isPushed
+  const filteredBatches = useMemo(() => {
+    if (pushStatusFilter === null) {
+      return batches;
+    }
+    return batches.filter((batch) => batch.isPushed === pushStatusFilter);
+  }, [batches, pushStatusFilter]);
 
   const getStatusBadge = (status: string) => {
     const statusConfig: {
@@ -149,7 +178,7 @@ export const SyncBatch: React.FC = () => {
         try {
           await wareBatchApi.pushWareBatch({
             id: batchId as number,
-            deleteMissing: deleteMissing, // Lấy từ state bên ngoài
+            deleteMissing: deleteMissing,
             username: values.username,
             password: values.password,
           });
@@ -173,6 +202,11 @@ export const SyncBatch: React.FC = () => {
     }
   };
 
+  const handleClearFilter = () => {
+    setPushStatusFilter(null);
+    setDepartmentFilter(null);
+  };
+
   const columns: ColumnsType<WareBatchResponse> = [
     {
       title: (
@@ -180,16 +214,16 @@ export const SyncBatch: React.FC = () => {
           checked={
             selectedIds.length > 0 &&
             selectedIds.length ===
-            batches.filter((b) => b.wareBatchStatus === "Da_Phe_Duyet").length
+            filteredBatches.filter((b) => b.wareBatchStatus === "Da_Phe_Duyet").length
           }
           indeterminate={
             selectedIds.length > 0 &&
             selectedIds.length <
-            batches.filter((b) => b.wareBatchStatus === "Da_Phe_Duyet").length
+            filteredBatches.filter((b) => b.wareBatchStatus === "Da_Phe_Duyet").length
           }
           onChange={(e) => {
             if (e.target.checked) {
-              const approvableIds = batches
+              const approvableIds = filteredBatches
                 .filter((b) => b.wareBatchStatus === "Da_Phe_Duyet")
                 .map((b) => b.id!);
               setSelectedIds(approvableIds);
@@ -288,15 +322,15 @@ export const SyncBatch: React.FC = () => {
     },
   ];
 
-  const selectedBatches = batches.filter((b) => selectedIds.includes(b.id!));
+  const selectedBatches = filteredBatches.filter((b) => selectedIds.includes(b.id!));
 
   return (
     <div className="px-6 py-6 bg-linear-to-br from-gray-50 to-gray-100 min-h-screen">
       {contextHolderMessage}
 
       <Card className="shadow-sm border-0 rounded-xl mb-6">
-        <div className="flex justify-between items-center gap-4 mb-4">
-          <div className="flex items-center gap-3 flex-1">
+        <div className="flex justify-between items-center gap-4 mb-4 flex-wrap">
+          <div className="flex items-center gap-3 flex-1 min-w-64">
             <Search
               placeholder="Tìm kiếm theo mã, tên hoặc mô tả..."
               onSearch={(value) => setSearchKeyword(value || null)}
@@ -310,7 +344,60 @@ export const SyncBatch: React.FC = () => {
                 </Button>
               }
             />
+
+            <Select
+              placeholder="Lọc theo trạng thái Push"
+              value={pushStatusFilter}
+              onChange={(value) => setPushStatusFilter(value)}
+              allowClear
+              size="large"
+              className="w-56"
+              suffixIcon={<FilterOutlined />}
+            >
+              <Option value={true}>
+                <div className="flex items-center gap-2">
+                  <CheckCircleOutlined className="text-green-600!" />
+                  <span>Đã Push</span>
+                </div>
+              </Option>
+              <Option value={false}>
+                <div className="flex items-center gap-2">
+                  <CloseCircleOutlined className="text-red-600!" />
+                  <span>Chưa Push</span>
+                </div>
+              </Option>
+            </Select>
+
+            <Select
+              placeholder="Lọc theo phòng ban"
+              value={departmentFilter}
+              onChange={(value) => {
+                setDepartmentFilter(value);
+              }}
+              allowClear
+              size="large"
+              className="w-48"
+              showSearch
+              optionFilterProp="children"
+              filterOption={(input, option) => {
+                const label = typeof option?.children === "string" ? option.children : "";
+                return label.toLowerCase().includes(input.toLowerCase());
+              }}
+            >
+              {departments.map((dept) => (
+                <Option key={dept.id} value={dept.id}>
+                  {dept.name}
+                </Option>
+              ))}
+            </Select>
+
+            {(pushStatusFilter !== null || departmentFilter !== null) && (
+              <Button onClick={handleClearFilter} size="large">
+                Xóa bộ lọc
+              </Button>
+            )}
           </div>
+
           <Tooltip
             title={
               selectedIds.length === 0
@@ -330,7 +417,7 @@ export const SyncBatch: React.FC = () => {
             </Button>
           </Tooltip>
         </div>
-        
+
         {/* Checkbox Xóa dữ liệu cũ được đặt ở đây */}
         <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-end">
           <div className="flex items-center gap-3">
@@ -357,15 +444,20 @@ export const SyncBatch: React.FC = () => {
               Đồng bộ Batch
             </h1>
           </div>
-          <Button
-            size="large"
-            icon={<ReloadOutlined />}
-            onClick={() => fetchBatches()}
-            loading={loading}
-            className="h-10 px-6"
-          >
-            Tải lại
-          </Button>
+          <div className="flex items-center gap-3">
+            <div className="text-sm text-gray-600">
+              Hiển thị {filteredBatches.length} / {batches.length} batch
+            </div>
+            <Button
+              size="large"
+              icon={<ReloadOutlined />}
+              onClick={() => fetchBatches()}
+              loading={loading}
+              className="h-10 px-6"
+            >
+              Tải lại
+            </Button>
+          </div>
         </div>
 
         {selectedIds.length > 0 && (
@@ -381,7 +473,7 @@ export const SyncBatch: React.FC = () => {
           <Table
             rowKey="id"
             columns={columns}
-            dataSource={batches}
+            dataSource={filteredBatches}
             loading={loading}
             pagination={{
               current: page + 1,
@@ -403,10 +495,14 @@ export const SyncBatch: React.FC = () => {
           />
         </div>
 
-        {batches.length === 0 && !loading && (
+        {filteredBatches.length === 0 && !loading && (
           <div className="text-center py-16 bg-gray-50 rounded-lg mt-4">
             <FileTextOutlined className="text-4xl text-gray-300 mb-3" />
-            <p className="text-gray-500 text-lg">Không có batch nào</p>
+            <p className="text-gray-500 text-lg">
+              {pushStatusFilter !== null
+                ? "Không có batch nào phù hợp với bộ lọc"
+                : "Không có batch nào"}
+            </p>
           </div>
         )}
       </Card>
