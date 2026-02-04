@@ -55,37 +55,40 @@ axiosClient.interceptors.response.use(
       case 403:
         apiError = {
           status,
-          message: 
-            typeof data === "string" ? data : data?.message || "Bạn không có quyền truy cập",
+          message:
+            typeof data === "string"
+              ? data
+              : data?.message || "Bạn không có quyền truy cập",
         };
         break;
 
       case 404:
         apiError = {
           status,
-          message: 
-            typeof data === "string" ? data : data?.message || "API không tồn tại",
+          message:
+            typeof data === "string"
+              ? data
+              : data?.message || "API không tồn tại",
         };
         break;
 
       case 422:
         apiError = {
           status,
-          message: 
+          message:
             typeof data === "string" ? data : data?.message || "Lỗi validation",
           data,
         };
         break;
 
-        case 500:
-          apiError = {
-            status,
-            message:
-              typeof data === "string" ? data : data?.message || "Lỗi server",
-            data,
-          };
-          break;
-        
+      case 500:
+        apiError = {
+          status,
+          message:
+            typeof data === "string" ? data : data?.message || "Lỗi server",
+          data,
+        };
+        break;
 
       default:
         apiError = {

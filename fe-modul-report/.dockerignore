@@ -3,5 +3,5 @@ dist
 .vite
 .git
 .gitignore
-Dokerfile
+Dockerfile
 docker-compose.yml

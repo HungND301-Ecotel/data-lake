@@ -10,12 +10,17 @@ export const wareBatchApi = {
     return res.data;
   },
 
+  getDetail: async (id: number): Promise<WareBatchResponse> => {
+    const res = await axiosClient.get(`/wh-batch/${id}`);
+    return res.data;
+  },
+
   saveWareBatch: async (
     request: WareBatchRequest
   ): Promise<string> => {
     const res = await axiosClient.post(`/wh-batch`, request, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      headers: { "Content-Type": "multipart/form-data" },
+    });
     return res.data;
   },
 
@@ -34,6 +39,20 @@ export const wareBatchApi = {
   pushWareBatch: async (request: WareBatchPush): Promise<any> => {
     const res = await axiosClient.post(`/wh-batch/push`, request);
     return res.data;
-  }
+  },
 
+  approveBatch: async (id: number): Promise<string> => {
+    const res = await axiosClient.put(`/wh-batch/approve`, { wareBatchId: id });
+    return res.data;
+  },
+
+  rejectBatch: async (id: number): Promise<string> => {
+    const res = await axiosClient.put(`/wh-batch/reject`, { wareBatchId: id });
+    return res.data;
+  },
+
+  getMyApprovals: async () => {
+    const res = await axiosClient.get(`/wh-batch/my-approvals`);
+    return res.data;
+  },
 };

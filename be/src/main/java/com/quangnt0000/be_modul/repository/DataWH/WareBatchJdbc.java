@@ -26,6 +26,10 @@ public class WareBatchJdbc {
                         wb.created_at AS created_at,
                         wb.updated_at AS updated_at,
                         e.name AS employee_name,
+                        wb.status AS ware_batch_status,
+                        wb.report_year AS report_year,
+                        wb.report_month AS report_month,
+                        wb.report_day AS report_day,
                         CASE
                             WHEN EXISTS (
                                 SELECT 1
@@ -37,6 +41,9 @@ public class WareBatchJdbc {
                         END AS is_pushed
                     FROM ware_batch wb
                     LEFT JOIN employee e ON wb.employee_id = e.id
+                    LEFT JOIN ware_template wt ON wb.ware_template_id = wt.id
+                    LEFT JOIN ware_category wc ON wt.ware_category_id = wc.id
+                    LEFT JOIN department d ON wc.department_id = d.id
                     WHERE wb.deleted = false
                 """
         );
@@ -50,6 +57,16 @@ public class WareBatchJdbc {
         if (request.getWareTemplateId() != null) {
             sql.append(" and wb.ware_template_id = ? ");
             params.add(request.getWareTemplateId());
+        }
+
+        if (request.getDepartmentId() != null) {
+            sql.append(" and d.id = ? ");
+            params.add(request.getDepartmentId());
+        }
+
+        if (request.getStatus() != null) {
+            sql.append(" and wb.status = ? ");
+            params.add(request.getStatus().name());
         }
 
         int limit = request.getLimit();
@@ -71,6 +88,9 @@ public class WareBatchJdbc {
                         count(*)
                     FROM ware_batch wb
                     LEFT JOIN employee e ON wb.employee_id = e.id
+                    LEFT JOIN ware_template wt ON wb.ware_template_id = wt.id
+                    LEFT JOIN ware_category wc ON wt.ware_category_id = wc.id
+                    LEFT JOIN department d ON wc.department_id = d.id
                     WHERE wb.deleted = false
                 """
         );
@@ -84,6 +104,16 @@ public class WareBatchJdbc {
         if (request.getWareTemplateId() != null) {
             sql.append(" and wb.ware_template_id = ? ");
             params.add(request.getWareTemplateId());
+        }
+
+        if (request.getDepartmentId() != null) {
+            sql.append(" and d.id = ? ");
+            params.add(request.getDepartmentId());
+        }
+
+        if (request.getStatus() != null) {
+            sql.append(" and wb.status = ? ");
+            params.add(request.getStatus().name());
         }
 
         return jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray());

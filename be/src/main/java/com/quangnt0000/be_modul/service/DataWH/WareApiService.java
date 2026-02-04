@@ -10,7 +10,11 @@ import com.quangnt0000.be_modul.dto.TWH_Push.PushResponse;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchPush;
 import com.quangnt0000.be_modul.modal.DataWH.WareBatch;
 import com.quangnt0000.be_modul.modal.DataWH.WareBatchAction;
+import com.quangnt0000.be_modul.modal.DataWH.WareMapping;
+import com.quangnt0000.be_modul.modal.DataWH.WareTemplate;
 import com.quangnt0000.be_modul.repository.DataWH.WareBatchActionRepository;
+import com.quangnt0000.be_modul.repository.DataWH.WareMappingRepository;
+import com.quangnt0000.be_modul.repository.DataWH.WareTemplateRepository;
 import feign.FeignException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +29,9 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.*;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -35,6 +42,8 @@ public class WareApiService {
     private String password;
 
     private final WareBatchActionRepository wareBatchActionRepository;
+    private final WareMappingRepository wareMappingRepository;
+    private final WareTemplateRepository wareTemplateRepository;
     private final WebClient webClient;
     private final VinacominApiClient vinacominApiClient;
     private final ObjectMapper objectMapper;
@@ -215,6 +224,60 @@ public class WareApiService {
                     request.getOffset(),
                     "Bearer " + token
             );
+            // Transform fieldName to fieldTitle based on table name
+            if (request.getTable() != null && response.getRows() != null) {
+                // Find WareTemplate by table code
+                Optional<WareTemplate> optionalTemplate = wareTemplateRepository.findFirstByTableCodeOrderByCreatedAtDesc(request.getTable());
+                
+                if (optionalTemplate.isPresent()) {
+                    WareTemplate wareTemplate = optionalTemplate.get();
+                    List<WareMapping> mappings = wareMappingRepository.findByWareTemplate_IdOrderByIdAsc(wareTemplate.getId());
+                    
+                    if (!mappings.isEmpty()) {
+                        // Create a map of fieldName (lowercase) -> WareMapping for lookup
+                        Map<String, WareMapping> fieldNameToMappingMap = mappings.stream()
+                                .collect(Collectors.toMap(
+                                        mapping -> mapping.getFieldName().toLowerCase(),
+                                        mapping -> mapping,
+                                        (existing, replacement) -> existing
+                                ));
+                        
+                        // Transform each row - maintain order based on mappings
+                        List<Map<String, Object>> transformedRows = response.getRows().stream()
+                                .map(row -> {
+                                    Map<String, Object> transformedRow = new LinkedHashMap<>();
+                                    
+                                    // First, add fields in the order of mappings
+                                    for (WareMapping mapping : mappings) {
+                                        String fieldNameLower = mapping.getFieldName().toLowerCase();
+                                        // Find the key in row that matches (case-insensitive)
+                                        for (Map.Entry<String, Object> entry : row.entrySet()) {
+                                            if (entry.getKey().toLowerCase().equals(fieldNameLower)) {
+                                                // Use fieldTitle if not null, otherwise use original fieldName
+                                                String key = mapping.getFieldTitle() != null && !mapping.getFieldTitle().isEmpty() 
+                                                    ? mapping.getFieldTitle() 
+                                                    : mapping.getFieldName();
+                                                transformedRow.put(key, entry.getValue());
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    
+                                    // Then, add any remaining fields that weren't in mappings
+                                    row.forEach((key, value) -> {
+                                        if (!fieldNameToMappingMap.containsKey(key.toLowerCase())) {
+                                            transformedRow.put(key, value);
+                                        }
+                                    });
+                                    
+                                    return transformedRow;
+                                })
+                                .collect(Collectors.toList());
+                        
+                        response.setRows(transformedRows);
+                    }
+                }
+            }
 
             return ResponseEntity.ok(response);
 

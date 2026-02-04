@@ -24,4 +24,6 @@ public class WareTemplateResponse {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    
+    private Boolean hasApprovalConfig;
 }

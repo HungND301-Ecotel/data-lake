@@ -1,0 +1,555 @@
+import React, { useEffect, useState } from "react";
+import {
+  Table,
+  Button,
+  Input,
+  Modal,
+  Form,
+  message,
+  Tooltip,
+  Card,
+  Tag,
+  Checkbox,
+  Radio,
+  Alert,
+} from "antd";
+import type { ColumnsType } from "antd/es/table";
+import type {
+  WareBatchResponse,
+  WareBatchSearch,
+} from "../types/wareBacth";
+import type { PageResponse } from "../../department/types/department";
+import { wareBatchApi } from "../api/wareBathApi";
+import {
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  SearchOutlined,
+  FileTextOutlined,
+  ReloadOutlined,
+  CloudUploadOutlined,
+} from "@ant-design/icons";
+import { userPushApi } from "../../auth/api/accountConfigApi";
+import type { UserPushResponse } from "../../auth/types/accountConfig";
+
+const { Search } = Input;
+
+export const SyncBatch: React.FC = () => {
+  const [batches, setBatches] = useState<WareBatchResponse[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searchKeyword, setSearchKeyword] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const [limit] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
+  const [syncModalVisible, setSyncModalVisible] = useState(false);
+  const [deleteMissing, setDeleteMissing] = useState(false);
+  const [form] = Form.useForm();
+  const [syncing, setSyncing] = useState(false);
+  const [messageApi, contextHolderMessage] = message.useMessage();
+  const [userPushConfig, setUserPushConfig] = useState<UserPushResponse | null>(null);
+  
+  const fetchBatches = async () => {
+    setLoading(true);
+    try {
+      const params: WareBatchSearch = {
+        page,
+        limit,
+        keyword: searchKeyword,
+        status: "Da_Phe_Duyet",
+      };
+      const res: PageResponse<WareBatchResponse> =
+        await wareBatchApi.searchWareBatch(params);
+      setBatches(res.content);
+      setTotal(res.totalElements);
+    } catch (error) {
+      messageApi.error("Lấy danh sách batch thất bại");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadUserPushConfig = async () => {
+    try {
+      const res = await userPushApi.getAllUserPush();
+      if (res && res.length > 0) {
+        setUserPushConfig(res[0]);
+      } else {
+        setUserPushConfig(null);
+      }
+    } catch (error) {
+      console.log(error);
+      setUserPushConfig(null);
+    }
+  };
+
+  useEffect(() => {
+    fetchBatches();
+    loadUserPushConfig();
+  }, [page, searchKeyword]);
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig: {
+      [key: string]: { color: string; label: string };
+    } = {
+      Cho_Phe_Duyet: {
+        color: "orange",
+        label: "Chờ duyệt",
+      },
+      Da_Phe_Duyet: {
+        color: "success",
+        label: "Đã duyệt",
+      },
+      Tu_Choi_Phe_Duyet: {
+        color: "error",
+        label: "Từ chối",
+      },
+    };
+
+    const config = statusConfig[status] || {
+      color: "default",
+      label: status,
+    };
+
+    return (
+      <Tag color={config.color} className="px-3 py-1 text-sm font-medium">
+        {config.label}
+      </Tag>
+    );
+  };
+
+  const handleSyncClick = () => {
+    if (selectedIds.length === 0) {
+      messageApi.warning("Vui lòng chọn ít nhất một batch để đồng bộ");
+      return;
+    }
+
+    // Fill dữ liệu từ config nếu có
+    if (userPushConfig) {
+      form.setFieldsValue({
+        username: userPushConfig.username,
+        password: userPushConfig.password || "",
+      });
+    } else {
+      form.resetFields();
+    }
+
+    setSyncModalVisible(true);
+  };
+
+  const handleSyncConfirm = async (values: {
+    username: string;
+    password: string;
+  }) => {
+    if (selectedIds.length === 0) return;
+
+    setSyncing(true);
+    try {
+      // Đồng bộ từng batch một
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const batchId of selectedIds) {
+        try {
+          await wareBatchApi.pushWareBatch({
+            id: batchId as number,
+            deleteMissing: deleteMissing, // Lấy từ state bên ngoài
+            username: values.username,
+            password: values.password,
+          });
+          successCount++;
+        } catch (error) {
+          failCount++;
+        }
+      }
+
+      messageApi.success(
+        `Đồng bộ thành công ${successCount} batch${failCount > 0 ? `, thất bại ${failCount}` : ""}`
+      );
+      setSyncModalVisible(false);
+      setSelectedIds([]);
+      form.resetFields();
+      fetchBatches();
+    } catch (error: any) {
+      messageApi.error(error?.data || "Đồng bộ batch thất bại");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const columns: ColumnsType<WareBatchResponse> = [
+    {
+      title: (
+        <Checkbox
+          checked={
+            selectedIds.length > 0 &&
+            selectedIds.length ===
+            batches.filter((b) => b.wareBatchStatus === "Da_Phe_Duyet").length
+          }
+          indeterminate={
+            selectedIds.length > 0 &&
+            selectedIds.length <
+            batches.filter((b) => b.wareBatchStatus === "Da_Phe_Duyet").length
+          }
+          onChange={(e) => {
+            if (e.target.checked) {
+              const approvableIds = batches
+                .filter((b) => b.wareBatchStatus === "Da_Phe_Duyet")
+                .map((b) => b.id!);
+              setSelectedIds(approvableIds);
+            } else {
+              setSelectedIds([]);
+            }
+          }}
+        />
+      ),
+      dataIndex: "checkbox",
+      key: "checkbox",
+      width: 60,
+      align: "center",
+      render: (_, record) => {
+        const isApproved = record.wareBatchStatus === "Da_Phe_Duyet";
+        return (
+          <Checkbox
+            checked={selectedIds.includes(record.id!)}
+            disabled={!isApproved}
+            onChange={(e) => {
+              if (e.target.checked) {
+                setSelectedIds([...selectedIds, record.id!]);
+              } else {
+                setSelectedIds(selectedIds.filter((id) => id !== record.id));
+              }
+            }}
+          />
+        );
+      },
+    },
+    {
+      title: "Mã",
+      dataIndex: "code",
+      key: "code",
+      render: (text: string) => (
+        <span className="font-medium text-gray-800">{text}</span>
+      ),
+    },
+    {
+      title: "Tên",
+      dataIndex: "name",
+      key: "name",
+      render: (text: string) => <span className="text-gray-700">{text}</span>,
+    },
+    {
+      title: "Năm",
+      dataIndex: "reportYear",
+      key: "reportYear",
+      render: (text: string) => (
+        <span className="text-gray-600 line-clamp-2">{text || "-"}</span>
+      ),
+    },
+    {
+      title: "Tháng",
+      dataIndex: "reportMonth",
+      key: "reportMonth",
+      render: (text: string) => (
+        <span className="text-gray-600 line-clamp-2">{text || "-"}</span>
+      ),
+    },
+    {
+      title: "Ngày",
+      dataIndex: "reportDay",
+      key: "reportDay",
+      render: (text: string) => (
+        <span className="text-gray-600 line-clamp-2">{text || "-"}</span>
+      ),
+    },
+    {
+      title: "Người tạo",
+      dataIndex: "employeeName",
+      key: "employeeName",
+      render: (text: string) => <span className="text-gray-700">{text}</span>,
+    },
+    {
+      title: "Upload",
+      dataIndex: "isPushed",
+      key: "isPushed",
+      align: "center",
+      width: 100,
+      render: (value: boolean) => (
+        <Tooltip title={value ? "Đã đẩy dữ liệu" : "Chưa đẩy dữ liệu"}>
+          {value ? (
+            <CheckCircleOutlined className="text-lg text-green-600!" />
+          ) : (
+            <CloseCircleOutlined className="text-lg text-red-600!" />
+          )}
+        </Tooltip>
+      ),
+    },
+    {
+      title: "Trạng thái",
+      dataIndex: "wareBatchStatus",
+      key: "wareBatchStatus",
+      render: (status: string) => getStatusBadge(status),
+    },
+  ];
+
+  const selectedBatches = batches.filter((b) => selectedIds.includes(b.id!));
+
+  return (
+    <div className="px-6 py-6 bg-linear-to-br from-gray-50 to-gray-100 min-h-screen">
+      {contextHolderMessage}
+
+      <Card className="shadow-sm border-0 rounded-xl mb-6">
+        <div className="flex justify-between items-center gap-4 mb-4">
+          <div className="flex items-center gap-3 flex-1">
+            <Search
+              placeholder="Tìm kiếm theo mã, tên hoặc mô tả..."
+              onSearch={(value) => setSearchKeyword(value || null)}
+              allowClear
+              size="large"
+              prefix={<SearchOutlined className="text-gray-400" />}
+              className="flex-1 rounded-lg"
+              enterButton={
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                  Tìm kiếm
+                </Button>
+              }
+            />
+          </div>
+          <Tooltip
+            title={
+              selectedIds.length === 0
+                ? "Vui lòng chọn ít nhất một batch"
+                : `${selectedIds.length} batch được chọn`
+            }
+          >
+            <Button
+              type="primary"
+              size="large"
+              icon={<CloudUploadOutlined />}
+              onClick={handleSyncClick}
+              disabled={selectedIds.length === 0}
+              className="bg-blue-600! hover:bg-blue-700! h-10 px-6"
+            >
+              Đồng bộ ({selectedIds.length})
+            </Button>
+          </Tooltip>
+        </div>
+        
+        {/* Checkbox Xóa dữ liệu cũ được đặt ở đây */}
+        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-end">
+          <div className="flex items-center gap-3">
+            <span className="font-medium text-gray-700">Xóa dữ liệu cũ:</span>
+            <Radio.Group
+              onChange={(e) => setDeleteMissing(e.target.value)}
+              value={deleteMissing}
+              className="text-gray-700"
+            >
+              <Radio value={true}>Có</Radio>
+              <Radio value={false}>Không</Radio>
+            </Radio.Group>
+          </div>
+        </div>
+      </Card>
+
+      <Card className="shadow-sm border-0 rounded-xl">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100">
+              <FileTextOutlined className="text-blue-600 text-lg" />
+            </div>
+            <h1 className="text-xl font-bold text-gray-800 m-0">
+              Đồng bộ Batch
+            </h1>
+          </div>
+          <Button
+            size="large"
+            icon={<ReloadOutlined />}
+            onClick={() => fetchBatches()}
+            loading={loading}
+            className="h-10 px-6"
+          >
+            Tải lại
+          </Button>
+        </div>
+
+        {selectedIds.length > 0 && (
+          <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-sm text-blue-800">
+              <span className="font-semibold">{selectedIds.length}</span> batch
+              được chọn để đồng bộ
+            </p>
+          </div>
+        )}
+
+        <div className="overflow-x-auto rounded-lg border border-gray-200">
+          <Table
+            rowKey="id"
+            columns={columns}
+            dataSource={batches}
+            loading={loading}
+            pagination={{
+              current: page + 1,
+              pageSize: limit,
+              total: total,
+              onChange: (pageNumber) => setPage(pageNumber - 1),
+              showSizeChanger: true,
+              showTotal: (total) => `Tổng cộng ${total} batch`,
+              pageSizeOptions: [10, 20, 50],
+            }}
+            size="middle"
+            bordered
+            rowClassName={(index: any) =>
+              index % 2 === 0
+                ? "bg-white hover:bg-gray-50 transition-colors"
+                : "bg-gray-50 hover:bg-gray-100 transition-colors"
+            }
+            scroll={{ x: 1200 }}
+          />
+        </div>
+
+        {batches.length === 0 && !loading && (
+          <div className="text-center py-16 bg-gray-50 rounded-lg mt-4">
+            <FileTextOutlined className="text-4xl text-gray-300 mb-3" />
+            <p className="text-gray-500 text-lg">Không có batch nào</p>
+          </div>
+        )}
+      </Card>
+
+      <Modal
+        title={
+          <div className="flex items-center gap-3 pb-3 border-b">
+            <div className="w-10 h-10 flex items-center justify-center bg-blue-100">
+              <CloudUploadOutlined className="text-blue-600 text-lg" />
+            </div>
+            <div className="text-lg font-semibold text-gray-800">
+              Đồng bộ dữ liệu TKV
+            </div>
+          </div>
+        }
+        open={syncModalVisible}
+        onCancel={() => setSyncModalVisible(false)}
+        footer={null}
+        width={600}
+      >
+        <div className="py-4">
+          {/* Thêm alert hiển thị thông tin config */}
+          {userPushConfig && (
+            <Alert
+              message="Sử dụng tài khoản đã cấu hình"
+              description={
+                <div>
+                  <p className="mb-1">Tên đăng nhập: <strong>{userPushConfig.username}</strong></p>
+                  {userPushConfig.password && (
+                    <p className="mb-0">Mật khẩu đã được lưu trong hệ thống</p>
+                  )}
+                </div>
+              }
+              type="info"
+              showIcon
+              className="mb-4 rounded-lg"
+            />
+          )}
+
+          {selectedBatches.length > 0 && (
+            <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-sm text-blue-800 font-medium mb-3">
+                Batch sẽ được đồng bộ:
+              </p>
+              <ul className="space-y-2">
+                {selectedBatches.map((batch) => (
+                  <li key={batch.id} className="text-sm text-blue-700">
+                    • {batch.code} - {batch.name}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <Form
+            layout="vertical"
+            form={form}
+            onFinish={handleSyncConfirm}
+            className="py-4"
+          >
+            <Form.Item
+              label={<span className="font-medium text-gray-800">Tên đăng nhập</span>}
+              name="username"
+              rules={[{ required: true, message: "Vui lòng nhập username!" }]}
+            >
+              <Input
+                placeholder="Nhập tên đăng nhập"
+                size="large"
+                className="rounded-lg"
+                disabled={!!userPushConfig}
+                prefix={userPushConfig ? <Tag color="blue">Từ cấu hình</Tag> : null}
+              />
+            </Form.Item>
+
+            <Form.Item
+              label={<span className="font-medium text-gray-800">Mật khẩu</span>}
+              name="password"
+              rules={[{ required: true, message: "Vui lòng nhập password!" }]}
+            >
+              <Input.Password
+                placeholder="Nhập mật khẩu"
+                size="large"
+                className="rounded-lg"
+                disabled={!!userPushConfig && !!userPushConfig.password}
+                prefix={userPushConfig?.password ? <Tag color="green">Đã lưu</Tag> : null}
+              />
+            </Form.Item>
+
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                block
+                size="large"
+                icon={<CloudUploadOutlined />}
+                loading={syncing}
+                className="bg-blue-600! hover:bg-blue-700! h-11 font-medium rounded-lg"
+              >
+                Đồng bộ {selectedIds.length} batch
+              </Button>
+            </Form.Item>
+          </Form>
+        </div>
+      </Modal>
+
+      <style>{`
+        .bg-linear-to-br {
+          background: linear-gradient(to bottom right, #f9fafb, #f3f4f6);
+        }
+        .ant-table-cell {
+          padding: 12px !important;
+        }
+        .ant-table-header .ant-table-cell {
+          background: linear-gradient(to right, #f3f4f6, #e5e7eb);
+          font-weight: 600;
+          color: #374151;
+        }
+        .ant-table-row {
+          transition: all 0.2s ease;
+        }
+        .ant-table-row:hover {
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        .ant-input:focus,
+        .ant-input-affix-wrapper:focus,
+        .ant-input-affix-wrapper-focused {
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+        .ant-input-password:focus-within {
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+        .line-clamp-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+      `}</style>
+    </div>
+  );
+};

@@ -1,8 +1,9 @@
 export interface WareMappingRequest {
   id?: number | null;
+  fieldTitle?: string;
   fieldName: string;
   fieldValue?: string;
-  fieldType?: "ROW" | "CELL" | "TEXT"; 
+  fieldType?: "ROW" | "CELL" | "TEXT";
   isKeyColumn?: boolean;
   isScopFilter?: boolean;
   cellAddress?: string;
@@ -11,9 +12,10 @@ export interface WareMappingRequest {
 
 export interface WareMappingResponse {
   id: number | null;
+  fieldTitle?: string;
   fieldName: string;
   fieldValue?: string;
-  fieldType?: "ROW" | "CELL" | "TEXT"; 
+  fieldType?: "ROW" | "CELL" | "TEXT";
   isKeyColumn?: boolean;
   isScopFilter?: boolean;
   cellAddress?: string;

@@ -22,7 +22,7 @@ public class WareMapping {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
+    private String fieldTitle;
     private String cellAddress; //địa chỉ cell
     private String fieldName;
     private String fieldValue; //string-number

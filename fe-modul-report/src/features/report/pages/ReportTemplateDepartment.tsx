@@ -274,10 +274,7 @@ const ReportTemplateDepartment = () => {
 
         {/* TYPE FILTER */}
         <Col>
-          <Select
-            placeholder="Loại báo cáo"
-            style={{ width: 160 }}
-          >
+          <Select placeholder="Loại báo cáo" style={{ width: 160 }}>
             <Select.Option value="null">Tất cả</Select.Option>
             <Select.Option value="STATIC">Báo cáo tĩnh</Select.Option>
             <Select.Option value="DYNAMIC">Báo cáo động</Select.Option>
@@ -311,13 +308,15 @@ const ReportTemplateDepartment = () => {
             }}
           >
             <Panel header={`${grp.name} - ${grp.code}`} key={grp.id}>
-              <Table
-                dataSource={grp.reports}
-                columns={columns}
-                rowKey="id"
-                pagination={false}
-                showHeader={false}
-              />
+              <div className="overflow-auto">
+                <Table
+                  dataSource={grp.reports}
+                  columns={columns}
+                  rowKey="id"
+                  pagination={false}
+                  showHeader={false}
+                />
+              </div>
             </Panel>
           </Collapse>
         ))}
