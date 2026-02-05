@@ -6,6 +6,7 @@ export interface ChatMessage {
   sources?: ChatSource[];
   chart?: ChatChartData;
   data?: ChatTableData;
+  db_query?: DbQueryResult;
 }
 
 export interface ChatSource {
@@ -43,6 +44,15 @@ export interface ChatTableData {
   source?: string;
 }
 
+export interface DbQueryResult {
+  columns: string[];
+  rows: Record<string, string | number | null>[];
+  total_rows: number;
+  generated_query: string;
+  source: string;
+  error: string | null;
+}
+
 export interface ChatSession {
   session_id: string;
   last_message?: string;
@@ -59,6 +69,7 @@ export interface ChatSendResponse {
   sources?: ChatSource[];
   chart?: ChatChartData;
   data?: ChatTableData;
+  db_query?: DbQueryResult;
 }
 
 export interface ChatSessionsResponse {

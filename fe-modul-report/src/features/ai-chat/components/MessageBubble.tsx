@@ -7,11 +7,14 @@ import {
   FileTextOutlined,
 } from "@ant-design/icons";
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import type { ChatMessage } from "../types/chat";
 import ChatChart from "./ChatChart";
 import ChatDataTable from "./ChatDataTable";
+import DbQueryTable from "./DbQueryTable";
 
-const { Paragraph, Text } = Typography;
+const { Text } = Typography;
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -49,12 +52,15 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
               : "bg-white border border-gray-200"
           }`}
         >
-          <Paragraph
-            className="!mb-0"
-            style={{ whiteSpace: "pre-wrap" }}
-          >
-            {message.content}
-          </Paragraph>
+          {isUser ? (
+            <p className="mb-0 whitespace-pre-wrap">{message.content}</p>
+          ) : (
+            <div className="markdown-content prose prose-sm max-w-none">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {message.content}
+              </ReactMarkdown>
+            </div>
+          )}
 
           {message.chart?.chart_json && (
             <ChatChart chart={message.chart} />
@@ -62,6 +68,10 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
 
           {message.data && message.data.rows?.length > 0 && (
             <ChatDataTable data={message.data} />
+          )}
+
+          {message.db_query && message.db_query.rows?.length > 0 && (
+            <DbQueryTable dbQuery={message.db_query} />
           )}
 
           {message.sources && message.sources.length > 0 && (

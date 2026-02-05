@@ -97,6 +97,7 @@ export function useChat(initialSessionId: string | null = null): UseChatReturn {
           sources: data.sources,
           chart: data.chart,
           data: data.data,
+          db_query: data.db_query,
         };
 
         setMessages((prev) => [...prev, aiMessage]);

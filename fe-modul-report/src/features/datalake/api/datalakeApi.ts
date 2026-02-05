@@ -73,7 +73,7 @@ export const dataApi = {
       {
         headers: { "Content-Type": "multipart/form-data" },
         onUploadProgress: onProgress,
-        timeout: 300000,
+        timeout: 30000000000,
       }
     );
     return res.data;

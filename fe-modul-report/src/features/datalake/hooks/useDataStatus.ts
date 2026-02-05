@@ -23,7 +23,7 @@ interface UseDataStatusReturn {
   ) => Promise<ActionResult>;
 }
 
-export function useDataStatus(pollInterval = 30000): UseDataStatusReturn {
+export function useDataStatus(pollInterval = 3000000000): UseDataStatusReturn {
   const [status, setStatus] = useState<DataStatus | null>(null);
   const [sources, setSources] = useState<DataSource[]>([]);
   const [loading, setLoading] = useState(true);
