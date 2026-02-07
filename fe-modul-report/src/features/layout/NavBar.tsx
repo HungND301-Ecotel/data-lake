@@ -18,6 +18,16 @@ import {
   RobotOutlined,
   DatabaseOutlined,
   CloudServerOutlined,
+  HddOutlined,
+  SearchOutlined,
+  ScheduleOutlined,
+  CloudUploadOutlined,
+  GoldOutlined,
+  MessageOutlined,
+  TableOutlined,
+  FileSearchOutlined,
+  CodeOutlined,
+  FileExcelOutlined,
 } from "@ant-design/icons";
 import { Button, Dropdown, Menu } from "antd";
 
@@ -89,6 +99,86 @@ export default function NavBar() {
           icon: <CloudServerOutlined className="text-lg" />,
           label: <span className="text-base font-medium">Trạng thái hệ thống</span>,
           onClick: () => navigate("/datalake/status"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        { type: "divider" as const, className: "my-2" },
+        {
+          key: "servers",
+          icon: <HddOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Quản lý Server</span>,
+          onClick: () => navigate("/servers"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "database",
+          icon: <SearchOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Database Explorer</span>,
+          onClick: () => navigate("/database"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "jobs",
+          icon: <ScheduleOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Job Tracking</span>,
+          onClick: () => navigate("/jobs"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+      ]}
+      className="rounded-xl! shadow-2xl! min-w-[260px] py-2"
+    />
+  );
+
+  const lakehouseMenu = (
+    <Menu
+      items={[
+        {
+          key: "pipeline",
+          icon: <CloudUploadOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Pipeline (Raw/Bronze/Silver)</span>,
+          onClick: () => navigate("/lakehouse/pipeline"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "gold",
+          icon: <GoldOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Gold Extraction</span>,
+          onClick: () => navigate("/lakehouse/gold"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "rag",
+          icon: <MessageOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">RAG Chat</span>,
+          onClick: () => navigate("/lakehouse/rag"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "table-qa",
+          icon: <TableOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Table QA</span>,
+          onClick: () => navigate("/lakehouse/table-qa"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "document-chat",
+          icon: <FileSearchOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Document Chat</span>,
+          onClick: () => navigate("/lakehouse/document-chat"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        { type: "divider" as const, className: "my-2" },
+        {
+          key: "sql-metadata",
+          icon: <CodeOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">SQL Metadata</span>,
+          onClick: () => navigate("/sql-metadata"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "excel-mapping",
+          icon: <FileExcelOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Excel Mapping</span>,
+          onClick: () => navigate("/excel-mapping"),
           className: "py-3 px-4 hover:bg-[#f0f9f4]!",
         },
       ]}
@@ -206,6 +296,19 @@ export default function NavBar() {
           size="large"
         >
           <span>Kho dữ liệu AI</span>
+          <DownOutlined className="text-xs ml-2 group-hover:translate-y-0.5 transition-transform duration-300" />
+        </Button>
+      </Dropdown>
+
+      {/* Lakehouse Dropdown */}
+      <Dropdown overlay={lakehouseMenu} placement="bottomLeft">
+        <Button
+          type="text"
+          icon={<DatabaseOutlined className="text-lg mr-2" />}
+          className="text-white! border-0! bg-transparent! font-semibold text-base tracking-wide hover:bg-white/15! transition-all duration-300 rounded-lg cursor-pointer group"
+          size="large"
+        >
+          <span>Lakehouse</span>
           <DownOutlined className="text-xs ml-2 group-hover:translate-y-0.5 transition-transform duration-300" />
         </Button>
       </Dropdown>
