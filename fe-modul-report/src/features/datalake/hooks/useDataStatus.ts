@@ -18,8 +18,8 @@ interface UseDataStatusReturn {
   loadData: () => Promise<ActionResult>;
   importLive: (
     database: string,
-    tables: string[] | null,
-    rowLimit: number
+    tables?: string[] | null,
+    rowLimit?: number
   ) => Promise<ActionResult>;
 }
 
@@ -89,12 +89,12 @@ export function useDataStatus(pollInterval = 60000): UseDataStatusReturn {
   const importLive = useCallback(
     async (
       database: string,
-      tables: string[] | null,
-      rowLimit: number
+      tables?: string[] | null,
+      rowLimit?: number
     ): Promise<ActionResult> => {
       setLoading(true);
       try {
-        const data = await dataApi.importLive(database, tables, rowLimit);
+        const data = await dataApi.importLive(database, tables ?? null, rowLimit);
         await refresh();
         return { success: true, data };
       } catch (err: unknown) {

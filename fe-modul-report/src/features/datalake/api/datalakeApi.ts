@@ -82,15 +82,18 @@ export const dataApi = {
   importLive: async (
     database: string,
     tables: string[] | null = null,
-    rowLimit: number = 1000,
+    rowLimit?: number,
     includeSchema: boolean = true
   ): Promise<unknown> => {
-    const res = await axiosDataLakeClient.post("/api/v1/data/import-live", {
+    const payload: Record<string, unknown> = {
       database,
       tables,
-      row_limit: rowLimit,
       include_schema: includeSchema,
-    });
+    };
+    if (rowLimit !== undefined) {
+      payload.row_limit = rowLimit;
+    }
+    const res = await axiosDataLakeClient.post("/api/v1/data/import-live", payload);
     return res.data;
   },
 };
