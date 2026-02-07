@@ -1,5 +1,7 @@
-import { useEffect } from "react";
-import { Card, Row, Col, Table, Typography, Alert, Select, Tooltip } from "antd";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, Row, Col, Table, Typography, Alert, Select, Tooltip, Button } from "antd";
+import { MessageOutlined } from "@ant-design/icons";
 import { useDatabaseExplorer } from "../hooks/useDatabaseExplorer";
 import DatabaseSelector from "../components/DatabaseSelector";
 import SchemaTree from "../components/SchemaTree";
@@ -9,7 +11,9 @@ import { useServers } from "../../server/hooks/useServers";
 const { Text } = Typography;
 
 export default function DatabaseExplorerPage() {
+  const navigate = useNavigate();
   const { servers } = useServers();
+  const [currentServerId, setCurrentServerId] = useState<string | undefined>();
   const {
     databases, selectedDb, schema, queryResult,
     loading, schemaLoading, queryLoading, error,
@@ -18,7 +22,14 @@ export default function DatabaseExplorerPage() {
 
   const handleServerChange = (serverId: string) => {
     setServerId(serverId);
+    setCurrentServerId(serverId);
     fetchDatabases(serverId);
+  };
+
+  const handleChatWithDatabase = () => {
+    if (selectedDb && currentServerId) {
+      navigate(`/ai-chat?mode=database&database=${selectedDb}&server=${currentServerId}`);
+    }
   };
 
   useEffect(() => {
@@ -67,6 +78,17 @@ export default function DatabaseExplorerPage() {
                 loading={loading}
                 onSelect={selectDatabase}
               />
+
+              {selectedDb && (
+                <Button
+                  type="primary"
+                  icon={<MessageOutlined />}
+                  onClick={handleChatWithDatabase}
+                  block
+                >
+                  Chat với {selectedDb}
+                </Button>
+              )}
 
               <div className="mt-4" style={{ maxHeight: "calc(100vh - 380px)", overflow: "auto" }}>
                 <SchemaTree schema={schema} loading={schemaLoading} />

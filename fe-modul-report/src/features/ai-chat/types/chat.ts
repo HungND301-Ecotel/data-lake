@@ -1,6 +1,14 @@
+export type ChatMode = "general" | "database" | "rag";
+
+export interface ChatContext {
+  mode: ChatMode;
+  database?: string;
+  serverId?: string;
+}
+
 export interface ChatMessage {
   id: string;
-  role: "human" | "ai" | "user";
+  role: "human" | "ai" | "user" | "assistant";
   content: string;
   timestamp?: string;
   sources?: ChatSource[];

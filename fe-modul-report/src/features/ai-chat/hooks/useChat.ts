@@ -1,6 +1,13 @@
 import { useState, useCallback, useEffect } from "react";
 import { chatApi } from "../api/chatApi";
-import type { ChatMessage, ChatSession } from "../types/chat";
+import type { ChatMessage, ChatSession, ChatMode, ChatContext } from "../types/chat";
+
+interface UseChatOptions {
+  initialSessionId?: string | null;
+  mode?: ChatMode;
+  database?: string;
+  serverId?: string;
+}
 
 interface UseChatReturn {
   messages: ChatMessage[];
@@ -9,6 +16,8 @@ interface UseChatReturn {
   sessionId: string | null;
   sessions: ChatSession[];
   sessionsLoading: boolean;
+  mode: ChatMode;
+  context: ChatContext;
   sendMessage: (message: string) => Promise<unknown>;
   clearHistory: () => Promise<void>;
   search: (query: string, k?: number) => Promise<unknown>;
@@ -17,15 +26,30 @@ interface UseChatReturn {
   switchSession: (newSessionId: string) => void;
   startNewChat: () => void;
   deleteSession: (sid: string) => Promise<void>;
+  setMode: (mode: ChatMode) => void;
+  setDatabase: (database: string | undefined) => void;
+  setServerId: (serverId: string | undefined) => void;
 }
 
-export function useChat(initialSessionId: string | null = null): UseChatReturn {
+export function useChat(options: UseChatOptions = {}): UseChatReturn {
+  const {
+    initialSessionId = null,
+    mode: initialMode = "general",
+    database: initialDatabase,
+    serverId: initialServerId,
+  } = options;
+
   const [sessionId, setSessionId] = useState<string | null>(initialSessionId);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<ChatMode>(initialMode);
+  const [database, setDatabase] = useState<string | undefined>(initialDatabase);
+  const [serverId, setServerId] = useState<string | undefined>(initialServerId);
+
+  const context: ChatContext = { mode, database, serverId };
 
   const loadSessions = useCallback(async () => {
     setSessionsLoading(true);
@@ -87,7 +111,28 @@ export function useChat(initialSessionId: string | null = null): UseChatReturn {
       setError(null);
 
       try {
-        const data = await chatApi.send(message, sessionId);
+        let data;
+
+        if (mode === "rag") {
+          // Use RAG chat endpoint
+          const history = messages.map((m) => ({
+            role: m.role === "human" ? "user" : m.role,
+            content: m.content,
+          }));
+          const ragResponse = await chatApi.sendRag(message, history);
+          data = {
+            answer: ragResponse.answer,
+            session_id: sessionId,
+            timestamp: new Date().toISOString(),
+            sources: ragResponse.sources?.map((s) => ({
+              content: s.content,
+              metadata: s.metadata,
+            })),
+          };
+        } else {
+          // Use regular chat endpoint with context
+          data = await chatApi.send(message, sessionId, context);
+        }
 
         const aiMessage: ChatMessage = {
           id: `ai-${Date.now()}`,
@@ -106,7 +151,9 @@ export function useChat(initialSessionId: string | null = null): UseChatReturn {
           setSessionId(data.session_id);
         }
 
-        loadSessions();
+        if (mode !== "rag") {
+          loadSessions();
+        }
         return data;
       } catch (err: unknown) {
         const error = err as { message?: string; response?: { data?: { detail?: string } } };
@@ -127,10 +174,15 @@ export function useChat(initialSessionId: string | null = null): UseChatReturn {
         setLoading(false);
       }
     },
-    [sessionId, loadSessions]
+    [sessionId, loadSessions, mode, context, messages]
   );
 
   const clearHistory = useCallback(async () => {
+    if (mode === "rag") {
+      setMessages([]);
+      setError(null);
+      return;
+    }
     if (!sessionId) return;
     try {
       await chatApi.clearHistory(sessionId);
@@ -141,7 +193,7 @@ export function useChat(initialSessionId: string | null = null): UseChatReturn {
       console.error("Failed to clear history:", err);
       setError("Không thể xóa lịch sử chat");
     }
-  }, [sessionId, loadSessions]);
+  }, [sessionId, loadSessions, mode]);
 
   const deleteSession = useCallback(
     async (sid: string) => {
@@ -168,14 +220,25 @@ export function useChat(initialSessionId: string | null = null): UseChatReturn {
   }, []);
 
   useEffect(() => {
-    loadSessions();
-  }, []);
+    if (mode !== "rag") {
+      loadSessions();
+    }
+  }, [mode]);
 
   useEffect(() => {
-    if (sessionId) {
+    if (sessionId && mode !== "rag") {
       loadHistory(sessionId);
     }
-  }, [sessionId]);
+  }, [sessionId, mode]);
+
+  // Clear messages when mode changes
+  useEffect(() => {
+    setMessages([]);
+    setError(null);
+    if (mode === "rag") {
+      setSessionId(null);
+    }
+  }, [mode]);
 
   return {
     messages,
@@ -184,6 +247,8 @@ export function useChat(initialSessionId: string | null = null): UseChatReturn {
     sessionId,
     sessions,
     sessionsLoading,
+    mode,
+    context,
     sendMessage,
     clearHistory,
     search,
@@ -192,5 +257,8 @@ export function useChat(initialSessionId: string | null = null): UseChatReturn {
     switchSession,
     startNewChat,
     deleteSession,
+    setMode,
+    setDatabase,
+    setServerId,
   };
 }

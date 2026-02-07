@@ -3,16 +3,53 @@ import type {
   ChatSendResponse,
   ChatSessionsResponse,
   ChatHistoryResponse,
+  ChatContext,
 } from "../types/chat";
+
+export interface RagChatResponse {
+  answer: string;
+  sources?: { content: string; metadata?: Record<string, unknown> }[];
+  chart?: { filename: string };
+}
 
 export const chatApi = {
   send: async (
     message: string,
-    sessionId: string | null
+    sessionId: string | null,
+    context?: ChatContext
   ): Promise<ChatSendResponse> => {
     const res = await axiosDataLakeClient.post("/api/v1/chat/", {
       message,
       session_id: sessionId,
+      mode: context?.mode,
+      database: context?.database,
+      server_id: context?.serverId,
+    });
+    return res.data;
+  },
+
+  sendRag: async (
+    query: string,
+    history: { role: string; content: string }[] = []
+  ): Promise<RagChatResponse> => {
+    const res = await axiosDataLakeClient.post("/api/v1/lakehouse/rag/chat", {
+      query,
+      history,
+    });
+    return res.data;
+  },
+
+  ragSearch: async (query: string, topK = 5) => {
+    const res = await axiosDataLakeClient.post("/api/v1/lakehouse/rag/search", {
+      query,
+      top_k: topK,
+    });
+    return res.data;
+  },
+
+  ragIngest: async (fileIds: string[]) => {
+    const res = await axiosDataLakeClient.post("/api/v1/lakehouse/rag/ingest", {
+      file_ids: fileIds,
     });
     return res.data;
   },
