@@ -77,17 +77,6 @@ const AiChatPage: React.FC = () => {
     setMode(newMode as ChatMode);
   };
 
-  const getModeLabel = () => {
-    switch (mode) {
-      case "database":
-        return context.database ? `Database: ${context.database}` : "Chọn database";
-      case "rag":
-        return "RAG Documents";
-      default:
-        return "Chat AI";
-    }
-  };
-
   const tabItems = [
     {
       key: "general",

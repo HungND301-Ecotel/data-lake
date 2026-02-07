@@ -1,4 +1,4 @@
-import { Button, List, Empty, Skeleton, Popconfirm, Typography, Badge } from "antd";
+import { Button, List, Empty, Skeleton, Popconfirm, Typography } from "antd";
 import {
   PlusOutlined,
   DeleteOutlined,

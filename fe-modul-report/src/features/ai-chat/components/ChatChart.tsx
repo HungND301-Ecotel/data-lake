@@ -1,6 +1,6 @@
 import { Column, Line, Pie } from "@ant-design/charts";
 import { Typography, Empty } from "antd";
-import type { ChatChartData } from "../types/chat";
+import type { ChatChartData, PlotlyTrace } from "../types/chat";
 
 const { Text } = Typography;
 
@@ -28,10 +28,7 @@ const ChatChart: React.FC<ChatChartProps> = ({ chart }) => {
   );
 };
 
-function renderChart(
-  chartType: string,
-  trace: ChatChartData["chart_json"] extends { data: (infer T)[] } ? T : never
-) {
+function renderChart(chartType: string, trace: PlotlyTrace) {
   switch (chartType) {
     case "bar": {
       const data = (trace.x || []).map((x: string | number, i: number) => ({
