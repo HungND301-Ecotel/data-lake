@@ -117,3 +117,4 @@ npm run build
 sudo chown -R www-data:www-data dist
 sudo systemctl restart nginx
 ```
+Ecotel@2025
