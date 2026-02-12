@@ -75,7 +75,7 @@ const SyncSettingsPage: React.FC = () => {
         </div>
         <div className="mt-4 flex gap-4">
           <a
-            href={`${import.meta.env.VITE_DATALAKE_API || "http://localhost:8000"}/docs`}
+            href={`${import.meta.env.VITE_DATALAKE_API || "http://42.113.54.206:1313"}/docs`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-500 hover:text-blue-600"
@@ -83,7 +83,7 @@ const SyncSettingsPage: React.FC = () => {
             Swagger UI →
           </a>
           <a
-            href={`${import.meta.env.VITE_DATALAKE_API || "http://localhost:8000"}/redoc`}
+            href={`${import.meta.env.VITE_DATALAKE_API || "http://42.113.54.206:1313"}/redoc`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-500 hover:text-blue-600"
