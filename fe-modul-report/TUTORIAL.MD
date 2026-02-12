@@ -3,7 +3,7 @@
 ## 1. Kết nối SSH vào Server
 
 ```bash
-ssh ecotel-admin@1.52.29.243 -p 2222
+ssh ecotel-admin@42.113.54.206 -p 2222
 ```
 
 **Password:** `Ecotel@2025`
@@ -92,7 +92,7 @@ sudo systemctl restart nginx
 
 ## 7. Truy cập ứng dụng
 
-Mở trình duyệt và truy cập: `http://1.52.29.243:6228`
+Mở trình duyệt và truy cập: `http://42.113.54.206:6228`
 
 ---
 
