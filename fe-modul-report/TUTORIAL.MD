@@ -113,7 +113,7 @@ Mở trình duyệt và truy cập: `http://42.113.54.206:6228`
 cd /home/ecotel-admin/datalake/data-lake/fe-modul-report
 git pull
 npm install
-npm run build
+sudo npm run build
 sudo chown -R www-data:www-data dist
 sudo systemctl restart nginx
 ```
