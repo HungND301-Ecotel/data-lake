@@ -103,12 +103,12 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
 
   const fetchAllEmployees = async () => {
     try {
-      const res = await employeeApi.getAll();
-      setAllEmployees(res);
-      setFilteredEmployees(res);
+      const res = await employeeApi.searchEmployee("", 0, 10000000);
+      setAllEmployees(res.content || []);
+      setFilteredEmployees(res.content || []);
     } catch (err) {
       message.error("Lấy danh sách nhân viên thất bại");
-    } finally {
+
     }
   };
 
@@ -627,11 +627,10 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                 return (
                   <div
                     key={idx}
-                    className={`p-4 transition-all ${
-                      isEditing
+                    className={`p-4 transition-all ${isEditing
                         ? "border-2 border-green-500 bg-green-50 shadow-md"
                         : "border border-gray-200 bg-white hover:shadow-md"
-                    }`}
+                      }`}
                   >
                     {isEditing ? (
                       <div>
@@ -674,9 +673,8 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                               <div
                                 key={emp.id}
                                 onClick={() => handleSelectNewApprover(emp.id)}
-                                className={`p-3 cursor-pointer border-b border-gray-100 hover:bg-blue-50 transition-colors ${
-                                  emp.id === approverId ? "bg-green-50" : ""
-                                }`}
+                                className={`p-3 cursor-pointer border-b border-gray-100 hover:bg-blue-50 transition-colors ${emp.id === approverId ? "bg-green-50" : ""
+                                  }`}
                               >
                                 <div className="flex items-center gap-3">
                                   <Avatar
@@ -767,9 +765,8 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                     <div
                       key={emp.id}
                       onClick={() => setSearchEmployee(emp.id)}
-                      className={`p-3 cursor-pointer border-b border-gray-100 hover:bg-blue-50 transition-colors ${
-                        tempApprovers.includes(emp.id) ? "bg-gray-100" : ""
-                      }`}
+                      className={`p-3 cursor-pointer border-b border-gray-100 hover:bg-blue-50 transition-colors ${tempApprovers.includes(emp.id) ? "bg-gray-100" : ""
+                        }`}
                     >
                       <div className="flex items-center gap-3">
                         <Avatar src={emp.keyAvatar || DEFAULT_AVATAR} size={40} />

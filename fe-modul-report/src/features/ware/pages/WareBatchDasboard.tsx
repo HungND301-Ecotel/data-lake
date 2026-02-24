@@ -81,8 +81,8 @@ const DashboardWare = () => {
 
       const res = await wareBatchActionApi.searchWareActionBatch(req);
 
-      setActions(res.content);
-      setTotalPages(res.totalPages);
+      setActions(res.content ?? []);
+      setTotalPages(res.totalPages ?? 1);
     } catch (err) {
       console.error("Fetch audit actions failed", err);
     } finally {
