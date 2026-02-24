@@ -155,7 +155,7 @@ const UserPushConfigPage = () => {
                             <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100">
                                 <LockOutlined className="text-blue-600 text-lg" />
                             </div>
-                            Cấu hình tài khoản Push
+                            Cấu hình tài khoản TKV
                         </h1>
                         <p className="text-gray-500 mt-1 ml-13">
                             Quản lý tài khoản để đồng bộ dữ liệu
