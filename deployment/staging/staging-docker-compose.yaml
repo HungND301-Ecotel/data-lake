@@ -19,7 +19,7 @@ services:
       - .env_backend
     image: ${REGISTRY}/mongduong_report_backend_img:${VERSION}
     depends_on:
-      - postgres
+      - mongduong_postgres
     ports:
       - "8181:8080"
     networks:
