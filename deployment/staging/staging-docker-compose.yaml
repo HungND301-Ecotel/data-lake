@@ -39,7 +39,7 @@ services:
     networks:
       - frontnet
 
-  postgres:
+  mongduong_postgres:
     container_name: pg_mongduong_report_2211
     image: postgres:16
     environment:
@@ -55,7 +55,7 @@ services:
     networks:
       - backnet
 
-  pgadmin:
+  mongduong_pgadmin:
     container_name: pgadmin_mongduong_report_2211
     image: dpage/pgadmin4:8.6
     environment:
