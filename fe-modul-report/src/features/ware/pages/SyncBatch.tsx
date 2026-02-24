@@ -356,7 +356,7 @@ export const SyncBatch: React.FC = () => {
             >
               <Option value={true}>
                 <div className="flex items-center gap-2">
-                  <CheckCircleOutlined className="text-green-600!" />
+                  <CheckCircleOutlined className="text-black!" />
                   <span>Đã Push</span>
                 </div>
               </Option>
@@ -589,7 +589,7 @@ export const SyncBatch: React.FC = () => {
                 size="large"
                 className="rounded-lg"
                 disabled={!!userPushConfig && !!userPushConfig.password}
-                prefix={userPushConfig?.password ? <Tag color="green">Đã lưu</Tag> : null}
+                prefix={userPushConfig?.password ? <Tag color="black">Đã lưu</Tag> : null}
               />
             </Form.Item>
 

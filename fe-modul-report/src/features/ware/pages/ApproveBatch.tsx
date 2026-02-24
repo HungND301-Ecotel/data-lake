@@ -383,7 +383,7 @@ export const ApproveBatch: React.FC = () => {
                             type="primary"
                             icon={<EditOutlined />}
                             onClick={() => nav(`/ware/batch-approve/${record.batchId}`)}
-                            className="bg-green-600! hover:bg-green-700!"
+                            className="bg-black! hover:bg-gray-700!"
                             size="large"
                         >
                             Xem
@@ -507,7 +507,7 @@ export const ApproveBatch: React.FC = () => {
                                 onClick={handleBulkApprove}
                                 loading={approvalLoading}
                                 disabled={!hasApprovableBatch || selectedRowKeys.length === 0}
-                                className="bg-green-600! hover:bg-green-700! h-10 px-6"
+                                className="bg-black! hover:bg-gray-700! h-10 px-6"
                                 size="large"
                             >
                                 Duyệt ({selectedRowKeys.length})
@@ -591,7 +591,7 @@ export const ApproveBatch: React.FC = () => {
                 title={
                     <div className="flex items-center gap-3 pb-3 border-b">
                         <div className="w-10 h-10 flex items-center justify-center bg-green-100">
-                            <PlusOutlined className="text-green-600 text-lg" />
+                            <PlusOutlined className="text-black text-lg" />
                         </div>
                         <div className="text-lg font-semibold text-gray-800">
                             Thêm Batch
@@ -610,7 +610,7 @@ export const ApproveBatch: React.FC = () => {
                 onOk={() => form.submit()}
                 okButtonProps={{
                     className:
-                        "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
+                        "bg-black! hover:bg-gray-700! text-white! border-0 h-10 px-6 text-base font-medium",
                     size: "large",
                 }}
                 cancelButtonProps={{

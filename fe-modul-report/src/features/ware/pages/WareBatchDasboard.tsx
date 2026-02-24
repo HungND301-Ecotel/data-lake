@@ -388,7 +388,7 @@ const DashboardWare = () => {
           <Card
             title={
               <div className="flex items-center">
-                <div className="w-1 h-6 bg-green-500 rounded mr-3"></div>
+                <div className="w-1 h-6 bg-black rounded mr-3"></div>
                 <span className="text-lg font-semibold text-gray-800">
                   Thống kê upload theo thời gian
                 </span>

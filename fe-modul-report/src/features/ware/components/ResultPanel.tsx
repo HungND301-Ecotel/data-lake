@@ -78,7 +78,7 @@ const ResultPanel = ({ results }: ResultPanelProps) => {
             type="primary"
             icon={<DownloadOutlined />}
             onClick={exportToExcel}
-            className="bg-green-600! hover:bg-green-700!"
+            className="bg-black! hover:bg-gray-700!"
           >
             Tải Excel
           </Button>

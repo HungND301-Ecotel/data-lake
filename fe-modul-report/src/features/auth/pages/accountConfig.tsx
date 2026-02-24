@@ -168,7 +168,7 @@ const UserPushConfigPage = () => {
                             size="large"
                             icon={<PlusOutlined />}
                             onClick={() => handleOpenModal(false)}
-                            className="bg-green-600! hover:bg-green-700! border-0 shadow-md"
+                            className="bg-black! hover:bg-gray-700! border-0 shadow-md"
                             style={{ borderRadius: "8px" }}
                         >
                             Thêm tài khoản
@@ -277,7 +277,7 @@ const UserPushConfigPage = () => {
                             {isEdit ? (
                                 <EditOutlined className="text-blue-600 text-lg" />
                             ) : (
-                                <PlusOutlined className="text-green-600 text-lg" />
+                                <PlusOutlined className="text-black text-lg" />
                             )}
                         </div>
                         <div className="text-lg font-semibold text-gray-800">
@@ -296,7 +296,7 @@ const UserPushConfigPage = () => {
                 onOk={handleSave}
                 okButtonProps={{
                     className:
-                        "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
+                        "bg-black! hover:bg-gray-700! text-white! border-0 h-10 px-6 text-base font-medium",
                     size: "large",
                 }}
                 cancelButtonProps={{

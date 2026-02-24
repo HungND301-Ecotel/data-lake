@@ -77,7 +77,7 @@ const DepartmentMy = () => {
             type="primary"
             icon={<EyeOutlined />}
             onClick={() => handleViewDepartment(record.id)}
-            className="bg-green-600! hover:bg-green-700! text-white border-0 shadow-md"
+            className="bg-black! hover:bg-gray-700! text-white border-0 shadow-md"
             size="large"
           >
             Xem
@@ -94,14 +94,14 @@ const DepartmentMy = () => {
       {/* Main Card */}
       <Card className="shadow-lg border-0 rounded-xl">
         {/* Statistics Bar */}
-        <div className="mb-6 p-4 bg-linear-to-r from-green-50 to-emerald-50 rounded-lg border border-green-100">
+        <div className="mb-6 p-4 bg-linear-to-r from-gray-50 to-emerald-50 rounded-lg border border-gray-100">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <TeamOutlined className="text-green-500 text-xl" />
+              <TeamOutlined className="text-black text-xl" />
               <span className="font-medium text-gray-700">
                 Phòng ban của bạn:
               </span>
-              <Tag color="green" className="font-bold text-base px-3 py-1">
+              <Tag color="black" className="font-bold text-base px-3 py-1">
                 {data.length}
               </Tag>
             </div>
@@ -133,7 +133,7 @@ const DepartmentMy = () => {
             size="middle"
             scroll={{ x: "100%" }}
             className="modern-department-table"
-            rowClassName="hover:bg-green-50 transition-colors"
+            rowClassName="hover:bg-gray-50 transition-colors"
           />
         )}
       </Card>

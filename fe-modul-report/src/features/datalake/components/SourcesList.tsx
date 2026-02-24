@@ -35,7 +35,7 @@ const SourcesList: React.FC<SourcesListProps> = ({
         return (
           <Tag
             icon={isExcel ? <FileExcelOutlined /> : <DatabaseOutlined />}
-            color={isExcel ? "green" : "blue"}
+            color={isExcel ? "black" : "blue"}
           >
             {isExcel ? "Excel" : "SQL Backup"}
           </Tag>

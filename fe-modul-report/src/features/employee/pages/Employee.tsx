@@ -234,7 +234,7 @@ const EmployeePage = () => {
       align: "center" as const,
       render: (_role: string | null, record: EmployeeResponse) =>
         _role ? (
-          <Tag color="green" className="px-3 py-1 cursor-pointer">
+          <Tag color="black" className="px-3 py-1 cursor-pointer">
             {_role}{" "}
             <EyeOutlined
               style={{ marginLeft: 8 }}
@@ -266,7 +266,7 @@ const EmployeePage = () => {
         <Space size="small">
           <Button
             icon={<EyeOutlined />}
-            className="bg-green-600! hover:bg-green-700! text-white! border-0"
+            className="bg-black! hover:bg-gray-700! text-white! border-0"
             onClick={() => handleShowEmployeeDetail(record.id)}
           >
             Chi tiết
@@ -330,7 +330,7 @@ const EmployeePage = () => {
             size="large"
             icon={<PlusOutlined />}
             onClick={() => setCreateEmployeeModal(true)}
-            className="bg-green-600! hover:bg-green-700! text-white! border-0 shadow-md"
+            className="bg-black! hover:bg-gray-700! text-white! border-0 shadow-md"
             style={{ borderRadius: "8px", minWidth: "160px" }}
           >
             Thêm nhân viên
@@ -381,7 +381,7 @@ const EmployeePage = () => {
         title={
           <div className="flex items-center gap-3 pb-3 border-b">
             <div className="w-10 h-10 rounded-full flex items-center justify-center bg-green-100">
-              <PlusOutlined className="text-green-600 text-lg" />
+              <PlusOutlined className="text-black text-lg" />
             </div>
             <div className="text-lg font-semibold text-gray-800">
               Thêm nhân viên mới
@@ -394,7 +394,7 @@ const EmployeePage = () => {
         width={700}
         onCancel={() => setCreateEmployeeModal(false)}
         okButtonProps={{
-          className: "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
+          className: "bg-black! hover:bg-gray-700! text-white! border-0 h-10 px-6 text-base font-medium",
           size: "large",
         }}
         cancelButtonProps={{
@@ -537,7 +537,7 @@ const EmployeePage = () => {
         width={800}
         onCancel={() => setEmployeeDetailModal(false)}
         okButtonProps={{
-          className: "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
+          className: "bg-black! hover:bg-gray-700! text-white! border-0 h-10 px-6 text-base font-medium",
           size: "large",
         }}
         cancelButtonProps={{
@@ -651,7 +651,7 @@ const EmployeePage = () => {
         onOk={handleSaveUserDetail}
         width={600}
         okButtonProps={{
-          className: "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
+          className: "bg-black! hover:bg-gray-700! text-white! border-0 h-10 px-6 text-base font-medium",
           size: "large",
         }}
         cancelButtonProps={{

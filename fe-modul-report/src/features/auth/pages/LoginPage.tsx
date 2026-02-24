@@ -50,7 +50,7 @@ const LoginPage = () => {
   return (
     <div className="relative flex flex-col min-h-screen overflow-hidden">
       {/* Header */}
-      <header className="h-auto border-b bg-[#1a8649] backdrop-blur flex items-center justify-center px-6 relative z-20">
+      <header className="h-auto border-b bg-black backdrop-blur flex items-center justify-center px-6 relative z-20">
         <div className="flex items-center gap-3 text-primary-foreground py-4">
           <span className="flex flex-col gap-1 text-white">
             <div className="text-base sm:text-5xl font-bold text-center">
@@ -76,7 +76,7 @@ const LoginPage = () => {
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <img
-          src="https://uongbi.gov.vn/ckfinder/userfiles/images/2024/4/19/294A0768.JPG"
+          src="https://media.baoquangninh.vn/upload/image/202406/medium/2228683_toan_canh_khai_truong_san_xuat_cua_cong_ty_cp_than_mong_duong_22410527.jpg"
           alt="HR Background"
           className="object-cover w-full h-full"
         />
@@ -97,7 +97,7 @@ const LoginPage = () => {
 
           {/* Title */}
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-green-600 dark:text-blue-400">
+            <h2 className="text-2xl font-bold text-black dark:text-blue-400">
               Đăng nhập
             </h2>
           </div>
@@ -125,7 +125,7 @@ const LoginPage = () => {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   disabled={loading}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                 />
               </div>
 
@@ -143,7 +143,7 @@ const LoginPage = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={loading}
-                    className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                    className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                   />
                   <span
                     onClick={() => setShowPassword(!showPassword)}
@@ -163,7 +163,7 @@ const LoginPage = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-green-500 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="w-full bg-black hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
                 </button>

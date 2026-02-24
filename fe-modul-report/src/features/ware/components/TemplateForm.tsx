@@ -317,7 +317,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                   size="large"
                   icon={<SaveOutlined />}
                   onClick={handleSave}
-                  className="bg-green-600! hover:bg-green-700! h-10 px-6"
+                  className="bg-black! hover:bg-gray-700! h-10 px-6"
                 >
                   Lưu
                 </Button>
@@ -328,7 +328,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                 size="large"
                 icon={<EditOutlined />}
                 onClick={() => setIsEditing(true)}
-                className="bg-green-600! hover:bg-green-700! h-10 px-6"
+                className="bg-black! hover:bg-gray-700! h-10 px-6"
               >
                 Chỉnh sửa
               </Button>
@@ -465,8 +465,8 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
         <Card className="shadow-sm border-0 rounded-xl">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center bg-green-100">
-                <TeamOutlined className="text-green-600 text-lg" />
+              <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-100">
+                <TeamOutlined className="text-black text-lg" />
               </div>
               <h1 className="text-xl font-bold text-gray-800 m-0">
                 Cấu hình người duyệt
@@ -487,7 +487,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                 size="large"
                 icon={hasApprovalConfigs ? <EditOutlined /> : <PlusOutlined />}
                 onClick={handleOpenApprovalModal}
-                className="bg-green-600! hover:bg-green-700! h-10 px-6"
+                className="bg-black! hover:bg-gray-700! h-10 px-6"
               >
                 {hasApprovalConfigs ? "Chỉnh sửa người duyệt" : "Thêm mới người duyệt"}
               </Button>
@@ -582,11 +582,11 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
       <Modal
         title={
           <div className="flex items-center gap-3 pb-3 border-b">
-            <div className="w-10 h-10 flex items-center justify-center bg-green-100">
+            <div className="w-10 h-10 flex items-center justify-center bg-gray-100">
               {hasApprovalConfigs ? (
-                <EditOutlined className="text-green-600 text-lg" />
+                <EditOutlined className="text-black text-lg" />
               ) : (
-                <PlusOutlined className="text-green-600 text-lg" />
+                <PlusOutlined className="text-black text-lg" />
               )}
             </div>
             <div className="text-lg font-semibold text-gray-800">
@@ -604,7 +604,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
         width={800}
         okButtonProps={{
           className:
-            "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
+            "bg-black! hover:bg-gray-700! text-white! border-0 h-10 px-6 text-base font-medium",
           size: "large",
         }}
         cancelButtonProps={{
@@ -614,7 +614,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
       >
         <div className="py-4">
           <label className="block mb-4 font-semibold text-gray-800 text-base items-center gap-2">
-            <TeamOutlined className="text-green-600" />
+            <TeamOutlined className="text-black" />
             Danh sách người duyệt
           </label>
 
@@ -628,7 +628,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                   <div
                     key={idx}
                     className={`p-4 transition-all ${isEditing
-                        ? "border-2 border-green-500 bg-green-50 shadow-md"
+                        ? "border-2 border-black bg-gray-50 shadow-md"
                         : "border border-gray-200 bg-white hover:shadow-md"
                       }`}
                   >
@@ -790,7 +790,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                 block
                 size="large"
                 icon={<PlusOutlined />}
-                className="bg-green-600! hover:bg-green-700! h-11 font-medium rounded-lg"
+                className="bg-black! hover:bg-gray-700! h-11 font-medium rounded-lg"
               >
                 Thêm người duyệt
               </Button>

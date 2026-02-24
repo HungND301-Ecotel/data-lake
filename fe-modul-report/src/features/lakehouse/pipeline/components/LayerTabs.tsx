@@ -42,7 +42,7 @@ export default function LayerTabs({ activeLayer, onChange, rawCount, bronzeCount
             <span className="flex items-center gap-2">
               <FileSearchOutlined />
               Silver (Cấu trúc)
-              <Badge count={silverCount} showZero size="small" color="green" />
+              <Badge count={silverCount} showZero size="small" color="black" />
             </span>
           ),
         },
