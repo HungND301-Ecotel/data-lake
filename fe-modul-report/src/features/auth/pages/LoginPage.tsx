@@ -57,16 +57,16 @@ const LoginPage = () => {
               KHO DỮ LIỆU TẬP TRUNG
             </div>
             <div className="text-base sm:text-xl font-bold text-center">
-              CÔNG TY THAN UÔNG BÍ - TKV
+              CÔNG TY CỔ PHẦN THAN MÔNG DƯƠNG
             </div>
             <div className="flex flex-col sm:flex-row items-center sm:items-end sm:justify-center gap-2 sm:gap-4 text-white text-sm sm:text-xl sm:text-center font-medium">
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-white" />
-                <span>Hotline: 02033.854491</span>
+                <span>Hotline: 033 3868271</span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-white" />
-                <span>Email: ctythanub@gmail.com</span>
+                <span>Email: thanmongduongvnc@gmail.com</span>
               </div>
             </div>
           </span>
@@ -174,7 +174,7 @@ const LoginPage = () => {
           {/* Footer */}
           <div className="mt-6 text-center">
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              © 2024 CÔNG TY THAN UÔNG BÍ - TKV. All rights reserved.
+              © 2024 CÔNG TY CỔ PHẦN THAN MÔNG DƯƠNG. All rights reserved.
             </p>
           </div>
         </div>
