@@ -269,7 +269,7 @@ export const WareBatch: React.FC = () => {
               type="primary"
               icon={<EditOutlined />}
               onClick={() => nav(`/ware/batch/${record.id}`)}
-              className="bg-black! hover:bg-gray-700!"
+              className="bg-[#39b6f9]! hover:bg-blue-700!"
               size="large"
             >
               Xem
@@ -317,7 +317,7 @@ export const WareBatch: React.FC = () => {
             size="large"
             icon={<PlusOutlined />}
             onClick={handleOpenModal}
-            className="bg-black! hover:bg-gray-700! h-10 px-6"
+            className="bg-[#39b6f9]! hover:bg-blue-700! h-10 px-6"
           >
             Thêm dữ liệu
           </Button>
@@ -380,7 +380,7 @@ export const WareBatch: React.FC = () => {
               size="large"
               icon={<PlusOutlined />}
               onClick={() => setIsModalOpen(true)}
-              className="bg-black! hover:bg-gray-700! h-11 px-8"
+              className="bg-[#39b6f9]! hover:bg-blue-700! h-11 px-8"
             >
               Thêm batch mới
             </Button>
@@ -411,7 +411,7 @@ export const WareBatch: React.FC = () => {
         onOk={() => form.submit()}
         okButtonProps={{
           className:
-            "bg-black! hover:bg-gray-700! text-white! border-0 h-10 px-6 text-base font-medium",
+            "bg-[#39b6f9]! hover:bg-blue-700! text-white! border-0 h-10 px-6 text-base font-medium",
           size: "large",
         }}
         cancelButtonProps={{

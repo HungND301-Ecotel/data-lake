@@ -383,7 +383,7 @@ export const ApproveBatch: React.FC = () => {
                             type="primary"
                             icon={<EditOutlined />}
                             onClick={() => nav(`/ware/batch-approve/${record.batchId}`)}
-                            className="bg-black! hover:bg-gray-700!"
+                            className="bg-[#39b6f9]! hover:bg-blue-700! text-white!"
                             size="large"
                         >
                             Xem
@@ -507,7 +507,7 @@ export const ApproveBatch: React.FC = () => {
                                 onClick={handleBulkApprove}
                                 loading={approvalLoading}
                                 disabled={!hasApprovableBatch || selectedRowKeys.length === 0}
-                                className="bg-black! hover:bg-gray-700! h-10 px-6"
+                                className="bg-[#39b6f9]! hover:bg-blue-700! text-white! h-10 px-6"
                                 size="large"
                             >
                                 Duyệt ({selectedRowKeys.length})

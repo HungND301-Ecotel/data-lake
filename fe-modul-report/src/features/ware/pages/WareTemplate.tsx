@@ -242,7 +242,7 @@ const WareTemplate = () => {
             <Button
               icon={<SettingOutlined />}
               size="large"
-              className="bg-black! hover:bg-gray-700! text-white! border-0"
+              className="bg-[#39b6f9]! hover:bg-blue-700! text-white! border-0"
               onClick={() => nav(`/ware/template/detail/${record.id}`)}
             >
               Cấu hình
@@ -255,7 +255,7 @@ const WareTemplate = () => {
           <Button
             icon={<EditOutlined />}
             size="large"
-            className="bg-yellow-300! hover:bg-yellow-200! text-white! border-0"
+            className="bg-green-500! hover:bg-green-600! text-white! border-0"
             onClick={() => handleApproveOrInput(record, "input")}
           >
             Nhập Liệu
@@ -305,7 +305,7 @@ const WareTemplate = () => {
             size="large"
             icon={<PlusOutlined />}
             onClick={handleAdd}
-            className="bg-black! hover:bg-gray-700! text-white! border-0 shadow-md"
+            className="bg-[#39b6f9]! hover:bg-gray-700! text-white! border-0 shadow-md"
             style={{ borderRadius: "8px", minWidth: "160px" }}
           >
             Thêm mới
@@ -339,7 +339,7 @@ const WareTemplate = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white">
-                        <AppstoreOutlined className="text-black! text-lg" />
+                        <AppstoreOutlined className="text-[#39b6f9]! text-lg" />
                       </div>
                       <div>
                         <span className="text-white font-semibold text-base">
@@ -352,7 +352,7 @@ const WareTemplate = () => {
                     </div>
                     <Tag
                       color="white"
-                      className="text-black! font-medium! px-3 py-1"
+                      className="text-[#39b6f9]! font-medium! px-3 py-1"
                     >
                       {grp.templates.length} template
                     </Tag>
@@ -383,9 +383,9 @@ const WareTemplate = () => {
           <div className="flex items-center gap-3 pb-3 border-b">
             <div className="w-10 h-10 rounded-full flex items-center justify-center bg-green-100">
               {editing ? (
-                <EditOutlined className="text-black text-lg" />
+                <EditOutlined className="text-[#39b6f9]! text-lg" />
               ) : (
-                <PlusOutlined className="text-black text-lg" />
+                <PlusOutlined className="text-[#39b6f9]! text-lg" />
               )}
             </div>
             <div className="text-lg font-semibold text-gray-800">
@@ -401,7 +401,7 @@ const WareTemplate = () => {
         width={700}
         okButtonProps={{
           className:
-            "bg-black! hover:bg-gray-700! text-white! border-0 h-10 px-6 text-base font-medium",
+            "bg-[#39b6f9]! hover:bg-blue-700! text-white! border-0 h-10 px-6 text-base font-medium",
           size: "large",
         }}
         cancelButtonProps={{
@@ -578,7 +578,7 @@ const WareTemplate = () => {
               type="primary"
               onClick={handleGoToConfig}
               size="large"
-              className="flex-1 bg-black! hover:bg-gray-700! h-10 font-medium"
+              className="flex-1 bg-[#39b6f9]! hover:bg-blue-700! h-10 font-medium"
             >
               Đi tới cấu hình
             </Button>
@@ -586,7 +586,7 @@ const WareTemplate = () => {
         </div>
       </Modal>
 
-      <style>{`
+            <style>{`
         .modern-template-table .ant-table {
           font-size: 14px;
         }
@@ -613,7 +613,7 @@ const WareTemplate = () => {
         }
         
         .modern-collapse .ant-collapse-header {
-          background: linear-gradient(135deg, #222222 0%, #FFFF66 100%) !important;
+          background: linear-gradient(135deg, #1976D2 0%, #15703d 100%) !important;
           padding: 20px 24px !important;
           border-radius: 12px !important;
           align-items: center !important;

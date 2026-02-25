@@ -50,7 +50,7 @@ const LoginPage = () => {
   return (
     <div className="relative flex flex-col min-h-screen overflow-hidden">
       {/* Header */}
-      <header className="h-auto border-b bg-black backdrop-blur flex items-center justify-center px-6 relative z-20">
+      <header className="h-auto border-b bg-[#39b6f9]! backdrop-blur flex items-center justify-center px-6 relative z-20">
         <div className="flex items-center gap-3 text-primary-foreground py-4">
           <span className="flex flex-col gap-1 text-white">
             <div className="text-base sm:text-5xl font-bold text-center">
@@ -97,7 +97,7 @@ const LoginPage = () => {
 
           {/* Title */}
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-black dark:text-blue-400">
+            <h2 className="text-2xl font-bold text-[#39b6f9]! dark:text-blue-400!">
               Đăng nhập
             </h2>
           </div>
@@ -163,7 +163,7 @@ const LoginPage = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-black hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="w-full bg-[#39b6f9]! hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
                 </button>

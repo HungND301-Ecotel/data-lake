@@ -77,7 +77,7 @@ const DepartmentMy = () => {
             type="primary"
             icon={<EyeOutlined />}
             onClick={() => handleViewDepartment(record.id)}
-            className="bg-black! hover:bg-gray-700! text-white border-0 shadow-md"
+            className="bg-[#39b6f9]! hover:bg-blue-700! text-white border-0 shadow-md"
             size="large"
           >
             Xem
@@ -97,11 +97,11 @@ const DepartmentMy = () => {
         <div className="mb-6 p-4 bg-linear-to-r from-gray-50 to-emerald-50 rounded-lg border border-gray-100">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <TeamOutlined className="text-black text-xl" />
+              <TeamOutlined className="text-[#39b6f9]! text-xl" />
               <span className="font-medium text-gray-700">
                 Phòng ban của bạn:
               </span>
-              <Tag color="black" className="font-bold text-base px-3 py-1">
+              <Tag color="blue" className="font-bold text-base px-3 py-1">
                 {data.length}
               </Tag>
             </div>

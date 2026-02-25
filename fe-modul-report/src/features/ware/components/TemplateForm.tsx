@@ -317,7 +317,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                   size="large"
                   icon={<SaveOutlined />}
                   onClick={handleSave}
-                  className="bg-black! hover:bg-gray-700! h-10 px-6"
+                  className="bg-[#39b6f9]! hover:bg-blue-700! h-10 px-6"
                 >
                   Lưu
                 </Button>
@@ -328,7 +328,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                 size="large"
                 icon={<EditOutlined />}
                 onClick={() => setIsEditing(true)}
-                className="bg-black! hover:bg-gray-700! h-10 px-6"
+                className="bg-[#39b6f9]! hover:bg-blue-700! h-10 px-6"
               >
                 Chỉnh sửa
               </Button>
@@ -466,7 +466,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-100">
-                <TeamOutlined className="text-black text-lg" />
+                <TeamOutlined className="text-[#39b6f9]! text-lg" />
               </div>
               <h1 className="text-xl font-bold text-gray-800 m-0">
                 Cấu hình người duyệt
@@ -487,7 +487,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                 size="large"
                 icon={hasApprovalConfigs ? <EditOutlined /> : <PlusOutlined />}
                 onClick={handleOpenApprovalModal}
-                className="bg-black! hover:bg-gray-700! h-10 px-6"
+                className="bg-[#39b6f9]! hover:bg-gray-700! h-10 px-6"
               >
                 {hasApprovalConfigs ? "Chỉnh sửa người duyệt" : "Thêm mới người duyệt"}
               </Button>
@@ -496,7 +496,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
 
           {loadingConfigs ? (
             <div className="text-center py-12">
-              <ReloadOutlined className="text-4xl text-blue-500 animate-spin mb-3" />
+              <ReloadOutlined className="text-4xl text-blue-500! animate-spin mb-3" />
               <p className="text-gray-500">Đang tải...</p>
             </div>
           ) : approvalConfigs.length > 0 ? (
@@ -584,9 +584,9 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
           <div className="flex items-center gap-3 pb-3 border-b">
             <div className="w-10 h-10 flex items-center justify-center bg-gray-100">
               {hasApprovalConfigs ? (
-                <EditOutlined className="text-black text-lg" />
+                <EditOutlined className="text-[#39b6f9]! text-lg" />
               ) : (
-                <PlusOutlined className="text-black text-lg" />
+                <PlusOutlined className="text-[#39b6f9]! text-lg" />
               )}
             </div>
             <div className="text-lg font-semibold text-gray-800">
@@ -604,7 +604,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
         width={800}
         okButtonProps={{
           className:
-            "bg-black! hover:bg-gray-700! text-white! border-0 h-10 px-6 text-base font-medium",
+            "bg-[#39b6f9]! hover:bg-blue-700! text-white! border-0 h-10 px-6 text-base font-medium",
           size: "large",
         }}
         cancelButtonProps={{
@@ -614,7 +614,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
       >
         <div className="py-4">
           <label className="block mb-4 font-semibold text-gray-800 text-base items-center gap-2">
-            <TeamOutlined className="text-black" />
+            <TeamOutlined className="text-[#39b6f9]!" />
             Danh sách người duyệt
           </label>
 
@@ -790,7 +790,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                 block
                 size="large"
                 icon={<PlusOutlined />}
-                className="bg-black! hover:bg-gray-700! h-11 font-medium rounded-lg"
+                className="bg-[#39b6f9]! hover:bg-blue-700! h-11 font-medium rounded-lg"
               >
                 Thêm người duyệt
               </Button>

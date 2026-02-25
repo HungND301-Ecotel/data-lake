@@ -11,7 +11,7 @@ const Header = () => {
   return (
     <header className="w-full">
       <div
-        className={`bg-black border-b border-black transition-all duration-300 overflow-hidden`}
+        className={`bg-[#39b6f9]! border-b border-white transition-all duration-300 overflow-hidden`}
       >
         <div
           className={`flex items-center justify-center px-6 py-3 text-white transition-all duration-300 `}

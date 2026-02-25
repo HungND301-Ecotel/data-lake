@@ -212,7 +212,7 @@ const WareCategoryPage = () => {
           <Button
             icon={<EditOutlined />}
             onClick={() => handleEdit(record)}
-            className="bg-black! hover:bg-gray-700! text-white! border-0"
+            className="bg-[#39b6f9]! hover:bg-blue-700! text-white! border-0"
           >
             Sửa
           </Button>
@@ -272,7 +272,7 @@ const WareCategoryPage = () => {
             size="large"
             icon={<PlusOutlined />}
             onClick={handleAdd}
-            className="bg-black! hover:bg-gray-700! text-white! border-0 shadow-md"
+            className="bg-[#39b6f9]! hover:bg-blue-700! text-white! border-0 shadow-md"
             style={{ borderRadius: "8px", minWidth: "140px" }}
           >
             Thêm mới
@@ -335,7 +335,7 @@ const WareCategoryPage = () => {
               {editing ? (
                 <EditOutlined className="text-blue-600 text-lg" />
               ) : (
-                <PlusOutlined className="text-black text-lg" />
+                <PlusOutlined className="text-[#39b6f9]! text-lg" />
               )}
             </div>
             <div>
@@ -350,7 +350,7 @@ const WareCategoryPage = () => {
         }
         width={800}
         okButtonProps={{
-          className: "bg-black! hover:bg-gray-700! text-white border-0 h-10 px-6 text-base font-medium",
+          className: "bg-[#39b6f9]! hover:bg-blue-700! text-white border-0 h-10 px-6 text-base font-medium",
           size: "large",
         }}
         cancelButtonProps={{

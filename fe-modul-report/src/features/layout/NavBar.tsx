@@ -253,7 +253,7 @@ export default function NavBar() {
   );
 
   return (
-    <nav className="top-0 z-50 bg-black flex items-center px-8 py-3 gap-2 shadow-lg border-b border-black">
+    <nav className="top-0 z-50 bg-[#39b6f9]! flex items-center px-8 py-3 gap-2 shadow-lg border-b border-white">
       {/* Back Button */}
       <Button
         type="text"

@@ -411,7 +411,7 @@ export const SyncBatch: React.FC = () => {
               icon={<CloudUploadOutlined />}
               onClick={handleSyncClick}
               disabled={selectedIds.length === 0}
-              className="bg-blue-600! hover:bg-blue-700! h-10 px-6"
+              className="bg-blue-600! hover:bg-blue-700! text-white! h-10 px-6"
             >
               Đồng bộ ({selectedIds.length})
             </Button>
