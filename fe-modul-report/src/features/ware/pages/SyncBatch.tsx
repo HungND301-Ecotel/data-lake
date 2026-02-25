@@ -29,6 +29,7 @@ import {
 } from "@ant-design/icons";
 import { userPushApi } from "../../auth/api/accountConfigApi";
 import type { UserPushResponse } from "../../auth/types/accountConfig";
+import { departmentApi } from "../../department/api/departmentApi";
 
 const { Search } = Input;
 const { Option } = Select;
@@ -48,6 +49,21 @@ export const SyncBatch: React.FC = () => {
   const [messageApi, contextHolderMessage] = message.useMessage();
   const [userPushConfig, setUserPushConfig] = useState<UserPushResponse | null>(null);
   const [pushStatusFilter, setPushStatusFilter] = useState<boolean | null>(null);
+  const [departments, setDepartments] = useState<any[]>([]);
+  const [departmentFilter, setDepartmentFilter] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const res = await departmentApi.searchDepartment("", 0, 20000);
+        setDepartments(res.content);
+      } catch (error) {
+        console.error("Lấy danh sách phòng ban thất bại", error);
+      }
+    };
+
+    fetchDepartments();
+  }, []);
 
   const fetchBatches = async () => {
     setLoading(true);
@@ -57,6 +73,7 @@ export const SyncBatch: React.FC = () => {
         limit,
         keyword: searchKeyword,
         status: "Da_Phe_Duyet",
+        departmentId: departmentFilter,
       };
       const res: PageResponse<WareBatchResponse> =
         await wareBatchApi.searchWareBatch(params);
@@ -86,7 +103,15 @@ export const SyncBatch: React.FC = () => {
   useEffect(() => {
     fetchBatches();
     loadUserPushConfig();
-  }, [page, searchKeyword]);
+  }, [page, searchKeyword, departmentFilter]);
+
+  // Filter FE cho isPushed
+  const filteredBatches = useMemo(() => {
+    if (pushStatusFilter === null) {
+      return batches;
+    }
+    return batches.filter((batch) => batch.isPushed === pushStatusFilter);
+  }, [batches, pushStatusFilter]);
 
   // Filter FE cho isPushed
   const filteredBatches = useMemo(() => {
@@ -187,6 +212,7 @@ export const SyncBatch: React.FC = () => {
 
   const handleClearFilter = () => {
     setPushStatusFilter(null);
+    setDepartmentFilter(null);
   };
 
   const columns: ColumnsType<WareBatchResponse> = [
@@ -350,7 +376,30 @@ export const SyncBatch: React.FC = () => {
               </Option>
             </Select>
 
-            {pushStatusFilter !== null && (
+            <Select
+              placeholder="Lọc theo phòng ban"
+              value={departmentFilter}
+              onChange={(value) => {
+                setDepartmentFilter(value);
+              }}
+              allowClear
+              size="large"
+              className="w-48"
+              showSearch
+              optionFilterProp="children"
+              filterOption={(input, option) => {
+                const label = typeof option?.children === "string" ? option.children : "";
+                return label.toLowerCase().includes(input.toLowerCase());
+              }}
+            >
+              {departments.map((dept) => (
+                <Option key={dept.id} value={dept.id}>
+                  {dept.name}
+                </Option>
+              ))}
+            </Select>
+
+            {(pushStatusFilter !== null || departmentFilter !== null) && (
               <Button onClick={handleClearFilter} size="large">
                 Xóa bộ lọc
               </Button>
