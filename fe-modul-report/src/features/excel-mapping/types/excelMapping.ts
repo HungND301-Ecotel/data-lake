@@ -1,14 +1,21 @@
 export interface ColumnMapping {
-  source_column: string;
-  target_column: string;
-  confidence: number;
+  excel_column_index: number;
+  excel_column_name: string;
+  mapped_key: string;
+  mapped_name: string;
   data_type: string;
+  data_length: number;
 }
 
 export interface ExcelMappingResult {
-  columns_detected: number;
-  suggested_mappings: ColumnMapping[];
-  data_types: Record<string, string>;
+  company_id: string | null;
+  company_name: string | null;
+  day: number | null;
+  month: number | null;
+  year: number | null;
+  header_row: number;
+  data_start_row: number;
+  column_mapping: ColumnMapping[];
 }
 
 export interface ExcelMappingResponse {

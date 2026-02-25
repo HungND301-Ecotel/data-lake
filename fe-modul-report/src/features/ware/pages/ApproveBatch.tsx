@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
     Table,
     Button,
@@ -12,6 +12,7 @@ import {
     Spin,
     Card,
     Tag,
+    Select,
 } from "antd";
 import type { UploadFile } from "antd/es/upload/interface";
 import type { ColumnsType } from "antd/es/table";
@@ -31,16 +32,20 @@ import {
     FileTextOutlined,
     CheckOutlined,
     CloseOutlined,
+    FilterOutlined,
 } from "@ant-design/icons";
+import { departmentApi } from "../../department/api/departmentApi";
 
 const { Search } = Input;
+const { Option } = Select;
 
 type BatchRecord = any & { id?: string | number };
 
 export const ApproveBatch: React.FC = () => {
     const [batches, setBatches] = useState<BatchRecord[]>([]);
     const [loading, setLoading] = useState(false);
-    const [searchKeyword, setSearchKeyword] = useState<string | null>(null);
+    const [searchKeyword, setSearchKeyword] = useState<string>("");
+    const [statusFilter, setStatusFilter] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [fileList, setFileList] = useState<UploadFile[]>([]);
     const [form] = Form.useForm<WareBatchRequest>();
@@ -50,11 +55,15 @@ export const ApproveBatch: React.FC = () => {
     const [modal, contextHolderModal] = Modal.useModal();
     const [selectedRowKeys, setSelectedRowKeys] = useState<(string | number)[]>([]);
     const [approvalLoading, setApprovalLoading] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [departments, setDepartments] = useState<any[]>([]);
+    const [departmentFilter, setDepartmentFilter] = useState<string | null>(null);
 
     const fetchBatches = async () => {
         setLoading(true);
         try {
-            const res = await wareBatchApi.getMyApprovals();
+            const res = await wareBatchApi.getMyApprovals(departmentFilter || undefined);
             console.log("Fetched batches:", res);
 
             const batchesWithId = res.map((batch: any, index: number) => ({
@@ -71,8 +80,55 @@ export const ApproveBatch: React.FC = () => {
     };
 
     useEffect(() => {
+        const fetchDepartments = async () => {
+            try {
+                const res = await departmentApi.searchDepartment("", 0, 20000);
+                setDepartments(res.content);
+            } catch (error) {
+                console.error("Lấy danh sách phòng ban thất bại", error);
+            }
+        };
+
+        fetchDepartments();
+    }, []);
+
+    useEffect(() => {
         fetchBatches();
-    }, [searchKeyword]);
+    }, [departmentFilter]);
+
+    useEffect(() => {
+        fetchBatches();
+    }, []);
+
+    // Filter and search logic on FE
+    const filteredBatches = useMemo(() => {
+        let filtered = [...batches];
+
+        // Apply search filter
+        if (searchKeyword && searchKeyword.trim()) {
+            const keyword = searchKeyword.toLowerCase().trim();
+            filtered = filtered.filter((batch) => {
+                const batchCode = (batch.batchCode || "").toLowerCase();
+                const batchName = (batch.batchName || "").toLowerCase();
+                const description = (batch.description || "").toLowerCase();
+
+                return (
+                    batchCode.includes(keyword) ||
+                    batchName.includes(keyword) ||
+                    description.includes(keyword)
+                );
+            });
+        }
+
+        // Apply status filter
+        if (statusFilter) {
+            filtered = filtered.filter(
+                (batch) => batch.myApprovalStatus === statusFilter
+            );
+        }
+
+        return filtered;
+    }, [batches, searchKeyword, statusFilter]);
 
     const handleAddBatch = async (values: WareBatchRequest) => {
         try {
@@ -194,6 +250,13 @@ export const ApproveBatch: React.FC = () => {
                 }
             },
         });
+    };
+
+    const handleClearFilters = () => {
+        setSearchKeyword("");
+        setStatusFilter(null);
+        setDepartmentFilter(null);
+        setCurrentPage(1);
     };
 
     const getStatusBadge = (status: string) => {
@@ -351,7 +414,7 @@ export const ApproveBatch: React.FC = () => {
         }),
     };
 
-    const hasApprovableBatch = batches.some(b => b.canApprove);
+    const hasApprovableBatch = filteredBatches.some(b => b.canApprove);
 
     return (
         <div className="px-6 py-6 bg-linear-to-br from-gray-50 to-gray-100 min-h-screen">
@@ -363,17 +426,77 @@ export const ApproveBatch: React.FC = () => {
                     <div className="flex items-center gap-3 flex-1 min-w-64">
                         <Search
                             placeholder="Tìm kiếm theo mã, tên hoặc mô tả..."
-                            onSearch={(value) => setSearchKeyword(value || null)}
+                            value={searchKeyword}
+                            onChange={(e) => {
+                                setSearchKeyword(e.target.value);
+                                setCurrentPage(1);
+                            }}
                             allowClear
                             size="large"
                             prefix={<SearchOutlined className="text-gray-400" />}
                             className="flex-1 rounded-lg"
-                            enterButton={
-                                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                                    Tìm kiếm
-                                </Button>
-                            }
+
+
+
+
+
                         />
+
+                        <Select
+                            placeholder="Lọc theo trạng thái"
+                            value={statusFilter}
+                            onChange={(value) => {
+                                setStatusFilter(value);
+                                setCurrentPage(1);
+                            }}
+                            allowClear
+                            size="large"
+                            className="w-48"
+                            suffixIcon={<FilterOutlined />}
+                        >
+                            <Option value="Cho_Phe_Duyet">
+                                <Tag color="orange">Chờ Duyệt</Tag>
+                            </Option>
+                            <Option value="Da_Phe_Duyet">
+                                <Tag color="success">Đã Duyệt</Tag>
+                            </Option>
+                            <Option value="Tu_Choi_Phe_Duyet">
+                                <Tag color="error">Đã Từ Chối</Tag>
+                            </Option>
+                        </Select>
+
+                        <Select
+                            placeholder="Lọc theo phòng ban"
+                            value={departmentFilter}
+                            onChange={(value) => {
+                                setDepartmentFilter(value);
+                                setCurrentPage(1);
+                            }}
+                            allowClear
+                            size="large"
+                            className="w-48"
+                            showSearch
+                            optionFilterProp="children"
+                            filterOption={(input, option) => {
+                                const label = typeof option?.children === "string" ? option.children : "";
+                                return label.toLowerCase().includes(input.toLowerCase());
+                            }}
+                        >
+                            {departments.map((dept) => (
+                                <Option key={dept.id} value={dept.id}>
+                                    {dept.name}
+                                </Option>
+                            ))}
+                        </Select>
+
+                        {(searchKeyword || statusFilter || departmentFilter) && (
+                            <Button
+                                onClick={handleClearFilters}
+                                size="large"
+                            >
+                                Xóa bộ lọc
+                            </Button>
+                        )}
                     </div>
 
                     <Space.Compact>
@@ -421,6 +544,9 @@ export const ApproveBatch: React.FC = () => {
                             Danh sách Batch Chờ Duyệt
                         </h1>
                     </div>
+                    <div className="text-sm text-gray-600">
+                        Hiển thị {filteredBatches.length} / {batches.length} batch
+                    </div>
                 </div>
 
                 <Spin spinning={approvalLoading} tip="Đang xử lý...">
@@ -428,15 +554,25 @@ export const ApproveBatch: React.FC = () => {
                         <Table
                             rowKey="id"
                             columns={columns}
-                            dataSource={batches}
+                            dataSource={filteredBatches}
                             loading={loading}
                             rowSelection={rowSelection}
                             size="middle"
                             bordered
                             pagination={{
+                                current: currentPage,
+                                pageSize: pageSize,
                                 showSizeChanger: true,
                                 showTotal: (total) => `Tổng cộng ${total} batch`,
-                                pageSizeOptions: [10, 20, 50],
+                                pageSizeOptions: [10, 20, 50, 100],
+                                onChange: (page, size) => {
+                                    setCurrentPage(page);
+                                    setPageSize(size);
+                                },
+                                onShowSizeChange: (_, size) => {
+                                    setPageSize(size);
+                                    setCurrentPage(1);
+                                },
                             }}
                             rowClassName={(record, index) =>
                                 record.canApprove

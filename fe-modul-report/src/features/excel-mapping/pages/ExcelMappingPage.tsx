@@ -1,7 +1,7 @@
-import { Card, Upload, Button, Alert, Empty, Spin } from "antd";
+import { Card, Upload, Button, Alert, Spin } from "antd";
 import { UploadOutlined, FileExcelOutlined } from "@ant-design/icons";
 import { useExcelMapping } from "../hooks/useExcelMapping";
-import MappingResultTable from "../components/MappingResultTable";
+// import MappingResultTable from "../components/MappingResultTable";
 
 export default function ExcelMappingPage() {
   const { result, loading, error, analyze, clear } = useExcelMapping();
@@ -57,13 +57,13 @@ export default function ExcelMappingPage() {
         )}
       </Card>
 
-      {result ? (
+      {/* {result ? (
         <MappingResultTable result={result} />
       ) : (
         !loading && (
           <Empty description="Upload file Excel để AI phân tích column mapping" />
         )
-      )}
+      )} */}
     </div>
   );
 }
