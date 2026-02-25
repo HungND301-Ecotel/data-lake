@@ -34,6 +34,7 @@ import {
     CloseOutlined,
     FilterOutlined,
 } from "@ant-design/icons";
+import { departmentApi } from "../../department/api/departmentApi";
 
 const { Search } = Input;
 const { Option } = Select;
@@ -56,11 +57,13 @@ export const ApproveBatch: React.FC = () => {
     const [approvalLoading, setApprovalLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
+    const [departments, setDepartments] = useState<any[]>([]);
+    const [departmentFilter, setDepartmentFilter] = useState<string | null>(null);
 
     const fetchBatches = async () => {
         setLoading(true);
         try {
-            const res = await wareBatchApi.getMyApprovals();
+            const res = await wareBatchApi.getMyApprovals(departmentFilter || undefined);
             console.log("Fetched batches:", res);
 
             const batchesWithId = res.map((batch: any, index: number) => ({
@@ -75,6 +78,23 @@ export const ApproveBatch: React.FC = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        const fetchDepartments = async () => {
+            try {
+                const res = await departmentApi.searchDepartment("", 0, 20000);
+                setDepartments(res.content);
+            } catch (error) {
+                console.error("Lấy danh sách phòng ban thất bại", error);
+            }
+        };
+
+        fetchDepartments();
+    }, []);
+
+    useEffect(() => {
+        fetchBatches();
+    }, [departmentFilter]);
 
     useEffect(() => {
         fetchBatches();
@@ -235,6 +255,7 @@ export const ApproveBatch: React.FC = () => {
     const handleClearFilters = () => {
         setSearchKeyword("");
         setStatusFilter(null);
+        setDepartmentFilter(null);
         setCurrentPage(1);
     };
 
@@ -414,6 +435,11 @@ export const ApproveBatch: React.FC = () => {
                             size="large"
                             prefix={<SearchOutlined className="text-gray-400" />}
                             className="flex-1 rounded-lg"
+
+
+
+
+
                         />
 
                         <Select
@@ -439,7 +465,31 @@ export const ApproveBatch: React.FC = () => {
                             </Option>
                         </Select>
 
-                        {(searchKeyword || statusFilter) && (
+                        <Select
+                            placeholder="Lọc theo phòng ban"
+                            value={departmentFilter}
+                            onChange={(value) => {
+                                setDepartmentFilter(value);
+                                setCurrentPage(1);
+                            }}
+                            allowClear
+                            size="large"
+                            className="w-48"
+                            showSearch
+                            optionFilterProp="children"
+                            filterOption={(input, option) => {
+                                const label = typeof option?.children === "string" ? option.children : "";
+                                return label.toLowerCase().includes(input.toLowerCase());
+                            }}
+                        >
+                            {departments.map((dept) => (
+                                <Option key={dept.id} value={dept.id}>
+                                    {dept.name}
+                                </Option>
+                            ))}
+                        </Select>
+
+                        {(searchKeyword || statusFilter || departmentFilter) && (
                             <Button
                                 onClick={handleClearFilters}
                                 size="large"

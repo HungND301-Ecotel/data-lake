@@ -51,8 +51,9 @@ export const wareBatchApi = {
     return res.data;
   },
 
-  getMyApprovals: async () => {
-    const res = await axiosClient.get(`/wh-batch/my-approvals`);
+  getMyApprovals: async (departmentId?: string) => {
+    const params = departmentId ? { departmentId } : {};
+    const res = await axiosClient.get(`/wh-batch/my-approvals`, { params });
     return res.data;
   },
 };

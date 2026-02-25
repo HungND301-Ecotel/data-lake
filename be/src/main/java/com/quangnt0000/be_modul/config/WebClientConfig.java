@@ -9,13 +9,20 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
 public class WebClientConfig {
 
+    @Value("${datalake.base-url:http://1.53.45.49:1313}")
+    private String dataLakeBaseUrl;
+
     @Bean
+    @Qualifier("vinacominWebClient")
     public WebClient webClient() {
         String baseUrl = "https://apidatabi.vinacomin.vn";
         int connectionTimeout = 5000;
@@ -32,6 +39,14 @@ public class WebClientConfig {
         return WebClient.builder()
                 .baseUrl(baseUrl)
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
+                .build();
+    }
+
+    @Bean
+    @Qualifier("dataLakeWebClient")
+    public WebClient dataLakeWebClient() {
+        return WebClient.builder()
+                .baseUrl(dataLakeBaseUrl)
                 .build();
     }
 }
