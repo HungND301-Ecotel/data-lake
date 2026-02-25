@@ -113,13 +113,6 @@ export const SyncBatch: React.FC = () => {
     return batches.filter((batch) => batch.isPushed === pushStatusFilter);
   }, [batches, pushStatusFilter]);
 
-  // Filter FE cho isPushed
-  const filteredBatches = useMemo(() => {
-    if (pushStatusFilter === null) {
-      return batches;
-    }
-    return batches.filter((batch) => batch.isPushed === pushStatusFilter);
-  }, [batches, pushStatusFilter]);
 
   const getStatusBadge = (status: string) => {
     const statusConfig: {
