@@ -20,7 +20,7 @@ spring:
       mode: always
       data-locations: classpath:data.sql
 server:
-  port: 8080
+  port: 5566
   servlet:
     context-path: /api
 
