@@ -467,8 +467,8 @@ const EmployeePage = () => {
             </Form.Item>
             <Form.Item
               name="birthday"
-              label={<span className="font-medium text-gray-700">Ngày sinh <span className="text-red-500">*</span></span>}
-              rules={[{ required: true, message: "Vui lòng chọn ngày sinh" }]}
+              label={<span className="font-medium text-gray-700">Ngày sinh</span>}
+              rules={[{ required: false, message: "Vui lòng chọn ngày sinh" }]}
               labelCol={{ span: 24 }}
               wrapperCol={{ span: 24 }}
             >
@@ -476,8 +476,8 @@ const EmployeePage = () => {
             </Form.Item>
             <Form.Item
               name="gender"
-              label={<span className="font-medium text-gray-700">Giới tính <span className="text-red-500">*</span></span>}
-              rules={[{ required: true, message: "Vui lòng chọn giới tính" }]}
+              label={<span className="font-medium text-gray-700">Giới tính</span>}
+              rules={[{ required: false, message: "Vui lòng chọn giới tính" }]}
               labelCol={{ span: 24 }}
               wrapperCol={{ span: 24 }}
             >
@@ -498,8 +498,8 @@ const EmployeePage = () => {
           </div>
           <Form.Item
             name="address"
-            label={<span className="font-medium text-gray-700">Địa chỉ <span className="text-red-500">*</span></span>}
-            rules={[{ required: true, message: "Vui lòng nhập địa chỉ" }]}
+            label={<span className="font-medium text-gray-700">Địa chỉ </span>}
+            rules={[{ required: false, message: "Vui lòng nhập địa chỉ" }]}
             labelCol={{ span: 24 }}
             wrapperCol={{ span: 24 }}
           >
