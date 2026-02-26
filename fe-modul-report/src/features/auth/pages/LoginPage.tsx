@@ -7,6 +7,7 @@ import type { LoginResponse } from "../../employee/types/user";
 import { useAuthStore } from "../../../stores/authStore";
 import { userApi } from "../api/userApi";
 import logoUb from "../../../file/logo-ub.jpg";
+import Banner from "../../../file/Banner.jpg";
 
 
 const LoginPage = () => {
@@ -76,7 +77,7 @@ const LoginPage = () => {
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <img
-          src="https://uongbi.gov.vn/ckfinder/userfiles/images/2024/4/19/294A0768.JPG"
+          src={Banner}
           alt="HR Background"
           className="object-cover w-full h-full"
         />
