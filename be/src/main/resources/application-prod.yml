@@ -20,7 +20,7 @@ spring:
       mode: always
       data-locations: classpath:data.sql
 server:
-  port: 8080
+  port: 5566
   servlet:
     context-path: /api
 
@@ -40,7 +40,7 @@ webclient:
   read-timeout: 10000
 
 datalake:
-  base-url: ${DATALAKE_BASE_URL:http://localhost:8000}
+  base-url: ${DATALAKE_BASE_URL:http://1.53.45.49:1313}
 
 account:
   username: ${USERNAME_VINA}

@@ -39,7 +39,7 @@ public class Department {
     @Builder.Default
     private Boolean deleted = false;
 
-    @OneToMany(mappedBy = "department")
+    @ManyToMany(mappedBy = "departments")
     private List<Employee> employees;
 
     @OneToMany(mappedBy = "department")

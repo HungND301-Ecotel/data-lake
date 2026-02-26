@@ -19,7 +19,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,8 +32,13 @@ public class EmployeeService {
     private final S3Service s3Service;
     private final UserRepository userRepository;
     public ResponseEntity<?> addEmployee(EmployeeRequest request) {
-        Department department = departmentRepository.findById(request.getDepartmentId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Department not found"));
+        List<Department> departments = List.of();
+        if (request.getDepartmentIds() != null && !request.getDepartmentIds().isEmpty()) {
+            departments = departmentRepository.findAllById(request.getDepartmentIds());
+            if (departments.size() != request.getDepartmentIds().size()) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "One or more departments not found");
+            }
+        }
 
         Employee employee = Employee.builder()
                 .name(request.getName())
@@ -41,7 +48,7 @@ public class EmployeeService {
                 .birthday(request.getBirthday())
                 .gender(request.getGender())
                 .position(request.getPosition())
-                .department(department)
+                .departments(departments)
                 .build();
         employee = employeeRepository.save(employee);
         return ResponseEntity.ok(employee.getId());
@@ -50,11 +57,20 @@ public class EmployeeService {
     public ResponseEntity<?> updateEmployee(EmployeeRequest request) {
         Employee employee = employeeRepository.findByIdAndDeletedFalse(request.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found"));
-        if( request.getDepartmentId()!=null && (employee.getDepartment() == null || !employee.getDepartment().getId().equals(request.getDepartmentId()))) {
-            Department department = departmentRepository.findById(request.getDepartmentId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Department not found"));
-            employee.setDepartment(department);
+        
+        if(request.getDepartmentIds() != null) {
+            if (!request.getDepartmentIds().isEmpty()) {
+                List<Department> departments = departmentRepository.findAllById(request.getDepartmentIds());
+                if (departments.size() != request.getDepartmentIds().size()) {
+                    throw new ResponseStatusException(HttpStatus.NOT_FOUND, "One or more departments not found");
+                }
+                employee.setDepartments(departments);
+            } else {
+                // Clear all departments if empty array is sent
+                employee.setDepartments(new ArrayList<>());
+            }
         }
+        
         employee.setName(request.getName());
         employee.setEmail(request.getEmail());
         employee.setPhone(request.getPhone());
@@ -96,11 +112,20 @@ public class EmployeeService {
     public ResponseEntity<?> getByEmployeeId(String employeeId) {
         Employee employee = employeeRepository.findByIdAndDeletedFalse(employeeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found"));
+        
+        List<EmployeeResponse.DepartmentInfo> departmentInfos = employee.getDepartments() != null 
+                ? employee.getDepartments().stream()
+                    .map(dept -> EmployeeResponse.DepartmentInfo.builder()
+                            .id(dept.getId())
+                            .name(dept.getName())
+                            .build())
+                    .collect(Collectors.toList())
+                : new ArrayList<>();
+        
         EmployeeResponse employeeResponse = EmployeeResponse.builder()
                 .id(employee.getId())
                 .name(employee.getName())
-                .departmentId(employee.getDepartment().getId())
-                .departmentName(employee.getDepartment().getName())
+                .departments(departmentInfos)
                 .position(employee.getPosition())
                 .phone(employee.getPhone())
                 .email(employee.getEmail())
