@@ -107,13 +107,17 @@ public class DepartmentService {
             return ResponseEntity.ok(searchDepartment(request).getBody());
         }
         if (role.equals("USER") || role.equals("MANAGER")) {
-             Department department = employee.getDepartment();
-             departmentResponses.add(DepartmentResponse.builder()
-                     .id(department.getId())
-                     .name(department.getName())
-                     .code(department.getCode())
-                     .description(department.getDescription())
-                     .build());
+             List<Department> departments = employee.getDepartments();
+             if (departments != null) {
+                 for (Department department : departments) {
+                 departmentResponses.add(DepartmentResponse.builder()
+                         .id(department.getId())
+                         .name(department.getName())
+                         .code(department.getCode())
+                         .description(department.getDescription())
+                         .build());
+                 }
+             }
              return ResponseEntity.ok(
                      PageResponse.builder()
                              .page(request.getPage())
