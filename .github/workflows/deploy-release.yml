@@ -28,7 +28,8 @@ jobs:
 
       - name: Create an .env file in frontend for building image
         run: |
-          echo "VITE_APIL=${{ secrets.VITE_APIL }}" > ./fe-modul-report/.env
+          echo "VITE_API=${{ secrets.VITE_API }}" > ./fe-modul-report/.env
+          echo "VITE_DATALAKE_API=${{ secrets.VITE_DATALAKE_API }}" >> ./fe-modul-report/.env
 
       - name: List Files
         run: ls -laR
