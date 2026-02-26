@@ -545,7 +545,7 @@ export const ApproveBatch: React.FC = () => {
                     <div className="text-sm text-gray-600">
                         Hiển thị {filteredBatches.length} / {batches.length} batch
                     </div>
-                </div>
+                </div> 
 
                 <Spin spinning={approvalLoading} tip="Đang xử lý...">
                     <div className="overflow-x-auto rounded-lg border border-gray-200">
