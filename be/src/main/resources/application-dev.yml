@@ -35,7 +35,7 @@ jwt:
   secret: ${JWT_SECRET}
 
 datalake:
-  base-url: http://localhost:8000
+  base-url: http://1.53.45.49:1313
 
 account:
   username: ${USERNAME_VINA}

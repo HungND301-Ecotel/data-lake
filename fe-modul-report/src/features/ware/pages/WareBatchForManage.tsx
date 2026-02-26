@@ -65,7 +65,7 @@ export const WareBatchForManagement: React.FC = () => {
 
             setBatches(batchesWithId);
         } catch (error) {
-            messageApi.error("Lấy danh sách batch thất bại");
+            messageApi.error("Lấy danh sách báo cáo thất bại");
         } finally {
             setLoading(false);
         }
@@ -428,7 +428,7 @@ export const WareBatchForManagement: React.FC = () => {
                             <FileTextOutlined className="text-purple-600 text-lg" />
                         </div>
                         <h1 className="text-xl font-bold text-gray-800 m-0">
-                            Danh sách Batch Chờ Duyệt
+                            Danh sách Báo cáo Chờ Duyệt
                         </h1>
                     </div>
                     <Button

@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 public class WebClientConfig {
 
-    @Value("${datalake.base-url:http://localhost:8000}")
+    @Value("${datalake.base-url:http://1.53.45.49:1313}")
     private String dataLakeBaseUrl;
 
     @Bean
