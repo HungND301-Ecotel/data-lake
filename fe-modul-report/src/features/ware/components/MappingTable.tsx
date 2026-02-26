@@ -153,8 +153,14 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
   ];
 
   // ---- Helpers ----
-  const isNormalEditing = (record: WareMappingResponse) =>
-    record.id !== null && editingId === record.id;
+  const isNormalEditing = (record: WareMappingResponse) => {
+    // Row mới thêm thủ công (id=null, không phải pending từ AI)
+    if (record.id === null && pendingRows.length === 0 && editingId === null && editingRequest !== null) {
+      return true;
+    }
+    // Row đang sửa có id thật
+    return record.id !== null && editingId === record.id;
+  };
 
   const getPendingIndex = (record: WareMappingResponse): number => {
     if (record.id !== null) return -1;
