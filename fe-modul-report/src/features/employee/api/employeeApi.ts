@@ -31,9 +31,7 @@ export const employeeApi = {
   },
 
   updateEmployee: async (request: EmployeeRequest): Promise<string> => {
-    const res = await axiosClient.put("/employee", request, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    const res = await axiosClient.put("/employee/json", request);
     return res.data;
   },
 
