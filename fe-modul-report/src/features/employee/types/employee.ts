@@ -7,6 +7,8 @@ export interface EmployeeResponse {
     id: string;
     name: string;
     departments: DepartmentSimple[];
+    departmentId?: string;
+    departmentName?: string;
     position: string;
     phone: string;
     email: string;
@@ -26,7 +28,7 @@ export interface EmployeeRequest {
     birthday: string;
     gender: string;
     position: string;
-    departmentIds: string[]; 
+    departmentIds: string[];
     avatarFile?: File | null;
 }
 
