@@ -1,8 +1,14 @@
+export interface DepartmentSimple {
+    id: string;
+    name: string;
+}
+
 export interface EmployeeResponse {
     id: string;
     name: string;
-    departmentId: string;
-    departmentName: string;
+    departments: DepartmentSimple[];
+    departmentId?: string;
+    departmentName?: string;
     position: string;
     phone: string;
     email: string;
@@ -22,8 +28,7 @@ export interface EmployeeRequest {
     birthday: string;
     gender: string;
     position: string;
-    departmentId: string;
+    departmentIds: string[];
     avatarFile?: File | null;
 }
 
-  

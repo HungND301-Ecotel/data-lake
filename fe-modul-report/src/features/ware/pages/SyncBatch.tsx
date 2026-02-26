@@ -80,7 +80,7 @@ export const SyncBatch: React.FC = () => {
       setBatches(res.content);
       setTotal(res.totalElements);
     } catch (error) {
-      messageApi.error("Lấy danh sách batch thất bại");
+      messageApi.error("Lấy danh sách báo cáo thất bại");
     } finally {
       setLoading(false);
     }
