@@ -21,6 +21,7 @@ import {
   FileTextOutlined,
   CalendarOutlined,
 } from "@ant-design/icons";
+import type { EmployeeResponse } from "../../employee/types/employee";
 
 interface TemplateFormProps {
   templateId: number;
@@ -34,20 +35,6 @@ interface ApprovalConfig {
   isActive: boolean;
 }
 
-interface Employee {
-  id: string;
-  name: string;
-  departmentId: string;
-  departmentName: string;
-  position: string;
-  phone: string;
-  email: string;
-  address: string;
-  gender: string;
-  birthday: string;
-  keyAvatar: string | null;
-  role: string | null;
-}
 
 const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
 
@@ -62,10 +49,10 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
     null
   );
 
-  const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
+  const [allEmployees, setAllEmployees] = useState<EmployeeResponse[]>([]);
   const [tempApprovers, setTempApprovers] = useState<string[]>([]);
   const [searchEmployee, setSearchEmployee] = useState("");
-  const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
+  const [filteredEmployees, setFilteredEmployees] = useState<EmployeeResponse[]>([]);
 
   const fetchTemplate = async () => {
     try {

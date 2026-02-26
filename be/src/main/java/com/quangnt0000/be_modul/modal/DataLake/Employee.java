@@ -11,6 +11,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -47,7 +49,12 @@ public class Employee {
     @Builder.Default
     private Boolean deleted = false;
 
-    @ManyToOne
-    @JoinColumn(name = "departmentId")
-    private Department department;
+    @ManyToMany
+    @JoinTable(
+        name = "employee_department",
+        joinColumns = @JoinColumn(name = "employee_id"),
+        inverseJoinColumns = @JoinColumn(name = "department_id")
+    )
+    @Builder.Default
+    private List<Department> departments = new ArrayList<>();
 }
