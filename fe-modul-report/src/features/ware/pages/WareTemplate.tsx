@@ -305,7 +305,7 @@ const WareTemplate = () => {
             size="large"
             icon={<PlusOutlined />}
             onClick={handleAdd}
-            className="bg-green-600! hover:bg-green-700! text-white! border-0 shadow-md"
+            className="bg-[#0891b2]! hover:bg-cyan-7000! text-white! border-0 shadow-md"
             style={{ borderRadius: "8px", minWidth: "160px" }}
           >
             Thêm mới
@@ -401,7 +401,7 @@ const WareTemplate = () => {
         width={700}
         okButtonProps={{
           className:
-            "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
+            "bg-[#0891b2]! hover:bg-cyan-7000! text-white! border-0 h-10 px-6 text-base font-medium",
           size: "large",
         }}
         cancelButtonProps={{
@@ -578,7 +578,7 @@ const WareTemplate = () => {
               type="primary"
               onClick={handleGoToConfig}
               size="large"
-              className="flex-1 bg-green-600! hover:bg-green-700! h-10 font-medium"
+              className="flex-1 bg-[#0891b2]! hover:bg-cyan-7000! h-10 font-medium"
             >
               Đi tới cấu hình
             </Button>
@@ -613,7 +613,7 @@ const WareTemplate = () => {
         }
         
         .modern-collapse .ant-collapse-header {
-          background: linear-gradient(135deg, #1a8649 0%, #15703d 100%) !important;
+          background: linear-gradient(135deg, #1976D2 0%, #15703d 100%) !important;
           padding: 20px 24px !important;
           border-radius: 12px !important;
           align-items: center !important;

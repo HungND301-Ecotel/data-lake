@@ -304,7 +304,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                   size="large"
                   icon={<SaveOutlined />}
                   onClick={handleSave}
-                  className="bg-green-600! hover:bg-green-700! h-10 px-6"
+                  className="bg-[#0891b2]! hover:bg-cyan-7000! h-10 px-6"
                 >
                   Lưu
                 </Button>
@@ -315,7 +315,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                 size="large"
                 icon={<EditOutlined />}
                 onClick={() => setIsEditing(true)}
-                className="bg-green-600! hover:bg-green-700! h-10 px-6"
+                className="bg-[#0891b2]! hover:bg-cyan-7000! h-10 px-6"
               >
                 Chỉnh sửa
               </Button>
@@ -474,7 +474,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                 size="large"
                 icon={hasApprovalConfigs ? <EditOutlined /> : <PlusOutlined />}
                 onClick={handleOpenApprovalModal}
-                className="bg-green-600! hover:bg-green-700! h-10 px-6"
+                className="bg-[#0891b2]! hover:bg-cyan-7000! h-10 px-6"
               >
                 {hasApprovalConfigs ? "Chỉnh sửa người duyệt" : "Thêm mới người duyệt"}
               </Button>
@@ -591,7 +591,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
         width={800}
         okButtonProps={{
           className:
-            "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
+            "bg-[#0891b2]! hover:bg-cyan-7000! text-white! border-0 h-10 px-6 text-base font-medium",
           size: "large",
         }}
         cancelButtonProps={{
@@ -777,7 +777,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                 block
                 size="large"
                 icon={<PlusOutlined />}
-                className="bg-green-600! hover:bg-green-700! h-11 font-medium rounded-lg"
+                className="bg-[#0891b2]! hover:bg-cyan-7000! h-11 font-medium rounded-lg"
               >
                 Thêm người duyệt
               </Button>

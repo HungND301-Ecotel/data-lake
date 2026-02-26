@@ -332,7 +332,7 @@ export const WareBatchForManagement: React.FC = () => {
                             type="primary"
                             icon={<EditOutlined />}
                             onClick={() => nav(`/ware/batch/${record.batchId}`)}
-                            className="bg-green-600! hover:bg-green-700!"
+                            className="bg-[#0891b2]! hover:bg-cyan-7000!"
                             size="large"
                         >
                             Xem
@@ -396,7 +396,7 @@ export const WareBatchForManagement: React.FC = () => {
                                 onClick={handleBulkApprove}
                                 loading={approvalLoading}
                                 disabled={!hasApprovableBatch || selectedRowKeys.length === 0}
-                                className="bg-green-600! hover:bg-green-700! h-10 px-6"
+                                className="bg-[#0891b2]! hover:bg-cyan-7000! h-10 px-6"
                                 size="large"
                             >
                                 Duyệt ({selectedRowKeys.length})
@@ -495,7 +495,7 @@ export const WareBatchForManagement: React.FC = () => {
                 onOk={() => form.submit()}
                 okButtonProps={{
                     className:
-                        "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
+                        "bg-[#0891b2]! hover:bg-cyan-7000! text-white! border-0 h-10 px-6 text-base font-medium",
                     size: "large",
                 }}
                 cancelButtonProps={{

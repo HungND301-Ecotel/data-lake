@@ -275,7 +275,7 @@ const EmployeePage = () => {
         <Space size="small">
           <Button
             icon={<EyeOutlined />}
-            className="bg-green-600! hover:bg-green-700! text-white! border-0"
+            className="bg-[#0891b2]! hover:bg-cyan-7000! text-white! border-0"
             onClick={() => handleShowEmployeeDetail(record.id)}
           >
             Chi tiết
@@ -339,7 +339,7 @@ const EmployeePage = () => {
             size="large"
             icon={<PlusOutlined />}
             onClick={() => setCreateEmployeeModal(true)}
-            className="bg-green-600! hover:bg-green-700! text-white! border-0 shadow-md"
+            className="bg-[#0891b2]! hover:bg-cyan-7000! text-white! border-0 shadow-md"
             style={{ borderRadius: "8px", minWidth: "160px" }}
           >
             Thêm nhân viên
@@ -403,7 +403,7 @@ const EmployeePage = () => {
         width={700}
         onCancel={() => setCreateEmployeeModal(false)}
         okButtonProps={{
-          className: "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
+          className: "bg-[#0891b2]! hover:bg-cyan-7000! text-white! border-0 h-10 px-6 text-base font-medium",
           size: "large",
         }}
         cancelButtonProps={{
@@ -546,7 +546,7 @@ const EmployeePage = () => {
         width={800}
         onCancel={() => setEmployeeDetailModal(false)}
         okButtonProps={{
-          className: "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
+          className: "bg-[#0891b2]! hover:bg-cyan-7000! text-white! border-0 h-10 px-6 text-base font-medium",
           size: "large",
         }}
         cancelButtonProps={{
@@ -677,7 +677,7 @@ const EmployeePage = () => {
         onOk={handleSaveUserDetail}
         width={600}
         okButtonProps={{
-          className: "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
+          className: "bg-[#0891b2]! hover:bg-cyan-7000! text-white! border-0 h-10 px-6 text-base font-medium",
           size: "large",
         }}
         cancelButtonProps={{

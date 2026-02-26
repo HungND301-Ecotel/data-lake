@@ -77,7 +77,7 @@ const DepartmentMy = () => {
             type="primary"
             icon={<EyeOutlined />}
             onClick={() => handleViewDepartment(record.id)}
-            className="bg-green-600! hover:bg-green-700! text-white border-0 shadow-md"
+            className="bg-[#0891b2]! hover:bg-cyan-7000! text-white border-0 shadow-md"
             size="large"
           >
             Xem

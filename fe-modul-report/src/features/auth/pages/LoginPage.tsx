@@ -6,7 +6,7 @@ import { Phone, Mail, Eye, EyeOff } from 'lucide-react';
 import type { LoginResponse } from "../../employee/types/user";
 import { useAuthStore } from "../../../stores/authStore";
 import { userApi } from "../api/userApi";
-import logoUb from "../../../file/logo-ub.jpg";
+import logoUb from "../../../file/logo-company.png";
 import Banner from "../../../file/Banner.jpg";
 
 
@@ -51,23 +51,23 @@ const LoginPage = () => {
   return (
     <div className="relative flex flex-col min-h-screen overflow-hidden">
       {/* Header */}
-      <header className="h-auto border-b bg-[#1a8649] backdrop-blur flex items-center justify-center px-6 relative z-20">
+      <header className="h-auto bg-[#0891b2] border-b border-cyan-600 backdrop-blur flex items-center justify-center px-6 relative z-20">
         <div className="flex items-center gap-3 text-primary-foreground py-4">
           <span className="flex flex-col gap-1 text-white">
             <div className="text-base sm:text-5xl font-bold text-center">
               KHO DỮ LIỆU TẬP TRUNG
             </div>
             <div className="text-base sm:text-xl font-bold text-center">
-              CÔNG TY THAN UÔNG BÍ - TKV
+              CÔNG TY KHO VẬN ĐÁ BẠC - TKV
             </div>
             <div className="flex flex-col sm:flex-row items-center sm:items-end sm:justify-center gap-2 sm:gap-4 text-white text-sm sm:text-xl sm:text-center font-medium">
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-white" />
-                <span>Hotline: 02033.854491</span>
+                <span>Hotline: 020.33565388</span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-white" />
-                <span>Email: ctythanub@gmail.com</span>
+                <span>Fax: 020.33565399</span>
               </div>
             </div>
           </span>
@@ -92,13 +92,13 @@ const LoginPage = () => {
           <div className="mb-5 sm:mb-1 flex justify-center">
             <img
               src={logoUb}
-              className="h-18 w-18 rounded-full cursor-pointer"
+              className="h-14 w-20 rounded-full cursor-pointer"
             />
           </div>
 
           {/* Title */}
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-green-600 dark:text-blue-400">
+            <h2 className="text-2xl font-bold text-[#0891b2] dark:text-blue-400">
               Đăng nhập
             </h2>
           </div>
@@ -126,7 +126,7 @@ const LoginPage = () => {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   disabled={loading}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                 />
               </div>
 
@@ -144,7 +144,7 @@ const LoginPage = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={loading}
-                    className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                    className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                   />
                   <span
                     onClick={() => setShowPassword(!showPassword)}
@@ -164,7 +164,7 @@ const LoginPage = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-green-500 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="w-full bg-[#0891b2] hover:bg-cyan-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
                 </button>
