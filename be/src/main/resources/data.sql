@@ -11,8 +11,7 @@ INSERT INTO employee (
     key_avatar,
     created_at,
     updated_at,
-    deleted,
-    department_id
+    deleted
 )
 SELECT
     '645f2878-7fe6-4363-a46b-59f909011b2b',
@@ -26,8 +25,7 @@ SELECT
     NULL,
     NOW(),
     NOW(),
-    FALSE,
-    NULL
+    FALSE
     WHERE NOT EXISTS (
     SELECT 1 FROM employee WHERE id = '645f2878-7fe6-4363-a46b-59f909011b2b'
 );

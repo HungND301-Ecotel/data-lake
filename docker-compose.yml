@@ -1,5 +1,5 @@
 services:
-  report_rerverse_proxy_service:
+  report_reverse_proxy_service:
     image: report_reverse_proxy_img
     build:
       context: ./reverse_proxy

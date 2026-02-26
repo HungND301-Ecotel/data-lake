@@ -16,4 +16,9 @@ public class WareBatchRequest {
     private String description;
     private MultipartFile file;
     private Integer wareTemplateId;
+    
+    // Thời gian báo cáo (có thể null)
+    private Integer reportYear;   // Năm báo cáo
+    private Integer reportMonth;  // Tháng báo cáo (1-12)
+    private Integer reportDay;    // Ngày báo cáo (1-31)
 }

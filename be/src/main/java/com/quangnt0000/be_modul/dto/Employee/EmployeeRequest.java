@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -22,5 +23,5 @@ public class EmployeeRequest {
     private String gender;
     private String position;
     private MultipartFile avatarFile;
-    private String departmentId;
+    private List<String> departmentIds;
 }

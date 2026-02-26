@@ -21,4 +21,5 @@ public class WareCategoryResponse {
     private String departmentId;
     private String departmentCode;
     private String departmentName;
+    private Integer totalTemplate;
 }

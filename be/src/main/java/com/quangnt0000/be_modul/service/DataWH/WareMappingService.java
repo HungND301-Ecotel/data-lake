@@ -32,6 +32,7 @@ public class WareMappingService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ware Template Not Found"));
        WareMapping wareMapping = WareMapping.builder()
                .fieldName(request.getFieldName())
+                .fieldTitle(request.getFieldTitle())
                .fieldValue(request.getFieldValue())
                .fieldType(request.getFieldType())
                .isKeyColumn(request.getIsKeyColumn())
@@ -57,6 +58,7 @@ public class WareMappingService {
         List<WareMappingResponse> wareMappingResponseList = wareMappings.getContent().stream().map(
                 wareMapping -> WareMappingResponse.builder()
                         .id(wareMapping.getId())
+                        .fieldTitle(wareMapping.getFieldTitle())
                         .fieldName(wareMapping.getFieldName())
                         .fieldValue(wareMapping.getFieldValue())
                         .fieldType(wareMapping.getFieldType())
@@ -82,6 +84,7 @@ public class WareMappingService {
         WareMapping wareMapping = wareMappingRepository.findById(request.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ware Mapping Not Found"));
         wareMapping.setFieldName(request.getFieldName());
+        wareMapping.setFieldTitle(request.getFieldTitle());
         wareMapping.setFieldValue(request.getFieldValue());
         wareMapping.setFieldType(request.getFieldType());
         wareMapping.setIsKeyColumn(request.getIsKeyColumn());

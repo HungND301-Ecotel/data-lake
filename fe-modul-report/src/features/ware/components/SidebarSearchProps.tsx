@@ -1,9 +1,30 @@
 import { useState } from "react";
-import { Modal, Input, List, Spin } from "antd";
+import {
+  Button,
+  Input,
+  InputNumber,
+  List,
+  Spin,
+  Modal,
+  Tooltip,
+  Empty,
+  Card,
+  Tag,
+} from "antd";
+import {
+  VerticalLeftOutlined,
+  VerticalRightOutlined,
+  SearchOutlined,
+  PlusOutlined,
+  DeleteOutlined,
+  TableOutlined,
+  FilterOutlined,
+} from "@ant-design/icons";
+
 import type { TableOption } from "../types/wareTemplate";
 import { wareTemplateApi } from "../api/wareTemplateApi";
-import { VerticalLeftOutlined, VerticalRightOutlined } from "@ant-design/icons";
 
+/* ====================== Types ====================== */
 interface Filter {
   key: string;
   value: string;
@@ -29,8 +50,10 @@ interface SidebarSearchProps {
   setSidebarOpen: (val: boolean) => void;
 }
 
+/* ====================== Constants ====================== */
 const FILTER_KEYS = ["PERIOD", "ngay", "matnr"];
 
+/* ====================== Component ====================== */
 const SidebarSearch = ({
   table,
   setTable,
@@ -50,223 +73,291 @@ const SidebarSearch = ({
   sidebarOpen,
   setSidebarOpen,
 }: SidebarSearchProps) => {
+  /* ---------- State ---------- */
   const [tableLabel, setTableLabel] = useState("");
   const [tableModalOpen, setTableModalOpen] = useState(false);
   const [tableOptions, setTableOptions] = useState<TableOption[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const searchTable = async (keyword: string) => {
+  /* ---------- Handlers ---------- */
+  const fetchTables = async (keyword = "") => {
     setLoading(true);
     try {
-      const res = await wareTemplateApi.getOptionTable(keyword || "");
+      const res = await wareTemplateApi.getOptionTable(keyword);
       setTableOptions(res);
     } finally {
       setLoading(false);
     }
   };
 
+  // Thêm function để fetch thông tin 1 bảng cụ thể
+  const fetchTableInfo = async (tableCode: string) => {
+    if (!tableCode) return;
+    try {
+      const res = await wareTemplateApi.getOptionTable(tableCode);
+      if (res && res.length > 0) {
+        setTableLabel(res[0].tableName);
+      }
+    } catch (error) {
+      console.error("Error fetching table info:", error);
+    }
+  };
+
+  // Sửa lại handler search
+  const handleSearch = async () => {
+    await onSearch();
+    // Sau khi search thành công, fetch thông tin bảng để cập nhật label
+    if (table) {
+      await fetchTableInfo(table);
+    }
+  };
+
+  const updateFilter = (index: number, field: keyof Filter, value: string) => {
+    const next = [...filters];
+    next[index][field] = value;
+    setFilters(next);
+  };
+
+  const removeFilter = (index: number) => {
+    const next = [...filters];
+    next.splice(index, 1);
+    setFilters(next);
+  };
+
+  /* ====================== Render ====================== */
   return (
     <div
-      className={`bg-cyan-50 border-r border-cyan-300 transition-all duration-300 ${
-        sidebarOpen ? "w-80 p-4" : "w-12 p-2"
-      }`}
+      className={`shrink-0 bg-linear-to-b from-blue-50 to-blue-100 
+                  border-r border-blue-300 shadow-lg transition-all duration-300
+                  ${sidebarOpen ? "w-96" : "w-12"} h-screen`}
     >
-      <button
-        className="mb-4 w-full text-center font-bold text-cyan-800"
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-      >
-        {sidebarOpen ? <VerticalRightOutlined /> : <VerticalLeftOutlined />}
-      </button>
+      <div className="h-full overflow-y-auto p-4">
+        <button
+          className="mb-4 w-full text-center font-bold text-blue-700 hover:text-blue-900"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+        >
+          {sidebarOpen ? (
+            <VerticalRightOutlined className="text-xl" />
+          ) : (
+            <VerticalLeftOutlined className="text-xl" />
+          )}
+        </button>
 
-      {sidebarOpen && (
-        <>
-          <div className="mb-3">
-            <div className="text-center text-base font-extrabold text-red-500 mb-2 tracking-wide">
-              {tableLabel || "CHƯA CHỌN BẢNG"}
-            </div>
-            <label className="block mb-1 font-semibold text-cyan-800">
-              Nhập mã bảng
-            </label>
-            <div className="relative">
-              <input
-                value={table}
-                onChange={(e) => {
-                  setTable(e.target.value);
-                  setTableLabel("");
-                }}
-                placeholder="Nhập tableCode"
-                className="w-full border border-cyann-400 rounded px-2 py-1 pr-8 text-sm"
-              />
+        {sidebarOpen && (
+          <div className="space-y-4">
+            {/* ================= Table ================= */}
+            <Card className="rounded-lg shadow-sm border-0">
+              {tableLabel && (<Tag color={tableLabel ? "green" : "red"} className="w-full text-center py-1 mb-3 font-bold">
+                {tableLabel || null}
+              </Tag>)}
 
-              <button
-                onClick={() => {
-                  setTableModalOpen(true);
-                  searchTable("");
-                }}
-                className="absolute right-1 top-1/2 -translate-y-1/2 text-cyan-600 font-bold text-lg"
+              <label className="block mb-2 text-sm font-semibold text-blue-900">
+                Nhập mã bảng
+              </label>
+
+              {/* Sửa lại cấu trúc input với nút + */}
+              <div className="relative mb-3">
+                <Input
+                  size="large"
+                  value={table}
+                  prefix={<TableOutlined />}
+                  placeholder="Nhập tableCode"
+                  className="pr-10"
+                  onChange={(e) => {
+                    setTable(e.target.value);
+                    setTableLabel("");
+                  }}
+                />
+                <button
+                  className="absolute right-2 top-1/2 -translate-y-1/2 
+                             text-blue-600 hover:text-blue-800 text-2xl font-bold 
+                             w-8 h-8 flex items-center justify-center
+                             bg-white rounded hover:bg-blue-50
+                             transition-colors z-10"
+                  onClick={() => {
+                    setTableModalOpen(true);
+                    fetchTables();
+                  }}
+                  type="button"
+                >
+                  +
+                </button>
+              </div>
+
+              <Button
+                block
+                size="large"
+                type="primary"
+                icon={<SearchOutlined />}
+                className="bg-green-600! hover:bg-green-700!"
+                onClick={handleSearch}
               >
-                +
-              </button>
-            </div>
-          </div>
+                Tìm kiếm
+              </Button>
+            </Card>
 
-          <div className="mb-2">
-            <label className="block mb-1 font-semibold text-cyan-800">
-              Cột hiển thị (cách nhau bằng dấu , )
-            </label>
-            <input
-              value={columns.join(",")}
-              onChange={(e) =>
-                setColumns(e.target.value.split(",").map((x) => x.trim()))
-              }
-              className="w-full border border-cyan-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-cyan-500"
-            />
-          </div>
-
-          <div className="mb-2">
-            <label className="block mb-1 font-semibold text-cyan-800">
-              Sắp xếp theo ..(cách nhau bằng dấu , )
-            </label>
-            <input
-              value={orderBy.join(",")}
-              onChange={(e) =>
-                setOrderBy(e.target.value.split(",").map((x) => x.trim()))
-              }
-              className="w-full border border-cyan-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-cyan-500"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            <div>
-              <label className="block mb-1 text-sm font-semibold text-cyan-800">
-                Số dữ liệu
+            {/* ================= Columns ================= */}
+            <Card className="rounded-lg shadow-sm border-0">
+              <label className="block mb-2 text-sm font-semibold text-blue-900">
+                Cột hiển thị
               </label>
-              <input
-                type="number"
-                value={limit}
-                onChange={(e) => setLimit(+e.target.value)}
-                placeholder="Limit"
-                className="w-full border border-cyan-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+              <Input.TextArea
+                rows={3}
+                value={columns.join(", ")}
+                placeholder="id, bukrs, year, period"
+                onChange={(e) =>
+                  setColumns(e.target.value.split(",").map((x) => x.trim()))
+                }
               />
-            </div>
+            </Card>
 
-            <div>
-              <label className="block mb-1 text-sm font-semibold text-cyan-800">
-                Từ vị trí
+            {/* ================= Order By ================= */}
+            <Card className="rounded-lg shadow-sm border-0">
+              <label className="block mb-2 text-sm font-semibold text-blue-900">
+                Sắp xếp theo
               </label>
-              <input
-                type="number"
-                value={offset}
-                onChange={(e) => setOffset(+e.target.value)}
-                placeholder="Offset"
-                className="w-full border border-cyan-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+              <Input.TextArea
+                rows={3}
+                value={orderBy.join(", ")}
+                placeholder="year DESC, period ASC"
+                onChange={(e) =>
+                  setOrderBy(e.target.value.split(",").map((x) => x.trim()))
+                }
               />
-            </div>
-          </div>
+            </Card>
 
-          <label className="block mb-1 font-semibold text-cyan-800">Năm</label>
-          <input
-            type="number"
-            value={year || ""}
-            onChange={(e) =>
-              setYear(e.target.value ? +e.target.value : undefined)
-            }
-            placeholder="Year"
-            className="w-full border border-cyan-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-cyan-500"
-          />
+            {/* ================= Limit / Offset ================= */}
+            <Card className="rounded-lg shadow-sm border-0">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm font-semibold text-blue-900 block mb-1">
+                    Số dòng
+                  </label>
+                  <InputNumber
+                    size="large"
+                    min={1}
+                    className="w-full"
+                    value={limit}
+                    onChange={(v) => setLimit(v || 50)}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-blue-900 block mb-1">
+                    Offset
+                  </label>
+                  <InputNumber
+                    size="large"
+                    min={0}
+                    className="w-full"
+                    value={offset}
+                    onChange={(v) => setOffset(v || 0)}
+                  />
+                </div>
+              </div>
+            </Card>
 
-          <div className="mb-2">
-            <label className="block mb-1 font-semibold text-cyan-800 py-2">
-              Lọc dữ liệu
-            </label>
+            {/* ================= Year & Filters ================= */}
+            <Card className="rounded-lg shadow-sm border-0">
+              <label className="block mb-2 text-sm font-semibold text-blue-900">
+                Năm
+              </label>
+              <InputNumber
+                size="large"
+                className="w-full mb-3"
+                min={1900}
+                max={2100}
+                value={year}
+                placeholder="2024"
+                onChange={(v) => setYear(v || undefined)}
+              />
 
-            {sidebarOpen && (
-              <div className="flex flex-col gap-1 max-h-64 overflow-auto">
-                {filters.map((f, idx) => (
-                  <div key={idx} className="flex gap-1 items-center">
-                    <input
+              <label className="flex items-center gap-2 mb-2 text-sm font-semibold text-blue-900">
+                <FilterOutlined /> Lọc dữ liệu
+              </label>
+
+              <div className="flex flex-col gap-2 max-h-56 overflow-y-auto">
+                {filters.map((f, i) => (
+                  <div key={i} className="flex gap-2">
+                    <Input
                       list="filterKeys"
-                      placeholder="Cột dữ liệu"
+                      placeholder="Cột"
+                      size="small"
                       value={f.key}
-                      onChange={(e) => {
-                        const newFilters = [...filters];
-                        newFilters[idx].key = e.target.value;
-                        setFilters(newFilters);
-                      }}
-                      className="flex-1 min-w-0 border rounded px-2 py-1  border-cyan-300"
+                      onChange={(e) =>
+                        updateFilter(i, "key", e.target.value)
+                      }
                     />
-                    <input
-                      type="text"
+                    <Input
                       placeholder="Giá trị"
+                      size="small"
                       value={f.value}
-                      onChange={(e) => {
-                        const newFilters = [...filters];
-                        newFilters[idx].value = e.target.value;
-                        setFilters(newFilters);
-                      }}
-                      className="flex-1 min-w-0 border rounded px-2 py-1 border-cyan-300"
+                      onChange={(e) =>
+                        updateFilter(i, "value", e.target.value)
+                      }
                     />
-                    <button
-                      onClick={() => {
-                        const newFilters = [...filters];
-                        newFilters.splice(idx, 1);
-                        setFilters(newFilters);
-                      }}
-                      className="text-red-600 font-bold px-2"
-                    >
-                      ×
-                    </button>
+                    <Tooltip title="Xóa">
+                      <Button
+                        danger
+                        size="small"
+                        icon={<DeleteOutlined />}
+                        onClick={() => removeFilter(i)}
+                      />
+                    </Tooltip>
                   </div>
                 ))}
 
-                <datalist id="filterKeys">
-                  {FILTER_KEYS.map((k) => (
-                    <option key={k} value={k} />
-                  ))}
-                </datalist>
-
-                <button
+                <Button
+                  size="large"
+                  icon={<PlusOutlined />}
+                  className="bg-blue-500 text-white"
                   onClick={() =>
                     setFilters([...filters, { key: "", value: "" }])
                   }
-                  className="mt-1 w-full bg-cyan-400 text-white py-1 rounded hover:bg-cyan-500"
                 >
-                  + Thêm bộ lọc
-                </button>
+                  Thêm bộ lọc
+                </Button>
               </div>
-            )}
+
+              <datalist id="filterKeys">
+                {FILTER_KEYS.map((k) => (
+                  <option key={k} value={k} />
+                ))}
+              </datalist>
+            </Card>
           </div>
+        )}
 
-          <button
-            onClick={onSearch}
-            className="w-full bg-cyan-600 text-white py-2 rounded mt-2"
-          >
-            Tìm kiếm
-          </button>
-        </>
-      )}
+        {/* ================= Modal ================= */}
+        <Modal
+          open={tableModalOpen}
+          footer={null}
+          width={600}
+          title={
+            <div className="flex items-center gap-2">
+              <TableOutlined /> Chọn bảng dữ liệu
+            </div>
+          }
+          onCancel={() => setTableModalOpen(false)}
+        >
+          <Input.Search
+            size="large"
+            placeholder="Nhập tên hoặc mã bảng..."
+            className="mb-4"
+            onChange={(e) => fetchTables(e.target.value)}
+          />
 
-      <Modal
-        open={tableModalOpen}
-        onCancel={() => setTableModalOpen(false)}
-        footer={null}
-        title="Chọn bảng dữ liệu"
-        className="green-modal"
-      >
-        <Input.Search
-          placeholder="Nhập tên bảng..."
-          onChange={(e) => searchTable(e.target.value)}
-        />
-
-        <div className="mt-3 max-h-80 overflow-auto">
           {loading ? (
-            <Spin />
+            <div className="text-center py-8">
+              <Spin />
+            </div>
+          ) : tableOptions.length === 0 ? (
+            <Empty description="Không có dữ liệu" />
           ) : (
             <List
               dataSource={tableOptions}
               renderItem={(item) => (
                 <List.Item
-                  className="cursor-pointer hover:bg-cyan-100"
+                  className="cursor-pointer hover:bg-blue-50 rounded-lg px-3"
                   onClick={() => {
                     setTable(item.tableCode);
                     setTableLabel(item.tableName);
@@ -274,17 +365,17 @@ const SidebarSearch = ({
                   }}
                 >
                   <div>
-                    <b>{item.tableName}</b>
+                    <div className="font-semibold">{item.tableName}</div>
                     <div className="text-xs text-gray-500">
-                      {item.tableCode}
+                      Mã: <Tag color="blue">{item.tableCode}</Tag>
                     </div>
                   </div>
                 </List.Item>
               )}
             />
           )}
-        </div>
-      </Modal>
+        </Modal>
+      </div>
     </div>
   );
 };
