@@ -30,6 +30,7 @@ public class EmployeeJdbc {
                     e.gender AS gender,
                     e.birthday AS birthday,
                     e.key_avatar AS key_avatar,
+                    e.created_at AS created_at,
                     u.role AS role
                 FROM employee e
                 LEFT JOIN users u ON e.id = u.employee_id
