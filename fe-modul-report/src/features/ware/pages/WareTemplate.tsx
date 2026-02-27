@@ -201,6 +201,7 @@ const WareTemplate = () => {
   };
 
   const canApprove = userRole === "ADMIN" || userRole === "USER";
+  const canConfig = userRole === "ADMIN";
 
   const columns: ColumnsType<WareTemplateResponse> = [
     {
@@ -238,7 +239,7 @@ const WareTemplate = () => {
       align: "center" as const,
       render: (_: any, record) => (
         <Space size="small">
-          {canApprove ? (
+          {canConfig ? (
             <Button
               icon={<SettingOutlined />}
               size="large"
