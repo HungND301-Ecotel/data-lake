@@ -1,6 +1,7 @@
 package com.quangnt0000.be_modul.service.DataWH;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.quangnt0000.be_modul.dto.DataLake.DataLakeInsertRequest;
 import com.quangnt0000.be_modul.dto.TWH_Auth.LoginRequest;
 import com.quangnt0000.be_modul.dto.TWH_Auth.LoginResponse;
 import com.quangnt0000.be_modul.dto.TWH_Get.GetRequest;
@@ -17,8 +18,8 @@ import com.quangnt0000.be_modul.repository.DataWH.WareMappingRepository;
 import com.quangnt0000.be_modul.repository.DataWH.WareTemplateRepository;
 import feign.FeignException;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -33,7 +34,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class WareApiService {
     @Value("${account.username}")
@@ -45,8 +45,27 @@ public class WareApiService {
     private final WareMappingRepository wareMappingRepository;
     private final WareTemplateRepository wareTemplateRepository;
     private final WebClient webClient;
+    private final WebClient dataLakeWebClient;
     private final VinacominApiClient vinacominApiClient;
     private final ObjectMapper objectMapper;
+
+    public WareApiService(
+            WareBatchActionRepository wareBatchActionRepository,
+            WareMappingRepository wareMappingRepository,
+            WareTemplateRepository wareTemplateRepository,
+            @Qualifier("vinacominWebClient") WebClient webClient,
+            @Qualifier("dataLakeWebClient") WebClient dataLakeWebClient,
+            VinacominApiClient vinacominApiClient,
+            ObjectMapper objectMapper
+    ) {
+        this.wareBatchActionRepository = wareBatchActionRepository;
+        this.wareMappingRepository = wareMappingRepository;
+        this.wareTemplateRepository = wareTemplateRepository;
+        this.webClient = webClient;
+        this.dataLakeWebClient = dataLakeWebClient;
+        this.vinacominApiClient = vinacominApiClient;
+        this.objectMapper = objectMapper;
+    }
 
     public ResponseEntity<LoginResponse> login(LoginRequest request) {
         LoginResponse response = webClient.post()
@@ -200,6 +219,37 @@ public class WareApiService {
     }
 
 
+    public Mono<ResponseEntity<Object>> insertToDataLake(PushRequest request) {
+        DataLakeInsertRequest insertRequest = DataLakeInsertRequest.builder()
+                .data(request.getRows())
+                .source(request.getTable())
+                .build();
+
+        return dataLakeWebClient.post()
+                .uri("/api/v1/data/insert")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(insertRequest)
+                .retrieve()
+                .onStatus(
+                        HttpStatusCode::isError,
+                        r -> r.bodyToMono(String.class)
+                                .flatMap(body ->
+                                        Mono.error(new RuntimeException("DataLake insert error: " + body))
+                                )
+                )
+                .bodyToMono(Object.class)
+                .map(response -> ResponseEntity.ok((Object) response))
+                .onErrorResume(ex -> {
+                    log.error("DataLake insert failed", ex);
+                    return Mono.just(
+                            ResponseEntity
+                                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                    .contentType(MediaType.TEXT_PLAIN)
+                                    .body(ex.getMessage())
+                    );
+                });
+    }
+
     public ResponseEntity<Object> get(@Valid GetRequest request) {
         try {
             LoginResponse loginResponse = login(LoginRequest.builder()
@@ -227,7 +277,7 @@ public class WareApiService {
             // Transform fieldName to fieldTitle based on table name
             if (request.getTable() != null && response.getRows() != null) {
                 // Find WareTemplate by table code
-                Optional<WareTemplate> optionalTemplate = wareTemplateRepository.findByTableCode(request.getTable());
+                Optional<WareTemplate> optionalTemplate = wareTemplateRepository.findFirstByTableCodeOrderByCreatedAtDesc(request.getTable());
                 
                 if (optionalTemplate.isPresent()) {
                     WareTemplate wareTemplate = optionalTemplate.get();
@@ -253,7 +303,11 @@ public class WareApiService {
                                         // Find the key in row that matches (case-insensitive)
                                         for (Map.Entry<String, Object> entry : row.entrySet()) {
                                             if (entry.getKey().toLowerCase().equals(fieldNameLower)) {
-                                                transformedRow.put(mapping.getFieldTitle(), entry.getValue());
+                                                // Use fieldTitle if not null, otherwise use original fieldName
+                                                String key = mapping.getFieldTitle() != null && !mapping.getFieldTitle().isEmpty() 
+                                                    ? mapping.getFieldTitle() 
+                                                    : mapping.getFieldName();
+                                                transformedRow.put(key, entry.getValue());
                                                 break;
                                             }
                                         }

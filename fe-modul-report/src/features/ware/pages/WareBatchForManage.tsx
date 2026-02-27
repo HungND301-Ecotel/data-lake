@@ -107,7 +107,9 @@ export const WareBatchForManagement: React.FC = () => {
           messageApi.success("Xóa batch thành công");
           fetchBatches();
         } catch (error) {
-          messageApi.error("Xóa batch thất bại");
+            messageApi.error("Lấy danh sách báo cáo thất bại");
+        } finally {
+            setLoading(false);
         }
       },
     });

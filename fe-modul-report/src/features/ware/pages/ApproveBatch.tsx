@@ -1,18 +1,18 @@
 import React, { useEffect, useState, useMemo } from "react";
 import {
-  Table,
-  Button,
-  Input,
-  Modal,
-  Form,
-  Upload,
-  message,
-  Space,
-  Tooltip,
-  Spin,
-  Card,
-  Tag,
-  Select,
+    Table,
+    Button,
+    Input,
+    Modal,
+    Form,
+    Upload,
+    message,
+    Space,
+    Tooltip,
+    Spin,
+    Card,
+    Tag,
+    Select,
 } from "antd";
 import type { UploadFile } from "antd/es/upload/interface";
 import type { ColumnsType } from "antd/es/table";
@@ -22,17 +22,17 @@ import type {
 import { wareBatchApi } from "../api/wareBathApi";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  CheckCircleOutlined,
-  CloseCircleOutlined,
-  DeleteOutlined,
-  EditOutlined,
-  ExclamationCircleOutlined,
-  PlusOutlined,
-  SearchOutlined,
-  FileTextOutlined,
-  CheckOutlined,
-  CloseOutlined,
-  FilterOutlined,
+    CheckCircleOutlined,
+    CloseCircleOutlined,
+    DeleteOutlined,
+    EditOutlined,
+    ExclamationCircleOutlined,
+    PlusOutlined,
+    SearchOutlined,
+    FileTextOutlined,
+    CheckOutlined,
+    CloseOutlined,
+    FilterOutlined,
 } from "@ant-design/icons";
 import { departmentApi } from "../../department/api/departmentApi";
 
@@ -42,23 +42,23 @@ const { Option } = Select;
 type BatchRecord = any & { id?: string | number };
 
 export const ApproveBatch: React.FC = () => {
-  const [batches, setBatches] = useState<BatchRecord[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [searchKeyword, setSearchKeyword] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [fileList, setFileList] = useState<UploadFile[]>([]);
-  const [form] = Form.useForm<WareBatchRequest>();
-  const { templateId } = useParams<{ templateId: string }>();
-  const nav = useNavigate();
-  const [messageApi, contextHolderMessage] = message.useMessage();
-  const [modal, contextHolderModal] = Modal.useModal();
-  const [selectedRowKeys, setSelectedRowKeys] = useState<(string | number)[]>([]);
-  const [approvalLoading, setApprovalLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [departments, setDepartments] = useState<any[]>([]);
-  const [departmentFilter, setDepartmentFilter] = useState<string | null>(null);
+    const [batches, setBatches] = useState<BatchRecord[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [searchKeyword, setSearchKeyword] = useState<string>("");
+    const [statusFilter, setStatusFilter] = useState<string | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [fileList, setFileList] = useState<UploadFile[]>([]);
+    const [form] = Form.useForm<WareBatchRequest>();
+    const { templateId } = useParams<{ templateId: string }>();
+    const nav = useNavigate();
+    const [messageApi, contextHolderMessage] = message.useMessage();
+    const [modal, contextHolderModal] = Modal.useModal();
+    const [selectedRowKeys, setSelectedRowKeys] = useState<(string | number)[]>([]);
+    const [approvalLoading, setApprovalLoading] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [departments, setDepartments] = useState<any[]>([]);
+    const [departmentFilter, setDepartmentFilter] = useState<string | null>(null);
 
   const fetchBatches = async () => {
     setLoading(true);

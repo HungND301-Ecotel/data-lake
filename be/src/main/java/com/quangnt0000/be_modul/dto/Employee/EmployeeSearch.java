@@ -17,9 +17,9 @@ public class EmployeeSearch {
     @Builder.Default
     private String keyword = "";
     @Builder.Default
-    private String sort = "ASC";
+    private String sort = "DESC";
     @Builder.Default
-    private String sortBy = "e.name";
+    private String sortBy = "e.created_at";
     @Builder.Default
     private String departmentId = null;
 }

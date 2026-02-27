@@ -15,6 +15,18 @@ import {
   EyeOutlined,
   CheckCircleOutlined,
   SyncOutlined,
+  RobotOutlined,
+  DatabaseOutlined,
+  CloudServerOutlined,
+  HddOutlined,
+  SearchOutlined,
+  ScheduleOutlined,
+  CloudUploadOutlined,
+  GoldOutlined,
+  TableOutlined,
+  FileSearchOutlined,
+  CodeOutlined,
+  FileExcelOutlined,
 } from "@ant-design/icons";
 import { Button, Dropdown, Menu } from "antd";
 
@@ -60,6 +72,136 @@ export default function NavBar() {
         },
       ]}
       className="rounded-xl! shadow-2xl! min-w-[260px] py-2"
+    />
+  );
+
+  const datalakeMenu = (
+    <Menu
+      items={[
+        {
+          key: "ai-group",
+          type: "group" as const,
+          label: <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">AI & Chat</span>,
+          children: [
+            {
+              key: "ai-chat",
+              icon: <RobotOutlined className="text-lg" />,
+              label: <span className="text-base font-medium">Chat AI</span>,
+              onClick: () => navigate("/ai-chat"),
+              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+            },
+            {
+              key: "table-qa",
+              icon: <TableOutlined className="text-lg" />,
+              label: <span className="text-base font-medium">Table QA</span>,
+              onClick: () => navigate("/lakehouse/table-qa"),
+              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+            },
+            {
+              key: "document-chat",
+              icon: <FileSearchOutlined className="text-lg" />,
+              label: <span className="text-base font-medium">Document Chat</span>,
+              onClick: () => navigate("/lakehouse/document-chat"),
+              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+            },
+          ],
+        },
+        { type: "divider" as const, className: "my-1" },
+        {
+          key: "pipeline-group",
+          type: "group" as const,
+          label: <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Data Pipeline</span>,
+          children: [
+            {
+              key: "pipeline",
+              icon: <CloudUploadOutlined className="text-lg" />,
+              label: <span className="text-base font-medium">Pipeline</span>,
+              onClick: () => navigate("/lakehouse/pipeline"),
+              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+            },
+            {
+              key: "gold",
+              icon: <GoldOutlined className="text-lg" />,
+              label: <span className="text-base font-medium">Gold Extraction</span>,
+              onClick: () => navigate("/lakehouse/gold"),
+              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+            },
+          ],
+        },
+        { type: "divider" as const, className: "my-1" },
+        {
+          key: "data-group",
+          type: "group" as const,
+          label: <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Quản lý dữ liệu</span>,
+          children: [
+            {
+              key: "datalake-data",
+              icon: <DatabaseOutlined className="text-lg" />,
+              label: <span className="text-base font-medium">Quản lý dữ liệu</span>,
+              onClick: () => navigate("/datalake/data"),
+              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+            },
+            {
+              key: "datalake-sync",
+              icon: <SyncOutlined className="text-lg" />,
+              label: <span className="text-base font-medium">Đồng bộ dữ liệu</span>,
+              onClick: () => navigate("/datalake/sync"),
+              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+            },
+            {
+              key: "datalake-status",
+              icon: <CloudServerOutlined className="text-lg" />,
+              label: <span className="text-base font-medium">Trạng thái hệ thống</span>,
+              onClick: () => navigate("/datalake/status"),
+              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+            },
+          ],
+        },
+        { type: "divider" as const, className: "my-1" },
+        {
+          key: "tools-group",
+          type: "group" as const,
+          label: <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Công cụ</span>,
+          children: [
+            {
+              key: "servers",
+              icon: <HddOutlined className="text-lg" />,
+              label: <span className="text-base font-medium">Quản lý Server</span>,
+              onClick: () => navigate("/servers"),
+              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+            },
+            {
+              key: "database",
+              icon: <SearchOutlined className="text-lg" />,
+              label: <span className="text-base font-medium">Database Explorer</span>,
+              onClick: () => navigate("/database"),
+              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+            },
+            {
+              key: "jobs",
+              icon: <ScheduleOutlined className="text-lg" />,
+              label: <span className="text-base font-medium">Job Tracking</span>,
+              onClick: () => navigate("/jobs"),
+              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+            },
+            {
+              key: "sql-metadata",
+              icon: <CodeOutlined className="text-lg" />,
+              label: <span className="text-base font-medium">SQL Metadata</span>,
+              onClick: () => navigate("/sql-metadata"),
+              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+            },
+            {
+              key: "excel-mapping",
+              icon: <FileExcelOutlined className="text-lg" />,
+              label: <span className="text-base font-medium">Excel Mapping</span>,
+              onClick: () => navigate("/excel-mapping"),
+              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+            },
+          ],
+        },
+      ]}
+      className="rounded-xl! shadow-2xl! min-w-[280px] py-2 max-h-[80vh] overflow-y-auto"
     />
   );
 
@@ -163,6 +305,19 @@ export default function NavBar() {
           Nhập dữ liệu
         </Button>
       </Link>
+
+      {/* Data Lake Dropdown */}
+      <Dropdown overlay={datalakeMenu} placement="bottomLeft">
+        <Button
+          type="text"
+          icon={<DatabaseOutlined className="text-lg mr-2" />}
+          className="text-white! border-0! bg-transparent! font-semibold text-base tracking-wide hover:bg-white/15! transition-all duration-300 rounded-lg cursor-pointer group"
+          size="large"
+        >
+          <span>Data Lake</span>
+          <DownOutlined className="text-xs ml-2 group-hover:translate-y-0.5 transition-transform duration-300" />
+        </Button>
+      </Dropdown>
 
       {/* Reports Dropdown */}
       <Dropdown overlay={reportsMenu} placement="bottomLeft">
