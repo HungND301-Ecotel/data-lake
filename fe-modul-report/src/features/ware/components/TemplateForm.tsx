@@ -23,7 +23,6 @@ import {
 } from "@ant-design/icons";
 import type { EmployeeResponse } from "../../employee/types/employee";
 
-
 interface TemplateFormProps {
   templateId: number;
 }

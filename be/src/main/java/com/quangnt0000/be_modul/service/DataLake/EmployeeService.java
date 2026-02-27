@@ -133,6 +133,7 @@ public class EmployeeService {
                 .gender(employee.getGender())
                 .birthday(employee.getBirthday().toString())
                 .keyAvatar(employee.getKeyAvatar())
+                .createdAt(employee.getCreatedAt() != null ? employee.getCreatedAt().toString() : null)
                 .build();
         User user = userRepository.findByEmployee_Id(employeeId).orElse(null);
         employeeResponse.setRole(user != null ? user.getRole() : null);

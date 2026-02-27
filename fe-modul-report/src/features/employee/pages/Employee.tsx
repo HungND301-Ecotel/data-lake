@@ -498,7 +498,7 @@ const EmployeePage = () => {
           </div>
           <Form.Item
             name="address"
-            label={<span className="font-medium text-gray-700">Địa chỉ </span>}
+            label={<span className="font-medium text-gray-700">Địa chỉ</span>}
             rules={[{ required: false, message: "Vui lòng nhập địa chỉ" }]}
             labelCol={{ span: 24 }}
             wrapperCol={{ span: 24 }}
