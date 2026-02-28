@@ -318,6 +318,22 @@ export const SyncBatch: React.FC = () => {
       render: (text: string) => <span className="text-gray-700">{text}</span>,
     },
     {
+      title: "Ngày tạo",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (text: string) => (
+        <span className="text-gray-600">
+          {text ? new Date(text).toLocaleDateString("vi-VN", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          }) : "-"}
+        </span>
+      ),
+    },
+    {
       title: "Upload",
       dataIndex: "isPushed",
       key: "isPushed",
