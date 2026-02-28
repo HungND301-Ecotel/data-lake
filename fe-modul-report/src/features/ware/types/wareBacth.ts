@@ -31,6 +31,7 @@ export interface WareBatchSearch {
   wareTemplateId?: number | null;
   status?: string | null;
   departmentId?: string | null;
+  departmentIds?: string[] | null;
 }
 
 export interface WareBatchPush {
