@@ -6,7 +6,26 @@ export const wareBatchApi = {
   searchWareBatch: async (
     params: WareBatchSearch
   ): Promise<PageResponse<WareBatchResponse>> => {
-    const res = await axiosClient.get(`/wh-batch`, { params });
+    const { departmentIds, ...rest } = params;
+
+    const res = await axiosClient.get(`/wh-batch`, {
+      params: rest,
+      paramsSerializer: (p) => {
+        const searchParams = new URLSearchParams();
+
+        Object.entries(p).forEach(([key, value]) => {
+          if (value !== null && value !== undefined) {
+            searchParams.append(key, String(value));
+          }
+        });
+
+        departmentIds?.forEach((id) => {
+          searchParams.append("departmentIds", id);
+        });
+
+        return searchParams.toString();
+      },
+    });
     return res.data;
   },
 
