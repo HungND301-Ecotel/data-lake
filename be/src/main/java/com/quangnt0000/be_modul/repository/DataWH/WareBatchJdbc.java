@@ -59,9 +59,16 @@ public class WareBatchJdbc {
             params.add(request.getWareTemplateId());
         }
 
-        if (request.getDepartmentId() != null) {
-            sql.append(" and d.id = ? ");
-            params.add(request.getDepartmentId());
+        if (request.getDepartmentIds() != null && !request.getDepartmentIds().isEmpty()) {
+            sql.append(" and d.id IN (");
+            for (int i = 0; i < request.getDepartmentIds().size(); i++) {
+                sql.append("?");
+                if (i < request.getDepartmentIds().size() - 1) {
+                    sql.append(",");
+                }
+                params.add(request.getDepartmentIds().get(i));
+            }
+            sql.append(") ");
         }
 
         if (request.getStatus() != null) {
@@ -106,9 +113,16 @@ public class WareBatchJdbc {
             params.add(request.getWareTemplateId());
         }
 
-        if (request.getDepartmentId() != null) {
-            sql.append(" and d.id = ? ");
-            params.add(request.getDepartmentId());
+        if (request.getDepartmentIds() != null && !request.getDepartmentIds().isEmpty()) {
+            sql.append(" and d.id IN (");
+            for (int i = 0; i < request.getDepartmentIds().size(); i++) {
+                sql.append("?");
+                if (i < request.getDepartmentIds().size() - 1) {
+                    sql.append(",");
+                }
+                params.add(request.getDepartmentIds().get(i));
+            }
+            sql.append(") ");
         }
 
         if (request.getStatus() != null) {
