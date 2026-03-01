@@ -17,10 +17,11 @@ const DashboardWare = () => {
     insert_total: 0,
     update_total: 0,
   });
-
   const formatVNDate = (iso: string) => {
-    const d = new Date(iso);
+    const normalized = iso.endsWith("Z") || iso.includes("+") ? iso : iso + "Z";
+    const d = new Date(normalized);
     return d.toLocaleString("vi-VN", {
+      timeZone: "Asia/Ho_Chi_Minh", // ← thêm timezone VN
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -246,7 +247,7 @@ const DashboardWare = () => {
   return (
     <div className="px-10 py-6 min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
       {/* Header */}
-      
+
 
       {/* Statistics Cards */}
       <Row gutter={[24, 24]} className="mb-8">
