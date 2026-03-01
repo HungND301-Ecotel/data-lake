@@ -19,8 +19,10 @@ const DashboardWare = () => {
   });
 
   const formatVNDate = (iso: string) => {
-    const d = new Date(iso);
+    const normalized = iso.endsWith("Z") || iso.includes("+") ? iso : iso + "Z";
+    const d = new Date(normalized);
     return d.toLocaleString("vi-VN", {
+      timeZone: "Asia/Ho_Chi_Minh", // ← thêm timezone VN
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
