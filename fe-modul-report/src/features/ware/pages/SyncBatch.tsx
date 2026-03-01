@@ -30,6 +30,7 @@ import {
 import { userPushApi } from "../../auth/api/accountConfigApi";
 import type { UserPushResponse } from "../../auth/types/accountConfig";
 import { departmentApi } from "../../department/api/departmentApi";
+import { employeeApi } from "../../employee/api/employeeApi";
 
 const { Search } = Input;
 const { Option } = Select;
@@ -50,7 +51,8 @@ export const SyncBatch: React.FC = () => {
   const [userPushConfig, setUserPushConfig] = useState<UserPushResponse | null>(null);
   const [pushStatusFilter, setPushStatusFilter] = useState<boolean | null>(null);
   const [departments, setDepartments] = useState<any[]>([]);
-  const [departmentFilter, setDepartmentFilter] = useState<string | null>(null);
+  const [myDepartmentIds, setMyDepartmentIds] = useState<string[]>([]);
+  const [departmentFilter, setDepartmentFilter] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchDepartments = async () => {
@@ -62,18 +64,35 @@ export const SyncBatch: React.FC = () => {
       }
     };
 
-    fetchDepartments();
+    const fetchProfile = async () => {
+      try {
+        const profile = await employeeApi.getMyProfile();
+        const ids = profile.departments?.map((d: { id: string }) => d.id) ?? [];
+        setMyDepartmentIds(ids);
+      } catch (error) {
+        console.error("Lấy profile thất bại", error);
+      }
+    };
+
+    fetchProfile();
+    loadUserPushConfig();
+    fetchDepartments(); // giữ nguyên
   }, []);
 
   const fetchBatches = async () => {
     setLoading(true);
     try {
+      const effectiveDeptIds =
+        departmentFilter.length > 0
+          ? departmentFilter // user đã chọn cụ thể
+          : myDepartmentIds; // mặc định: toàn bộ phòng ban của mình
+
       const params: WareBatchSearch = {
         page,
         limit,
         keyword: searchKeyword,
         status: "Da_Phe_Duyet",
-        departmentId: departmentFilter,
+        departmentIds: effectiveDeptIds.length > 0 ? effectiveDeptIds : null,
       };
       const res: PageResponse<WareBatchResponse> =
         await wareBatchApi.searchWareBatch(params);
@@ -101,9 +120,9 @@ export const SyncBatch: React.FC = () => {
   };
 
   useEffect(() => {
+    if (myDepartmentIds.length === 0) return;
     fetchBatches();
-    loadUserPushConfig();
-  }, [page, searchKeyword, departmentFilter]);
+  }, [page, searchKeyword, departmentFilter, myDepartmentIds]);
 
   // Filter FE cho isPushed
   const filteredBatches = useMemo(() => {
@@ -205,7 +224,7 @@ export const SyncBatch: React.FC = () => {
 
   const handleClearFilter = () => {
     setPushStatusFilter(null);
-    setDepartmentFilter(null);
+    setDepartmentFilter([]);
   };
 
   const columns: ColumnsType<WareBatchResponse> = [
@@ -300,6 +319,22 @@ export const SyncBatch: React.FC = () => {
       render: (text: string) => <span className="text-gray-700">{text}</span>,
     },
     {
+      title: "Ngày tạo",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (text: string) => (
+        <span className="text-gray-600">
+          {text ? new Date(text).toLocaleDateString("vi-VN", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          }) : "-"}
+        </span>
+      ),
+    },
+    {
       title: "Upload",
       dataIndex: "isPushed",
       key: "isPushed",
@@ -370,14 +405,13 @@ export const SyncBatch: React.FC = () => {
             </Select>
 
             <Select
+              mode="multiple"
               placeholder="Lọc theo phòng ban"
               value={departmentFilter}
-              onChange={(value) => {
-                setDepartmentFilter(value);
-              }}
+              onChange={(value) => setDepartmentFilter(value)}
               allowClear
               size="large"
-              className="w-48"
+              className="w-56"
               showSearch
               optionFilterProp="children"
               filterOption={(input, option) => {
@@ -385,14 +419,17 @@ export const SyncBatch: React.FC = () => {
                 return label.toLowerCase().includes(input.toLowerCase());
               }}
             >
-              {departments.map((dept) => (
-                <Option key={dept.id} value={dept.id}>
-                  {dept.name}
-                </Option>
-              ))}
+              {/* Chỉ hiện phòng ban mà nhân viên thuộc về */}
+              {departments
+                .filter((dept) => myDepartmentIds.includes(dept.id))
+                .map((dept) => (
+                  <Option key={dept.id} value={dept.id}>
+                    {dept.name}
+                  </Option>
+                ))}
             </Select>
 
-            {(pushStatusFilter !== null || departmentFilter !== null) && (
+            {(pushStatusFilter !== null || departmentFilter.length > 0) && (
               <Button onClick={handleClearFilter} size="large">
                 Xóa bộ lọc
               </Button>
@@ -422,14 +459,13 @@ export const SyncBatch: React.FC = () => {
         {/* Checkbox Xóa dữ liệu cũ được đặt ở đây */}
         <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-end">
           <div className="flex items-center gap-3">
-            <span className="font-medium text-gray-700">Xóa dữ liệu cũ:</span>
             <Radio.Group
               onChange={(e) => setDeleteMissing(e.target.value)}
               value={deleteMissing}
               className="text-gray-700"
             >
-              <Radio value={true}>Có</Radio>
-              <Radio value={false}>Không</Radio>
+              <Radio value={true}>Cập nhật dữ liệu</Radio>
+              <Radio value={false}>Đồng bộ dữ liệu mới</Radio>
             </Radio.Group>
           </div>
         </div>

@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -20,7 +22,7 @@ public class WareBatchSearch {
     @Builder.Default
     private Integer wareTemplateId = null;
     @Builder.Default
-    private String departmentId = null;
+    private List<String> departmentIds = null;
     @Builder.Default
     private WareBatchEnum status = null;
 }

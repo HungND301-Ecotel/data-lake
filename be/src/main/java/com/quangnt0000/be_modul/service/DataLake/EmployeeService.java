@@ -124,15 +124,16 @@ public class EmployeeService {
         
         EmployeeResponse employeeResponse = EmployeeResponse.builder()
                 .id(employee.getId())
-                .name(employee.getName())
+                .name(employee.getName() != null ? employee.getName() : null)
                 .departments(departmentInfos)
-                .position(employee.getPosition())
-                .phone(employee.getPhone())
-                .email(employee.getEmail())
-                .address(employee.getAddress())
+                .position(employee.getPosition() != null ? employee.getPosition() : null)
+                .phone(employee.getPhone() != null ? employee.getPhone() : null)
+                .email(employee.getEmail() != null ? employee.getEmail() : null)
+                .address(employee.getAddress() != null ? employee.getAddress() : null)
                 .gender(employee.getGender())
-                .birthday(employee.getBirthday().toString())
+                .birthday(employee.getBirthday() != null ? employee.getBirthday().toString() : null)
                 .keyAvatar(employee.getKeyAvatar())
+                .createdAt(employee.getCreatedAt() != null ? employee.getCreatedAt().toString() : null)
                 .build();
         User user = userRepository.findByEmployee_Id(employeeId).orElse(null);
         employeeResponse.setRole(user != null ? user.getRole() : null);

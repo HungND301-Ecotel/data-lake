@@ -49,6 +49,9 @@ public class WareBatchService {
     private final WareApprovalConfigRepository approvalConfigRepository;
     private final WareBatchApprovalRepository batchApprovalRepository;
     private final WareBatchActionRepository batchActionRepository;
+    
+    // FormulaEvaluator để xử lý công thức Excel
+    private FormulaEvaluator formulaEvaluator;
 
     @Transactional
     public ResponseEntity<?> addWareBatch(WareBatchRequest request) {
@@ -61,6 +64,8 @@ public class WareBatchService {
 
         try {
             Workbook workbook = WorkbookFactory.create(request.getFile().getInputStream());
+            // Khởi tạo FormulaEvaluator để xử lý công thức
+            formulaEvaluator = workbook.getCreationHelper().createFormulaEvaluator();
             Sheet sheet = workbook.getSheetAt(0);
 
             List<Map<String, Object>> rows = new ArrayList<>();
@@ -222,49 +227,181 @@ public class WareBatchService {
 
 
 
+/**
+     * Parse cell value với xử lý đầy đủ cho công thức và các kiểu dữ liệu
+     * @param cell Cell cần parse
+     * @param fieldType Kiểu dữ liệu mong muốn (STRING, NUMBER, BOOLEAN, INTEGER)
+     * @return Object giá trị đã parse
+     */
     private Object parseCell(Cell cell, String fieldType) {
-        if (cell == null) return null;
+        if (cell == null) {
+            return null;
+        }
 
-        CellType type = cell.getCellType();
-        if (type == CellType.FORMULA) {
-            type = cell.getCachedFormulaResultType();
+        CellType cellType = cell.getCellType();
+
+        // Xử lý ô có công thức
+        if (cellType == CellType.FORMULA) {
+            try {
+                // Evaluate công thức để lấy giá trị đã tính
+                CellValue cellValue = formulaEvaluator.evaluate(cell);
+                if (cellValue == null) {
+                    return null;
+                }
+                cellType = cellValue.getCellType();
+                
+                // Parse giá trị đã tính theo fieldType mong muốn
+                return parseCellValueByType(cellValue, fieldType);
+            } catch (Exception e) {
+                // Nếu không evaluate được, thử lấy cached result
+                try {
+                    cellType = cell.getCachedFormulaResultType();
+                    return parseDirectCellByType(cell, cellType, fieldType);
+                } catch (Exception ex) {
+                    return null;
+                }
+            }
+        }
+
+        // Xử lý ô thường (không có công thức)
+        return parseDirectCellByType(cell, cellType, fieldType);
+    }
+
+    /**
+     * Parse CellValue từ FormulaEvaluator
+     */
+    private Object parseCellValueByType(CellValue cellValue, String fieldType) {
+        if (cellValue == null) {
+            return null;
         }
 
         switch (fieldType) {
-            case "STRING": {
-                String value;
-                if (type == CellType.NUMERIC) {
-                    double num = cell.getNumericCellValue();
-                    // Nếu là số nguyên, làm tròn bỏ phần thập phân
-                    if (num == Math.floor(num)) {
-                        value = String.valueOf((long) num);
-                    } else {
-                        value = String.valueOf(num); // giữ nguyên nếu có thập phân
-                    }
-                } else {
-                    value = cell.getStringCellValue();
+            case "STRING":
+                switch (cellValue.getCellType()) {
+                    case STRING:
+                        String strValue = cellValue.getStringValue();
+                        return (strValue == null || strValue.trim().isEmpty()) ? null : strValue;
+                    case NUMERIC:
+                        double numValue = cellValue.getNumberValue();
+                        if (numValue == Math.floor(numValue) && !Double.isInfinite(numValue)) {
+                            return String.valueOf((long) numValue);
+                        }
+                        return String.valueOf(numValue);
+                    case BOOLEAN:
+                        return String.valueOf(cellValue.getBooleanValue());
+                    case BLANK:
+                        return null;
+                    default:
+                        return null;
                 }
-                if (value == null || value.trim().isEmpty()) {
-                    return null;
-                }
-                return value;
-            }
+
             case "NUMBER":
-                return cell.getNumericCellValue();
-            case "BOOLEAN":
-                return cell.getBooleanCellValue();
-            case "INTEGER": {
-                if (type == CellType.NUMERIC) {
-                    return (int) cell.getNumericCellValue();
-                } else if (type == CellType.STRING) {
+                if (cellValue.getCellType() == CellType.NUMERIC) {
+                    return cellValue.getNumberValue();
+                } else if (cellValue.getCellType() == CellType.STRING) {
                     try {
-                        return Integer.parseInt(cell.getStringCellValue().trim());
+                        return Double.parseDouble(cellValue.getStringValue().trim());
                     } catch (NumberFormatException e) {
-                        return null; // hoặc ném exception nếu muốn báo lỗi
+                        return null;
                     }
                 }
                 return null;
-            }
+
+            case "INTEGER":
+                if (cellValue.getCellType() == CellType.NUMERIC) {
+                    return (int) cellValue.getNumberValue();
+                } else if (cellValue.getCellType() == CellType.STRING) {
+                    try {
+                        return Integer.parseInt(cellValue.getStringValue().trim());
+                    } catch (NumberFormatException e) {
+                        return null;
+                    }
+                }
+                return null;
+
+            case "BOOLEAN":
+                if (cellValue.getCellType() == CellType.BOOLEAN) {
+                    return cellValue.getBooleanValue();
+                } else if (cellValue.getCellType() == CellType.STRING) {
+                    String str = cellValue.getStringValue().trim().toLowerCase();
+                    return "true".equals(str) || "1".equals(str);
+                } else if (cellValue.getCellType() == CellType.NUMERIC) {
+                    return cellValue.getNumberValue() != 0;
+                }
+                return null;
+
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Parse trực tiếp từ Cell (không có công thức)
+     */
+    private Object parseDirectCellByType(Cell cell, CellType cellType, String fieldType) {
+        if (cell == null) {
+            return null;
+        }
+
+        switch (fieldType) {
+            case "STRING":
+                switch (cellType) {
+                    case STRING:
+                        String strValue = cell.getStringCellValue();
+                        return (strValue == null || strValue.trim().isEmpty()) ? null : strValue;
+                    case NUMERIC:
+                        if (DateUtil.isCellDateFormatted(cell)) {
+                            // Xử lý ngày tháng nếu cần
+                            return cell.getLocalDateTimeCellValue().toString();
+                        }
+                        double numValue = cell.getNumericCellValue();
+                        if (numValue == Math.floor(numValue) && !Double.isInfinite(numValue)) {
+                            return String.valueOf((long) numValue);
+                        }
+                        return String.valueOf(numValue);
+                    case BOOLEAN:
+                        return String.valueOf(cell.getBooleanCellValue());
+                    case BLANK:
+                        return null;
+                    default:
+                        return null;
+                }
+
+            case "NUMBER":
+                if (cellType == CellType.NUMERIC) {
+                    return cell.getNumericCellValue();
+                } else if (cellType == CellType.STRING) {
+                    try {
+                        return Double.parseDouble(cell.getStringCellValue().trim());
+                    } catch (NumberFormatException e) {
+                        return null;
+                    }
+                }
+                return null;
+
+            case "INTEGER":
+                if (cellType == CellType.NUMERIC) {
+                    return (int) cell.getNumericCellValue();
+                } else if (cellType == CellType.STRING) {
+                    try {
+                        return Integer.parseInt(cell.getStringCellValue().trim());
+                    } catch (NumberFormatException e) {
+                        return null;
+                    }
+                }
+                return null;
+
+            case "BOOLEAN":
+                if (cellType == CellType.BOOLEAN) {
+                    return cell.getBooleanCellValue();
+                } else if (cellType == CellType.STRING) {
+                    String str = cell.getStringCellValue().trim().toLowerCase();
+                    return "true".equals(str) || "1".equals(str);
+                } else if (cellType == CellType.NUMERIC) {
+                    return cell.getNumericCellValue() != 0;
+                }
+                return null;
+
             default:
                 return null;
         }

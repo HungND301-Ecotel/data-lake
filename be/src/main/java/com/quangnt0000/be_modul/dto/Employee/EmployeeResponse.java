@@ -23,6 +23,7 @@ public class EmployeeResponse {
     private String birthday;
     private String keyAvatar;
     private String role;
+    private String createdAt;
 
     @Data
     @Builder
