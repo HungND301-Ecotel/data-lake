@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   UserOutlined,
@@ -29,9 +30,23 @@ import {
   FileExcelOutlined,
 } from "@ant-design/icons";
 import { Button, Dropdown, Menu } from "antd";
+import { employeeApi } from "../employee/api/employeeApi";
 
 export default function NavBar() {
+  const [userName, setUserName] = useState<string>("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const profile = await employeeApi.getMyProfile();
+        setUserName(profile.name);
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   const categoryMenu = (
     <Menu
@@ -332,9 +347,13 @@ export default function NavBar() {
           <Button
             type="text"
             icon={<UserOutlined className="text-xl" />}
-            className="text-white! border-0! bg-transparent! hover:bg-white/15! transition-all duration-300 rounded-lg h-10 w-10"
+            className="text-white! border-0! bg-transparent! hover:bg-white/15! transition-all duration-300 rounded-lg"
             size="large"
-          />
+          >
+            {userName && (
+              <span className="text-sm font-semibold ml-1">{userName}</span>
+            )}
+          </Button>
         </Dropdown>
       </div>
     </nav>
