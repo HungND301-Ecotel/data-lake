@@ -1,5 +1,6 @@
 package com.quangnt0000.be_modul.service.DataLake;
 
+import com.quangnt0000.be_modul.dto.User.ChangePasswordRequest;
 import com.quangnt0000.be_modul.dto.User.LoginResponse;
 import com.quangnt0000.be_modul.dto.User.UserLogin;
 import com.quangnt0000.be_modul.dto.User.UserRequest;
@@ -106,5 +107,24 @@ public class UserService {
                 .status(user.getStatus())
                 .build();
         return ResponseEntity.ok(response);
+    }
+
+
+    public ResponseEntity<?> changePassword(ChangePasswordRequest request) {
+        // Lấy thông tin user hiện tại từ SecurityContext
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Kiểm tra mật khẩu cũ có đúng không
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Mật khẩu cũ không đúng");
+        }
+
+        // Cập nhật mật khẩu mới
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        return ResponseEntity.ok("Đổi mật khẩu thành công");
     }
 }

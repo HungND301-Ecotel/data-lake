@@ -22,6 +22,9 @@ export interface WareBatchResponse {
   myApprovalStatus: string;
   wareBatchStatus: string;
   canApprove: boolean;
+  reportYear?: number | null;
+  reportMonth?: number | null;
+  reportDay?: number | null;
 }
 
 export interface WareBatchSearch {
