@@ -24,3 +24,7 @@ export interface UserRequest {
     status: boolean;
   }
   
+  export interface ChangePasswordRequest {
+    oldPassword: string;
+    newPassword: string;
+  }
