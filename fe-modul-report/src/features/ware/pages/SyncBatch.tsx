@@ -36,11 +36,12 @@ const { Search } = Input;
 const { Option } = Select;
 
 export const SyncBatch: React.FC = () => {
+  const [modal, contextHolder] = Modal.useModal();
   const [batches, setBatches] = useState<WareBatchResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState<string | null>(null);
   const [page, setPage] = useState(0);
-  const [limit] = useState(10);
+  const [limit, setLimit] = useState(10);
   const [total, setTotal] = useState(0);
   const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
   const [syncModalVisible, setSyncModalVisible] = useState(false);
@@ -162,13 +163,80 @@ export const SyncBatch: React.FC = () => {
     );
   };
 
+  const checkDuplicates = (batches: WareBatchResponse[]): string[] => {
+    const warnings: string[] = [];
+
+    for (let i = 0; i < batches.length; i++) {
+      for (let j = i + 1; j < batches.length; j++) {
+        const a = batches[i];
+        const b = batches[j];
+
+        if (a.name !== b.name) continue;
+        if (a.reportYear !== b.reportYear) continue;
+
+        // Báo cáo Năm: cả 2 đều không có month và không có day
+        if (!a.reportMonth && !a.reportDay && !b.reportMonth && !b.reportDay) {
+          warnings.push(
+            `Có 2 báo cáo "${a.name}" trùng tên, trùng năm (${a.reportYear}). Hãy bỏ chọn 1 báo cáo để tránh lặp dữ liệu.`
+          );
+          continue;
+        }
+
+        // Báo cáo Tháng: cả 2 đều có month, không có day, month giống nhau
+        if (
+          a.reportMonth && b.reportMonth &&
+          !a.reportDay && !b.reportDay &&
+          a.reportMonth === b.reportMonth
+        ) {
+          warnings.push(
+            `Có 2 báo cáo "${a.name}" trùng tên, trùng năm (${a.reportYear}), trùng tháng (${a.reportMonth}). Hãy bỏ chọn 1 báo cáo để tránh lặp dữ liệu.`
+          );
+          continue;
+        }
+
+        // Báo cáo Ngày: cả 2 đều có month, có day, month + day giống nhau
+        if (
+          a.reportMonth && b.reportMonth &&
+          a.reportDay && b.reportDay &&
+          a.reportMonth === b.reportMonth &&
+          a.reportDay === b.reportDay
+        ) {
+          warnings.push(
+            `Có 2 báo cáo "${a.name}" trùng tên, trùng năm (${a.reportYear}), trùng tháng (${a.reportMonth}), trùng ngày (${a.reportDay}). Hãy bỏ chọn 1 báo cáo để tránh lặp dữ liệu.`
+          );
+          continue;
+        }
+      }
+    }
+
+    return warnings;
+  };
+
+  const selectedBatches = filteredBatches.filter((b) => selectedIds.includes(b.id!));
+
   const handleSyncClick = () => {
     if (selectedIds.length === 0) {
       messageApi.warning("Vui lòng chọn ít nhất một batch để đồng bộ");
       return;
     }
 
-    // Fill dữ liệu từ config nếu có
+    const duplicateWarnings = checkDuplicates(selectedBatches);
+    if (duplicateWarnings.length > 0) {
+      modal.warning({  // ✅ dùng modal.warning thay vì Modal.warning
+        title: "Phát hiện báo cáo trùng lặp",
+        content: (
+          <ul className="space-y-2 mt-2">
+            {duplicateWarnings.map((w, i) => (
+              <li key={i} style={{ color: "#ea580c", fontSize: 14 }}>• {w}</li>
+            ))}
+          </ul>
+        ),
+        okText: "Đã hiểu",
+        width: 560,
+      });
+      return;
+    }
+
     if (userPushConfig) {
       form.setFieldsValue({
         username: userPushConfig.username,
@@ -233,19 +301,26 @@ export const SyncBatch: React.FC = () => {
           checked={
             selectedIds.length > 0 &&
             selectedIds.length ===
-            filteredBatches.filter((b) => b.wareBatchStatus === "Da_Phe_Duyet").length
+            filteredBatches.filter(
+              (b) => b.wareBatchStatus === "Da_Phe_Duyet" && !b.isPushed
+            ).length
           }
           indeterminate={
             selectedIds.length > 0 &&
             selectedIds.length <
-            filteredBatches.filter((b) => b.wareBatchStatus === "Da_Phe_Duyet").length
+            filteredBatches.filter(
+              (b) => b.wareBatchStatus === "Da_Phe_Duyet" && !b.isPushed
+            ).length
           }
           onChange={(e) => {
             if (e.target.checked) {
-              const approvableIds = filteredBatches
-                .filter((b) => b.wareBatchStatus === "Da_Phe_Duyet")
+              const selectableIds = filteredBatches
+                .filter(
+                  (b) => b.wareBatchStatus === "Da_Phe_Duyet" && !b.isPushed
+                )
                 .map((b) => b.id!);
-              setSelectedIds(approvableIds);
+              setSelectedIds(selectableIds);
+
             } else {
               setSelectedIds([]);
             }
@@ -257,11 +332,11 @@ export const SyncBatch: React.FC = () => {
       width: 60,
       align: "center",
       render: (_, record) => {
-        const isApproved = record.wareBatchStatus === "Da_Phe_Duyet";
+        const isSelectable = record.wareBatchStatus === "Da_Phe_Duyet" && !record.isPushed;
         return (
           <Checkbox
             checked={selectedIds.includes(record.id!)}
-            disabled={!isApproved}
+            disabled={!isSelectable}
             onChange={(e) => {
               if (e.target.checked) {
                 setSelectedIds([...selectedIds, record.id!]);
@@ -323,12 +398,13 @@ export const SyncBatch: React.FC = () => {
       key: "createdAt",
       render: (text: string) => (
         <span className="text-gray-600">
-          {text ? new Date(text).toLocaleDateString("vi-VN", {
+          {text ? new Date(text).toLocaleString("vi-VN", {
             day: "2-digit",
             month: "2-digit",
             year: "numeric",
             hour: "2-digit",
             minute: "2-digit",
+            timeZone: "Asia/Ho_Chi_Minh",
           }) : "-"}
         </span>
       ),
@@ -357,11 +433,10 @@ export const SyncBatch: React.FC = () => {
     },
   ];
 
-  const selectedBatches = filteredBatches.filter((b) => selectedIds.includes(b.id!));
-
   return (
     <div className="px-6 py-6 bg-linear-to-br from-gray-50 to-gray-100 min-h-screen">
       {contextHolderMessage}
+      {contextHolder}
 
       <Card className="shadow-sm border-0 rounded-xl mb-6">
         <div className="flex justify-between items-center gap-4 mb-4 flex-wrap">
@@ -381,7 +456,7 @@ export const SyncBatch: React.FC = () => {
             />
 
             <Select
-              placeholder="Lọc theo trạng thái Push"
+              placeholder="Lọc theo trạng thái đồng bộ"
               value={pushStatusFilter}
               onChange={(value) => setPushStatusFilter(value)}
               allowClear
@@ -391,14 +466,14 @@ export const SyncBatch: React.FC = () => {
             >
               <Option value={true}>
                 <div className="flex items-center gap-2">
-                  <CheckCircleOutlined className="text-green-600!" />
-                  <span>Đã Push</span>
+                  <CheckCircleOutlined className="text-black!" />
+                  <span>Đã đồng bộ</span>
                 </div>
               </Option>
               <Option value={false}>
                 <div className="flex items-center gap-2">
                   <CloseCircleOutlined className="text-red-600!" />
-                  <span>Chưa Push</span>
+                  <span>Chưa đồng bộ</span>
                 </div>
               </Option>
             </Select>
@@ -516,6 +591,10 @@ export const SyncBatch: React.FC = () => {
               pageSize: limit,
               total: total,
               onChange: (pageNumber) => setPage(pageNumber - 1),
+              onShowSizeChange: (_, newSize) => {
+                setPage(0);
+                setLimit(newSize);
+              },
               showSizeChanger: true,
               showTotal: (total) => `Tổng cộng ${total} batch`,
               pageSizeOptions: [10, 20, 50],
