@@ -40,7 +40,7 @@ webclient:
   read-timeout: 10000
 
 datalake:
-  base-url: ${DATALAKE_BASE_URL:http://1.53.45.49:1313}
+  base-url: ${DATALAKE_BASE_URL:http://113.22.123.208:1313}
 
 account:
   username: ${USERNAME_VINA}
