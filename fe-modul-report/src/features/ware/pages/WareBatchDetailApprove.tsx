@@ -140,9 +140,11 @@ export const WareBatchDetailApprove: React.FC = () => {
 
   const columns = [...defaultColumns, ...mappingColumns];
 
-  const formatVNDate = (iso: string) => {
-    const d = new Date(iso);
-    return d.toLocaleString("vi-VN", {
+  const formatVNDate = (iso?: string) => {
+    if (!iso) return "-";
+
+    const formatted = new Date(iso + "Z").toLocaleString("vi-VN", {
+      timeZone: "Asia/Ho_Chi_Minh",
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -150,8 +152,9 @@ export const WareBatchDetailApprove: React.FC = () => {
       minute: "2-digit",
       second: "2-digit",
     });
-  };
 
+    return formatted;
+  };
 
 
   const handlePushConfirm = async (values: {
@@ -304,7 +307,7 @@ export const WareBatchDetailApprove: React.FC = () => {
   };
 
   const isRejected = batchDetail?.status === "Tu_Choi_Phe_Duyet";
-  
+
   return (
     <div className="px-6 py-6 bg-linear-to-br from-gray-50 to-gray-100 min-h-screen">
       {contextHolderMessage}
