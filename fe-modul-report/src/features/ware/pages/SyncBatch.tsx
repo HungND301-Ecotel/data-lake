@@ -396,18 +396,20 @@ export const SyncBatch: React.FC = () => {
       title: "Ngày tạo",
       dataIndex: "createdAt",
       key: "createdAt",
-      render: (text: string) => (
-        <span className="text-gray-600">
-          {text ? new Date(text).toLocaleString("vi-VN", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            timeZone: "Asia/Ho_Chi_Minh",
-          }) : "-"}
-        </span>
-      ),
+      render: (text: string) => {
+        if (!text) return <span className="text-gray-600">-</span>;
+        const date = new Date(text);
+        const vnDate = new Date(date.getTime() + 7 * 60 * 60 * 1000);
+        const formatted = vnDate.toLocaleString("vi-VN", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          timeZone: "UTC", // đã cộng tay +7 rồi, dùng UTC tránh convert 2 lần
+        });
+        return <span className="text-gray-600">{formatted}</span>;
+      },
     },
     {
       title: "Upload",
