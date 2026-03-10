@@ -24,10 +24,8 @@ import type { WareDataRowResponse } from "../types/wareDataRow";
 import type { WareMappingResponse } from "../types/wareMapping";
 import type { WareBatchResponse } from "../types/wareBacth";
 import {
-  CheckCircleOutlined,
   SearchOutlined,
   CloudUploadOutlined,
-  CheckOutlined,
   CloseOutlined,
   ReloadOutlined,
 } from "@ant-design/icons";
@@ -46,7 +44,7 @@ export const WareBatchDetailApprove: React.FC = () => {
   const [rejectModalVisible, setRejectModalVisible] = useState(false);
   const [deleteMissing, setDeleteMissing] = useState(false);
   const [messageApi, contextHolderMessage] = message.useMessage();
-  const [modal, contextHolderModal] = Modal.useModal();
+  // const [modal, contextHolderModal] = Modal.useModal();
 
   const [form] = Form.useForm();
   const [rejectForm] = Form.useForm();
@@ -180,26 +178,26 @@ export const WareBatchDetailApprove: React.FC = () => {
     }
   };
 
-  const handleApprove = async () => {
-    if (!wareBatchId) return;
-    modal.confirm({
-      title: "Duyệt batch",
-      icon: <CheckCircleOutlined />,
-      content: "Bạn có chắc chắn muốn duyệt batch này?",
-      okText: "Duyệt",
-      cancelText: "Hủy",
-      okType: "primary",
-      onOk: async () => {
-        try {
-          await wareBatchApi.approveBatch(wareBatchId);
-          messageApi.success("Duyệt batch thành công");
-          fetchBatchDetail();
-        } catch (error: any) {
-          messageApi.error(error?.data || "Duyệt batch thất bại");
-        }
-      },
-    });
-  };
+  // const handleApprove = async () => {
+  //   if (!wareBatchId) return;
+  //   modal.confirm({
+  //     title: "Duyệt batch",
+  //     icon: <CheckCircleOutlined />,
+  //     content: "Bạn có chắc chắn muốn duyệt batch này?",
+  //     okText: "Duyệt",
+  //     cancelText: "Hủy",
+  //     okType: "primary",
+  //     onOk: async () => {
+  //       try {
+  //         await wareBatchApi.approveBatch(wareBatchId);
+  //         messageApi.success("Duyệt batch thành công");
+  //         fetchBatchDetail();
+  //       } catch (error: any) {
+  //         messageApi.error(error?.data || "Duyệt batch thất bại");
+  //       }
+  //     },
+  //   });
+  // };
 
   const handleRejectClick = () => {
     setRejectModalVisible(true);
@@ -259,7 +257,7 @@ export const WareBatchDetailApprove: React.FC = () => {
       return (
         <>
           <Tooltip title="Duyệt batch này">
-            <Button
+            {/* <Button
               type="primary"
               size="large"
               icon={<CheckOutlined />}
@@ -267,7 +265,7 @@ export const WareBatchDetailApprove: React.FC = () => {
               className="bg-green-600! hover:bg-green-700! h-10 px-6"
             >
               Duyệt
-            </Button>
+            </Button> */}
           </Tooltip>
           <Tooltip title="Từ chối batch này">
             <Button
@@ -312,7 +310,7 @@ export const WareBatchDetailApprove: React.FC = () => {
   return (
     <div className="px-6 py-6 bg-linear-to-br from-gray-50 to-gray-100 min-h-screen">
       {contextHolderMessage}
-      {contextHolderModal}
+      {/* {contextHolderModal} */}
 
       {isRejected && (
         <Alert
