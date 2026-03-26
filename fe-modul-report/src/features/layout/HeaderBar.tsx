@@ -14,7 +14,7 @@ const Header = () => {
         >
           <img
             src={logo}
-            className="h-14 w-14 rounded-full cursor-pointer"
+            className="h-16 w-18 rounded-full cursor-pointer"
             onClick={() => navigate("/dashboard")}
           />
 

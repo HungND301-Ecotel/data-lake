@@ -5,7 +5,7 @@ name: Deploy for staging version
 on:
   push:
     branches:
-      - develop # Deploy when code is pushed to 'develop'
+      - nammau # Deploy when code is pushed to 'develop'
 
 env:
   WEBAPP_NAME: data-lake # set this to your application's name
@@ -51,7 +51,7 @@ jobs:
           key: ${{ secrets.STAGING_SSH_KEY }}
           port: ${{ secrets.STAGING_PORT }}
           script: |
-            mkdir -p /home/${{ secrets.STAGING_USER }}/data-lake/deployment/staging
+            mkdir -p /home/${{ secrets.STAGING_USER }}/data-lake/nammau/deployment/staging
 
       - name: Transfer docker-compose file to VPS for deployment
         uses: appleboy/scp-action@v0.1.4
@@ -61,7 +61,7 @@ jobs:
           key: ${{ secrets.STAGING_SSH_KEY }}
           port: ${{ secrets.STAGING_PORT }}
           source: deployment/staging/*
-          target: "/home/${{ secrets.STAGING_USER }}/data-lake/deployment/staging"
+          target: "/home/${{ secrets.STAGING_USER }}/data-lake/nammau/deployment/staging"
           strip_components: 2 # Removes "deployment/staging/" folder path!
 
       - name: Clean up containers and stuff via SSH
@@ -73,7 +73,7 @@ jobs:
           port: ${{ secrets.STAGING_PORT }}
           script: |
             # Change to staging deployment directory
-            cd /home/${{ secrets.STAGING_USER }}/data-lake/deployment/staging 
+            cd /home/${{ secrets.STAGING_USER }}/data-lake/nammau/deployment/staging 
             # Debug info
             pwd
             ls -al
@@ -90,7 +90,7 @@ jobs:
           port: ${{ secrets.STAGING_PORT }}
           script: |
             ### Change to staging deployment directory
-            cd /home/${{ secrets.STAGING_USER }}/data-lake/deployment/staging 
+            cd /home/${{ secrets.STAGING_USER }}/data-lake/nammau/deployment/staging 
             ### Clean up unused images
             docker image prune -f # clean up unused images
             ### Provide permissions and start the application

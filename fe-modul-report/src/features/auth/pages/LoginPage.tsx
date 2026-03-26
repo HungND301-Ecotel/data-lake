@@ -87,7 +87,7 @@ const LoginPage = () => {
         <div className="w-full max-w-md bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8">
           {/* Logo - thay thế bằng text hoặc thêm logo của bạn */}
           <div className="mb-5 sm:mb-1 flex justify-center">
-            <img src={logo} className="h-18 w-18 rounded-full cursor-pointer" />
+            <img src={logo} className="h-16 w-18 rounded-full cursor-pointer" />
           </div>
 
           {/* Title */}
