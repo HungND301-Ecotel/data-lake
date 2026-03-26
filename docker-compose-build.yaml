@@ -18,5 +18,5 @@ services:
 
   nammau_report_frontend_service:
     build:
-      context: ./fe-modul-nammau_report
+      context: ./fe-modul-report
     image: ${REGISTRY}/nammau_report_frontend_img:${VERSION}
