@@ -5,7 +5,7 @@ name: Deploy for staging version
 on:
   push:
     branches:
-      - nammau # Deploy when code is pushed to 'develop'
+      - dev/nammau # Deploy when code is pushed to 'develop'
 
 env:
   WEBAPP_NAME: data-lake # set this to your application's name
