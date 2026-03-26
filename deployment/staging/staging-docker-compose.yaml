@@ -19,7 +19,7 @@ services:
       - .env_backend
     image: ${REGISTRY}/nammau_report_backend_img:${VERSION}
     depends_on:
-      - postgres
+      - nammau_postgres
     ports:
       - "2611:8080"
     networks:

@@ -23,15 +23,15 @@ const Header = () => {
               PHẦN MỀM KHO DỮ LIỆU TẬP TRUNG
             </div>
             <div className="text-base font-bold">
-              CÔNG TY CỔ PHẦN THAN CAO SƠN - TKV
+              CÔNG TY CỔ PHẦN THAN NAM MẪU - TKV
             </div>
 
             <div className="flex justify-center gap-6 text-sm mt-1">
               <span className="flex items-center gap-1">
-                Điện thoại: (84)0203 3862 337
+                Điện thoại: (033) 3854293
               </span>
               <span className="flex items-center gap-1">
-                Fax: 0203 3863 945
+                Email: ctythannammau@vnn.vn
               </span>
             </div>
           </div>
