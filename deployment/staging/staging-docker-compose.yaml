@@ -1,0 +1,88 @@
+services:
+  duonghuy_report_reverse_proxy_service:
+    image: ${REGISTRY}/duonghuy_report_reverse_proxy_img:${VERSION}
+    ports:
+      # HOST_PORT:CONTAINER_PORT
+      - "7112:8888"
+    stdin_open: true
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+    networks:
+      - backnet
+      - frontnet
+    depends_on:
+      - duonghuy_report_backend_service
+      - duonghuy_report_frontend_service
+
+  duonghuy_report_backend_service:
+    env_file:
+      - .env_backend
+    image: ${REGISTRY}/duonghuy_report_backend_img:${VERSION}
+    depends_on:
+      - duonghuy_postgres
+    ports:
+      - "8116:8080"
+    networks:
+      - backnet
+    restart: unless-stopped
+
+  duonghuy_report_frontend_service:
+    image: ${REGISTRY}/duonghuy_report_frontend_img:${VERSION}
+    # target: development
+    stdin_open: true
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+    volumes:
+      # For development only, to synced src code to container
+      - /usr/src/app/node_modules
+    # restart: always
+    networks:
+      - frontnet
+
+  duonghuy_postgres:
+    container_name: pg_duonghuy_report_2211
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=report
+      - PGDATA=/var/lib/postgresql/data
+    volumes:
+      - duonghuy_report_postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - backnet
+
+  pgadmin:
+    container_name: pgadmin_duonghuy_report_2211
+    image: dpage/pgadmin4:8.6
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL:-pgadmin@pgadmin.org}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD:-admin}
+      - PGADMIN_CONFIG_SERVER_MODE=False
+    volumes:
+      - duonghuy_report_pgadmin_data:/var/lib/pgadmin
+    ports:
+      - "3917:80"
+    networks:
+      - backnet
+    restart: unless-stopped
+
+volumes:
+  duonghuy_report_postgres_data: # ✅ Cho postgres
+    driver: local
+    driver_opts:
+      type: none
+      device: /mnt/hdd/duonghuy_report_postgres_data
+      o: bind
+
+  duonghuy_report_pgadmin_data: # ✅ Cho pgadmin (thêm mới)
+    driver: local
+    driver_opts:
+      type: none
+      device: /mnt/hdd/duonghuy_report_pgadmin_data
+      o: bind
+
+networks:
+  backnet:
+  frontnet:

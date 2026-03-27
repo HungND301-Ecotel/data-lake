@@ -1,0 +1,27 @@
+package com.quangnt0000.be_modul.repository.DataWH;
+
+import com.quangnt0000.be_modul.modal.DataLake.Department;
+import com.quangnt0000.be_modul.modal.DataWH.WareBatchAction;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+public interface WareBatchActionRepository extends JpaRepository<WareBatchAction, Integer> {
+    @Query("""
+        SELECT wba
+        FROM WareBatchAction wba
+        WHERE
+            LOWER(wba.actionName) LIKE LOWER(CONCAT('%', :actionName, '%'))
+            AND LOWER(wba.tableName) LIKE LOWER(CONCAT('%', :tableName, '%'))
+    """)
+    Page<WareBatchAction> search(
+            @Param("actionName") String actionName,
+            @Param("tableName") String tableName,
+            Pageable pageable
+    );
+    
+    boolean existsByWareBatchId(Integer wareBatchId);
+
+}

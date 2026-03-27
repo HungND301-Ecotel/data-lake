@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: report
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 500MB
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:data.sql
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+aws:
+  accessKeyId: ${AWS_ACCESSKEYID}
+  secretAccessKey: ${AWS_SECRETACCESSKEY}
+  s3:
+    bucket: ${AWS_S3_BUCKET}
+  region: ${AWS_REGION}
+
+jwt:
+  secret: ${JWT_SECRET}
+
+webclient:
+  base-url: https://apidatabi.vinacomin.vn
+  connection-timeout: 5000
+  read-timeout: 10000
+
+datalake:
+  base-url: ${DATALAKE_BASE_URL:http://1.53.45.49:1313}
+
+account:
+  username: ${USERNAME_VINA}
+  password: ${PASSWORD_VINA}
+
