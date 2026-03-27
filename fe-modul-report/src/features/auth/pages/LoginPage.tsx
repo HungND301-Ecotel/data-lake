@@ -6,7 +6,7 @@ import { Eye, EyeOff } from "lucide-react";
 import type { LoginResponse } from "../../employee/types/user";
 import { useAuthStore } from "../../../stores/authStore";
 import { userApi } from "../api/userApi";
-import logo from "../../../file/logo.png";
+import logo from "../../../file/loo.png";
 import background from "../../../file/background.png";
 
 const LoginPage = () => {
