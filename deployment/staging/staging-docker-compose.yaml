@@ -45,7 +45,7 @@ services:
     environment:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=admin
-      - POSTGRES_DB=nammau_report
+      - POSTGRES_DB=report
       - PGDATA=/var/lib/postgresql/data
     volumes:
       - nammau_report_postgres_data:/var/lib/postgresql/data
@@ -64,6 +64,8 @@ services:
       - nammau_report_pgadmin_data:/var/lib/pgadmin
     ports:
       - "2603:80"
+    networks:
+      - backnet
     restart: unless-stopped
 
 volumes:
