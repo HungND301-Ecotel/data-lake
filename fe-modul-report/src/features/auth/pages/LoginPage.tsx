@@ -57,14 +57,14 @@ const LoginPage = () => {
               KHO DỮ LIỆU TẬP TRUNG
             </div>
             <div className="text-base sm:text-xl font-bold text-center">
-              CÔNG TY CỔ PHẦN THAN NAM MẪU - TKV
+              CÔNG TY CỔ PHẦN THAN DƯƠNG HUY - TKV
             </div>
             <div className="flex flex-col sm:flex-row items-center sm:items-end sm:justify-center gap-2 sm:gap-4 text-white text-sm sm:text-xl sm:text-center font-medium">
               <span className="flex items-center gap-1">
-                Điện thoại: (033) 3854293
+                Điện thoại: 02033.862.238
               </span>
               <span className="flex items-center gap-1">
-                Email: ctythannammau@vnn.vn
+                Fax: 02033.862.494
               </span>
             </div>
           </span>
@@ -175,7 +175,7 @@ const LoginPage = () => {
           {/* Footer */}
           <div className="mt-6 text-center">
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              © 2024 CÔNG TY CỔ PHẦN THAN NAM MẪU - TKV. All rights reserved.
+              © 2024 CÔNG TY CỔ PHẦN THAN DƯƠNG HUY - TKV. All rights reserved.
             </p>
           </div>
         </div>
