@@ -46,7 +46,7 @@ jobs:
           key: ${{ secrets.STAGING_SSH_KEY }}      # ← đổi
           port: ${{ secrets.STAGING_PORT }}        # ← đổi
           script: |
-            mkdir -p /home/${{ secrets.STAGING_USER }}/data-lake/mongduong/deployment/staging  # ← đổi
+            mkdir -p /home/${{ secrets.STAGING_USER }}/data-lake/caoson/deployment/staging  # ← đổi
 
       - name: Transfer docker-compose file to VPS for deployment
         uses: appleboy/scp-action@v0.1.4
@@ -56,7 +56,7 @@ jobs:
           key: ${{ secrets.STAGING_SSH_KEY }}      # ← đổi
           port: ${{ secrets.STAGING_PORT }}        # ← đổi
           source: deployment/staging/*             # ← đổi
-          target: "/home/${{ secrets.STAGING_USER }}/data-lake/mongduong/deployment/staging"  # ← đổi
+          target: "/home/${{ secrets.STAGING_USER }}/data-lake/caoson/deployment/staging"  # ← đổi
           strip_components: 2
 
       - name: Clean up containers and stuff via SSH
@@ -67,7 +67,7 @@ jobs:
           key: ${{ secrets.STAGING_SSH_KEY }}      # ← đổi
           port: ${{ secrets.STAGING_PORT }}        # ← đổi
           script: |
-            cd /home/${{ secrets.STAGING_USER }}/data-lake/mongduong/deployment/staging  # ← đổi
+            cd /home/${{ secrets.STAGING_USER }}/data-lake/caoson/deployment/staging  # ← đổi
             pwd
             ls -al
             docker image prune -f
@@ -82,7 +82,7 @@ jobs:
           key: ${{ secrets.STAGING_SSH_KEY }}      # ← đổi
           port: ${{ secrets.STAGING_PORT }}        # ← đổi
           script: |
-            cd /home/${{ secrets.STAGING_USER }}/data-lake/mongduong/deployment/staging  # ← đổi
+            cd /home/${{ secrets.STAGING_USER }}/data-lake/caoson/deployment/staging  # ← đổi
             docker image prune -f
             chmod +x start-app.sh
             ./start-app.sh
