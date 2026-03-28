@@ -3,7 +3,7 @@ name: Deploy for release version
 on:
   push:
     branches:
-      - dev/caoson
+      - dev/caoson2
 
 env:
   WEBAPP_NAME: data-lake
