@@ -1,22 +1,15 @@
-###### Build Docker Images and push to DockerHub Repository ######
-### Rerferences:
-# 1. Compose build specs: https://docs.docker.com/compose/compose-file/build/
-# Run the commands:
-# a. Build: $ docker compose -f docker-compose-build.yaml build --parallel
-# b. Push:  $ docker compose -f docker-compose-build.yaml push
-#####
 services:
-  report_reverse_proxy_service:
+  caoson_report_reverse_proxy_service:
     build:
       context: ./reverse_proxy
-    image: ${REGISTRY}/report_reverse_proxy_img:${VERSION}
+    image: ${REGISTRY}/caoson_report_reverse_proxy_img:${VERSION}
 
-  report_backend_service:
+  caoson_report_backend_service:
     build:
       context: ./be
-    image: ${REGISTRY}/report_backend_img:${VERSION}
+    image: ${REGISTRY}/caoson_report_backend_img:${VERSION}
 
-  report_frontend_service:
+  caoson_report_frontend_service:
     build:
       context: ./fe-modul-report
-    image: ${REGISTRY}/report_frontend_img:${VERSION}
+    image: ${REGISTRY}/caoson_report_frontend_img:${VERSION}

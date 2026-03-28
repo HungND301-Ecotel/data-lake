@@ -1,19 +1,14 @@
-# Reference:
-# 1. https://github.com/actions/starter-workflows/blob/main/deployments/azure-webapps-node.yml
 name: Deploy for release version
 
 on:
   push:
     branches:
-      - dev/caoson # Deploy when code is pushed to 'develop'
+      - dev/caoson
 
 env:
-  WEBAPP_NAME: data-lake # set this to your application's name
-  WEBAPP_PACKAGE_PATH: "." # set this to the path to your web app project, defaults to the repository root
-  NODE_VERSION: "20.x" # set this to the node version to use
-
-# permissions:
-#   contents: read
+  WEBAPP_NAME: data-lake
+  WEBAPP_PACKAGE_PATH: "."
+  NODE_VERSION: "20.x"
 
 jobs:
   deploy:
@@ -41,58 +36,53 @@ jobs:
           make staging
           ls -al .env
           cat .env
-          cp .env deployment/release/
+          cp .env deployment/staging/         # ← đổi
 
       - name: Ensure target directory exists
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{ secrets.CAOSON_HOST }}
-          username: ${{ secrets.CAOSON_USER }}
-          key: ${{ secrets.CAOSON_SSH_KEY }}
-          port: ${{ secrets.CAOSON_PORT }}
+          host: ${{ secrets.STAGING_HOST }}        # ← đổi
+          username: ${{ secrets.STAGING_USER }}    # ← đổi
+          key: ${{ secrets.STAGING_SSH_KEY }}      # ← đổi
+          port: ${{ secrets.STAGING_PORT }}        # ← đổi
           script: |
-            mkdir -p /home/${{ secrets.CAOSON_USER }}/data-lake/deployment/release
+            mkdir -p /home/${{ secrets.STAGING_USER }}/data-lake/mongduong/deployment/staging  # ← đổi
 
       - name: Transfer docker-compose file to VPS for deployment
         uses: appleboy/scp-action@v0.1.4
         with:
-          host: ${{ secrets.CAOSON_HOST }}
-          username: ${{ secrets.CAOSON_USER }}
-          key: ${{ secrets.CAOSON_SSH_KEY }}
-          port: ${{ secrets.CAOSON_PORT }}
-          source: deployment/release/*
-          target: "/home/${{ secrets.CAOSON_USER }}/data-lake/deployment/release"
-          strip_components: 2 # Removes "deployment/release/" folder path!
+          host: ${{ secrets.STAGING_HOST }}        # ← đổi
+          username: ${{ secrets.STAGING_USER }}    # ← đổi
+          key: ${{ secrets.STAGING_SSH_KEY }}      # ← đổi
+          port: ${{ secrets.STAGING_PORT }}        # ← đổi
+          source: deployment/staging/*             # ← đổi
+          target: "/home/${{ secrets.STAGING_USER }}/data-lake/mongduong/deployment/staging"  # ← đổi
+          strip_components: 2
 
       - name: Clean up containers and stuff via SSH
         uses: appleboy/ssh-action@v0.1.7
         with:
-          host: ${{ secrets.CAOSON_HOST }}
-          username: ${{ secrets.CAOSON_USER }}
-          key: ${{ secrets.CAOSON_SSH_KEY }}
-          port: ${{ secrets.CAOSON_PORT }}
+          host: ${{ secrets.STAGING_HOST }}        # ← đổi
+          username: ${{ secrets.STAGING_USER }}    # ← đổi
+          key: ${{ secrets.STAGING_SSH_KEY }}      # ← đổi
+          port: ${{ secrets.STAGING_PORT }}        # ← đổi
           script: |
-            # Change to release deployment directory
-            cd /home/${{ secrets.CAOSON_USER }}/data-lake/deployment/release 
-            # Debug info
+            cd /home/${{ secrets.STAGING_USER }}/data-lake/mongduong/deployment/staging  # ← đổi
             pwd
             ls -al
             docker image prune -f
-            docker compose -f docker-compose.yaml down # always down first
+            docker compose -f staging-docker-compose.yaml down  # ← đổi
             docker ps
 
       - name: Deploy to release via SSH
         uses: appleboy/ssh-action@v0.1.7
         with:
-          host: ${{ secrets.CAOSON_HOST }}
-          username: ${{ secrets.CAOSON_USER }}
-          key: ${{ secrets.CAOSON_SSH_KEY }}
-          port: ${{ secrets.CAOSON_PORT }}
+          host: ${{ secrets.STAGING_HOST }}        # ← đổi
+          username: ${{ secrets.STAGING_USER }}    # ← đổi
+          key: ${{ secrets.STAGING_SSH_KEY }}      # ← đổi
+          port: ${{ secrets.STAGING_PORT }}        # ← đổi
           script: |
-            ### Change to release deployment directory
-            cd /home/${{ secrets.CAOSON_USER }}/data-lake/deployment/release 
-            ### Clean up unused images
-            docker image prune -f # clean up unused images
-            ### Provide permissions and start the application
+            cd /home/${{ secrets.STAGING_USER }}/data-lake/mongduong/deployment/staging  # ← đổi
+            docker image prune -f
             chmod +x start-app.sh
             ./start-app.sh
