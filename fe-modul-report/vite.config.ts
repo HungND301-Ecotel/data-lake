@@ -9,7 +9,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/datalake-api": {
-        target: "http://118.71.208.17:1313",
+        target: "http://localhost:1313",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/datalake-api/, ""),
       },

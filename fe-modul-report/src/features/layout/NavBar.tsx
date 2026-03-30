@@ -28,6 +28,7 @@ import {
   FileSearchOutlined,
   CodeOutlined,
   FileExcelOutlined,
+  ThunderboltOutlined,
 } from "@ant-design/icons";
 import { Button, Dropdown, Menu } from "antd";
 import { employeeApi } from "../employee/api/employeeApi";
@@ -133,6 +134,42 @@ export default function NavBar() {
               icon: <GoldOutlined className="text-lg" />,
               label: <span className="text-base font-medium">Gold Extraction</span>,
               onClick: () => navigate("/lakehouse/gold"),
+              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+            },
+          ],
+        },
+        { type: "divider" as const, className: "my-1" },
+        {
+          key: "db-lakehouse-group",
+          type: "group" as const,
+          label: <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">DB Lakehouse</span>,
+          children: [
+            {
+              key: "db-pipeline",
+              icon: <CloudUploadOutlined className="text-lg" />,
+              label: <span className="text-base font-medium">Upload & Pipeline</span>,
+              onClick: () => navigate("/db-lakehouse/pipeline"),
+              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+            },
+            {
+              key: "db-transform",
+              icon: <ThunderboltOutlined className="text-lg" />,
+              label: <span className="text-base font-medium">Transform (Silver/Gold)</span>,
+              onClick: () => navigate("/db-lakehouse/transform"),
+              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+            },
+            {
+              key: "db-chat",
+              icon: <RobotOutlined className="text-lg" />,
+              label: <span className="text-base font-medium">DB Chatbot</span>,
+              onClick: () => navigate("/db-lakehouse/chat"),
+              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+            },
+            {
+              key: "db-chart",
+              icon: <BarChartOutlined className="text-lg" />,
+              label: <span className="text-base font-medium">DB Chart</span>,
+              onClick: () => navigate("/db-lakehouse/chart"),
               className: "py-2 px-4 hover:bg-[#f0f9f4]!",
             },
           ],

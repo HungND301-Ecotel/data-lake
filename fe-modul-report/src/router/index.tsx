@@ -41,6 +41,10 @@ import TableQaPage from "../features/lakehouse/table-qa/pages/TableQaPage";
 import DocumentChatPage from "../features/lakehouse/document-chat/pages/DocumentChatPage";
 import SqlMetadataPage from "../features/sql-metadata/pages/SqlMetadataPage";
 import ExcelMappingPage from "../features/excel-mapping/pages/ExcelMappingPage";
+import DbPipelinePage from "../features/lakehouse/db-lakehouse/pages/DbPipelinePage";
+import DbTransformPage from "../features/lakehouse/db-lakehouse/pages/DbTransformPage";
+import DbChatPage from "../features/lakehouse/db-lakehouse/pages/DbChatPage";
+import DbChartPage from "../features/lakehouse/db-lakehouse/pages/DbChartPage";
 
 export const router = createBrowserRouter([
   {
@@ -70,6 +74,12 @@ export const router = createBrowserRouter([
       { path: "/lakehouse/document-chat", element: <DocumentChatPage /> },
       { path: "/sql-metadata", element: <SqlMetadataPage /> },
       { path: "/excel-mapping", element: <ExcelMappingPage /> },
+
+      // DB Lakehouse routes
+      { path: "/db-lakehouse/pipeline", element: <DbPipelinePage /> },
+      { path: "/db-lakehouse/transform", element: <DbTransformPage /> },
+      { path: "/db-lakehouse/chat", element: <DbChatPage /> },
+      { path: "/db-lakehouse/chart", element: <DbChartPage /> },
 
       { path: "/employee", element: <EmployeePage /> },
       { path: "/account-config", element: <UserPushConfigPage /> },
