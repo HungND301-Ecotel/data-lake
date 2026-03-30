@@ -2,7 +2,7 @@
 
 > **Pipeline: `.bak` File → Bronze → Silver → Gold + Chatbot & Charts**
 >
-> Base URL: `http://localhost:8000/api/v1/db-lakehouse`
+> Base URL: `http://118.70.151.69:8000/api/v1/db-lakehouse`
 >
 > Version: 1.0.0
 
