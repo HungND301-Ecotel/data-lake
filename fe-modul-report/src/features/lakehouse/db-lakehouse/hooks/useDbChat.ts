@@ -74,7 +74,7 @@ export function useDbChat() {
       const res: ChartResponse = await dbLakehouseApi.chart({
         database,
         question,
-        chart_type: chartType as ChartResponse["chart_type"],
+        chart_type: chartType as "bar" | "line" | "pie" | "scatter" | "heatmap" | undefined,
       });
       return { success: true, data: res };
     } catch (err: unknown) {

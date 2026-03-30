@@ -52,7 +52,7 @@ export default function DbChartPage() {
       const res = await dbLakehouseApi.chart({
         database: selectedDb,
         question: question.trim(),
-        chart_type: chartType || undefined,
+        chart_type: (chartType || undefined) as "bar" | "line" | "pie" | "scatter" | "heatmap" | undefined,
       });
       setResult(res);
     } catch (err: unknown) {

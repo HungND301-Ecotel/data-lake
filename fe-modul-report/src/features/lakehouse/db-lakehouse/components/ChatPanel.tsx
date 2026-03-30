@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import { Input, Button, Card, Typography, Table, Tag, Space, Empty } from "antd";
 import { SendOutlined, CodeOutlined, BarChartOutlined, ClearOutlined } from "@ant-design/icons";
 import type { ChatMessage } from "../hooks/useDbChat";
-import type { PlotlyChart } from "../types/dbLakehouse";
 import PlotlyChartView from "./PlotlyChartView";
 
 const { Text, Paragraph } = Typography;
