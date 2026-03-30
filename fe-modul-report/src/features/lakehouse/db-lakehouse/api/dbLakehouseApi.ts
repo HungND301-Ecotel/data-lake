@@ -17,6 +17,15 @@ import type {
   DatabaseListResponse,
   SSEEvent,
   SSEEventType,
+  ChatSSEEvent,
+  ChatSSEEventType,
+  ValueMappingSaveRequest,
+  ValueMappingSaveResponse,
+  ValueMappingListResponse,
+  ValueMappingConfig,
+  ValueMappingApplyRequest,
+  ValueMappingApplyResponse,
+  RemoteImportRequest,
 } from "../types/dbLakehouse";
 
 const BASE = "/api/v1/db-lakehouse";
@@ -48,6 +57,43 @@ async function readSSEStream(
 
       for (const line of block.split("\n")) {
         if (line.startsWith("event: ")) eventName = line.slice(7) as SSEEventType;
+        if (line.startsWith("data: ")) data = line.slice(6);
+      }
+
+      if (data) {
+        try {
+          onEvent({ event: eventName, ...JSON.parse(data) });
+        } catch {
+          // skip malformed JSON
+        }
+      }
+    }
+  }
+}
+
+async function readChatSSEStream(
+  response: Response,
+  onEvent: (event: ChatSSEEvent) => void,
+): Promise<void> {
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const blocks = buffer.split("\n\n");
+    buffer = blocks.pop() || "";
+
+    for (const block of blocks) {
+      if (!block.trim()) continue;
+      let eventName: ChatSSEEventType = "answer_token";
+      let data = "";
+
+      for (const line of block.split("\n")) {
+        if (line.startsWith("event: ")) eventName = line.slice(7) as ChatSSEEventType;
         if (line.startsWith("data: ")) data = line.slice(6);
       }
 
@@ -96,6 +142,26 @@ export const dbLakehouseApi = {
       params: serverId ? { server_id: serverId } : undefined,
     });
     return res.data;
+  },
+
+  // ============ Remote Import ============
+
+  remoteImport: async (body: RemoteImportRequest): Promise<BronzeUploadResponse> => {
+    const res = await axiosDataLakeClient.post(`${BASE}/remote/import`, body);
+    return res.data;
+  },
+
+  remoteImportStream: async (
+    body: RemoteImportRequest,
+    onEvent: (event: SSEEvent) => void,
+  ): Promise<void> => {
+    const response = await fetch(`${getBaseUrl()}${BASE}/remote/import/stream`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    await readSSEStream(response, onEvent);
   },
 
   // ============ Silver Layer ============
@@ -284,6 +350,60 @@ export const dbLakehouseApi = {
         body: JSON.stringify(body),
       },
     );
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    await readSSEStream(response, onEvent);
+  },
+
+  // ============ Chat SSE Streaming ============
+
+  chatStream: async (
+    body: ChatRequest,
+    onEvent: (event: ChatSSEEvent) => void,
+  ): Promise<void> => {
+    const response = await fetch(`${getBaseUrl()}${BASE}/chat/stream`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    await readChatSSEStream(response, onEvent);
+  },
+
+  // ============ Value Mapping ============
+
+  mappingSave: async (body: ValueMappingSaveRequest): Promise<ValueMappingSaveResponse> => {
+    const res = await axiosDataLakeClient.post(`${BASE}/mapping/save`, body);
+    return res.data;
+  },
+
+  mappingList: async (): Promise<ValueMappingListResponse> => {
+    const res = await axiosDataLakeClient.get(`${BASE}/mapping/list`);
+    return res.data;
+  },
+
+  mappingGet: async (name: string): Promise<ValueMappingConfig> => {
+    const res = await axiosDataLakeClient.get(`${BASE}/mapping/${encodeURIComponent(name)}`);
+    return res.data;
+  },
+
+  mappingDelete: async (name: string): Promise<void> => {
+    await axiosDataLakeClient.delete(`${BASE}/mapping/${encodeURIComponent(name)}`);
+  },
+
+  mappingApply: async (body: ValueMappingApplyRequest): Promise<ValueMappingApplyResponse> => {
+    const res = await axiosDataLakeClient.post(`${BASE}/mapping/apply`, body);
+    return res.data;
+  },
+
+  mappingApplyStream: async (
+    body: ValueMappingApplyRequest,
+    onEvent: (event: SSEEvent) => void,
+  ): Promise<void> => {
+    const response = await fetch(`${getBaseUrl()}${BASE}/mapping/apply/stream`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
     if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     await readSSEStream(response, onEvent);
   },

@@ -1,3 +1,60 @@
+// ============ Server Management ============
+
+export interface ServerConfig {
+  id: string;
+  name: string;
+  host: string;
+  port: number;
+  username: string;
+  driver: string;
+  trust_cert: boolean;
+  windows_auth: boolean;
+  is_default: boolean;
+  created_at: string;
+}
+
+export interface ServerListResponse {
+  servers: ServerConfig[];
+  total: number;
+}
+
+export interface ServerCreateRequest {
+  name: string;
+  host: string;
+  port?: number;
+  username?: string;
+  password: string;
+  driver?: string;
+  trust_cert?: boolean;
+  windows_auth?: boolean;
+}
+
+export interface ServerUpdateRequest {
+  name?: string;
+  host?: string;
+  port?: number;
+  username?: string;
+  password?: string;
+  trust_cert?: boolean;
+  windows_auth?: boolean;
+}
+
+export interface ServerTestResponse {
+  success: boolean;
+  message: string;
+  databases: string[];
+}
+
+// ============ Remote Import ============
+
+export interface RemoteImportRequest {
+  source_server_id: string;
+  source_database: string;
+  target_server_id?: string | null;
+  bronze_database?: string;
+  tables?: string[] | null;
+}
+
 // ============ Bronze Layer ============
 
 export interface BronzeUploadResponse {
@@ -207,7 +264,118 @@ export interface DatabaseListResponse {
   databases: Record<string, DatabaseMeta>;
 }
 
-// ============ SSE Streaming ============
+// ============ Value Mapping ============
+
+export interface ValueMappingEntry {
+  from_value: string;
+  to_value: string;
+}
+
+export interface ValueMappingSaveRequest {
+  name: string;
+  description?: string | null;
+  case_insensitive?: boolean;
+  match_mode?: "exact" | "contains" | "word";
+  mappings: ValueMappingEntry[];
+}
+
+export interface ValueMappingConfig {
+  name: string;
+  description: string | null;
+  case_insensitive: boolean;
+  match_mode: "exact" | "contains" | "word";
+  mappings: ValueMappingEntry[];
+  created_at: string;
+}
+
+export interface ValueMappingSaveResponse {
+  status: string;
+  mapping: ValueMappingConfig;
+}
+
+export interface ValueMappingListItem {
+  name: string;
+  description: string | null;
+  mapping_count: number;
+  match_mode: string;
+  created_at: string;
+}
+
+export interface ValueMappingListResponse {
+  mappings: ValueMappingListItem[];
+}
+
+export interface ValueMappingApplyRequest {
+  database: string;
+  server_id?: string | null;
+  tables?: string[] | null;
+  columns?: string[] | null;
+  mapping_name?: string | null;
+  custom_mappings?: ValueMappingEntry[] | null;
+  case_insensitive?: boolean;
+  match_mode?: "exact" | "contains" | "word";
+  dry_run?: boolean;
+}
+
+export interface ValueMappingResultDetail {
+  column: string;
+  from_value: string;
+  to_value: string;
+  matches: number;
+  applied: boolean;
+}
+
+export interface ValueMappingTableResult {
+  table_name: string;
+  columns_scanned: number;
+  total_replacements: number;
+  details: ValueMappingResultDetail[];
+}
+
+export interface ValueMappingApplyResponse {
+  status: string;
+  database: string;
+  tables_processed: string[];
+  total_replacements: number;
+  results: ValueMappingTableResult[];
+  dry_run: boolean;
+  message: string;
+}
+
+// ============ Chat SSE Streaming ============
+
+export type ChatSSEEventType =
+  | "start" | "schema_loaded" | "sql_generating" | "sql_generated" | "sql_fixed"
+  | "query_executing" | "query_result" | "answer_streaming" | "answer_token"
+  | "answer_done" | "data" | "chart" | "complete" | "error";
+
+export interface ChatSSEEvent {
+  event: ChatSSEEventType;
+  // start
+  session_id?: string;
+  question?: string;
+  database?: string;
+  // schema_loaded
+  tables_count?: number;
+  // sql
+  sql_query?: string;
+  // query_result
+  columns?: string[];
+  total_rows?: number;
+  data_preview?: Record<string, unknown>[];
+  // answer_token
+  token?: string;
+  // answer_done
+  answer?: string;
+  // data
+  data?: Record<string, unknown>[];
+  // chart
+  chart?: PlotlyChart;
+  // general
+  message?: string;
+}
+
+// ============ Pipeline SSE Streaming ============
 
 export type SSEEventType =
   // Bronze events

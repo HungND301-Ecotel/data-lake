@@ -2,96 +2,373 @@
 
 > **Pipeline: `.bak` File → Bronze → Silver → Gold + Chatbot & Charts**
 >
-> Base URL: `http://118.70.151.69:8000/api/v1/db-lakehouse`
+> Base URL: `http://localhost:8000/api/v1/db-lakehouse`
 >
 > Version: 1.0.0
 
 ---
 
-## MUC LUC
+## MỤC LỤC
 
-1. [Tong quan Pipeline](#1-tong-quan-pipeline)
-2. [Bronze Layer - Import du lieu tho](#2-bronze-layer---import-du-lieu-tho)
-   - 2.1 [POST /bronze/upload](#21-post-bronzeupload)
-   - 2.2 [POST /bronze/import](#22-post-bronzeimport)
-   - 2.3 [GET /bronze/{database_name}](#23-get-bronzedatabase_name)
-3. [Silver Layer - Clean & Validate](#3-silver-layer---clean--validate)
-   - 3.1 [POST /silver/transform](#31-post-silvertransform)
-   - 3.2 [GET /silver/{database_name}](#32-get-silverdatabase_name)
-4. [Gold Layer - Chuan hoa du lieu](#4-gold-layer---chuan-hoa-du-lieu)
-   - 4.1 [POST /gold/transform](#41-post-goldtransform)
-   - 4.2 [GET /gold/{database_name}](#42-get-golddatabase_name)
-5. [Full Pipeline](#5-full-pipeline---chay-toan-bo)
-   - 5.1 [POST /pipeline/upload](#51-post-pipelineupload)
-   - 5.2 [POST /pipeline/run](#52-post-pipelinerun)
-6. [Chat & Bieu do](#6-chat--bieu-do)
-   - 6.1 [POST /chat](#61-post-chat)
-   - 6.2 [POST /chart](#62-post-chart)
-   - 6.3 [GET /chat/history/{session_id}](#63-get-chathistorysession_id)
-7. [Quan ly Database](#7-quan-ly-database)
-   - 7.1 [GET /databases](#71-get-databases)
-   - 7.2 [GET /database/{database_name}](#72-get-databasedatabase_name)
-8. [Streaming APIs (SSE)](#8-streaming-apis-sse)
-   - 8.1 [POST /bronze/upload/stream](#81-post-bronzeuploadstream)
-   - 8.2 [POST /silver/transform/stream](#82-post-silvertransformstream)
-   - 8.3 [POST /gold/transform/stream](#83-post-goldtransformstream)
-   - 8.4 [POST /pipeline/upload/stream](#84-post-pipelineuploadstream)
-   - 8.5 [POST /pipeline/run/stream](#85-post-pipelinerunstream)
-9. [Error Handling](#9-error-handling)
-10. [Flow Diagram & Goi y trien khai FE](#10-flow-diagram--goi-y-trien-khai-fe)
+1. [Tổng quan Pipeline](#1-tổng-quan-pipeline)
+2. [Quản lý Server SQL (Chọn server lưu trữ)](#2-quản-lý-server-sql-chọn-server-lưu-trữ)
+3. [Bronze Layer - Import dữ liệu thô](#3-bronze-layer---import-dữ-liệu-thô)
+   - 3.1 [POST /bronze/upload](#31-post-bronzeupload) - Upload file .bak
+   - 3.2 [POST /bronze/import](#32-post-bronzeimport) - Import .bak từ path
+   - 3.3 [GET /bronze/{database_name}](#33-get-bronzedatabase_name)
+   - 3.4 [POST /remote/import](#34-post-remoteimport) - Import từ server khác
+   - 3.5 [POST /remote/import/stream](#35-post-remoteimportstream) - Import remote + SSE
+4. [Silver Layer - Clean & Validate](#4-silver-layer---clean--validate)
+   - 4.1 [POST /silver/transform](#41-post-silvertransform)
+   - 4.2 [GET /silver/{database_name}](#42-get-silverdatabase_name)
+5. [Gold Layer - Chuẩn hoá dữ liệu](#5-gold-layer---chuẩn-hoá-dữ-liệu)
+   - 5.1 [POST /gold/transform](#51-post-goldtransform)
+   - 5.2 [GET /gold/{database_name}](#52-get-golddatabase_name)
+6. [Full Pipeline](#6-full-pipeline---chạy-toàn-bộ)
+   - 6.1 [POST /pipeline/upload](#61-post-pipelineupload)
+   - 6.2 [POST /pipeline/run](#62-post-pipelinerun)
+7. [Chat & Biểu đồ](#7-chat--biểu-đồ)
+   - 7.1 [POST /chat](#71-post-chat)
+   - 7.2 [POST /chat/stream](#72-post-chatstream)
+   - 7.3 [POST /chart](#73-post-chart)
+   - 7.4 [GET /chat/history/{session_id}](#74-get-chathistorysession_id)
+8. [Quản lý Pipeline Database](#8-quản-lý-pipeline-database)
+   - 8.1 [GET /databases](#81-get-databases)
+   - 8.2 [GET /database/{database_name}](#82-get-databasedatabase_name)
+9. [Value Mapping - Chuẩn hoá dữ liệu theo bảng mapping](#9-value-mapping---chuẩn-hoá-dữ-liệu-theo-bảng-mapping)
+   - 9.1 [POST /mapping/save](#91-post-mappingsave)
+   - 9.2 [GET /mapping/list](#92-get-mappinglist)
+   - 9.3 [GET /mapping/{name}](#93-get-mappingname)
+   - 9.4 [DELETE /mapping/{name}](#94-delete-mappingname)
+   - 9.5 [POST /mapping/apply](#95-post-mappingapply)
+   - 9.6 [POST /mapping/apply/stream](#96-post-mappingapplystream)
+10. [Streaming APIs (SSE)](#10-streaming-apis-sse)
+11. [Error Handling](#11-error-handling)
+12. [Flow Diagram & Gợi ý triển khai FE](#12-flow-diagram--gợi-ý-triển-khai-fe)
 
 ---
 
-## 1. TONG QUAN PIPELINE
+## 1. TỔNG QUAN PIPELINE
 
-DB Lakehouse la he thong xu ly du lieu theo mo hinh **Medallion Architecture** (Bronze → Silver → Gold) danh cho file backup SQL Server (.bak). He thong cung cap chatbot hoi dap va ve bieu do tu dong.
+DB Lakehouse là hệ thống xử lý dữ liệu theo mô hình **Medallion Architecture** (Bronze → Silver → Gold) dành cho file backup SQL Server (.bak). Hệ thống cung cấp chatbot hỏi đáp và vẽ biểu đồ tự động.
 
-### Kien truc 3 tang:
+### Kiến trúc 3 tầng:
 
-| Tang | Database | Mo ta | Xu ly |
+| Tầng | Database | Mô tả | Xử lý |
 |------|----------|-------|-------|
-| **Bronze** | `bronze_*` | Du lieu tho (raw) - giu nguyen tu file .bak | Restore .bak → DB |
-| **Silver** | `silver_*` | Du lieu da clean & validate | Trim, remove duplicates, fix types, AI auto-clean |
-| **Gold** | `gold_*` | Du lieu chuan hoa (standardized) | Rename columns, normalize dates/phones/names, format currency |
+| **Bronze** | `bronze_*` | Dữ liệu thô (raw) - giữ nguyên từ file .bak | Restore .bak → DB |
+| **Silver** | `silver_*` | Dữ liệu đã clean & validate | Trim, remove duplicates, fix types, AI auto-clean |
+| **Gold** | `gold_*` | Dữ liệu chuẩn hoá (standardized) | Rename columns, normalize dates/phones/names, format currency |
 
-### Tinh nang Chatbot:
-- Hoi dap bang tieng Viet → AI sinh SQL → tra ve ket qua + giai thich
-- Tu dong phat hien yeu cau bieu do va sinh Plotly chart config
-- Ho tro cac loai: `bar`, `line`, `pie`, `scatter`, `histogram`
-- Luu lich su chat theo session
-
----
-
-## 2. BRONZE LAYER - Import du lieu tho
-
-Bronze layer la tang dau tien, luu tru du lieu nguyen ban tu file `.bak`. Du lieu duoc restore truc tiep vao SQL Server database moi.
+### Tính năng Chatbot:
+- Hỏi đáp bằng tiếng Việt → AI sinh SQL → trả về kết quả + giải thích
+- Tự động phát hiện yêu cầu biểu đồ và sinh Plotly chart config
+- Hỗ trợ các loại: `bar`, `line`, `pie`, `scatter`, `histogram`
+- Lưu lịch sử chat theo session
 
 ---
 
-### 2.1 POST /bronze/upload
+## 2. QUẢN LÝ SERVER SQL (Chọn server lưu trữ)
 
-> **Upload file .bak va import vao Bronze database**
+> **Base URL:** `http://localhost:8000/api/v1/servers`
+>
+> Đây là bước **bắt buộc đầu tiên** trước khi sử dụng pipeline. Tất cả các API trong DB Lakehouse đều nhận tham số `server_id` để xác định dữ liệu sẽ được lưu trữ trên SQL Server nào.
+
+### Workflow trên FE:
+
+```
+Bước 1: Gọi GET /servers → Lấy danh sách server đã cấu hình
+Bước 2: Nếu chưa có → Gọi POST /servers → Thêm server mới
+Bước 3: Gọi POST /servers/{id}/test → Kiểm tra kết nối
+Bước 4: Gọi GET /servers/{id}/databases → Xem danh sách database trên server đó
+Bước 5: Truyền server_id vào tất cả API pipeline (Bronze/Silver/Gold/Chat)
+```
+
+### Lưu ý quan trọng:
+- Nếu **không truyền `server_id`** → hệ thống dùng server mặc định (default)
+- Có thể đổi server mặc định bằng `POST /servers/{id}/set-default`
+- Mỗi server có 1 `id` duy nhất (VD: `"f20bd538"`) - dùng ID này cho tham số `server_id` trong các API khác
+
+---
+
+### 2.1 GET /api/v1/servers
+
+> **Lấy danh sách tất cả SQL Server đã cấu hình**
+
+#### Response:
+
+| Field | Type | Mô tả |
+|-------|------|-------|
+| `servers` | ServerConfig[] | Danh sách server |
+| `total` | integer | Tổng số server |
+
+#### Schema: ServerConfig
+
+| Field | Type | Mô tả |
+|-------|------|-------|
+| `id` | string | **ID duy nhất** - dùng cho tham số `server_id` ở các API khác |
+| `name` | string | Tên hiển thị (VD: "Server Kế toán") |
+| `host` | string | Địa chỉ server (VD: `"192.168.1.100"`, `"localhost\\SQLEXPRESS"`) |
+| `port` | integer | Port SQL Server (mặc định 1433) |
+| `username` | string | Tên đăng nhập SQL |
+| `driver` | string | ODBC driver |
+| `trust_cert` | boolean | Trust server certificate |
+| `windows_auth` | boolean | Dùng Windows Authentication |
+| `is_default` | boolean | **Server mặc định** - dùng khi không truyền `server_id` |
+| `created_at` | string | Thời điểm tạo |
+
+#### Example Response:
+```json
+{
+  "servers": [
+    {
+      "id": "f20bd538",
+      "name": "Server Kế toán",
+      "host": "192.168.1.100",
+      "port": 1433,
+      "username": "sa",
+      "driver": "{ODBC Driver 18 for SQL Server}",
+      "trust_cert": true,
+      "windows_auth": false,
+      "is_default": true,
+      "created_at": "2026-03-29T08:00:00"
+    },
+    {
+      "id": "a1b2c3d4",
+      "name": "Server Nhân sự",
+      "host": "192.168.1.200",
+      "port": 1433,
+      "username": "sa",
+      "driver": "{ODBC Driver 18 for SQL Server}",
+      "trust_cert": true,
+      "windows_auth": false,
+      "is_default": false,
+      "created_at": "2026-03-30T10:00:00"
+    }
+  ],
+  "total": 2
+}
+```
+
+---
+
+### 2.2 POST /api/v1/servers
+
+> **Thêm SQL Server mới**
+
+**Content-Type:** `application/json`
+
+#### Request Body:
+
+| Field | Type | Required | Default | Mô tả |
+|-------|------|----------|---------|-------|
+| `name` | string | **Yes** | - | Tên hiển thị (VD: `"Server Kế toán"`) |
+| `host` | string | **Yes** | - | Địa chỉ server (VD: `"192.168.1.100"` hoặc `"localhost\\SQLEXPRESS"`) |
+| `port` | integer | No | 1433 | Port SQL Server (bỏ qua nếu dùng named instance) |
+| `username` | string | No | `"sa"` | Tên đăng nhập |
+| `password` | string | **Yes** | - | Mật khẩu |
+| `driver` | string | No | `"{ODBC Driver 18 for SQL Server}"` | ODBC driver |
+| `trust_cert` | boolean | No | true | Trust server certificate |
+| `windows_auth` | boolean | No | false | Dùng Windows Auth thay vì SQL Auth |
+
+#### Example Request:
+```json
+{
+  "name": "Server Kế toán",
+  "host": "192.168.1.100",
+  "port": 1433,
+  "username": "sa",
+  "password": "MyPassword123",
+  "trust_cert": true,
+  "windows_auth": false
+}
+```
+
+#### Example Response:
+```json
+{
+  "id": "f20bd538",
+  "name": "Server Kế toán",
+  "host": "192.168.1.100",
+  "port": 1433,
+  "username": "sa",
+  "driver": "{ODBC Driver 18 for SQL Server}",
+  "trust_cert": true,
+  "windows_auth": false,
+  "is_default": false,
+  "created_at": "2026-03-30T10:00:00"
+}
+```
+
+---
+
+### 2.3 POST /api/v1/servers/{server_id}/test
+
+> **Kiểm tra kết nối đến SQL Server**
+
+Trả về trạng thái kết nối và danh sách database có sẵn trên server.
+
+#### Path Parameters:
+
+| Parameter | Type | Required | Mô tả |
+|-----------|------|----------|-------|
+| `server_id` | string | **Yes** | ID của server cần test |
+
+#### Example Response (thành công):
+```json
+{
+  "success": true,
+  "message": "Kết nối thành công đến 192.168.1.100",
+  "databases": ["EFS_KETOAN", "EFS_NHANSU", "EFS_UB2023", "QLTS_2024"]
+}
+```
+
+#### Example Response (thất bại):
+```json
+{
+  "success": false,
+  "message": "Kết nối thất bại: Login failed for user 'sa'",
+  "databases": []
+}
+```
+
+---
+
+### 2.4 GET /api/v1/servers/{server_id}/databases
+
+> **Lấy danh sách database trên 1 server**
+
+#### Response:
+```json
+["EFS_KETOAN", "EFS_NHANSU", "EFS_UB2023", "QLTS_2024"]
+```
+
+---
+
+### 2.5 POST /api/v1/servers/{server_id}/set-default
+
+> **Đặt server làm mặc định**
+
+Server mặc định được dùng khi không truyền `server_id` trong các API khác.
+
+#### Response:
+```json
+{
+  "status": "ok",
+  "message": "Server 'f20bd538' is now the default"
+}
+```
+
+---
+
+### 2.6 PUT /api/v1/servers/{server_id}
+
+> **Cập nhật thông tin server**
+
+Chỉ truyền các field cần thay đổi, các field còn lại giữ nguyên.
+
+#### Request Body:
+
+| Field | Type | Required | Mô tả |
+|-------|------|----------|-------|
+| `name` | string | No | Tên hiển thị mới |
+| `host` | string | No | Địa chỉ mới |
+| `port` | integer | No | Port mới |
+| `username` | string | No | Username mới |
+| `password` | string | No | Password mới |
+| `trust_cert` | boolean | No | Trust certificate |
+| `windows_auth` | boolean | No | Windows Auth |
+
+---
+
+### 2.7 DELETE /api/v1/servers/{server_id}
+
+> **Xoá server**
+
+#### Response:
+```json
+{
+  "status": "deleted",
+  "server_id": "a1b2c3d4"
+}
+```
+
+---
+
+### Cách FE sử dụng `server_id` trong Pipeline
+
+Sau khi có danh sách server, FE truyền `server_id` vào **tất cả API** của DB Lakehouse:
+
+```tsx
+// 1. Lấy danh sách server
+const { data: servers } = await axios.get('/api/v1/servers');
+
+// 2. Cho người dùng chọn server (dropdown)
+const selectedServerId = servers.servers[0].id; // VD: "f20bd538"
+
+// 3. Truyền server_id vào mọi API pipeline
+// Upload Bronze:
+formData.append('server_id', selectedServerId);
+await fetch('/api/v1/db-lakehouse/bronze/upload', { body: formData });
+
+// Transform Silver:
+await fetch('/api/v1/db-lakehouse/silver/transform', {
+  body: JSON.stringify({
+    bronze_database: 'bronze_mydb',
+    server_id: selectedServerId,  // ← Dữ liệu sẽ lưu trên server này
+    auto_clean: true,
+  })
+});
+
+// Chat:
+await fetch('/api/v1/db-lakehouse/chat/stream', {
+  body: JSON.stringify({
+    question: 'Thống kê doanh thu',
+    database: 'gold_mydb',
+    server_id: selectedServerId,  // ← Query trên server này
+  })
+});
+```
+
+> **Nếu không truyền `server_id`** → dùng server có `is_default: true`
+
+---
+
+## 3. BRONZE LAYER - Import dữ liệu thô
+
+Bronze layer là tầng đầu tiên, lưu trữ dữ liệu nguyên bản. Hỗ trợ **2 nguồn import:**
+
+| Nguồn | API | Mô tả |
+|-------|-----|-------|
+| **File .bak** | `POST /bronze/upload` hoặc `/bronze/import` | Restore file backup SQL Server |
+| **Remote Server** | `POST /remote/import` | Copy dữ liệu từ SQL Server khác về local |
+
+---
+
+### 3.1 POST /bronze/upload
+
+> **Upload file .bak và import vào Bronze database**
 
 **Content-Type:** `multipart/form-data`
 
 #### Request (Form Data):
 
-| Field | Type | Required | Default | Mo ta |
+| Field | Type | Required | Default | Mô tả |
 |-------|------|----------|---------|-------|
 | `file` | File (.bak) | **Yes** | - | File backup SQL Server (.bak) |
-| `server_id` | string | No | null | Server ID de restore (mac dinh = default server) |
-| `database_name` | string | No | auto | Ten Bronze DB tuy chinh (auto = `bronze_{filename}_{timestamp}`) |
+| `server_id` | string | No | null | Server ID để restore (mặc định = default server) |
+| `database_name` | string | No | auto | Tên Bronze DB tuỳ chỉnh (auto = `bronze_{filename}_{timestamp}`) |
 
 #### Response:
 
-| Field | Type | Mo ta |
+| Field | Type | Mô tả |
 |-------|------|-------|
 | `status` | string | `"success"` |
-| `bronze_database` | string | Ten database Bronze da tao |
-| `tables_imported` | string[] | Danh sach ten bang da import |
-| `table_count` | integer | So luong bang |
-| `total_rows` | integer | Tong so dong du lieu |
-| `message` | string | Thong bao ket qua |
+| `bronze_database` | string | Tên database Bronze đã tạo |
+| `tables_imported` | string[] | Danh sách tên bảng đã import |
+| `table_count` | integer | Số lượng bảng |
+| `total_rows` | integer | Tổng số dòng dữ liệu |
+| `message` | string | Thông báo kết quả |
 
 #### Example Response:
 ```json
@@ -107,25 +384,25 @@ Bronze layer la tang dau tien, luu tru du lieu nguyen ban tu file `.bak`. Du lie
 
 ---
 
-### 2.2 POST /bronze/import
+### 3.2 POST /bronze/import
 
-> **Import file .bak tu duong dan co san tren server**
+> **Import file .bak từ đường dẫn có sẵn trên server**
 
 **Content-Type:** `application/json`
 
 #### Query Parameters:
 
-| Parameter | Type | Required | Mo ta |
+| Parameter | Type | Required | Mô tả |
 |-----------|------|----------|-------|
-| `bak_file_path` | string | **Yes** | Duong dan tuyet doi den file .bak tren server |
+| `bak_file_path` | string | **Yes** | Đường dẫn tuyệt đối đến file .bak trên server |
 
 #### Request Body:
 
-| Field | Type | Required | Default | Mo ta |
+| Field | Type | Required | Default | Mô tả |
 |-------|------|----------|---------|-------|
 | `server_id` | string | No | null | Server ID |
-| `database_name` | string | No | auto | Ten Bronze DB tuy chinh |
-| `tables` | string[] | No | null | Chi import cac bang nay (null = tat ca) |
+| `database_name` | string | No | auto | Tên Bronze DB tuỳ chỉnh |
+| `tables` | string[] | No | null | Chỉ import các bảng này (null = tất cả) |
 
 #### Example Request:
 ```
@@ -153,39 +430,39 @@ POST /api/v1/db-lakehouse/bronze/import?bak_file_path=D:\backups\MyDB.bak
 
 ---
 
-### 2.3 GET /bronze/{database_name}
+### 3.3 GET /bronze/{database_name}
 
-> **Xem chi tiet Bronze database**
+> **Xem chi tiết Bronze database**
 
 #### Path Parameters:
 
-| Parameter | Type | Required | Mo ta |
+| Parameter | Type | Required | Mô tả |
 |-----------|------|----------|-------|
-| `database_name` | string | **Yes** | Ten Bronze database |
+| `database_name` | string | **Yes** | Tên Bronze database |
 
 #### Query Parameters:
 
-| Parameter | Type | Required | Mo ta |
+| Parameter | Type | Required | Mô tả |
 |-----------|------|----------|-------|
-| `server_id` | string | No | Server ID (mac dinh = default) |
+| `server_id` | string | No | Server ID (mặc định = default) |
 
 #### Response: `DatabaseInfoResponse`
 
-| Field | Type | Mo ta |
+| Field | Type | Mô tả |
 |-------|------|-------|
-| `database_name` | string | Ten database |
+| `database_name` | string | Tên database |
 | `layer` | string | `"bronze"` |
-| `tables` | BronzeTableInfo[] | Danh sach bang (xem schema ben duoi) |
-| `total_rows` | integer | Tong so dong |
-| `total_tables` | integer | Tong so bang |
+| `tables` | BronzeTableInfo[] | Danh sách bảng (xem schema bên dưới) |
+| `total_rows` | integer | Tổng số dòng |
+| `total_tables` | integer | Tổng số bảng |
 
 #### Schema: BronzeTableInfo
 
-| Field | Type | Mo ta |
+| Field | Type | Mô tả |
 |-------|------|-------|
-| `table_name` | string | Ten bang |
-| `row_count` | integer | So dong |
-| `column_count` | integer | So cot |
+| `table_name` | string | Tên bảng |
+| `row_count` | integer | Số dòng |
+| `column_count` | integer | Số cột |
 | `columns` | object[] | `[{name, type, nullable, max_length}]` |
 
 #### Example Response:
@@ -213,61 +490,164 @@ POST /api/v1/db-lakehouse/bronze/import?bak_file_path=D:\backups\MyDB.bak
 
 ---
 
-## 3. SILVER LAYER - Clean & Validate
+### 3.4 POST /remote/import
 
-Silver layer lam sach va validate du lieu tu Bronze. Cac buoc xu ly: trim whitespace, remove duplicates, fill nulls, validate types. Co the dung AI auto-detect hoac truyen custom rules.
+> **Import dữ liệu từ SQL Server khác về Bronze database**
+
+**Content-Type:** `application/json`
+
+Tương tự import .bak nhưng nguồn là database đang chạy trên server khác. Hệ thống sẽ đọc từng bảng trên remote server và copy dữ liệu sang Bronze DB trên server đích (local hoặc server khác).
+
+#### Request Body:
+
+| Field | Type | Required | Default | Mô tả |
+|-------|------|----------|---------|-------|
+| `source_server_id` | string | **Yes** | - | Server ID nguồn (server chứa dữ liệu cần import) - lấy từ `GET /servers` |
+| `source_database` | string | **Yes** | - | Tên database nguồn trên remote server |
+| `target_server_id` | string | No | null | Server ID đích để lưu Bronze DB (null = server mặc định/local) |
+| `bronze_database` | string | No | auto | Tên Bronze DB trên server đích (auto = `bronze_{db}_{timestamp}`) |
+| `tables` | string[] | No | null | Chỉ import các bảng này (null = tất cả) |
+
+#### Workflow:
+
+```
+Server nguồn (remote)              Server đích (local)
+┌──────────────────────┐           ┌──────────────────────┐
+│  source_database     │           │  bronze_database     │
+│  ├── Customers ──────│──copy──→  │  ├── Customers       │
+│  ├── Orders    ──────│──copy──→  │  ├── Orders          │
+│  └── Products  ──────│──copy──→  │  └── Products        │
+└──────────────────────┘           └──────────────────────┘
+   source_server_id                   target_server_id
+```
+
+#### Example Request:
+```json
+{
+  "source_server_id": "a1b2c3d4",
+  "source_database": "EFS_KETOAN",
+  "target_server_id": "f20bd538",
+  "bronze_database": "bronze_ketoan",
+  "tables": ["DM_REPORT_CTHUC", "DM_BCTC"]
+}
+```
+
+#### Example Response:
+```json
+{
+  "status": "success",
+  "bronze_database": "bronze_ketoan",
+  "tables_imported": ["DM_REPORT_CTHUC", "DM_BCTC"],
+  "table_count": 2,
+  "total_rows": 12500,
+  "message": "Đã import 2 bảng (12500 dòng) từ [EFS_KETOAN] sang Bronze [bronze_ketoan]"
+}
+```
 
 ---
 
-### 3.1 POST /silver/transform
+### 3.5 POST /remote/import/stream
 
-> **Chuyen doi Bronze → Silver (clean & validate)**
+> **Import từ remote server với SSE streaming progress**
+
+**Content-Type:** `application/json`
+**Response Content-Type:** `text/event-stream`
+
+**Request Body:** Giống [POST /remote/import](#34-post-remoteimport)
+
+#### SSE Events:
+
+| Event | Khi nào | Data fields |
+|-------|---------|-------------|
+| `start` | Bắt đầu import | `source_server_id`, `source_database`, `progress: 0` |
+| `progress` | Tạo DB / quét bảng | `step`, `message`, `tables_total`, `progress` |
+| `table_start` | Bắt đầu copy 1 bảng | `table`, `tables_done`, `tables_total`, `progress` |
+| `table_done` | Copy xong 1 bảng | `table`, `row_count`, `column_count`, `tables_done`, `progress` |
+| `table_error` | Lỗi copy 1 bảng | `table`, `message` |
+| `complete` | Hoàn tất | `status: "success"`, `bronze_database`, `tables_imported`, `total_rows`, `progress: 100` |
+| `error` | Lỗi nghiêm trọng | `message` |
+
+#### Example FE - Import từ remote:
+```tsx
+// 1. Lấy danh sách server
+const { data: servers } = await axios.get('/api/v1/servers');
+// servers: [{id: "f20bd538", name: "Local"}, {id: "a1b2c3d4", name: "Server Kế toán"}]
+
+// 2. Lấy danh sách database trên server nguồn
+const { data: databases } = await axios.get('/api/v1/servers/a1b2c3d4/databases');
+// databases: ["EFS_KETOAN", "EFS_NHANSU"]
+
+// 3. Import với streaming
+const res = await fetch('/api/v1/db-lakehouse/remote/import/stream', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    source_server_id: 'a1b2c3d4',    // Server Kế toán (remote)
+    source_database: 'EFS_KETOAN',
+    target_server_id: 'f20bd538',     // Local server
+    tables: null,                      // Tất cả bảng
+  }),
+});
+// ... đọc SSE events như các API stream khác ...
+```
+
+---
+
+## 4. SILVER LAYER - Clean & Validate
+
+Silver layer làm sạch và validate dữ liệu từ Bronze. Các bước xử lý: trim whitespace, remove duplicates, fill nulls, validate types. Có thể dùng AI auto-detect hoặc truyền custom rules.
+
+---
+
+### 4.1 POST /silver/transform
+
+> **Chuyển đổi Bronze → Silver (clean & validate)**
 
 **Content-Type:** `application/json`
 
 #### Request Body:
 
-| Field | Type | Required | Default | Mo ta |
+| Field | Type | Required | Default | Mô tả |
 |-------|------|----------|---------|-------|
-| `bronze_database` | string | **Yes** | - | Ten Bronze database nguon |
-| `silver_database` | string | No | auto | Ten Silver DB dich (auto = `silver_{...}`) |
-| `tables` | string[] | No | null | Chi transform cac bang nay (null = tat ca) |
-| `auto_clean` | boolean | No | true | Su dung AI de tu dong phat hien va clean |
-| `custom_rules` | CleaningRule[] | No | null | Cac quy tac clean tuy chinh (xem bang duoi) |
-| `remove_duplicates` | boolean | No | true | Xoa cac dong trung lap |
-| `remove_null_rows` | boolean | No | false | Xoa dong co tat ca gia tri NULL |
+| `bronze_database` | string | **Yes** | - | Tên Bronze database nguồn |
+| `silver_database` | string | No | auto | Tên Silver DB đích (auto = `silver_{...}`) |
+| `tables` | string[] | No | null | Chỉ transform các bảng này (null = tất cả) |
+| `auto_clean` | boolean | No | true | Sử dụng AI để tự động phát hiện và clean |
+| `custom_rules` | CleaningRule[] | No | null | Các quy tắc clean tuỳ chỉnh (xem bảng dưới) |
+| `remove_duplicates` | boolean | No | true | Xoá các dòng trùng lặp |
+| `remove_null_rows` | boolean | No | false | Xoá dòng có tất cả giá trị NULL |
 
 #### Schema: CleaningRule
 
-| Field | Type | Required | Mo ta |
+| Field | Type | Required | Mô tả |
 |-------|------|----------|-------|
-| `column` | string | **Yes** | Ten cot can ap dung |
-| `action` | string | **Yes** | Loai action (xem bang tham chieu) |
-| `params` | object | No | Tham so cho action |
+| `column` | string | **Yes** | Tên cột cần áp dụng |
+| `action` | string | **Yes** | Loại action (xem bảng tham chiếu) |
+| `params` | object | No | Tham số cho action |
 
-#### Bang tham chieu: CleaningRule actions
+#### Bảng tham chiếu: CleaningRule actions
 
-| Action | Mo ta | Params |
+| Action | Mô tả | Params |
 |--------|-------|--------|
-| `trim` | Xoa khoang trang dau/cuoi | Khong can |
-| `lowercase` | Chuyen chu thuong | Khong can |
-| `uppercase` | Chuyen chu hoa | Khong can |
-| `fill_default` | Dien gia tri mac dinh cho NULL | `{"value": "gia_tri"}` |
-| `cast_type` | Chuyen doi kieu du lieu | `{"target_type": "int\|float\|str\|datetime"}` |
-| `remove_empty_strings` | Thay chuoi rong bang NULL | Khong can |
-| `regex_replace` | Thay the theo regex | `{"pattern": "...", "replacement": "..."}` |
-| `normalize_date` | Chuan hoa dinh dang ngay | `{"format": "%Y-%m-%d"}` |
+| `trim` | Xoá khoảng trắng đầu/cuối | Không cần |
+| `lowercase` | Chuyển chữ thường | Không cần |
+| `uppercase` | Chuyển chữ hoa | Không cần |
+| `fill_default` | Điền giá trị mặc định cho NULL | `{"value": "gia_tri"}` |
+| `cast_type` | Chuyển đổi kiểu dữ liệu | `{"target_type": "int\|float\|str\|datetime"}` |
+| `remove_empty_strings` | Thay chuỗi rỗng bằng NULL | Không cần |
+| `regex_replace` | Thay thế theo regex | `{"pattern": "...", "replacement": "..."}` |
+| `normalize_date` | Chuẩn hoá định dạng ngày | `{"format": "%Y-%m-%d"}` |
 
 #### Response:
 
-| Field | Type | Mo ta |
+| Field | Type | Mô tả |
 |-------|------|-------|
 | `status` | string | `"success"` |
-| `bronze_database` | string | Database nguon |
-| `silver_database` | string | Database dich da tao |
-| `tables_transformed` | string[] | Danh sach bang da transform |
-| `cleaning_report` | object | Bao cao chi tiet tung bang |
-| `message` | string | Thong bao ket qua |
+| `bronze_database` | string | Database nguồn |
+| `silver_database` | string | Database đích đã tạo |
+| `tables_transformed` | string[] | Danh sách bảng đã transform |
+| `cleaning_report` | object | Báo cáo chi tiết từng bảng |
+| `message` | string | Thông báo kết quả |
 
 #### Example Request:
 ```json
@@ -312,76 +692,76 @@ Silver layer lam sach va validate du lieu tu Bronze. Cac buoc xu ly: trim whites
 
 ---
 
-### 3.2 GET /silver/{database_name}
+### 4.2 GET /silver/{database_name}
 
-> **Xem chi tiet Silver database**
+> **Xem chi tiết Silver database**
 
-Tuong tu [GET /bronze/{database_name}](#23-get-bronzedatabase_name). Response co cung format `DatabaseInfoResponse`, voi `layer = "silver"`.
-
----
-
-## 4. GOLD LAYER - Chuan hoa du lieu
-
-Gold layer chuan hoa du lieu tu Silver: doi ten bang/cot, normalize dinh dang ngay thang, so dien thoai, ten nguoi, tien te. Co the tu dong (AI) hoac cau hinh thu cong qua `table_mappings`.
+Tương tự [GET /bronze/{database_name}](#23-get-bronzedatabase_name). Response có cùng format `DatabaseInfoResponse`, với `layer = "silver"`.
 
 ---
 
-### 4.1 POST /gold/transform
+## 5. GOLD LAYER - Chuẩn hoá dữ liệu
 
-> **Chuyen doi Silver → Gold (chuan hoa)**
+Gold layer chuẩn hoá dữ liệu từ Silver: đổi tên bảng/cột, normalize định dạng ngày tháng, số điện thoại, tên người, tiền tệ. Có thể tự động (AI) hoặc cấu hình thủ công qua `table_mappings`.
+
+---
+
+### 5.1 POST /gold/transform
+
+> **Chuyển đổi Silver → Gold (chuẩn hoá)**
 
 **Content-Type:** `application/json`
 
 #### Request Body:
 
-| Field | Type | Required | Default | Mo ta |
+| Field | Type | Required | Default | Mô tả |
 |-------|------|----------|---------|-------|
-| `silver_database` | string | **Yes** | - | Ten Silver database nguon |
-| `gold_database` | string | No | auto | Ten Gold DB dich (auto = `gold_{...}`) |
-| `table_mappings` | GoldTableMapping[] | No | null | Cau hinh mapping tung bang |
-| `auto_standardize` | boolean | No | true | AI tu dong chuan hoa |
+| `silver_database` | string | **Yes** | - | Tên Silver database nguồn |
+| `gold_database` | string | No | auto | Tên Gold DB đích (auto = `gold_{...}`) |
+| `table_mappings` | GoldTableMapping[] | No | null | Cấu hình mapping từng bảng |
+| `auto_standardize` | boolean | No | true | AI tự động chuẩn hoá |
 
 #### Schema: GoldTableMapping
 
-| Field | Type | Required | Mo ta |
+| Field | Type | Required | Mô tả |
 |-------|------|----------|-------|
-| `source_table` | string | **Yes** | Ten bang trong Silver database |
-| `target_table` | string | No | Ten bang moi trong Gold (null = giu nguyen) |
-| `columns` | GoldColumnMapping[] | No | Mapping tung cot (null = giu tat ca, AI tu chuan hoa) |
-| `exclude_columns` | string[] | No | Danh sach cot can loai bo khoi Gold |
+| `source_table` | string | **Yes** | Tên bảng trong Silver database |
+| `target_table` | string | No | Tên bảng mới trong Gold (null = giữ nguyên) |
+| `columns` | GoldColumnMapping[] | No | Mapping từng cột (null = giữ tất cả, AI tự chuẩn hoá) |
+| `exclude_columns` | string[] | No | Danh sách cột cần loại bỏ khỏi Gold |
 
 #### Schema: GoldColumnMapping
 
-| Field | Type | Required | Mo ta |
+| Field | Type | Required | Mô tả |
 |-------|------|----------|-------|
-| `source_column` | string | **Yes** | Ten cot goc trong Silver |
-| `target_column` | string | No | Ten cot moi trong Gold (null = giu nguyen) |
-| `transform` | string | No | Loai transform (xem bang duoi) |
-| `params` | object | No | Tham so cho transform |
+| `source_column` | string | **Yes** | Tên cột gốc trong Silver |
+| `target_column` | string | No | Tên cột mới trong Gold (null = giữ nguyên) |
+| `transform` | string | No | Loại transform (xem bảng dưới) |
+| `params` | object | No | Tham số cho transform |
 
-#### Bang tham chieu: Gold transforms
+#### Bảng tham chiếu: Gold transforms
 
-| Transform | Mo ta | Params | Vi du |
+| Transform | Mô tả | Params | Ví dụ |
 |-----------|-------|--------|-------|
-| `normalize_date` | Chuan hoa ngay thang | `{"format": "%Y-%m-%d"}` | `01/03/2026` → `2026-03-01` |
-| `normalize_phone` | Chuan hoa SDT (+84) | Khong can | `0912345678` → `+84912345678` |
-| `normalize_name` | Chuan hoa ten (Title Case) | Khong can | `nguyen van A ` → `Nguyen Van A` |
-| `uppercase` | Chuyen chu hoa | Khong can | `abc` → `ABC` |
-| `lowercase` | Chuyen chu thuong | Khong can | `ABC` → `abc` |
-| `trim` | Xoa khoang trang thua | Khong can | `  abc  ` → `abc` |
-| `format_currency` | Lam tron so tien | `{"decimal_places": 2}` | `1234.5678` → `1234.57` |
-| `cast_type` | Chuyen kieu du lieu | `{"target_type": "int"}` | `"123"` → `123` |
+| `normalize_date` | Chuẩn hoá ngày tháng | `{"format": "%Y-%m-%d"}` | `01/03/2026` → `2026-03-01` |
+| `normalize_phone` | Chuẩn hoá SĐT (+84) | Không cần | `0912345678` → `+84912345678` |
+| `normalize_name` | Chuẩn hoá tên (Title Case) | Không cần | `nguyen van A ` → `Nguyen Van A` |
+| `uppercase` | Chuyển chữ hoa | Không cần | `abc` → `ABC` |
+| `lowercase` | Chuyển chữ thường | Không cần | `ABC` → `abc` |
+| `trim` | Xoá khoảng trắng thừa | Không cần | `  abc  ` → `abc` |
+| `format_currency` | Làm tròn số tiền | `{"decimal_places": 2}` | `1234.5678` → `1234.57` |
+| `cast_type` | Chuyển kiểu dữ liệu | `{"target_type": "int"}` | `"123"` → `123` |
 
 #### Response:
 
-| Field | Type | Mo ta |
+| Field | Type | Mô tả |
 |-------|------|-------|
 | `status` | string | `"success"` |
-| `silver_database` | string | Database nguon |
-| `gold_database` | string | Database dich da tao |
-| `tables_transformed` | string[] | Danh sach bang da chuan hoa |
-| `standardization_report` | object | Bao cao chi tiet tung bang |
-| `message` | string | Thong bao ket qua |
+| `silver_database` | string | Database nguồn |
+| `gold_database` | string | Database đích đã tạo |
+| `tables_transformed` | string[] | Danh sách bảng đã chuẩn hoá |
+| `standardization_report` | object | Báo cáo chi tiết từng bảng |
+| `message` | string | Thông báo kết quả |
 
 #### Example Request:
 ```json
@@ -450,51 +830,51 @@ Gold layer chuan hoa du lieu tu Silver: doi ten bang/cot, normalize dinh dang ng
 
 ---
 
-### 4.2 GET /gold/{database_name}
+### 5.2 GET /gold/{database_name}
 
-> **Xem chi tiet Gold database**
+> **Xem chi tiết Gold database**
 
-Tuong tu [GET /bronze/{database_name}](#23-get-bronzedatabase_name). Response co cung format `DatabaseInfoResponse`, voi `layer = "gold"`.
-
----
-
-## 5. FULL PIPELINE - Chay toan bo
-
-Chay toan bo pipeline tu file `.bak` → Bronze → Silver → Gold trong 1 buoc. Thich hop khi muon nhanh chong xu ly du lieu ma khong can can thiep tung buoc.
+Tương tự [GET /bronze/{database_name}](#23-get-bronzedatabase_name). Response có cùng format `DatabaseInfoResponse`, với `layer = "gold"`.
 
 ---
 
-### 5.1 POST /pipeline/upload
+## 6. FULL PIPELINE - Chạy toàn bộ
 
-> **Upload .bak va chay full pipeline**
+Chạy toàn bộ pipeline từ file `.bak` → Bronze → Silver → Gold trong 1 bước. Thích hợp khi muốn nhanh chóng xử lý dữ liệu mà không cần can thiệp từng bước.
+
+---
+
+### 6.1 POST /pipeline/upload
+
+> **Upload .bak và chạy full pipeline**
 
 **Content-Type:** `multipart/form-data`
 
 #### Request (Form Data):
 
-| Field | Type | Required | Default | Mo ta |
+| Field | Type | Required | Default | Mô tả |
 |-------|------|----------|---------|-------|
 | `file` | File (.bak) | **Yes** | - | File backup SQL Server |
 | `server_id` | string | No | null | Server ID |
-| `bronze_database` | string | No | auto | Ten Bronze DB |
-| `silver_database` | string | No | auto | Ten Silver DB |
-| `gold_database` | string | No | auto | Ten Gold DB |
+| `bronze_database` | string | No | auto | Tên Bronze DB |
+| `silver_database` | string | No | auto | Tên Silver DB |
+| `gold_database` | string | No | auto | Tên Gold DB |
 | `auto_clean` | boolean | No | true | AI auto clean cho Silver |
 | `auto_standardize` | boolean | No | true | AI auto standardize cho Gold |
 
 #### Response:
 
-| Field | Type | Mo ta |
+| Field | Type | Mô tả |
 |-------|------|-------|
 | `status` | string | `"success"` |
-| `bronze_database` | string | Ten Bronze DB da tao |
-| `silver_database` | string | Ten Silver DB da tao |
-| `gold_database` | string | Ten Gold DB da tao |
-| `tables_processed` | integer | So bang da xu ly |
-| `bronze_report` | object | Bao cao Bronze (tables, rows) |
-| `silver_report` | object | Bao cao Silver (cleaning details) |
-| `gold_report` | object | Bao cao Gold (standardization details) |
-| `message` | string | Thong bao ket qua |
+| `bronze_database` | string | Tên Bronze DB đã tạo |
+| `silver_database` | string | Tên Silver DB đã tạo |
+| `gold_database` | string | Tên Gold DB đã tạo |
+| `tables_processed` | integer | Số bảng đã xử lý |
+| `bronze_report` | object | Báo cáo Bronze (tables, rows) |
+| `silver_report` | object | Báo cáo Silver (cleaning details) |
+| `gold_report` | object | Báo cáo Gold (standardization details) |
+| `message` | string | Thông báo kết quả |
 
 #### Example Response:
 ```json
@@ -522,75 +902,75 @@ Chay toan bo pipeline tu file `.bak` → Bronze → Silver → Gold trong 1 buoc
 
 ---
 
-### 5.2 POST /pipeline/run
+### 6.2 POST /pipeline/run
 
-> **Chay full pipeline tu duong dan .bak co san**
+> **Chạy full pipeline từ đường dẫn .bak có sẵn**
 
 **Content-Type:** `application/json`
 
 #### Query Parameters:
 
-| Parameter | Type | Required | Mo ta |
+| Parameter | Type | Required | Mô tả |
 |-----------|------|----------|-------|
-| `bak_file_path` | string | **Yes** | Duong dan tuyet doi den file .bak |
+| `bak_file_path` | string | **Yes** | Đường dẫn tuyệt đối đến file .bak |
 
 #### Request Body:
 
-| Field | Type | Required | Default | Mo ta |
+| Field | Type | Required | Default | Mô tả |
 |-------|------|----------|---------|-------|
 | `server_id` | string | No | null | Server ID |
-| `bronze_database` | string | No | auto | Ten Bronze DB |
-| `silver_database` | string | No | auto | Ten Silver DB |
-| `gold_database` | string | No | auto | Ten Gold DB |
-| `tables` | string[] | No | null | Chi xu ly cac bang nay (null = tat ca) |
+| `bronze_database` | string | No | auto | Tên Bronze DB |
+| `silver_database` | string | No | auto | Tên Silver DB |
+| `gold_database` | string | No | auto | Tên Gold DB |
+| `tables` | string[] | No | null | Chỉ xử lý các bảng này (null = tất cả) |
 | `auto_clean` | boolean | No | true | AI auto clean |
 | `auto_standardize` | boolean | No | true | AI auto standardize |
-| `table_mappings` | GoldTableMapping[] | No | null | Gold mapping tuy chinh |
+| `table_mappings` | GoldTableMapping[] | No | null | Gold mapping tuỳ chỉnh |
 
 #### Response:
-Cung format voi [POST /pipeline/upload](#51-post-pipelineupload).
+Cùng format với [POST /pipeline/upload](#51-post-pipelineupload).
 
 ---
 
-## 6. CHAT & BIEU DO
+## 7. CHAT & BIỂU ĐỒ
 
-Chatbot hoi dap bang tieng Viet va ve bieu do tu dong tu du lieu Gold database. He thong su dung AI de sinh SQL query, tra ve du lieu va giai thich ket qua.
+Chatbot hỏi đáp bằng tiếng Việt và vẽ biểu đồ tự động từ dữ liệu Gold database. Hệ thống sử dụng AI để sinh SQL query, trả về dữ liệu và giải thích kết quả.
 
 ---
 
-### 6.1 POST /chat
+### 7.1 POST /chat
 
-> **Hoi dap du lieu Gold database bang tieng Viet**
+> **Hỏi đáp dữ liệu Gold database bằng tiếng Việt**
 
 **Content-Type:** `application/json`
 
-**Flow xu ly:**
-1. Phan tich cau hoi va sinh SQL query
-2. Thuc thi SQL tren Gold database
-3. Sinh cau tra loi bang tieng Viet
-4. Tu dong ve bieu do neu phu hop (`generate_chart=true`)
+**Flow xử lý:**
+1. Phân tích câu hỏi và sinh SQL query
+2. Thực thi SQL trên Gold database
+3. Sinh câu trả lời bằng tiếng Việt
+4. Tự động vẽ biểu đồ nếu phù hợp (`generate_chart=true`)
 
 #### Request Body:
 
-| Field | Type | Required | Default | Mo ta |
+| Field | Type | Required | Default | Mô tả |
 |-------|------|----------|---------|-------|
-| `question` | string | **Yes** | - | Cau hoi bang tieng Viet |
-| `database` | string | **Yes** | - | Ten Gold database de truy van |
+| `question` | string | **Yes** | - | Câu hỏi bằng tiếng Việt |
+| `database` | string | **Yes** | - | Tên Gold database để truy vấn |
 | `server_id` | string | No | null | Server ID |
-| `session_id` | string | No | auto | Session ID de luu lich su (auto = tao moi) |
-| `generate_chart` | boolean | No | true | Tu dong phat hien va ve bieu do |
+| `session_id` | string | No | auto | Session ID để lưu lịch sử (auto = tạo mới) |
+| `generate_chart` | boolean | No | true | Tự động phát hiện và vẽ biểu đồ |
 
 #### Response:
 
-| Field | Type | Mo ta |
+| Field | Type | Mô tả |
 |-------|------|-------|
-| `answer` | string | Cau tra loi bang tieng Viet |
-| `sql_query` | string \| null | SQL query da sinh va thuc thi |
-| `data` | object[] \| null | Du lieu tra ve (toi da 100 dong) |
-| `columns` | string[] \| null | Danh sach ten cot |
-| `total_rows` | integer \| null | Tong so dong ket qua |
-| `chart` | object \| null | Plotly chart config (neu co - xem chi tiet ben duoi) |
-| `session_id` | string \| null | Session ID de tiep tuc hoi dap |
+| `answer` | string | Câu trả lời bằng tiếng Việt |
+| `sql_query` | string \| null | SQL query đã sinh và thực thi |
+| `data` | object[] \| null | Dữ liệu trả về (tối đa 100 dòng) |
+| `columns` | string[] \| null | Danh sách tên cột |
+| `total_rows` | integer \| null | Tổng số dòng kết quả |
+| `chart` | object \| null | Plotly chart config (nếu có - xem chi tiết bên dưới) |
+| `session_id` | string \| null | Session ID để tiếp tục hỏi đáp |
 
 #### Example Request:
 ```json
@@ -636,17 +1016,17 @@ Chatbot hoi dap bang tieng Viet va ve bieu do tu dong tu du lieu Gold database. 
 
 ---
 
-### Chi tiet: Chart object (Plotly config)
+### Chi tiết: Chart object (Plotly config)
 
-Object `chart` tra ve dung **truc tiep** voi [Plotly.js](https://plotly.com/javascript/) de render bieu do phia FE.
+Object `chart` trả về dùng **trực tiếp** với [Plotly.js](https://plotly.com/javascript/) để render biểu đồ phía FE.
 
-| Field | Type | Mo ta |
+| Field | Type | Mô tả |
 |-------|------|-------|
-| `chart_type` | string | Loai bieu do: `bar`, `line`, `pie`, `scatter`, `histogram` |
-| `data` | object[] | Mang Plotly trace objects (`type`, `x`, `y`, `name`, `mode`, `labels`, `values`) |
+| `chart_type` | string | Loại biểu đồ: `bar`, `line`, `pie`, `scatter`, `histogram` |
+| `data` | object[] | Mảng Plotly trace objects (`type`, `x`, `y`, `name`, `mode`, `labels`, `values`) |
 | `layout` | object | Plotly layout (`title`, `xaxis`, `yaxis`, `template`) |
 
-#### Cach su dung tren FE (React):
+#### Cách sử dụng trên FE (React):
 ```jsx
 // Cai dat: npm install react-plotly.js plotly.js
 import Plot from 'react-plotly.js';
@@ -668,7 +1048,7 @@ function ChartComponent({ chartData }) {
 // <ChartComponent chartData={response.chart} />
 ```
 
-#### Cach su dung tren FE (Vue):
+#### Cách sử dụng trên FE (Vue):
 ```vue
 <!-- Cai dat: npm install vue-plotly -->
 <template>
@@ -683,31 +1063,317 @@ function ChartComponent({ chartData }) {
 
 ---
 
-### 6.2 POST /chart
+### 7.2 POST /chat/stream
 
-> **Ve bieu do truc tiep tu Gold database**
+> **Hỏi đáp Gold database với SSE streaming - trả lời từng token realtime**
+
+**Content-Type:** `application/json`
+**Response Content-Type:** `text/event-stream`
+
+Đây là API **quan trọng nhất cho FE chatbot** - câu trả lời được stream từng token ngay khi LLM sinh ra, không cần đợi hết.
+
+#### Request Body:
+Giống [POST /chat](#61-post-chat) (cùng request body).
+
+#### SSE Events theo thứ tự:
+
+| Event | Khi nào | Data |
+|-------|---------|------|
+| `start` | Bắt đầu xử lý | `session_id`, `question`, `database` |
+| `schema_loaded` | Đã load schema | `tables_count`, `message` |
+| `sql_generating` | Đang sinh SQL | `message` |
+| `sql_generated` | SQL đã sinh | `sql_query` |
+| `sql_fixed` | SQL lỗi đã được sửa | `sql_query` (SQL mới) |
+| `query_executing` | Đang thực thi SQL | `message` |
+| `query_result` | Dữ liệu trả về | `columns`, `total_rows`, `data_preview` (5 dòng đầu) |
+| `answer_streaming` | Bắt đầu stream trả lời | `message` |
+| **`answer_token`** | **Từng token câu trả lời** | **`token`** - FE nối các token lại |
+| `answer_done` | Trả lời hoàn tất | `answer` (full text) |
+| `data` | Dữ liệu đầy đủ | `data` (100 dòng), `columns`, `total_rows`, `sql_query` |
+| `chart` | Biểu đồ (nếu có) | `chart` (Plotly config) |
+| `complete` | Tất cả xong | `session_id` |
+| `error` | Lỗi | `message` |
+
+#### Xử lý Context quá dài (tự động):
+- Schema quá lớn: Tự động cắt gọn, ưu tiên bảng liên quan đến câu hỏi
+- Data quá nhiều: Tự động giảm số dòng gửi cho LLM
+- Nếu vẫn lỗi: Retry với context nhỏ hơn (tối đa 3 lần)
+- FE **không cần xử lý gì** - backend tự động handle
+
+#### Example FE (React) - Streaming Chat Component:
+```tsx
+import { useState, useCallback } from 'react';
+
+function ChatStream() {
+  const [answer, setAnswer] = useState('');
+  const [sqlQuery, setSqlQuery] = useState('');
+  const [data, setData] = useState([]);
+  const [chart, setChart] = useState(null);
+  const [status, setStatus] = useState('idle');
+  const [progress, setProgress] = useState('');
+
+  const sendMessage = useCallback(async (question: string, database: string) => {
+    setAnswer('');
+    setSqlQuery('');
+    setData([]);
+    setChart(null);
+    setStatus('loading');
+
+    const response = await fetch('/api/v1/db-lakehouse/chat/stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        question,
+        database,
+        server_id: 'your-server-id',  // tu GET /servers
+        session_id: sessionId,
+        generate_chart: true,
+      }),
+    });
+
+    const reader = response.body!.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const blocks = buffer.split('\n\n');
+      buffer = blocks.pop() || '';
+
+      for (const block of blocks) {
+        if (!block.trim()) continue;
+
+        let eventName = 'message';
+        let eventData: any = {};
+
+        for (const line of block.split('\n')) {
+          if (line.startsWith('event: ')) eventName = line.slice(7);
+          if (line.startsWith('data: ')) {
+            try { eventData = JSON.parse(line.slice(6)); } catch {}
+          }
+        }
+
+        switch (eventName) {
+          case 'schema_loaded':
+          case 'sql_generating':
+          case 'query_executing':
+          case 'answer_streaming':
+            setProgress(eventData.message);
+            break;
+
+          case 'sql_generated':
+          case 'sql_fixed':
+            setSqlQuery(eventData.sql_query);
+            break;
+
+          case 'query_result':
+            setProgress(`${eventData.total_rows} dong du lieu`);
+            break;
+
+          case 'answer_token':
+            // === QUAN TRONG: Noi tung token lai thanh cau tra loi ===
+            setAnswer(prev => prev + eventData.token);
+            break;
+
+          case 'answer_done':
+            // Cau tra loi hoan chinh (dung de verify)
+            break;
+
+          case 'data':
+            setData(eventData.data);
+            break;
+
+          case 'chart':
+            setChart(eventData.chart);
+            break;
+
+          case 'complete':
+            setStatus('done');
+            break;
+
+          case 'error':
+            setStatus('error');
+            setAnswer(eventData.message);
+            break;
+        }
+      }
+    }
+  }, []);
+
+  return (
+    <div>
+      {/* Input */}
+      <input onKeyDown={(e) => {
+        if (e.key === 'Enter') sendMessage(e.currentTarget.value, 'gold_mydb');
+      }} />
+
+      {/* Progress */}
+      {status === 'loading' && <Spin />}
+      {progress && <Tag>{progress}</Tag>}
+
+      {/* SQL */}
+      {sqlQuery && <pre>{sqlQuery}</pre>}
+
+      {/* Answer - hien thi tung token khi stream */}
+      {answer && <div className="answer">{answer}</div>}
+
+      {/* Data table */}
+      {data.length > 0 && <Table dataSource={data} />}
+
+      {/* Chart */}
+      {chart && <Plot data={chart.data} layout={chart.layout} />}
+    </div>
+  );
+}
+```
+
+#### Example FE (Vue 3):
+```vue
+<script setup>
+import { ref } from 'vue';
+
+const answer = ref('');
+const sqlQuery = ref('');
+const data = ref([]);
+const chart = ref(null);
+const loading = ref(false);
+
+async function sendMessage(question, database) {
+  answer.value = '';
+  loading.value = true;
+
+  const res = await fetch('/api/v1/db-lakehouse/chat/stream', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question, database, generate_chart: true }),
+  });
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const blocks = buffer.split('\n\n');
+    buffer = blocks.pop();
+
+    for (const block of blocks) {
+      const eventLine = block.split('\n').find(l => l.startsWith('event: '));
+      const dataLine = block.split('\n').find(l => l.startsWith('data: '));
+      if (!dataLine) continue;
+
+      const evt = eventLine?.slice(7) || '';
+      const d = JSON.parse(dataLine.slice(6));
+
+      if (evt === 'answer_token') answer.value += d.token;
+      if (evt === 'sql_generated') sqlQuery.value = d.sql_query;
+      if (evt === 'data') data.value = d.data;
+      if (evt === 'chart') chart.value = d.chart;
+      if (evt === 'complete') loading.value = false;
+    }
+  }
+}
+</script>
+
+<template>
+  <input @keydown.enter="sendMessage($event.target.value, 'gold_mydb')" />
+  <div v-if="answer">{{ answer }}</div>
+  <Plotly v-if="chart" :data="chart.data" :layout="chart.layout" />
+</template>
+```
+
+#### Example SSE Stream:
+```
+event: start
+data: {"session_id":"abc123","question":"Thong ke doanh thu theo thang","database":"gold_mydb"}
+
+event: schema_loaded
+data: {"tables_count":15,"message":"Da load schema: 15 bang"}
+
+event: sql_generating
+data: {"message":"Dang sinh SQL query..."}
+
+event: sql_generated
+data: {"sql_query":"SELECT [Month], SUM([Revenue]) as [Total] FROM [Sales] GROUP BY [Month] ORDER BY [Month]"}
+
+event: query_executing
+data: {"message":"Dang thuc thi SQL..."}
+
+event: query_result
+data: {"columns":["Month","Total"],"total_rows":12,"data_preview":[{"Month":"01","Total":150000000}]}
+
+event: answer_streaming
+data: {"message":"Dang tao cau tra loi..."}
+
+event: answer_token
+data: {"token":"Theo"}
+
+event: answer_token
+data: {"token":" du"}
+
+event: answer_token
+data: {"token":" lieu"}
+
+event: answer_token
+data: {"token":" thong"}
+
+event: answer_token
+data: {"token":" ke"}
+
+event: answer_token
+data: {"token":", doanh"}
+
+event: answer_token
+data: {"token":" thu cao nhat"}
+
+event: answer_token
+data: {"token":" vao thang 12..."}
+
+event: answer_done
+data: {"answer":"Theo du lieu thong ke, doanh thu cao nhat vao thang 12..."}
+
+event: data
+data: {"data":[{"Month":"01","Total":150000000},...],"columns":["Month","Total"],"total_rows":12,"sql_query":"SELECT..."}
+
+event: chart
+data: {"chart":{"chart_type":"bar","data":[{"type":"bar","x":["01","02",...],"y":[150000000,...]}],"layout":{"title":{"text":"..."}}}}
+
+event: complete
+data: {"session_id":"abc123"}
+```
+
+---
+
+### 7.3 POST /chart
+
+> **Vẽ biểu đồ trực tiếp từ Gold database**
 
 **Content-Type:** `application/json`
 
-Khac voi `/chat`, API nay **chi tra ve bieu do**, khong tra ve cau tra loi.
+Khác với `/chat`, API này **chỉ trả về biểu đồ**, không trả về câu trả lời.
 
 #### Request Body:
 
-| Field | Type | Required | Default | Mo ta |
+| Field | Type | Required | Default | Mô tả |
 |-------|------|----------|---------|-------|
-| `database` | string | **Yes** | - | Ten Gold database |
-| `question` | string | **Yes** | - | Mo ta bieu do can ve |
+| `database` | string | **Yes** | - | Tên Gold database |
+| `question` | string | **Yes** | - | Mô tả biểu đồ cần vẽ |
 | `server_id` | string | No | null | Server ID |
-| `chart_type` | string | No | auto | Ep kieu bieu do: `bar`, `line`, `pie`, `scatter`, `heatmap` (auto = AI tu chon) |
+| `chart_type` | string | No | auto | Ép kiểu biểu đồ: `bar`, `line`, `pie`, `scatter`, `heatmap` (auto = AI tự chọn) |
 
 #### Response:
 
-| Field | Type | Mo ta |
+| Field | Type | Mô tả |
 |-------|------|-------|
-| `chart_type` | string | Loai bieu do da chon |
-| `chart_config` | object | Plotly config day du (`data` + `layout`) |
-| `sql_query` | string | SQL query da dung de lay du lieu |
-| `data_summary` | string | Tom tat du lieu (so dong, so cot) |
+| `chart_type` | string | Loại biểu đồ đã chọn |
+| `chart_config` | object | Plotly config đầy đủ (`data` + `layout`) |
+| `sql_query` | string | SQL query đã dùng để lấy dữ liệu |
+| `data_summary` | string | Tóm tắt dữ liệu (số dòng, số cột) |
 
 #### Example Request:
 ```json
@@ -743,22 +1409,22 @@ Khac voi `/chat`, API nay **chi tra ve bieu do**, khong tra ve cau tra loi.
 
 ---
 
-### 6.3 GET /chat/history/{session_id}
+### 7.4 GET /chat/history/{session_id}
 
-> **Lay lich su hoi dap theo session**
+> **Lấy lịch sử hỏi đáp theo session**
 
 #### Path Parameters:
 
-| Parameter | Type | Required | Mo ta |
+| Parameter | Type | Required | Mô tả |
 |-----------|------|----------|-------|
-| `session_id` | string | **Yes** | Session ID tu response cua `/chat` |
+| `session_id` | string | **Yes** | Session ID từ response của `/chat` |
 
 #### Response:
 
-| Field | Type | Mo ta |
+| Field | Type | Mô tả |
 |-------|------|-------|
 | `session_id` | string | Session ID |
-| `messages` | object[] | Mang cac message `{question, answer, timestamp}` |
+| `messages` | object[] | Mảng các message `{question, answer, timestamp}` |
 
 #### Example Response:
 ```json
@@ -781,19 +1447,19 @@ Khac voi `/chat`, API nay **chi tra ve bieu do**, khong tra ve cau tra loi.
 
 ---
 
-## 7. QUAN LY DATABASE
+## 8. QUẢN LÝ PIPELINE DATABASE
 
 ---
 
-### 7.1 GET /databases
+### 8.1 GET /databases
 
-> **Danh sach tat ca pipeline databases**
+> **Danh sách tất cả pipeline databases**
 
-Tra ve danh sach tat ca database Bronze, Silver, Gold da tao cung metadata.
+Trả về danh sách tất cả database Bronze, Silver, Gold đã tạo cùng metadata.
 
 #### Response:
 
-| Field | Type | Mo ta |
+| Field | Type | Mô tả |
 |-------|------|-------|
 | `databases` | object | Map: `{database_name: metadata_object}` |
 
@@ -829,32 +1495,285 @@ Tra ve danh sach tat ca database Bronze, Silver, Gold da tao cung metadata.
 
 ---
 
-### 7.2 GET /database/{database_name}
+### 8.2 GET /database/{database_name}
 
-> **Chi tiet bat ky database nao trong pipeline**
+> **Chi tiết bất kỳ database nào trong pipeline**
 
 #### Path Parameters:
 
-| Parameter | Type | Required | Mo ta |
+| Parameter | Type | Required | Mô tả |
 |-----------|------|----------|-------|
-| `database_name` | string | **Yes** | Ten database (Bronze/Silver/Gold) |
+| `database_name` | string | **Yes** | Tên database (Bronze/Silver/Gold) |
 
 #### Query Parameters:
 
-| Parameter | Type | Required | Mo ta |
+| Parameter | Type | Required | Mô tả |
 |-----------|------|----------|-------|
 | `server_id` | string | No | Server ID |
 
 #### Response:
-Cung format `DatabaseInfoResponse` nhu [GET /bronze/{database_name}](#23-get-bronzedatabase_name).
+Cùng format `DatabaseInfoResponse` như [GET /bronze/{database_name}](#23-get-bronzedatabase_name).
 
 ---
 
-## 8. STREAMING APIs (SSE)
+## 9. VALUE MAPPING - Chuẩn hoá dữ liệu theo bảng mapping
 
-Tat ca cac API upload/transform deu co phien ban **streaming** tra ve **Server-Sent Events (SSE)** de FE hien thi progress realtime.
+Tính năng cho phép chuẩn hoá dữ liệu dựa trên bảng mapping (VD: viết tắt -> đầy đủ). Quét tất cả các cột string trong database và thay thế giá trị theo quy tắc.
 
-### Cach su dung SSE tren FE
+**Ví dụ:** `TSCD` -> `Tài sản cố định`, `DT` -> `Doanh thu`, `CP` -> `Chi phí`
+
+---
+
+### 9.1 POST /mapping/save
+
+> **Lưu bộ mapping chuẩn hoá để tái sử dụng**
+
+**Content-Type:** `application/json`
+
+#### Request Body:
+
+| Field | Type | Required | Default | Mô tả |
+|-------|------|----------|---------|-------|
+| `name` | string | **Yes** | - | Tên bộ mapping (VD: `"viet_tat_ke_toan"`) |
+| `description` | string | No | null | Mô tả |
+| `case_insensitive` | boolean | No | true | Không phân biệt hoa thường |
+| `match_mode` | string | No | `"contains"` | `"exact"`, `"contains"`, hoặc `"word"` |
+| `mappings` | ValueMappingEntry[] | **Yes** | - | Danh sách các cặp mapping |
+
+#### Schema: ValueMappingEntry
+
+| Field | Type | Required | Mô tả |
+|-------|------|----------|-------|
+| `from_value` | string | **Yes** | Giá trị gốc (VD: `"TSCD"`) |
+| `to_value` | string | **Yes** | Giá trị chuẩn hoá (VD: `"Tài sản cố định"`) |
+
+#### Match Modes:
+
+| Mode | Mô tả | Ví dụ |
+|------|-------|-------|
+| `exact` | Khớp chính xác cả ô dữ liệu | Ô chứa đúng `"TSCD"` -> thay thành `"Tài sản cố định"` |
+| `contains` | Khớp nếu ô chứa chuỗi con | `"Loại TSCD nhỏ"` -> `"Loại Tài sản cố định nhỏ"` |
+| `word` | Khớp theo từ (có khoảng trắng bao quanh) | `"TSCD và DT"` -> `"Tài sản cố định và DT"` |
+
+#### Example Request:
+```json
+{
+  "name": "viet_tat_ke_toan",
+  "description": "Chuyen doi viet tat ke toan sang day du",
+  "case_insensitive": true,
+  "match_mode": "contains",
+  "mappings": [
+    {"from_value": "TSCD", "to_value": "Tai san co dinh"},
+    {"from_value": "DT", "to_value": "Doanh thu"},
+    {"from_value": "CP", "to_value": "Chi phi"},
+    {"from_value": "GTGT", "to_value": "Gia tri gia tang"},
+    {"from_value": "BHXH", "to_value": "Bao hiem xa hoi"},
+    {"from_value": "TNCN", "to_value": "Thu nhap ca nhan"},
+    {"from_value": "CCDC", "to_value": "Cong cu dung cu"}
+  ]
+}
+```
+
+#### Example Response:
+```json
+{
+  "status": "success",
+  "mapping": {
+    "name": "viet_tat_ke_toan",
+    "description": "Chuyen doi viet tat ke toan sang day du",
+    "case_insensitive": true,
+    "match_mode": "contains",
+    "mappings": [...],
+    "created_at": "2026-03-30T10:00:00"
+  }
+}
+```
+
+---
+
+### 9.2 GET /mapping/list
+
+> **Danh sách các bộ mapping đã lưu**
+
+#### Example Response:
+```json
+{
+  "mappings": [
+    {
+      "name": "viet_tat_ke_toan",
+      "description": "Chuyen doi viet tat ke toan sang day du",
+      "mapping_count": 7,
+      "match_mode": "contains",
+      "created_at": "2026-03-30T10:00:00"
+    }
+  ]
+}
+```
+
+---
+
+### 9.3 GET /mapping/{name}
+
+> **Xem chi tiết 1 bộ mapping**
+
+Trả về toàn bộ config bao gồm danh sách mappings.
+
+---
+
+### 9.4 DELETE /mapping/{name}
+
+> **Xoá 1 bộ mapping**
+
+---
+
+### 9.5 POST /mapping/apply
+
+> **Áp dụng mapping chuẩn hoá dữ liệu vào database**
+
+**Content-Type:** `application/json`
+
+#### Request Body:
+
+| Field | Type | Required | Default | Mô tả |
+|-------|------|----------|---------|-------|
+| `database` | string | **Yes** | - | Tên database cần chuẩn hoá (Bronze/Silver/Gold) |
+| `server_id` | string | No | null | Server ID |
+| `tables` | string[] | No | null | Chỉ áp dụng cho các bảng này (null = tất cả) |
+| `columns` | string[] | No | null | Chỉ áp dụng cho các cột này (null = tất cả cột string) |
+| `mapping_name` | string | No* | null | Tên bộ mapping đã lưu |
+| `custom_mappings` | ValueMappingEntry[] | No* | null | Mapping tuỳ chỉnh (ưu tiên hơn mapping_name) |
+| `case_insensitive` | boolean | No | true | Không phân biệt hoa thường |
+| `match_mode` | string | No | `"contains"` | `"exact"`, `"contains"`, `"word"` |
+| `dry_run` | boolean | No | false | **true = chỉ xem trước, không lưu thay đổi** |
+
+> *Bắt buộc có `mapping_name` hoặc `custom_mappings` (1 trong 2)
+
+#### Response:
+
+| Field | Type | Mô tả |
+|-------|------|-------|
+| `status` | string | `"success"` |
+| `database` | string | Database đã xử lý |
+| `tables_processed` | string[] | Danh sách bảng đã quét |
+| `total_replacements` | integer | Tổng số thay thế |
+| `results` | ValueMappingResult[] | Chi tiết từng bảng (xem bên dưới) |
+| `dry_run` | boolean | Có phải dry run không |
+| `message` | string | Thông báo kết quả |
+
+#### Schema: ValueMappingResult
+
+| Field | Type | Mô tả |
+|-------|------|-------|
+| `table_name` | string | Tên bảng |
+| `columns_scanned` | integer | Số cột đã quét |
+| `total_replacements` | integer | Số thay thế trong bảng này |
+| `details` | object[] | Chi tiết: `{column, from_value, to_value, matches, applied}` |
+
+#### Example Request - Dùng mapping đã lưu:
+```json
+{
+  "database": "gold_mydb",
+  "server_id": "f20bd538",
+  "tables": ["BaoCaoTaiChinh", "SoKeToan"],
+  "mapping_name": "viet_tat_ke_toan",
+  "dry_run": true
+}
+```
+
+#### Example Request - Dùng custom mapping:
+```json
+{
+  "database": "silver_mydb",
+  "server_id": "f20bd538",
+  "tables": ["DanhMuc"],
+  "columns": ["TenDanhMuc", "MoTa"],
+  "custom_mappings": [
+    {"from_value": "TSCD", "to_value": "Tai san co dinh"},
+    {"from_value": "DT", "to_value": "Doanh thu"}
+  ],
+  "case_insensitive": true,
+  "match_mode": "contains",
+  "dry_run": false
+}
+```
+
+#### Example Response (dry_run=true):
+```json
+{
+  "status": "success",
+  "database": "gold_mydb",
+  "tables_processed": ["BaoCaoTaiChinh", "SoKeToan"],
+  "total_replacements": 156,
+  "results": [
+    {
+      "table_name": "BaoCaoTaiChinh",
+      "columns_scanned": 5,
+      "total_replacements": 120,
+      "details": [
+        {
+          "column": "TenChiTieu",
+          "from_value": "TSCD",
+          "to_value": "Tai san co dinh",
+          "matches": 45,
+          "applied": false
+        },
+        {
+          "column": "TenChiTieu",
+          "from_value": "DT",
+          "to_value": "Doanh thu",
+          "matches": 30,
+          "applied": false
+        },
+        {
+          "column": "GhiChu",
+          "from_value": "TSCD",
+          "to_value": "Tai san co dinh",
+          "matches": 15,
+          "applied": false
+        }
+      ]
+    },
+    {
+      "table_name": "SoKeToan",
+      "columns_scanned": 3,
+      "total_replacements": 36,
+      "details": [...]
+    }
+  ],
+  "dry_run": true,
+  "message": "[DRY RUN] Da thay the 156 gia tri trong 2 bang"
+}
+```
+
+---
+
+### 9.6 POST /mapping/apply/stream
+
+> **Áp dụng mapping với SSE streaming progress**
+
+**Content-Type:** `application/json`
+**Response Content-Type:** `text/event-stream`
+
+**Request Body:** Giống [POST /mapping/apply](#85-post-mappingapply)
+
+#### SSE Events:
+
+| Event | Khi nào | Data fields |
+|-------|---------|-------------|
+| `start` | Bắt đầu | `tables_total`, `mapping_count`, `dry_run`, `progress: 0` |
+| `table_start` | Bắt đầu 1 bảng | `table`, `tables_done`, `tables_total`, `progress` |
+| `table_done` | Xong 1 bảng | `table`, `replacements`, `columns_scanned`, `progress` |
+| `table_error` | Lỗi 1 bảng | `table`, `message` |
+| `complete` | Hoàn tất | `total_replacements`, `tables_processed`, `dry_run`, `progress: 100` |
+| `error` | Lỗi | `message` |
+
+---
+
+## 10. STREAMING APIs (SSE)
+
+Tất cả các API upload/transform đều có phiên bản **streaming** trả về **Server-Sent Events (SSE)** để FE hiển thị progress realtime.
+
+### Cách sử dụng SSE trên FE
 
 #### React/TypeScript:
 ```tsx
@@ -942,25 +1861,25 @@ async function upload(file) {
 
 ---
 
-### 8.1 POST /bronze/upload/stream
+### 10.1 POST /bronze/upload/stream
 
-> **Upload .bak + import Bronze voi SSE progress**
+> **Upload .bak + import Bronze với SSE progress**
 
 **Content-Type:** `multipart/form-data`
 **Response Content-Type:** `text/event-stream`
 
-**Request:** Giong [POST /bronze/upload](#21-post-bronzeupload)
+**Request:** Giống [POST /bronze/upload](#21-post-bronzeupload)
 
 #### SSE Events:
 
-| Event | Khi nao | Data fields |
+| Event | Khi nào | Data fields |
 |-------|---------|-------------|
-| `start` | Bat dau restore | `step`, `message`, `progress: 0` |
-| `progress` | Dang restore .bak | `step: "restore"`, `message`, `progress: 10-50` |
-| `table_done` | Moi bang doc xong | `table`, `row_count`, `column_count`, `tables_done`, `tables_total`, `progress` |
-| `table_error` | Loi doc 1 bang | `table`, `message` |
-| `complete` | Hoan tat | `status: "success"`, `bronze_database`, `tables_imported`, `total_rows`, `progress: 100` |
-| `error` | Loi nghiem trong | `message` |
+| `start` | Bắt đầu restore | `step`, `message`, `progress: 0` |
+| `progress` | Đang restore .bak | `step: "restore"`, `message`, `progress: 10-50` |
+| `table_done` | Mỗi bảng đọc xong | `table`, `row_count`, `column_count`, `tables_done`, `tables_total`, `progress` |
+| `table_error` | Lỗi đọc 1 bảng | `table`, `message` |
+| `complete` | Hoàn tất | `status: "success"`, `bronze_database`, `tables_imported`, `total_rows`, `progress: 100` |
+| `error` | Lỗi nghiêm trọng | `message` |
 
 #### Example SSE Stream:
 ```
@@ -988,66 +1907,66 @@ data: {"status":"success","bronze_database":"bronze_mydb","tables_imported":["Cu
 
 ---
 
-### 8.2 POST /silver/transform/stream
+### 10.2 POST /silver/transform/stream
 
-> **Clean Bronze -> Silver voi SSE progress**
-
-**Content-Type:** `application/json`
-**Response Content-Type:** `text/event-stream`
-
-**Request Body:** Giong [POST /silver/transform](#31-post-silvertransform)
-
-#### SSE Events:
-
-| Event | Khi nao | Data fields |
-|-------|---------|-------------|
-| `start` | Bat dau Silver | `step: "silver"`, `message`, `progress: 0` |
-| `progress` | Tong quan | `tables_total`, `progress: 5` |
-| `table_start` | Bat dau clean 1 bang | `table`, `tables_done`, `tables_total`, `progress` |
-| `table_done` | Clean xong 1 bang | `table`, `report` (original_rows, cleaned_rows, duplicates_removed, actions_applied), `progress` |
-| `table_error` | Loi clean 1 bang | `table`, `message` |
-| `complete` | Hoan tat | `status: "success"`, `silver_database`, `tables_transformed`, `cleaning_report`, `progress: 100` |
-
----
-
-### 8.3 POST /gold/transform/stream
-
-> **Chuan hoa Silver -> Gold voi SSE progress**
+> **Clean Bronze -> Silver với SSE progress**
 
 **Content-Type:** `application/json`
 **Response Content-Type:** `text/event-stream`
 
-**Request Body:** Giong [POST /gold/transform](#41-post-goldtransform)
+**Request Body:** Giống [POST /silver/transform](#31-post-silvertransform)
 
 #### SSE Events:
 
-| Event | Khi nao | Data fields |
+| Event | Khi nào | Data fields |
 |-------|---------|-------------|
-| `start` | Bat dau Gold | `step: "gold"`, `message`, `progress: 0` |
-| `progress` | Tong quan | `tables_total`, `progress: 5` |
-| `table_start` | Bat dau chuan hoa 1 bang | `table`, `tables_done`, `tables_total`, `progress` |
-| `table_done` | Chuan hoa xong 1 bang | `table`, `target_table`, `report` (columns_renamed, data_transforms, rows), `progress` |
-| `table_error` | Loi chuan hoa 1 bang | `table`, `message` |
-| `complete` | Hoan tat | `status: "success"`, `gold_database`, `tables_transformed`, `standardization_report`, `progress: 100` |
+| `start` | Bắt đầu Silver | `step: "silver"`, `message`, `progress: 0` |
+| `progress` | Tổng quan | `tables_total`, `progress: 5` |
+| `table_start` | Bắt đầu clean 1 bảng | `table`, `tables_done`, `tables_total`, `progress` |
+| `table_done` | Clean xong 1 bảng | `table`, `report` (original_rows, cleaned_rows, duplicates_removed, actions_applied), `progress` |
+| `table_error` | Lỗi clean 1 bảng | `table`, `message` |
+| `complete` | Hoàn tất | `status: "success"`, `silver_database`, `tables_transformed`, `cleaning_report`, `progress: 100` |
 
 ---
 
-### 8.4 POST /pipeline/upload/stream
+### 10.3 POST /gold/transform/stream
 
-> **Upload .bak + full pipeline Bronze->Silver->Gold voi SSE progress**
+> **Chuẩn hoá Silver -> Gold với SSE progress**
+
+**Content-Type:** `application/json`
+**Response Content-Type:** `text/event-stream`
+
+**Request Body:** Giống [POST /gold/transform](#41-post-goldtransform)
+
+#### SSE Events:
+
+| Event | Khi nào | Data fields |
+|-------|---------|-------------|
+| `start` | Bắt đầu Gold | `step: "gold"`, `message`, `progress: 0` |
+| `progress` | Tổng quan | `tables_total`, `progress: 5` |
+| `table_start` | Bắt đầu chuẩn hoá 1 bảng | `table`, `tables_done`, `tables_total`, `progress` |
+| `table_done` | Chuẩn hoá xong 1 bảng | `table`, `target_table`, `report` (columns_renamed, data_transforms, rows), `progress` |
+| `table_error` | Lỗi chuẩn hoá 1 bảng | `table`, `message` |
+| `complete` | Hoàn tất | `status: "success"`, `gold_database`, `tables_transformed`, `standardization_report`, `progress: 100` |
+
+---
+
+### 10.4 POST /pipeline/upload/stream
+
+> **Upload .bak + full pipeline Bronze->Silver->Gold với SSE progress**
 
 **Content-Type:** `multipart/form-data`
 **Response Content-Type:** `text/event-stream`
 
-**Request:** Giong [POST /pipeline/upload](#51-post-pipelineupload)
+**Request:** Giống [POST /pipeline/upload](#51-post-pipelineupload)
 
-Day la API **quan trong nhat** cho FE - chay toan bo pipeline va stream progress realtime.
+Đây là API **quan trọng nhất** cho FE - chạy toàn bộ pipeline và stream progress realtime.
 
 #### Overall progress: Bronze 0-33%, Silver 33-66%, Gold 66-100%
 
-Moi event co them 2 field:
-- `overall_progress` (0-100): Progress toan bo pipeline
-- `pipeline_step` (`"bronze"` | `"silver"` | `"gold"`): Buoc hien tai
+Mỗi event có thêm 2 field:
+- `overall_progress` (0-100): Progress toàn bộ pipeline
+- `pipeline_step` (`"bronze"` | `"silver"` | `"gold"`): Bước hiện tại
 
 #### SSE Events:
 
@@ -1128,30 +2047,30 @@ function PipelineUpload() {
 
 ---
 
-### 8.5 POST /pipeline/run/stream
+### 10.5 POST /pipeline/run/stream
 
-> **Full pipeline tu path .bak voi SSE progress**
+> **Full pipeline từ path .bak với SSE progress**
 
 **Content-Type:** `application/json`
 **Response Content-Type:** `text/event-stream`
 
-**Request:** Giong [POST /pipeline/run](#52-post-pipelinerun) (query param `bak_file_path` + JSON body)
+**Request:** Giống [POST /pipeline/run](#52-post-pipelinerun) (query param `bak_file_path` + JSON body)
 
-**Events:** Giong [POST /pipeline/upload/stream](#84-post-pipelineuploadstream)
+**Events:** Giống [POST /pipeline/upload/stream](#84-post-pipelineuploadstream)
 
 ---
 
-## 9. ERROR HANDLING
+## 11. ERROR HANDLING
 
-Tat ca API tra ve HTTP status code chuan va error detail:
+Tất cả API trả về HTTP status code chuẩn và error detail:
 
-| HTTP Code | Y nghia | Khi nao xay ra |
+| HTTP Code | Ý nghĩa | Khi nào xảy ra |
 |-----------|---------|----------------|
-| **200** | Thanh cong | Request xu ly thanh cong |
-| **400** | Bad Request | File khong phai .bak, du lieu khong hop le, khong the ve bieu do |
-| **404** | Not Found | File .bak khong ton tai tren server |
-| **422** | Validation Error | Thieu field bat buoc hoac sai kieu du lieu |
-| **500** | Server Error | Loi SQL Server, loi AI, loi he thong |
+| **200** | Thành công | Request xử lý thành công |
+| **400** | Bad Request | File không phải .bak, dữ liệu không hợp lệ, không thể vẽ biểu đồ |
+| **404** | Not Found | File .bak không tồn tại trên server |
+| **422** | Validation Error | Thiếu field bắt buộc hoặc sai kiểu dữ liệu |
+| **500** | Server Error | Lỗi SQL Server, lỗi AI, lỗi hệ thống |
 
 #### Error response format:
 ```json
@@ -1174,7 +2093,7 @@ Tat ca API tra ve HTTP status code chuan va error detail:
 
 ---
 
-## 10. FLOW DIAGRAM & GOI Y TRIEN KHAI FE
+## 12. FLOW DIAGRAM & GỢI Ý TRIỂN KHAI FE
 
 ### A. Full Pipeline Flow
 
@@ -1184,7 +2103,7 @@ Tat ca API tra ve HTTP status code chuan va error detail:
        v
 +------------------+
 |   BRONZE LAYER   |  POST /bronze/upload
-|  (Du lieu tho)   |  Restore .bak -> SQL Server DB
+|  (Dữ liệu thô)  |  Restore .bak -> SQL Server DB
 +------------------+
        |
        v
@@ -1196,56 +2115,218 @@ Tat ca API tra ve HTTP status code chuan va error detail:
        v
 +------------------+
 |    GOLD LAYER    |  POST /gold/transform
-|  (Chuan hoa)     |  Rename, normalize, format
+|  (Chuẩn hoá)    |  Rename, normalize, format
 +------------------+
        |
        v
 +------------------+
 |  CHATBOT & CHART |  POST /chat, POST /chart
-|  Hoi dap + Bieu  |  Text2SQL + Plotly charts
-|  do tu Gold DB   |
+|  Hỏi đáp + Biểu |  Text2SQL + Plotly charts
+|  đồ từ Gold DB   |
 +------------------+
 ```
 
 ### B. Chat Flow
 
 ```
-[Nguoi dung hoi: "Thong ke doanh thu theo thang"]
+[Người dùng hỏi: "Thống kê doanh thu theo tháng"]
        |
        v
-[AI phan tich cau hoi]
+[AI phân tích câu hỏi]
        |
        v
 [Sinh SQL: SELECT Month, SUM(Revenue) ... GROUP BY Month]
        |
        v
-[Thuc thi SQL tren Gold DB]
+[Thực thi SQL trên Gold DB]
        |
        v
-[AI sinh cau tra loi tieng Viet]
+[AI sinh câu trả lời tiếng Việt]
        |
        v
-[Detect yeu cau bieu do? -> Sinh Plotly config]
+[Detect yêu cầu biểu đồ? -> Sinh Plotly config]
        |
        v
-[Tra ve: answer + data + chart (Plotly JSON)]
+[Trả về: answer + data + chart (Plotly JSON)]
 ```
 
-### C. Goi y trien khai FE
+### C. Gợi ý triển khai FE
 
-| Trang | Mo ta | API su dung |
+| Trang | Mô tả | API sử dụng |
 |-------|-------|-------------|
-| **Upload** | Form upload file .bak, hien progress | `POST /pipeline/upload` hoac `POST /bronze/upload` |
-| **Quan ly DB** | Hien danh sach Bronze/Silver/Gold, click xem chi tiet | `GET /databases`, `GET /database/{name}` |
-| **Transform** | Cho phep cau hinh Silver rules va Gold mappings, chay tung buoc | `POST /silver/transform`, `POST /gold/transform` |
-| **Chatbot** | Giao dien chat, hien answer + data table + chart | `POST /chat`, `GET /chat/history/{session_id}` |
-| **Bieu do** | Giao dien ve bieu do rieng, chon kieu chart | `POST /chart` |
+| **Upload** | Form upload file .bak, hiện progress | `POST /pipeline/upload` hoặc `POST /bronze/upload` |
+| **Quản lý DB** | Hiện danh sách Bronze/Silver/Gold, click xem chi tiết | `GET /databases`, `GET /database/{name}` |
+| **Transform** | Cho phép cấu hình Silver rules và Gold mappings, chạy từng bước | `POST /silver/transform`, `POST /gold/transform` |
+| **Chatbot** | Giao diện chat, hiện answer + data table + chart | `POST /chat`, `GET /chat/history/{session_id}` |
+| **Biểu đồ** | Giao diện vẽ biểu đồ riêng, chọn kiểu chart | `POST /chart` |
 
-### D. FE Libraries goi y
+### D. FE Libraries gợi ý
 
-| Thu vien | Muc dich |
+| Thư viện | Mục đích |
 |----------|----------|
-| `react-plotly.js` / `vue-plotly` | Render bieu do tu Plotly config |
-| `axios` / `fetch` | Goi API |
+| `react-plotly.js` / `vue-plotly` | Render biểu đồ từ Plotly config |
+| `axios` / `fetch` | Gọi API |
 | `ant-design` / `shadcn` | UI components (table, form, upload) |
-| `react-markdown` | Render markdown trong cau tra loi chatbot |
+| `react-markdown` | Render markdown trong câu trả lời chatbot |
+
+---
+
+## Phụ lục: Lakehouse APIs (Module cũ)
+
+Các API dưới đây thuộc module Lakehouse gốc (xử lý tài liệu: PDF, Word, ảnh), **không nằm trong DB Lakehouse** nhưng cùng chung hệ thống.
+
+> **Base URL:** `http://localhost:8000/api/v1/lakehouse`
+
+---
+
+### POST /lakehouse/excel-mapping/analyze
+
+> **Phân tích file Excel và tự động map cột với data mapping có sẵn**
+
+**Content-Type:** `multipart/form-data`
+
+Upload file Excel (.xlsx, .xls), AI sẽ phân tích cấu trúc file (header ở dòng nào, data bắt đầu từ dòng nào) và map các cột với bộ `data_mapping.json` có sẵn trên server.
+
+#### Request (Form Data):
+
+| Field | Type | Required | Mô tả |
+|-------|------|----------|-------|
+| `file` | File (.xlsx, .xls) | **Yes** | File Excel cần phân tích |
+
+#### Response:
+
+| Field | Type | Mô tả |
+|-------|------|-------|
+| `success` | boolean | `true` nếu thành công |
+| `filename` | string | Tên file đã upload |
+| `result` | object | Kết quả phân tích (xem chi tiết bên dưới) |
+
+#### Schema: result
+
+| Field | Type | Mô tả |
+|-------|------|-------|
+| `company_id` | string | Mã công ty (AI tự nhận diện từ file) |
+| `company_name` | string | Tên công ty |
+| `day` | integer | Ngày |
+| `month` | integer | Tháng |
+| `year` | integer | Năm |
+| `header_row` | integer | Dòng chứa header (0-indexed) |
+| `data_start_row` | integer | Dòng bắt đầu dữ liệu thực (0-indexed) |
+| `column_mapping` | ColumnMapping[] | Mapping từng cột Excel với data_mapping |
+
+#### Schema: ColumnMapping
+
+| Field | Type | Mô tả |
+|-------|------|-------|
+| `excel_column_index` | integer | Index cột trong Excel (0-indexed) |
+| `excel_column_name` | string | Tên cột gốc trong file Excel |
+| `mapped_key` | string \| null | Key tương ứng trong `data_mapping.json` (null = không tìm thấy) |
+| `mapped_name` | string \| null | Tên tiếng Việt từ data_mapping |
+| `data_type` | string \| null | Kiểu dữ liệu: `CHAR`, `NUMBER`, `VARCHAR`, `DATETIME` |
+| `data_length` | integer \| null | Độ dài dữ liệu |
+
+#### Cơ chế hoạt động:
+1. Upload file Excel → đọc 20 dòng đầu
+2. Gửi cho AI cùng với file `data/data_mapping.json` (chứa định nghĩa các cột chuẩn)
+3. AI phân tích:
+   - Tìm dòng header và dòng data bắt đầu
+   - Map từng cột Excel với key trong data_mapping
+   - Nhận diện thông tin công ty, ngày tháng
+4. Trả về JSON mapping
+
+#### data_mapping.json (ví dụ):
+```json
+[
+  {"key": "bukrs", "data_type": "CHAR", "data_length": 4, "name": "Công ty"},
+  {"key": "year", "data_type": "NUMBER", "data_length": 4, "name": "Năm"},
+  {"key": "matnr", "data_type": "CHAR", "data_length": 400, "sname": "Mã chỉ tiêu"},
+  {"key": "name_matnr", "data_type": "CHAR", "data_length": 400, "name": "Chỉ tiêu"},
+  {"key": "gt_01", "data_type": "NUMBER", "data_length": 25, "name": "Kế hoạch thực hiện"},
+  {"key": "dvt", "data_type": "CHAR", "data_length": 500, "name": "Đơn vị tính"}
+]
+```
+
+#### Example Response:
+```json
+{
+  "success": true,
+  "filename": "BaoCao_KH_2026.xlsx",
+  "result": {
+    "company_id": "1000",
+    "company_name": "Công ty CP Ecotel",
+    "day": 15,
+    "month": 3,
+    "year": 2026,
+    "header_row": 4,
+    "data_start_row": 5,
+    "column_mapping": [
+      {
+        "excel_column_index": 0,
+        "excel_column_name": "STT",
+        "mapped_key": "stt",
+        "mapped_name": "STT",
+        "data_type": "NUMBER",
+        "data_length": 4
+      },
+      {
+        "excel_column_index": 1,
+        "excel_column_name": "Mã chỉ tiêu",
+        "mapped_key": "matnr",
+        "mapped_name": "Mã chỉ tiêu",
+        "data_type": "CHAR",
+        "data_length": 400
+      },
+      {
+        "excel_column_index": 2,
+        "excel_column_name": "Tên chỉ tiêu",
+        "mapped_key": "name_matnr",
+        "mapped_name": "Chỉ tiêu",
+        "data_type": "CHAR",
+        "data_length": 400
+      },
+      {
+        "excel_column_index": 3,
+        "excel_column_name": "ĐVT",
+        "mapped_key": "dvt",
+        "mapped_name": "Đơn vị tính",
+        "data_type": "CHAR",
+        "data_length": 500
+      },
+      {
+        "excel_column_index": 4,
+        "excel_column_name": "KH thực hiện",
+        "mapped_key": "gt_01",
+        "mapped_name": "Kế hoạch thực hiện",
+        "data_type": "NUMBER",
+        "data_length": 25
+      },
+      {
+        "excel_column_index": 5,
+        "excel_column_name": "Ghi chú",
+        "mapped_key": null,
+        "mapped_name": null,
+        "data_type": null,
+        "data_length": null
+      }
+    ]
+  }
+}
+```
+
+#### Cách sử dụng trên FE:
+```tsx
+// Upload Excel
+const formData = new FormData();
+formData.append('file', excelFile);
+
+const res = await fetch('/api/v1/lakehouse/excel-mapping/analyze', {
+  method: 'POST',
+  body: formData,
+});
+const { result } = await res.json();
+
+// Hiển thị kết quả mapping cho user review
+// result.header_row → dòng header
+// result.data_start_row → dòng bắt đầu data
+// result.column_mapping → bảng mapping cột (cho user xem/sửa trước khi import)
+```

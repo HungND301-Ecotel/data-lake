@@ -3,10 +3,14 @@ import { Card, Tabs, Button, Alert, Modal, message } from "antd";
 import { ReloadOutlined, DatabaseOutlined } from "@ant-design/icons";
 import { useDbPipeline } from "../hooks/useDbPipeline";
 import { useDbStream } from "../hooks/useDbStream";
+import { useServer } from "../hooks/useServer";
 import BakUploadZone from "../components/BakUploadZone";
+import RemoteImportForm from "../components/RemoteImportForm";
 import DatabaseList from "../components/DatabaseList";
 import DatabaseDetail from "../components/DatabaseDetail";
 import PipelineProgress from "../components/PipelineProgress";
+import ServerSelector from "../components/ServerSelector";
+import type { RemoteImportRequest } from "../types/dbLakehouse";
 
 export default function DbPipelinePage() {
   const {
@@ -16,18 +20,31 @@ export default function DbPipelinePage() {
     databasesByLayer,
   } = useDbPipeline();
 
+  const { servers, defaultServer, loading: loadingServers } = useServer();
+  const [serverId, setServerId] = useState<string>("");
+  const activeServerId = serverId || defaultServer?.id || "";
+
   const stream = useDbStream();
+  const remoteStream = useDbStream();
   const [detailVisible, setDetailVisible] = useState(false);
 
   const handleUpload = async (file: File, fullPipeline: boolean) => {
     if (fullPipeline) {
-      await stream.pipelineUploadStream(file);
+      await stream.pipelineUploadStream(file, { autoClean: true, autoStandardize: true });
     } else {
       await stream.bronzeUploadStream(file);
     }
     await fetchDatabases();
     if (stream.phase !== "error") {
       message.success("Xử lý hoàn tất!");
+    }
+  };
+
+  const handleRemoteImport = async (values: RemoteImportRequest) => {
+    await remoteStream.remoteImportStream(values);
+    await fetchDatabases();
+    if (remoteStream.phase !== "error") {
+      message.success("Import từ remote server hoàn tất!");
     }
   };
 
@@ -60,7 +77,16 @@ export default function DbPipelinePage() {
     <div className="space-y-4">
       {error && <Alert message={error} type="error" closable />}
 
-      <Card title={<><DatabaseOutlined className="mr-2" />DB Lakehouse - Upload & Pipeline</>}>
+      <Card title={<><DatabaseOutlined className="mr-2" />DB Lakehouse - Upload & Pipeline</>}
+        extra={
+          <ServerSelector
+            servers={servers}
+            value={activeServerId}
+            onChange={setServerId}
+            loading={loadingServers}
+          />
+        }
+      >
         <BakUploadZone
           uploading={stream.streaming}
           uploadProgress={stream.progress}
@@ -75,6 +101,21 @@ export default function DbPipelinePage() {
         logs={stream.logs}
         streaming={stream.streaming}
         error={stream.error}
+      />
+
+      <RemoteImportForm
+        servers={servers}
+        loading={remoteStream.streaming}
+        onSubmit={handleRemoteImport}
+      />
+
+      <PipelineProgress
+        progress={remoteStream.progress}
+        phase={remoteStream.phase}
+        message={remoteStream.message}
+        logs={remoteStream.logs}
+        streaming={remoteStream.streaming}
+        error={remoteStream.error}
       />
 
       <Card

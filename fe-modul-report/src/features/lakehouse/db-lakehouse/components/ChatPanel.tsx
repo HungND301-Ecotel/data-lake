@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { Input, Button, Card, Typography, Table, Tag, Space, Empty } from "antd";
-import { SendOutlined, CodeOutlined, BarChartOutlined, ClearOutlined } from "@ant-design/icons";
+import { Input, Button, Card, Typography, Table, Tag, Space, Empty, Spin } from "antd";
+import { SendOutlined, CodeOutlined, BarChartOutlined, ClearOutlined, LoadingOutlined } from "@ant-design/icons";
 import type { ChatMessage } from "../hooks/useDbChat";
 import PlotlyChartView from "./PlotlyChartView";
 
@@ -43,10 +43,23 @@ function MessageBubble({ msg }: { msg: ChatMessage }) {
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-3`}>
       <div className={`max-w-[85%] ${isUser ? "bg-blue-500 text-white" : "bg-gray-100"} rounded-2xl px-4 py-3`}>
-        <Paragraph className={`mb-1 ${isUser ? "text-white" : ""}`} style={{ marginBottom: 4 }}>
-          {msg.content}
-        </Paragraph>
+        {/* Streaming status indicator */}
+        {!isUser && msg.streaming && msg.status && (
+          <div className="mb-2 flex items-center gap-2">
+            <Spin indicator={<LoadingOutlined style={{ fontSize: 14 }} />} size="small" />
+            <Tag color="processing">{msg.status}</Tag>
+          </div>
+        )}
 
+        {/* Answer content - shows incrementally during streaming */}
+        {msg.content && (
+          <Paragraph className={`mb-1 ${isUser ? "text-white" : ""}`} style={{ marginBottom: 4, whiteSpace: "pre-wrap" }}>
+            {msg.content}
+            {!isUser && msg.streaming && <span className="animate-pulse">|</span>}
+          </Paragraph>
+        )}
+
+        {/* SQL query toggle */}
         {!isUser && msg.sqlQuery && (
           <>
             <Button
@@ -66,6 +79,7 @@ function MessageBubble({ msg }: { msg: ChatMessage }) {
           </>
         )}
 
+        {/* Data table */}
         {!isUser && msg.data && msg.columns && msg.data.length > 0 && (
           <div className="mt-2">
             <Tag icon={<BarChartOutlined />} color="processing">
@@ -75,6 +89,7 @@ function MessageBubble({ msg }: { msg: ChatMessage }) {
           </div>
         )}
 
+        {/* Chart */}
         {!isUser && msg.chart && (
           <div className="mt-2">
             <PlotlyChartView chart={msg.chart} />

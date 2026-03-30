@@ -94,6 +94,100 @@ export default function NavBar() {
           label: <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">AI & Chat</span>,
           children: [
             {
+              key: "db-chat",
+              icon: <RobotOutlined className="text-lg" />,
+              label: <span className="text-base font-medium">DB Chatbot</span>,
+              onClick: () => navigate("/db-lakehouse/chat"),
+              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+            },
+            {
+              key: "db-chart",
+              icon: <BarChartOutlined className="text-lg" />,
+              label: <span className="text-base font-medium">DB Chart</span>,
+              onClick: () => navigate("/db-lakehouse/chart"),
+              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+            },
+          ],
+        },
+        { type: "divider" as const, className: "my-1" },
+        {
+          key: "pipeline-group",
+          type: "group" as const,
+          label: <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Data Pipeline</span>,
+          children: [
+            {
+              key: "db-servers",
+              icon: <HddOutlined className="text-lg" />,
+              label: <span className="text-base font-medium">Quản lý Server</span>,
+              onClick: () => navigate("/db-lakehouse/servers"),
+              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+            },
+            {
+              key: "db-pipeline",
+              icon: <CloudUploadOutlined className="text-lg" />,
+              label: <span className="text-base font-medium">Upload dữ liệu</span>,
+              onClick: () => navigate("/db-lakehouse/pipeline"),
+              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+            },
+            {
+              key: "db-transform",
+              icon: <ThunderboltOutlined className="text-lg" />,
+              label: <span className="text-base font-medium">Transform dữ liệu</span>,
+              onClick: () => navigate("/db-lakehouse/transform"),
+              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+            },
+            {
+              key: "db-mapping",
+              icon: <SyncOutlined className="text-lg" />,
+              label: <span className="text-base font-medium">Value Mapping</span>,
+              onClick: () => navigate("/db-lakehouse/mapping"),
+              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+            },
+          ],
+        },
+        { type: "divider" as const, className: "my-1" },
+        {
+          key: "data-group",
+          type: "group" as const,
+          label: <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Quản lý dữ liệu</span>,
+          children: [
+            {
+              key: "data-bronze",
+              icon: <DatabaseOutlined className="text-lg" style={{ color: "#fa8c16" }} />,
+              label: <span className="text-base font-medium">Bronze</span>,
+              onClick: () => navigate("/db-lakehouse/data/bronze"),
+              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+            },
+            {
+              key: "data-silver",
+              icon: <DatabaseOutlined className="text-lg" style={{ color: "#1890ff" }} />,
+              label: <span className="text-base font-medium">Silver</span>,
+              onClick: () => navigate("/db-lakehouse/data/silver"),
+              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+            },
+            {
+              key: "data-gold",
+              icon: <GoldOutlined className="text-lg" style={{ color: "#faad14" }} />,
+              label: <span className="text-base font-medium">Gold</span>,
+              onClick: () => navigate("/db-lakehouse/data/gold"),
+              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+            },
+          ],
+        },
+      ]}
+      className="rounded-xl! shadow-2xl! min-w-[280px] py-2"
+    />
+  );
+
+  const lakehouseOldMenu = (
+    <Menu
+      items={[
+        {
+          key: "ai-group",
+          type: "group" as const,
+          label: <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">AI & Chat</span>,
+          children: [
+            {
               key: "ai-chat",
               icon: <RobotOutlined className="text-lg" />,
               label: <span className="text-base font-medium">Chat AI</span>,
@@ -123,53 +217,17 @@ export default function NavBar() {
           label: <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Data Pipeline</span>,
           children: [
             {
-              key: "pipeline",
+              key: "pipeline-old",
               icon: <CloudUploadOutlined className="text-lg" />,
               label: <span className="text-base font-medium">Pipeline</span>,
               onClick: () => navigate("/lakehouse/pipeline"),
               className: "py-2 px-4 hover:bg-[#f0f9f4]!",
             },
             {
-              key: "gold",
+              key: "gold-extraction",
               icon: <GoldOutlined className="text-lg" />,
               label: <span className="text-base font-medium">Gold Extraction</span>,
               onClick: () => navigate("/lakehouse/gold"),
-              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
-            },
-          ],
-        },
-        { type: "divider" as const, className: "my-1" },
-        {
-          key: "db-lakehouse-group",
-          type: "group" as const,
-          label: <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">DB Lakehouse</span>,
-          children: [
-            {
-              key: "db-pipeline",
-              icon: <CloudUploadOutlined className="text-lg" />,
-              label: <span className="text-base font-medium">Upload & Pipeline</span>,
-              onClick: () => navigate("/db-lakehouse/pipeline"),
-              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
-            },
-            {
-              key: "db-transform",
-              icon: <ThunderboltOutlined className="text-lg" />,
-              label: <span className="text-base font-medium">Transform (Silver/Gold)</span>,
-              onClick: () => navigate("/db-lakehouse/transform"),
-              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
-            },
-            {
-              key: "db-chat",
-              icon: <RobotOutlined className="text-lg" />,
-              label: <span className="text-base font-medium">DB Chatbot</span>,
-              onClick: () => navigate("/db-lakehouse/chat"),
-              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
-            },
-            {
-              key: "db-chart",
-              icon: <BarChartOutlined className="text-lg" />,
-              label: <span className="text-base font-medium">DB Chart</span>,
-              onClick: () => navigate("/db-lakehouse/chart"),
               className: "py-2 px-4 hover:bg-[#f0f9f4]!",
             },
           ],
@@ -203,51 +261,51 @@ export default function NavBar() {
             },
           ],
         },
-        { type: "divider" as const, className: "my-1" },
+      ]}
+      className="rounded-xl! shadow-2xl! min-w-[260px] py-2"
+    />
+  );
+
+  const toolsMenu = (
+    <Menu
+      items={[
         {
-          key: "tools-group",
-          type: "group" as const,
-          label: <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Công cụ</span>,
-          children: [
-            {
-              key: "servers",
-              icon: <HddOutlined className="text-lg" />,
-              label: <span className="text-base font-medium">Quản lý Server</span>,
-              onClick: () => navigate("/servers"),
-              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
-            },
-            {
-              key: "database",
-              icon: <SearchOutlined className="text-lg" />,
-              label: <span className="text-base font-medium">Database Explorer</span>,
-              onClick: () => navigate("/database"),
-              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
-            },
-            {
-              key: "jobs",
-              icon: <ScheduleOutlined className="text-lg" />,
-              label: <span className="text-base font-medium">Job Tracking</span>,
-              onClick: () => navigate("/jobs"),
-              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
-            },
-            {
-              key: "sql-metadata",
-              icon: <CodeOutlined className="text-lg" />,
-              label: <span className="text-base font-medium">SQL Metadata</span>,
-              onClick: () => navigate("/sql-metadata"),
-              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
-            },
-            {
-              key: "excel-mapping",
-              icon: <FileExcelOutlined className="text-lg" />,
-              label: <span className="text-base font-medium">Excel Mapping</span>,
-              onClick: () => navigate("/excel-mapping"),
-              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
-            },
-          ],
+          key: "servers",
+          icon: <HddOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Quản lý Server</span>,
+          onClick: () => navigate("/servers"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "database",
+          icon: <SearchOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Database Explorer</span>,
+          onClick: () => navigate("/database"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "jobs",
+          icon: <ScheduleOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Job Tracking</span>,
+          onClick: () => navigate("/jobs"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "sql-metadata",
+          icon: <CodeOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">SQL Metadata</span>,
+          onClick: () => navigate("/sql-metadata"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "excel-mapping",
+          icon: <FileExcelOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Excel Mapping</span>,
+          onClick: () => navigate("/excel-mapping"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
         },
       ]}
-      className="rounded-xl! shadow-2xl! min-w-[280px] py-2 max-h-[80vh] overflow-y-auto"
+      className="rounded-xl! shadow-2xl! min-w-[260px] py-2"
     />
   );
 
@@ -361,6 +419,32 @@ export default function NavBar() {
           size="large"
         >
           <span>Data Lake</span>
+          <DownOutlined className="text-xs ml-2 group-hover:translate-y-0.5 transition-transform duration-300" />
+        </Button>
+      </Dropdown>
+
+      {/* Lakehouse cũ Dropdown */}
+      <Dropdown overlay={lakehouseOldMenu} placement="bottomLeft">
+        <Button
+          type="text"
+          icon={<CloudUploadOutlined className="text-lg mr-2" />}
+          className="text-white! border-0! bg-transparent! font-semibold text-base tracking-wide hover:bg-white/15! transition-all duration-300 rounded-lg cursor-pointer group"
+          size="large"
+        >
+          <span>Lakehouse</span>
+          <DownOutlined className="text-xs ml-2 group-hover:translate-y-0.5 transition-transform duration-300" />
+        </Button>
+      </Dropdown>
+
+      {/* Công cụ Dropdown */}
+      <Dropdown overlay={toolsMenu} placement="bottomLeft">
+        <Button
+          type="text"
+          icon={<CodeOutlined className="text-lg mr-2" />}
+          className="text-white! border-0! bg-transparent! font-semibold text-base tracking-wide hover:bg-white/15! transition-all duration-300 rounded-lg cursor-pointer group"
+          size="large"
+        >
+          <span>Công cụ</span>
           <DownOutlined className="text-xs ml-2 group-hover:translate-y-0.5 transition-transform duration-300" />
         </Button>
       </Dropdown>

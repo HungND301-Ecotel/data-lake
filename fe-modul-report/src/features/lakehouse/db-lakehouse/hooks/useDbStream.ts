@@ -6,6 +6,7 @@ import type {
   PipelinePhase,
   SilverTransformRequest,
   GoldTransformRequest,
+  RemoteImportRequest,
 } from "../types/dbLakehouse";
 
 function getPhaseFromEvent(event: SSEEvent): PipelinePhase {
@@ -129,6 +130,21 @@ export function useDbStream() {
     }
   }, [handleEvent, reset]);
 
+  const remoteImportStream = useCallback(async (body: RemoteImportRequest) => {
+    reset();
+    setStreaming(true);
+    setPhase("bronze");
+    try {
+      await dbLakehouseApi.remoteImportStream(body, handleEvent);
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      setError(e.message || "Lỗi stream remote import");
+      setPhase("error");
+    } finally {
+      setStreaming(false);
+    }
+  }, [handleEvent, reset]);
+
   return {
     progress,
     phase,
@@ -142,5 +158,6 @@ export function useDbStream() {
     silverTransformStream,
     goldTransformStream,
     pipelineUploadStream,
+    remoteImportStream,
   };
 }
