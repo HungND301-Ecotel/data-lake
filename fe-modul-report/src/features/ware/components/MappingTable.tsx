@@ -50,8 +50,8 @@ function buildRequestsFromAiResponse(
   for (const col of result.column_mapping) {
     requests.push({
       id: null,
-      fieldName: col.mapped_key,
-      fieldTitle: col.mapped_name,
+      fieldName: col.mapped_key ?? "",
+      fieldTitle: col.mapped_name ?? undefined,
       fieldType: "ROW" as FieldType,
       cellAddress: String(col.excel_column_index + 1),
       fieldValue: "",
