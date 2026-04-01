@@ -13,10 +13,6 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/datalake-api/, ""),
       },
-      "/api": {
-        target: "http://118.70.151.69:8080",
-        changeOrigin: true,
-      },
     },
   },
 })
