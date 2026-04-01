@@ -24,7 +24,7 @@ public class WebClientConfig {
     @Bean
     @Qualifier("vinacominWebClient")
     public WebClient webClient() {
-        String baseUrl = "https://dev-apidatabi.vinacomin.vn";
+        String baseUrl = "https://deapidatabi.vinacomin.vn";
         int connectionTimeout = 5000;
         int readTimeout = 10000;
 
