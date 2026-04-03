@@ -51,7 +51,7 @@ jobs:
           key: ${{ secrets.STAGING_SSH_KEY }}
           port: ${{ secrets.STAGING_PORT }}
           script: |
-            mkdir -p /home/${{ secrets.STAGING_USER }}/data-lake/nammau/deployment/staging
+            mkdir -p /home/${{ secrets.STAGING_USER }}/data-lake/deonaicocsau/deployment/staging
 
       - name: Transfer docker-compose file to VPS for deployment
         uses: appleboy/scp-action@v0.1.4
