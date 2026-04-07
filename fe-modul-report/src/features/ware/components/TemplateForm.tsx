@@ -9,6 +9,7 @@ import {
   Tag,
   Avatar,
   Space,
+  Radio,
 } from "antd";
 import type {
   WareTemplateRequest,
@@ -43,6 +44,7 @@ interface ApprovalConfig {
   approverName?: string;
   approvalOrder: number;
   isActive: boolean;
+  autoApprove?: boolean;
 }
 
 
@@ -63,6 +65,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
   const [tempApprovers, setTempApprovers] = useState<string[]>([]);
   const [searchEmployee, setSearchEmployee] = useState("");
   const [filteredEmployees, setFilteredEmployees] = useState<EmployeeResponse[]>([]);
+  const [autoApprove, setAutoApprove] = useState(false);
 
   const fetchTemplate = async () => {
     try {
@@ -172,6 +175,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
 
   const handleOpenApprovalModal = () => {
     setTempApprovers(approvalConfigs.map((config) => config.approverId));
+    setAutoApprove(approvalConfigs[0]?.autoApprove ?? false);
     setEditingApproverIndex(null);
     setSearchEmployee("");
     setIsApprovalModalVisible(true);
@@ -254,6 +258,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
           ...(existingConfig?.id && { id: existingConfig.id }),
           approverId,
           approvalOrder: index + 1,
+          autoApprove,
         };
       });
 
@@ -625,8 +630,8 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                   <div
                     key={idx}
                     className={`p-4 transition-all ${isEditing
-                        ? "border-2 border-blue-500 bg-blue-50 shadow-md"
-                        : "border border-gray-200 bg-white hover:shadow-md"
+                      ? "border-2 border-blue-500 bg-blue-50 shadow-md"
+                      : "border border-gray-200 bg-white hover:shadow-md"
                       }`}
                   >
                     {isEditing ? (
@@ -740,6 +745,19 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
               <p className="text-gray-400">Chưa có người duyệt nào</p>
             </div>
           )}
+
+          <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200 mb-4">
+            <label className="block mb-3 font-semibold text-gray-800">
+              Tự động duyệt báo cáo khi người duyệt cuối cùng duyệt
+            </label>
+            <Radio.Group
+              value={autoApprove}
+              onChange={(e) => setAutoApprove(e.target.value)}
+            >
+              <Radio value={true}>Có</Radio>
+              <Radio value={false}>Không</Radio>
+            </Radio.Group>
+          </div>
 
           {editingApproverIndex === null && (
             <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">

@@ -25,6 +25,7 @@ export interface WareBatchResponse {
   reportYear?: number | null;
   reportMonth?: number | null;
   reportDay?: number | null;
+  templateId?: number | null;
 }
 
 export interface WareBatchSearch {
