@@ -11,6 +11,7 @@ import {
   Tooltip,
   Card,
   Tag,
+  Select,
 } from "antd";
 import type { UploadFile } from "antd/es/upload/interface";
 import type { ColumnsType } from "antd/es/table";
@@ -52,6 +53,18 @@ export const WareBatch: React.FC = () => {
   const [messageApi, contextHolderMessage] = message.useMessage();
   const [modal, contextHolderModal] = Modal.useModal();
   const [templateName, setTemplateName] = useState<string>("");
+  const [hasQuarter, setHasQuarter] = useState(false);
+
+  const handleQuarterChange = (value: number | null) => {
+    setHasQuarter(!!value);
+    if (value) {
+      // Q1=1, Q2=4, Q3=7, Q4=10 (tháng đầu của quý)
+      const quarterStartMonth: Record<number, number> = { 1: 1, 2: 4, 3: 7, 4: 10 };
+      form.setFieldValue('reportMonth', quarterStartMonth[value]);
+    } else {
+      form.setFieldValue('reportMonth', undefined);
+    }
+  };
 
   const fetchTemplateName = async () => {
     if (templateId) {
@@ -111,6 +124,7 @@ export const WareBatch: React.FC = () => {
       await wareBatchApi.saveWareBatch(request);
       messageApi.success("Thêm batch thành công");
       setIsModalOpen(false);
+      setHasQuarter(false);
       setFileList([]);
       form.resetFields();
       fetchBatches();
@@ -220,7 +234,7 @@ export const WareBatch: React.FC = () => {
       title: "Tháng",
       dataIndex: "reportMonth",
       key: "reportMonth",
-       render: (text: string) => (
+      render: (text: string) => (
         <span className="text-gray-600 line-clamp-2">{text || "-"}</span>
       ),
     },
@@ -228,7 +242,7 @@ export const WareBatch: React.FC = () => {
       title: "Ngày",
       dataIndex: "reportDay",
       key: "reportDay",
-       render: (text: string) => (
+      render: (text: string) => (
         <span className="text-gray-600 line-clamp-2">{text || "-"}</span>
       ),
     },
@@ -402,6 +416,7 @@ export const WareBatch: React.FC = () => {
         open={isModalOpen}
         onCancel={() => {
           setIsModalOpen(false);
+          setHasQuarter(false);
           setFileList([]);
           form.resetFields();
         }}
@@ -432,23 +447,50 @@ export const WareBatch: React.FC = () => {
             />
           </Form.Item>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <Form.Item
               name="reportYear"
               label={<span className="font-medium text-gray-800">Năm báo cáo <span className="text-red-500">*</span></span>}
               rules={[{ required: true, message: "Vui lòng nhập năm báo cáo" }]}
             >
-              <Input
-                placeholder="VD: 2024"
+              <Input placeholder="VD: 2024" size="large" type="number" className="rounded-lg" />
+            </Form.Item>
+
+            <Form.Item
+              name="reportDay"
+              label={<span className="font-medium text-gray-800">Ngày báo cáo</span>}
+            >
+              <Input placeholder="VD: 1-31" size="large" type="number" min={1} max={31} className="rounded-lg" />
+            </Form.Item>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <Form.Item
+              name="reportQuarter"
+              label={<span className="font-medium text-gray-800">Quý báo cáo</span>}
+            >
+              <Select
+                placeholder="Chọn quý (tùy chọn)"
                 size="large"
-                type="number"
-                className="rounded-lg"
+                allowClear
+                onChange={handleQuarterChange}
+                options={[
+                  { label: 'Q1 (Tháng 1–3)', value: 1 },
+                  { label: 'Q2 (Tháng 4–6)', value: 2 },
+                  { label: 'Q3 (Tháng 7–9)', value: 3 },
+                  { label: 'Q4 (Tháng 10–12)', value: 4 },
+                ]}
               />
             </Form.Item>
 
             <Form.Item
               name="reportMonth"
-              label={<span className="font-medium text-gray-800">Tháng báo cáo</span>}
+              label={
+                <span className="font-medium text-gray-800">
+                  Tháng báo cáo
+                  {hasQuarter && <span className="text-gray-400 font-normal text-xs ml-1">(tự động từ Quý)</span>}
+                </span>
+              }
             >
               <Input
                 placeholder="VD: 1-12"
@@ -457,20 +499,7 @@ export const WareBatch: React.FC = () => {
                 min={1}
                 max={12}
                 className="rounded-lg"
-              />
-            </Form.Item>
-
-            <Form.Item
-              name="reportDay"
-              label={<span className="font-medium text-gray-800">Ngày báo cáo</span>}
-            >
-              <Input
-                placeholder="VD: 1-31"
-                size="large"
-                type="number"
-                min={1}
-                max={31}
-                className="rounded-lg"
+                disabled={hasQuarter}
               />
             </Form.Item>
           </div>
