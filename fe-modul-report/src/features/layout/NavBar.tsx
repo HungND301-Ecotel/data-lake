@@ -260,8 +260,6 @@ export default function NavBar() {
     }
   };
 
-  const role = storeRole ?? getRoleFromToken();
-
   // Sync role từ token vào store nếu store bị mất sau reload
   useEffect(() => {
     if (!storeRole) {
