@@ -550,18 +550,18 @@ export default function NavBar() {
         </Dropdown>
 
         {/* Data Input */}
-        {role === "ADMIN" && (
-          <Link to="/ware">
-            <Button
-              type="text"
-              icon={<SettingOutlined className="text-lg mr-2" />}
-              className="text-white! border-0! bg-transparent! font-semibold text-base tracking-wide hover:bg-white/15! transition-all duration-300 rounded-lg"
-              size="large"
-            >
-              Cấu hình
-            </Button>
-          </Link>
-        )}
+
+        <Link to="/ware">
+          <Button
+            type="text"
+            icon={<SettingOutlined className="text-lg mr-2" />}
+            className="text-white! border-0! bg-transparent! font-semibold text-base tracking-wide hover:bg-white/15! transition-all duration-300 rounded-lg"
+            size="large"
+          >
+            Cấu hình
+          </Button>
+        </Link>
+
 
         {/* ── Nhập nhanh ── */}
         <Dropdown
