@@ -23,6 +23,7 @@ public class WareBatchJdbc {
                         wb.code AS code,
                         wb.name AS name,
                         wb.description AS description,
+                        wb.s3_file_key AS s3_file_key,
                         wb.created_at AS created_at,
                         wb.updated_at AS updated_at,
                         e.name AS employee_name,
