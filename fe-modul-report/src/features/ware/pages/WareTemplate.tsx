@@ -201,7 +201,6 @@ const WareTemplate = () => {
   };
 
   const canApprove = userRole === "ADMIN" || userRole === "USER";
-  const canConfig = userRole === "ADMIN";
 
   const columns: ColumnsType<WareTemplateResponse> = [
     {
@@ -239,18 +238,16 @@ const WareTemplate = () => {
       align: "center" as const,
       render: (_: any, record) => (
         <Space size="small">
-          {canConfig ? (
-            <Button
-              icon={<SettingOutlined />}
-              size="large"
-              className="bg-blue-600! hover:bg-blue-700! text-white! border-0"
-              onClick={() => nav(`/ware/template/detail/${record.id}`)}
-            >
-              Cấu hình
-            </Button>
-          ) : (
-            <></>
-          )}
+
+          <Button
+            icon={<SettingOutlined />}
+            size="large"
+            className="bg-blue-600! hover:bg-blue-700! text-white! border-0"
+            onClick={() => nav(`/ware/template/detail/${record.id}`)}
+          >
+            Cấu hình
+          </Button>
+
 
           <Button
             icon={<EditOutlined />}
