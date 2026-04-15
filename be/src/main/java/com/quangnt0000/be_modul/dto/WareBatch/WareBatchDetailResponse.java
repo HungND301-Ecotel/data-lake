@@ -23,6 +23,7 @@ public class WareBatchDetailResponse {
     private String code;
     private String name;
     private String description;
+    private String s3FileKey;
     
     // Template info
     private Integer templateId;

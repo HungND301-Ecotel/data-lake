@@ -53,7 +53,7 @@ services:
     networks:
       - backnet
 
-  pgadmin:
+  nammau_pgadmin:
     container_name: pgadmin_nammau_report_2211
     image: dpage/pgadmin4:8.6
     environment:

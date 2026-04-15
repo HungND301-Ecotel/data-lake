@@ -31,6 +31,7 @@ import {
   RightOutlined,
   LoadingOutlined,
   SettingOutlined,
+  PieChartOutlined,
 } from "@ant-design/icons";
 import { Button, Dropdown, Menu, Spin } from "antd";
 import { employeeApi } from "../employee/api/employeeApi";
@@ -259,8 +260,6 @@ export default function NavBar() {
       return null;
     }
   };
-
-  const role = storeRole ?? getRoleFromToken();
 
   // Sync role từ token vào store nếu store bị mất sau reload
   useEffect(() => {
@@ -550,18 +549,18 @@ export default function NavBar() {
         </Dropdown>
 
         {/* Data Input */}
-        {role === "ADMIN" && (
-          <Link to="/ware">
-            <Button
-              type="text"
-              icon={<SettingOutlined className="text-lg mr-2" />}
-              className="text-white! border-0! bg-transparent! font-semibold text-base tracking-wide hover:bg-white/15! transition-all duration-300 rounded-lg"
-              size="large"
-            >
-              Cấu hình
-            </Button>
-          </Link>
-        )}
+
+        <Link to="/ware">
+          <Button
+            type="text"
+            icon={<SettingOutlined className="text-lg mr-2" />}
+            className="text-white! border-0! bg-transparent! font-semibold text-base tracking-wide hover:bg-white/15! transition-all duration-300 rounded-lg"
+            size="large"
+          >
+            Cấu hình
+          </Button>
+        </Link>
+
 
         {/* ── Nhập nhanh ── */}
         <Dropdown
@@ -611,6 +610,17 @@ export default function NavBar() {
             <DownOutlined className="text-xs ml-2 group-hover:translate-y-0.5 transition-transform duration-300" />
           </Button>
         </Dropdown>
+
+        <Link to="/analytics">
+          <Button
+            type="text"
+            icon={<PieChartOutlined className="text-lg mr-2" />}
+            className="text-white! border-0! bg-transparent! font-semibold text-base tracking-wide hover:bg-white/15! transition-all duration-300 rounded-lg"
+            size="large"
+          >
+            Thống kê
+          </Button>
+        </Link>
 
         {/* Account Menu */}
         <div className="ml-auto">
