@@ -6,17 +6,17 @@
 # b. Push:  $ docker compose -f docker-compose-build.yaml push
 #####
 services:
-  deonaicocsau_report_reverse_proxy_service:
+  nammau_report_reverse_proxy_service:
     build:
       context: ./reverse_proxy
-    image: ${REGISTRY}/deonaicocsau_report_reverse_proxy_img:${VERSION}
+    image: ${REGISTRY}/nammau_report_reverse_proxy_img:${VERSION}
 
-  deonaicocsau_report_backend_service:
+  nammau_report_backend_service:
     build:
       context: ./be
-    image: ${REGISTRY}/deonaicocsau_report_backend_img:${VERSION}
+    image: ${REGISTRY}/nammau_report_backend_img:${VERSION}
 
-  deonaicocsau_report_frontend_service:
+  nammau_report_frontend_service:
     build:
       context: ./fe-modul-report
-    image: ${REGISTRY}/deonaicocsau_report_frontend_img:${VERSION}
+    image: ${REGISTRY}/nammau_report_frontend_img:${VERSION}

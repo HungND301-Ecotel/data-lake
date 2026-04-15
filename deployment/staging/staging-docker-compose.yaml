@@ -1,9 +1,9 @@
 services:
-  deonaicocsau_report_reverse_proxy_service:
-    image: ${REGISTRY}/deonaicocsau_report_reverse_proxy_img:${VERSION}
+  nammau_report_reverse_proxy_service:
+    image: ${REGISTRY}/nammau_report_reverse_proxy_img:${VERSION}
     ports:
       # HOST_PORT:CONTAINER_PORT
-      - "1303:8888"
+      - "1103:8888"
     stdin_open: true
     environment:
       - TZ=Asia/Ho_Chi_Minh
@@ -11,23 +11,23 @@ services:
       - backnet
       - frontnet
     depends_on:
-      - deonaicocsau_report_backend_service
-      - deonaicocsau_report_frontend_service
+      - nammau_report_backend_service
+      - nammau_report_frontend_service
 
-  deonaicocsau_report_backend_service:
+  nammau_report_backend_service:
     env_file:
       - .env_backend
-    image: ${REGISTRY}/deonaicocsau_report_backend_img:${VERSION}
+    image: ${REGISTRY}/nammau_report_backend_img:${VERSION}
     depends_on:
-      - deonaicocsau_postgres
+      - nammau_postgres
     ports:
-      - "3611:8080"
+      - "2611:8080"
     networks:
       - backnet
     restart: unless-stopped
 
-  deonaicocsau_report_frontend_service:
-    image: ${REGISTRY}/deonaicocsau_report_frontend_img:${VERSION}
+  nammau_report_frontend_service:
+    image: ${REGISTRY}/nammau_report_frontend_img:${VERSION}
     # target: development
     stdin_open: true
     environment:
@@ -39,8 +39,8 @@ services:
     networks:
       - frontnet
 
-  deonaicocsau_postgres:
-    container_name: pg_deonaicocsau_report_2211
+  nammau_postgres:
+    container_name: pg_nammau_report_2211
     image: postgres:16
     environment:
       - POSTGRES_USER=admin
@@ -48,39 +48,39 @@ services:
       - POSTGRES_DB=report
       - PGDATA=/var/lib/postgresql/data
     volumes:
-      - deonaicocsau_report_postgres_data:/var/lib/postgresql/data
+      - nammau_report_postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
     networks:
       - backnet
 
-  deonaicocsau_pgadmin:
-    container_name: pgadmin_deonaicocsau_report_2211
+  nammau_pgadmin:
+    container_name: pgadmin_nammau_report_2211
     image: dpage/pgadmin4:8.6
     environment:
       - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL:-pgadmin@pgadmin.org}
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD:-admin}
       - PGADMIN_CONFIG_SERVER_MODE=False
     volumes:
-      - deonaicocsau_report_pgadmin_data:/var/lib/pgadmin
+      - nammau_report_pgadmin_data:/var/lib/pgadmin
     ports:
-      - "3603:80"
+      - "2603:80"
     networks:
       - backnet
     restart: unless-stopped
 
 volumes:
-  deonaicocsau_report_postgres_data: # ✅ Cho postgres
+  nammau_report_postgres_data: # ✅ Cho postgres
     driver: local
     driver_opts:
       type: none
-      device: /mnt/hdd/deonaicocsau_report_postgres_data
+      device: /mnt/hdd/nammau_report_postgres_data
       o: bind
 
-  deonaicocsau_report_pgadmin_data: # ✅ Cho pgadmin (thêm mới)
+  nammau_report_pgadmin_data: # ✅ Cho pgadmin (thêm mới)
     driver: local
     driver_opts:
       type: none
-      device: /mnt/hdd/deonaicocsau_report_pgadmin_data
+      device: /mnt/hdd/nammau_report_pgadmin_data
       o: bind
 
 networks:
