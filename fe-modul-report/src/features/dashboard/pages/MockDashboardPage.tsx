@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
-const COMPANY_NAME = "CÔNG TY CỔ PHẦN THAN ĐÈO NAI CỌC SÁU - VINACOMIN";
+const COMPANY_NAME = "CÔNG TY THAN NAM MẪU - VINACOMIN";
 const COMPANY_DEPT = "PHÒNG KẾ HOẠCH - VẬT TƯ";
 const BIEU_MAU = "BIỂU MẪU SỐ 01/VT";
 
@@ -539,7 +539,7 @@ export default function CoalMiningDashboard() {
             BÁO CÁO ĐIỀU HÀNH SẢN XUẤT & NHÂN SỰ
           </h1>
           <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>
-            Công ty Cổ phần Than Đèo Nai Cọc Sáu — Hôm nay: {todayStr}
+            Công ty than Nam Mẫu — Hôm nay: {todayStr}
           </div>
         </div>
         <div style={{ display: "flex", gap: 20 }}>
