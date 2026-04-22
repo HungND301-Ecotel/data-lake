@@ -621,7 +621,7 @@ export default function NavBar() {
         </Dropdown>
 
         {/* Data Lake Dropdown */}
-        <Dropdown overlay={datalakeMenu} placement="bottomLeft">
+        {/* <Dropdown overlay={datalakeMenu} placement="bottomLeft">
           <Button
             type="text"
             icon={<DatabaseOutlined className="text-lg mr-2" />}
@@ -631,7 +631,7 @@ export default function NavBar() {
             <span>Data Lake</span>
             <DownOutlined className="text-xs ml-2 group-hover:translate-y-0.5 transition-transform duration-300" />
           </Button>
-        </Dropdown>
+        </Dropdown> */}
 
         {/* Reports Dropdown */}
         <Dropdown overlay={reportsMenu} placement="bottomLeft">
@@ -646,7 +646,7 @@ export default function NavBar() {
           </Button>
         </Dropdown>
 
-        <Link to="/analytics">
+        {/* <Link to="/analytics">
           <Button
             type="text"
             icon={<PieChartOutlined className="text-lg mr-2" />}
@@ -655,7 +655,7 @@ export default function NavBar() {
           >
             Thống kê
           </Button>
-        </Link>
+        </Link> */}
 
         {/* Account Menu */}
         <div className="ml-auto">
