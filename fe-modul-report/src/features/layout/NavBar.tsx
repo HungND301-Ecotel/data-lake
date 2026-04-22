@@ -42,12 +42,14 @@ import type { DepartmentResponse } from "../department/types/department";
 import { useAuthStore } from "../../stores/authStore";
 
 type Cat = { id: number; code: string; name: string };
-type Tmpl = { id: number; code: string; name: string; deptName?: string; catName?: string };
+type Tmpl = { id: number; code: string; name: string; tableCode?: string; deptName?: string; catName?: string };
 
 const QuickInputPanel = ({
   onSelectTemplate,
+  footerText,
 }: {
   onSelectTemplate: (tmpl: Tmpl) => void;
+  footerText?: string;
 }) => {
   const [depts, setDepts] = useState<DepartmentResponse[]>([]);
   const [loadingDepts, setLoadingDepts] = useState(true);
@@ -234,7 +236,7 @@ const QuickInputPanel = ({
       {/* Footer */}
       <div className="px-5 py-2.5 bg-gray-50 border-t border-gray-100">
         <span className="text-gray-400" style={{ fontSize: 13 }}>
-          💡 Di chuột vào các mục để điều hướng • Click vào Template để mở nhập liệu ngay
+          {footerText || "💡 Di chuột vào các mục để điều hướng • Click vào Template để mở nhập liệu ngay"}
         </span>
       </div>
     </div>
@@ -247,6 +249,7 @@ const QuickInputPanel = ({
 export default function NavBar() {
   const [userName, setUserName] = useState<string>("");
   const [quickOpen, setQuickOpen] = useState(false);
+  const [quickViewOpen, setQuickViewOpen] = useState(false);
   const navigate = useNavigate();
   const { role: storeRole, setRole } = useAuthStore();
 
@@ -288,6 +291,16 @@ export default function NavBar() {
     if (tmpl.catName) params.set("cat", tmpl.catName);
     if (tmpl.name) params.set("tmpl", tmpl.name);
     navigate(`/ware/template/${tmpl.id}?${params.toString()}`);
+  };
+
+  const handleSelectTemplateForView = (tmpl: Tmpl) => {
+    setQuickViewOpen(false);
+    const params = new URLSearchParams();
+    if (tmpl.deptName) params.set("dept", tmpl.deptName);
+    if (tmpl.catName) params.set("cat", tmpl.catName);
+    if (tmpl.name) params.set("tmpl", tmpl.name);
+    if (tmpl.tableCode) params.set("table", tmpl.tableCode);
+    navigate(`/search/master?${params.toString()}`);
   };
 
   // ── Existing menus (unchanged) ──────────────
@@ -462,13 +475,6 @@ export default function NavBar() {
     <Menu
       items={[
         {
-          key: "view",
-          icon: <EyeOutlined className="text-lg" />,
-          label: <span className="text-base font-medium">Xem báo cáo</span>,
-          onClick: () => navigate("/search/master"),
-          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
-        },
-        {
           key: "approve",
           icon: <CheckCircleOutlined className="text-lg" />,
           label: <span className="text-base font-medium">Duyệt báo cáo</span>,
@@ -567,7 +573,10 @@ export default function NavBar() {
           open={quickOpen}
           onOpenChange={setQuickOpen}
           overlay={
-            <QuickInputPanel onSelectTemplate={handleSelectTemplate} />
+            <QuickInputPanel
+              onSelectTemplate={handleSelectTemplate}
+              footerText="💡 Di chuột vào các mục để điều hướng • Click vào Template để mở nhập liệu ngay"
+            />
           }
           placement="bottomLeft"
           trigger={["hover"]}
@@ -581,6 +590,32 @@ export default function NavBar() {
             size="large"
           >
             <span>Nhập dữ liệu</span>
+            <DownOutlined className="text-xs ml-2 group-hover:translate-y-0.5 transition-transform duration-300" />
+          </Button>
+        </Dropdown>
+
+        {/* ── Xem báo cáo ── */}
+        <Dropdown
+          open={quickViewOpen}
+          onOpenChange={setQuickViewOpen}
+          overlay={
+            <QuickInputPanel
+              onSelectTemplate={handleSelectTemplateForView}
+              footerText="💡 Di chuột vào các mục để điều hướng • Click vào Template để mở xem báo cáo"
+            />
+          }
+          placement="bottomLeft"
+          trigger={["hover"]}
+          mouseEnterDelay={0.15}
+          mouseLeaveDelay={0.2}
+        >
+          <Button
+            type="text"
+            icon={<EyeOutlined className="text-lg mr-2" />}
+            className="text-white! border-0! bg-transparent! font-semibold text-base tracking-wide hover:bg-white/15! transition-all duration-300 rounded-lg cursor-pointer group"
+            size="large"
+          >
+            <span>Xem báo cáo</span>
             <DownOutlined className="text-xs ml-2 group-hover:translate-y-0.5 transition-transform duration-300" />
           </Button>
         </Dropdown>
