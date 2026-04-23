@@ -10,12 +10,13 @@ import com.quangnt0000.be_modul.modal.DataWH.WareTemplate;
 import com.quangnt0000.be_modul.repository.DataWH.WareCategoryRepository;
 import com.quangnt0000.be_modul.repository.DataWH.WareTemplateRepository;
 import com.quangnt0000.be_modul.repository.DataWH.WareApprovalConfigRepository;
+import com.quangnt0000.be_modul.service.S3Service;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -26,10 +27,18 @@ public class WareTemplateService {
     private final WareTemplateRepository wareTemplateRepository;
     private final WareCategoryRepository wareCategoryRepository;
     private final WareApprovalConfigRepository wareApprovalConfigRepository;
+    private final S3Service s3Service;
+
     @Transactional
     public ResponseEntity<?> add(WareTemplateRequest request) {
         WareCategory wareCategory = wareCategoryRepository.findById(request.getWareCategoryId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "category not found"));
+
+        String excelFileKey = null;
+        if (request.getExcelFile() != null && !request.getExcelFile().isEmpty()) {
+            excelFileKey = s3Service.uploadFile("warehouse-template", request.getExcelFile()).getKey();
+        }
+
         WareTemplate wareTemplate = WareTemplate.builder()
                 .code("new")
                 .name(request.getName())
@@ -37,6 +46,7 @@ public class WareTemplateService {
                 .tableName(request.getTableName())
                 .tableCode(request.getTableCode())
                 .startRow(request.getStartRow())
+                .excelFileKey(excelFileKey)
                 .wareCategory(wareCategory)
                 .build();
         wareTemplate = wareTemplateRepository.save(wareTemplate);
@@ -67,6 +77,7 @@ public class WareTemplateService {
                             .description(wareTemplate.getDescription())
                             .tableName(wareTemplate.getTableName())
                             .tableCode(wareTemplate.getTableCode())
+                            .excelFileKey(wareTemplate.getExcelFileKey())
                             .startRow(wareTemplate.getStartRow())
                             .createdAt(wareTemplate.getCreatedAt())
                             .updatedAt(wareTemplate.getUpdatedAt())
@@ -87,6 +98,7 @@ public class WareTemplateService {
                 .description(wareTemplate.getDescription())
                 .tableName(wareTemplate.getTableName())
                 .tableCode(wareTemplate.getTableCode())
+                .excelFileKey(wareTemplate.getExcelFileKey())
                 .startRow(wareTemplate.getStartRow())
                 .createdAt(wareTemplate.getCreatedAt())
                 .updatedAt(wareTemplate.getUpdatedAt())
@@ -102,6 +114,10 @@ public class WareTemplateService {
         wareTemplate.setTableName(request.getTableName());
         wareTemplate.setTableCode(request.getTableCode());
         wareTemplate.setStartRow(request.getStartRow());
+        if (request.getExcelFile() != null && !request.getExcelFile().isEmpty()) {
+            String excelFileKey = s3Service.uploadFile("warehouse-template", request.getExcelFile()).getKey();
+            wareTemplate.setExcelFileKey(excelFileKey);
+        }
         wareTemplate = wareTemplateRepository.save(wareTemplate);
         return ResponseEntity.ok(wareTemplate.getId());
     }
@@ -112,5 +128,16 @@ public class WareTemplateService {
         }
         List<TableOption> tableOptions = wareTemplateRepository.getTableOption(keyword);
         return ResponseEntity.ok(tableOptions);
+    }
+
+    public ResponseEntity<Resource> exportExcel(Integer templateId) {
+        WareTemplate wareTemplate = wareTemplateRepository.findByIdAndDeletedFalse(templateId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "template not found"));
+
+        if (wareTemplate.getExcelFileKey() == null || wareTemplate.getExcelFileKey().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "template has no excel file");
+        }
+
+        return s3Service.getFileV3(wareTemplate.getExcelFileKey());
     }
 }
