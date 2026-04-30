@@ -3,7 +3,7 @@ import type { ApiError } from "./erorr";
 import { message } from "antd";
 
 const axiosDataLakeClient = axios.create({
-  baseURL: import.meta.env.VITE_DATALAKE_API,
+  baseURL: "http://118.70.151.69:1313",
   headers: {
     "Content-Type": "application/json",
   },
