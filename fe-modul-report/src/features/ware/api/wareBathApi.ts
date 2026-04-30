@@ -75,4 +75,19 @@ export const wareBatchApi = {
     const res = await axiosClient.get(`/wh-batch/my-approvals`, { params });
     return res.data;
   },
+
+  /**
+   * Tải file từ S3 qua backend (tự động đính kèm Authorization header).
+   * Dùng cho cả preview (parse ArrayBuffer bằng SheetJS) và download.
+   *
+   * @param fileKey - Ví dụ: "warehouse-batch/26/b18f984e-bc06-46eb-b4c5-5fed187d6e32.xlsx"
+   * @returns ArrayBuffer của file
+   */
+  getFileBlob: async (fileKey: string): Promise<ArrayBuffer> => {
+    const res = await axiosClient.get(`/file`, {
+      params: { fileKey },
+      responseType: "arraybuffer",
+    });
+    return res.data;
+  },
 };

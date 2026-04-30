@@ -152,7 +152,6 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
     { value: "STRING", label: "Chuỗi kí tự" },
   ];
 
-  // ---- Helpers ----
   const isNormalEditing = (record: WareMappingResponse) => {
     if (record.id === null && pendingRows.length === 0 && editingId === null && editingRequest !== null) {
       return true;

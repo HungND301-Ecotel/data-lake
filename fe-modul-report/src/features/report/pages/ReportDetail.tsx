@@ -140,7 +140,6 @@ const ReportDetail: React.FC = () => {
     }
   };
 
-
   const handleSave = async () => {
     try {
       console.log("📌 REPORT JSON:", JSON.stringify(report, null, 2));

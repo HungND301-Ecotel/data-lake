@@ -21,7 +21,7 @@ import type {
 } from "../types/wareBacth";
 import type { PageResponse } from "../../department/types/department";
 import { wareBatchApi } from "../api/wareBathApi";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -32,12 +32,39 @@ import {
   SearchOutlined,
   FileTextOutlined,
   ReloadOutlined,
+  TeamOutlined,
+  AppstoreOutlined,
+  RightOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons";
 import { wareTemplateApi } from "../api/wareTemplateApi";
 
 const { Search } = Input;
 
-export const WareBatch: React.FC = () => {
+interface BreadcrumbInfo {
+  departmentName: string;
+  categoryName: string;
+  templateName: string;
+}
+
+interface WareBatchProps {
+  templateIdProp?: number;
+}
+
+export const WareBatch: React.FC<WareBatchProps> = ({ templateIdProp }) => {
+  const { templateId: templateIdParam } = useParams<{ templateId: string }>();
+  const [searchParams] = useSearchParams();
+  const resolvedTemplateId = templateIdProp ?? (templateIdParam ? Number(templateIdParam) : undefined);
+
+  const breadcrumbFromUrl: BreadcrumbInfo | null =
+    searchParams.get("dept") || searchParams.get("cat")
+      ? {
+        departmentName: searchParams.get("dept") || "",
+        categoryName: searchParams.get("cat") || "",
+        templateName: searchParams.get("tmpl") || "",
+      }
+      : null;
+
   const [batches, setBatches] = useState<WareBatchResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState<string | null>(null);
@@ -47,16 +74,17 @@ export const WareBatch: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [form] = Form.useForm<WareBatchRequest>();
-  const { templateId } = useParams<{ templateId: string }>();
   const nav = useNavigate();
   const [messageApi, contextHolderMessage] = message.useMessage();
   const [modal, contextHolderModal] = Modal.useModal();
   const [templateName, setTemplateName] = useState<string>("");
+  const [downloadingTemplateId, setDownloadingTemplateId] = useState<number | null>(null);
+  const [downloadingFileId, setDownloadingFileId] = useState<number | null>(null);
 
   const fetchTemplateName = async () => {
-    if (templateId) {
+    if (resolvedTemplateId) {
       try {
-        const template = await wareTemplateApi.getWareTemplateById(Number(templateId));
+        const template = await wareTemplateApi.getWareTemplateById(resolvedTemplateId);
         setTemplateName(template.name || "");
       } catch (error) {
         console.error("Lỗi khi lấy tên template:", error);
@@ -66,7 +94,7 @@ export const WareBatch: React.FC = () => {
 
   useEffect(() => {
     fetchTemplateName();
-  }, [templateId]);
+  }, [resolvedTemplateId]);
 
   const fetchBatches = async () => {
     setLoading(true);
@@ -75,7 +103,7 @@ export const WareBatch: React.FC = () => {
         page,
         limit,
         keyword: searchKeyword,
-        wareTemplateId: templateId ? Number(templateId) : undefined,
+        wareTemplateId: resolvedTemplateId,
       };
       const res: PageResponse<WareBatchResponse> =
         await wareBatchApi.searchWareBatch(params);
@@ -90,12 +118,10 @@ export const WareBatch: React.FC = () => {
 
   useEffect(() => {
     fetchBatches();
-  }, [page, searchKeyword]);
+  }, [page, searchKeyword, resolvedTemplateId]);
 
   const handleOpenModal = () => {
-    form.setFieldsValue({
-      name: templateName,
-    });
+    form.setFieldsValue({ name: templateName });
     setIsModalOpen(true);
   };
 
@@ -104,7 +130,7 @@ export const WareBatch: React.FC = () => {
       const request: WareBatchRequest = {
         ...values,
         id: null,
-        wareTemplateId: templateId ? Number(templateId) : null,
+        wareTemplateId: resolvedTemplateId ?? null,
         file: fileList[0]?.originFileObj || null,
       };
 
@@ -137,49 +163,65 @@ export const WareBatch: React.FC = () => {
     });
   };
 
-  const handleEyeClick = (record: WareBatchResponse) => {
-    if (record.isPushed) {
-      nav(`/ware/batch/${record.id}/actions`);
-    } else {
-      messageApi.info("Batch chưa đẩy dữ liệu");
+  const handleDownloadTemplate = async () => {
+    if (!resolvedTemplateId) {
+      messageApi.error("Không tìm thấy template ID");
+      return;
+    }
+
+    setDownloadingTemplateId(resolvedTemplateId);
+    try {
+      const blob = await wareTemplateApi.exportTemplateExcel(resolvedTemplateId);
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = `${templateName || `template-${resolvedTemplateId}`}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(objectUrl);
+      messageApi.success("Tải biểu mẫu thành công");
+    } catch (error: any) {
+      messageApi.error(error?.response?.data?.message || "Tải biểu mẫu thất bại");
+    } finally {
+      setDownloadingTemplateId(null);
     }
   };
 
-  // const formatVNDate = (iso: string) => {
-  //   const d = new Date(iso);
-  //   return d.toLocaleString("vi-VN", {
-  //     day: "2-digit",
-  //     month: "2-digit",
-  //     year: "numeric",
-  //     hour: "2-digit",
-  //     minute: "2-digit",
-  //     second: "2-digit",
-  //   });
-  // };
+  const handleDownloadDataFile = async (record: WareBatchResponse) => {
+    if (!record.s3FileKey) {
+      messageApi.warning("Batch này chưa có file dữ liệu");
+      return;
+    }
+
+    setDownloadingFileId(record.id!);
+    try {
+      const arrayBuffer = await wareBatchApi.getFileBlob(record.s3FileKey);
+      // Convert ArrayBuffer to Blob
+      const blob = new Blob([arrayBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = `${record.code || record.name || `batch-${record.id}`}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(objectUrl);
+      messageApi.success("Tải file thành công");
+    } catch (error: any) {
+      messageApi.error(error?.response?.data?.message || "Tải file thất bại");
+    } finally {
+      setDownloadingFileId(null);
+    }
+  };
 
   const getStatusBadge = (status: string) => {
-    const statusConfig: {
-      [key: string]: { color: string; label: string };
-    } = {
-      Cho_Phe_Duyet: {
-        color: "orange",
-        label: "Chờ duyệt",
-      },
-      Da_Phe_Duyet: {
-        color: "success",
-        label: "Đã duyệt",
-      },
-      Tu_Choi_Phe_Duyet: {
-        color: "error",
-        label: "Từ chối",
-      },
+    const statusConfig: { [key: string]: { color: string; label: string } } = {
+      Cho_Phe_Duyet: { color: "orange", label: "Chờ duyệt" },
+      Da_Phe_Duyet: { color: "success", label: "Đã duyệt" },
+      Tu_Choi_Phe_Duyet: { color: "error", label: "Từ chối" },
     };
-
-    const config = statusConfig[status] || {
-      color: "default",
-      label: status,
-    };
-
+    const config = statusConfig[status] || { color: "default", label: status };
     return (
       <Tag color={config.color} className="px-3 py-1 text-sm font-medium">
         {config.label}
@@ -213,23 +255,23 @@ export const WareBatch: React.FC = () => {
       dataIndex: "reportYear",
       key: "reportYear",
       render: (text: string) => (
-        <span className="text-gray-600 line-clamp-2">{text || "-"}</span>
+        <span className="text-gray-600">{text || "-"}</span>
       ),
     },
     {
       title: "Tháng",
       dataIndex: "reportMonth",
       key: "reportMonth",
-       render: (text: string) => (
-        <span className="text-gray-600 line-clamp-2">{text || "-"}</span>
+      render: (text: string) => (
+        <span className="text-gray-600">{text || "-"}</span>
       ),
     },
     {
       title: "Ngày",
       dataIndex: "reportDay",
       key: "reportDay",
-       render: (text: string) => (
-        <span className="text-gray-600 line-clamp-2">{text || "-"}</span>
+      render: (text: string) => (
+        <span className="text-gray-600">{text || "-"}</span>
       ),
     },
     {
@@ -243,10 +285,10 @@ export const WareBatch: React.FC = () => {
           {value ? (
             <CheckCircleOutlined
               className="text-lg text-green-600 cursor-pointer hover:text-green-700 transition-colors"
-              onClick={() => handleEyeClick(record)}
+              onClick={() => nav(`/ware/batch/${record.id}/actions`)}
             />
           ) : (
-            <CloseCircleOutlined className="text-lg text-red-600 cursor-pointer hover:text-red-700 transition-colors" />
+            <CloseCircleOutlined className="text-lg text-red-600 cursor-pointer" />
           )}
         </Tooltip>
       ),
@@ -261,7 +303,7 @@ export const WareBatch: React.FC = () => {
       title: "Thao tác",
       key: "action",
       align: "center",
-      width: 140,
+      width: 180,
       render: (_, record) => (
         <Space>
           <Tooltip title="Xem chi tiết">
@@ -275,6 +317,18 @@ export const WareBatch: React.FC = () => {
               Xem
             </Button>
           </Tooltip>
+          <Tooltip title="Tải file dữ liệu đã đẩy">
+            <Button
+              type="default"
+              icon={<DownloadOutlined />}
+              onClick={() => handleDownloadDataFile(record)}
+              loading={downloadingFileId === record.id}
+              size="large"
+            >
+              Tải file
+            </Button>
+          </Tooltip>
+
           <Tooltip title="Xóa batch">
             <Button
               danger
@@ -313,6 +367,16 @@ export const WareBatch: React.FC = () => {
             />
           </div>
           <Button
+            type="default"
+            size="large"
+            icon={<DownloadOutlined />}
+            onClick={handleDownloadTemplate}
+            loading={downloadingTemplateId === resolvedTemplateId}
+            className="h-10 px-6"
+          >
+            Tải biểu mẫu
+          </Button>
+          <Button
             type="primary"
             size="large"
             icon={<PlusOutlined />}
@@ -325,21 +389,53 @@ export const WareBatch: React.FC = () => {
       </Card>
 
       <Card className="shadow-sm border-0 rounded-xl">
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100">
+        <div className="flex justify-between items-start mb-4">
+          <div className="flex items-center gap-3 flex-1">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100 shrink-0">
               <FileTextOutlined className="text-blue-600 text-lg" />
             </div>
-            <h1 className="text-xl font-bold text-gray-800 m-0">
-              Danh sách Báo cáo
-            </h1>
+            <div className="flex-1">
+              <h1 className="text-xl font-bold text-gray-800 m-0 leading-tight">
+                Danh sách Báo cáo
+              </h1>
+              {(breadcrumbFromUrl || templateName) && (
+                <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                  {breadcrumbFromUrl?.departmentName && (
+                    <>
+                      <div className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 rounded-md border border-blue-100">
+                        <TeamOutlined style={{ fontSize: 11, color: "#1976D2" }} />
+                        <span className="text-xs font-medium text-blue-700">{breadcrumbFromUrl.departmentName}</span>
+                      </div>
+                      <RightOutlined style={{ fontSize: 9, color: "#9ca3af" }} />
+                    </>
+                  )}
+                  {breadcrumbFromUrl?.categoryName && (
+                    <>
+                      <div className="flex items-center gap-1 px-2 py-0.5 bg-purple-50 rounded-md border border-purple-100">
+                        <AppstoreOutlined style={{ fontSize: 11, color: "#7c3aed" }} />
+                        <span className="text-xs font-medium text-purple-700">{breadcrumbFromUrl.categoryName}</span>
+                      </div>
+                      <RightOutlined style={{ fontSize: 9, color: "#9ca3af" }} />
+                    </>
+                  )}
+                  {(breadcrumbFromUrl?.templateName || templateName) && (
+                    <div className="flex items-center gap-1 px-2 py-0.5 bg-green-50 rounded-md border border-green-100">
+                      <FileTextOutlined style={{ fontSize: 11, color: "#16a34a" }} />
+                      <span className="text-xs font-medium text-green-700">
+                        {breadcrumbFromUrl?.templateName || templateName}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
           <Button
             size="large"
             icon={<ReloadOutlined />}
             onClick={() => fetchBatches()}
             loading={loading}
-            className="h-10 px-6"
+            className="h-10 px-6 shrink-0"
           >
             Tải lại
           </Button>
