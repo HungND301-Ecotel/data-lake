@@ -119,7 +119,9 @@ const DashboardWare = () => {
       dataIndex: "tableName",
       width: 120,
       render: (text: string) => (
-        <Tag color="purple" className="font-medium">{text}</Tag>
+        <Tag color="purple" className="font-medium">
+          {text}
+        </Tag>
       ),
     },
     {
@@ -247,7 +249,6 @@ const DashboardWare = () => {
   return (
     <div className="px-10 py-6 min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
       {/* Header */}
-
 
       {/* Statistics Cards */}
       <Row gutter={[24, 24]} className="mb-8">

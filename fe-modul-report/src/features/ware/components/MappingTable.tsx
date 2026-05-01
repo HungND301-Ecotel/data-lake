@@ -50,8 +50,8 @@ function buildRequestsFromAiResponse(
   for (const col of result.column_mapping) {
     requests.push({
       id: null,
-      fieldName: col.mapped_key,
-      fieldTitle: col.mapped_name,
+      fieldName: col.mapped_key ?? "",
+      fieldTitle: col.mapped_name ?? undefined,
       fieldType: "ROW" as FieldType,
       cellAddress: String(col.excel_column_index + 1),
       fieldValue: "",
@@ -152,7 +152,6 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
     { value: "STRING", label: "Chuỗi kí tự" },
   ];
 
-  // ---- Helpers ----
   const isNormalEditing = (record: WareMappingResponse) => {
     if (record.id === null && pendingRows.length === 0 && editingId === null && editingRequest !== null) {
       return true;

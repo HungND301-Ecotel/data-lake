@@ -1,10 +1,10 @@
 export interface ColumnMapping {
   excel_column_index: number;
   excel_column_name: string;
-  mapped_key: string;
-  mapped_name: string;
-  data_type: string;
-  data_length: number;
+  mapped_key: string | null;
+  mapped_name: string | null;
+  data_type: string | null;
+  data_length: number | null;
 }
 
 export interface ExcelMappingResult {

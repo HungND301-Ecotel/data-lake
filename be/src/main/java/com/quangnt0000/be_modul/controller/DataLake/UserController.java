@@ -39,11 +39,9 @@ public class UserController {
         return userService.getMyAccount();
     }
 
-
     @PutMapping("/change-password")
     public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request){
         return userService.changePassword(request);
     }
-
 
 }

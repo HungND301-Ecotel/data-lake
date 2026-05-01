@@ -3,7 +3,7 @@
 ## 1. Kết nối SSH vào Server
 
 ```bash
-ssh ecotel-admin@42.113.54.206 -p 2222
+ssh ecotel-admin@118.70.151.69 -p 2222
 ```
 
 **Password:** `Ecotel@2025`
