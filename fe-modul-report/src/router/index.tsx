@@ -73,13 +73,13 @@ export const router = createBrowserRouter([
       { path: "/excel-mapping", element: <ExcelMappingPage /> },
 
       // DB Lakehouse routes
-      { path: "/db-lakehouse/pipeline", element: <DbPipelinePage /> },
-      { path: "/db-lakehouse/transform", element: <DbTransformPage /> },
-      { path: "/db-lakehouse/chat", element: <DbChatPage /> },
-      { path: "/db-lakehouse/chart", element: <DbChartPage /> },
-      { path: "/db-lakehouse/mapping", element: <DbMappingPage /> },
-      { path: "/db-lakehouse/servers", element: <DbServerPage /> },
-      { path: "/db-lakehouse/data/:layer", element: <DbDataPage /> },
+      // { path: "/db-lakehouse/pipeline", element: <DbPipelinePage /> },
+      // { path: "/db-lakehouse/transform", element: <DbTransformPage /> },
+      // { path: "/db-lakehouse/chat", element: <DbChatPage /> },
+      // { path: "/db-lakehouse/chart", element: <DbChartPage /> },
+      // { path: "/db-lakehouse/mapping", element: <DbMappingPage /> },
+      // { path: "/db-lakehouse/servers", element: <DbServerPage /> },
+      // { path: "/db-lakehouse/data/:layer", element: <DbDataPage /> },
 
       { path: "/employee", element: <EmployeePage /> },
       { path: "/account-config", element: <UserPushConfigPage /> },
