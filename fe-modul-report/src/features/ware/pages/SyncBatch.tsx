@@ -136,6 +136,7 @@ export const SyncBatch: React.FC = () => {
     return batches.filter((batch) => batch.isPushed === pushStatusFilter);
   }, [batches, pushStatusFilter]);
 
+
   const getStatusBadge = (status: string) => {
     const statusConfig: {
       [key: string]: { color: string; label: string };
