@@ -96,6 +96,9 @@ const LoginPage = () => {
               Đăng nhập
             </h2>
           </div>
+
+          {/* Divider */}
+          <div className="relative py-3 sm:py-4">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-200 dark:border-gray-800"></div>
             </div>
@@ -177,6 +180,7 @@ const LoginPage = () => {
           </div>
         </div>
       </div>
+    </div>
   );
 };
 
