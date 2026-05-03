@@ -14,8 +14,6 @@ import {
   Card,
   Tag,
   Tooltip,
-  Tabs,
-  Spin,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useParams } from "react-router-dom";
@@ -32,9 +30,8 @@ import {
   CheckOutlined,
   CloseOutlined,
   ReloadOutlined,
-  FileExcelOutlined,
 } from "@ant-design/icons";
-import * as XLSX from "xlsx";
+// import * as XLSX from "xlsx";
 import { userPushApi } from "../../auth/api/accountConfigApi";
 import type { UserPushResponse } from "../../auth/types/accountConfig";
 import { approvalConfigsApi } from "../api/wareConfigApi";
@@ -241,21 +238,21 @@ export const WareBatchDetailApprove: React.FC = () => {
   const [approvalLoading, setApprovalLoading] = useState(false);
 
   // Excel preview
-  const [previewModalVisible, setPreviewModalVisible] = useState(false);
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [sheetColWidths, setSheetColWidths] = useState<Record<string, number[]>>({});
-  const [previewSheets, setPreviewSheets] = useState<
-    {
-      name: string;
-      headers: string[];
-      rows: any[][];
-      metaRows: { value: any; mergeInfo?: any }[][];
-      totalCols: number;
-      colWidths: number[];
-      headerRows: any[][];
-    }[]
-  >([]);
-  const [activeSheet, setActiveSheet] = useState("0");
+  // const [previewModalVisible, setPreviewModalVisible] = useState(false);
+  // const [previewLoading, setPreviewLoading] = useState(false);
+  // const [sheetColWidths, setSheetColWidths] = useState<Record<string, number[]>>({});
+  // const [previewSheets, setPreviewSheets] = useState<
+  //   {
+  //     name: string;
+  //     headers: string[];
+  //     rows: any[][];
+  //     metaRows: { value: any; mergeInfo?: any }[][];
+  //     totalCols: number;
+  //     colWidths: number[];
+  //     headerRows: any[][];
+  //   }[]
+  // >([]);
+  // const [activeSheet, setActiveSheet] = useState("0");
 
   const [form] = Form.useForm();
   const [rejectForm] = Form.useForm();
@@ -320,378 +317,378 @@ export const WareBatchDetailApprove: React.FC = () => {
     fetchRows();
   }, [wareBatchId, keyword]);
 
-  useEffect(() => {
-    const init: Record<string, number[]> = {};
-    previewSheets.forEach((s, i) => {
-      init[String(i)] = [...s.colWidths];
-    });
-    setSheetColWidths(init);
-  }, [previewSheets]);
+  // useEffect(() => {
+  //   const init: Record<string, number[]> = {};
+  //   previewSheets.forEach((s, i) => {
+  //     init[String(i)] = [...s.colWidths];
+  //   });
+  //   setSheetColWidths(init);
+  // }, [previewSheets]);
 
   // ── Excel preview ────────────────────────────────────────────────────────────
 
-  const handleColResize = (sheetIdx: string, colIdx: number, newWidth: number) => {
-    setSheetColWidths((prev) => {
-      const widths = [...(prev[sheetIdx] ?? [])];
-      widths[colIdx] = newWidth;
-      return { ...prev, [sheetIdx]: widths };
-    });
-  };
+  // const handleColResize = (sheetIdx: string, colIdx: number, newWidth: number) => {
+  //   setSheetColWidths((prev) => {
+  //     const widths = [...(prev[sheetIdx] ?? [])];
+  //     widths[colIdx] = newWidth;
+  //     return { ...prev, [sheetIdx]: widths };
+  //   });
+  // };
 
-  const handlePreviewExcel = async () => {
-    if (!batchDetail?.s3FileKey) {
-      messageApi.warning("Không tìm thấy file đính kèm");
-      return;
-    }
-    setPreviewModalVisible(true);
-    setPreviewLoading(true);
-    setPreviewSheets([]);
-    setActiveSheet("0");
+  // const handlePreviewExcel = async () => {
+  //   if (!batchDetail?.s3FileKey) {
+  //     messageApi.warning("Không tìm thấy file đính kèm");
+  //     return;
+  //   }
+  //   setPreviewModalVisible(true);
+  //   setPreviewLoading(true);
+  //   setPreviewSheets([]);
+  //   setActiveSheet("0");
 
-    try {
-      const arrayBuffer = await wareBatchApi.getFileBlob(batchDetail.s3FileKey);
-      const workbook = XLSX.read(arrayBuffer, { type: "array", cellStyles: true });
+  //   try {
+  //     const arrayBuffer = await wareBatchApi.getFileBlob(batchDetail.s3FileKey);
+  //     const workbook = XLSX.read(arrayBuffer, { type: "array", cellStyles: true });
 
-      const sheets = workbook.SheetNames.map((sheetName) => {
-        const worksheet = workbook.Sheets[sheetName];
-        const ref = worksheet["!ref"];
-        if (!ref)
-          return {
-            name: sheetName,
-            headers: [],
-            rows: [],
-            metaRows: [],
-            totalCols: 0,
-            colWidths: [],
-            headerRows: [],
-          };
+  //     const sheets = workbook.SheetNames.map((sheetName) => {
+  //       const worksheet = workbook.Sheets[sheetName];
+  //       const ref = worksheet["!ref"];
+  //       if (!ref)
+  //         return {
+  //           name: sheetName,
+  //           headers: [],
+  //           rows: [],
+  //           metaRows: [],
+  //           totalCols: 0,
+  //           colWidths: [],
+  //           headerRows: [],
+  //         };
 
-        const range = XLSX.utils.decode_range(ref);
-        const merges = worksheet["!merges"] || [];
-        const colsInfo = worksheet["!cols"] || [];
+  //       const range = XLSX.utils.decode_range(ref);
+  //       const merges = worksheet["!merges"] || [];
+  //       const colsInfo = worksheet["!cols"] || [];
 
-        const mergeMap: Record<
-          string,
-          { r: number; c: number; rowspan: number; colspan: number }
-        > = {};
-        for (const merge of merges) {
-          for (let r = merge.s.r; r <= merge.e.r; r++) {
-            for (let c = merge.s.c; c <= merge.e.c; c++) {
-              mergeMap[`${r}_${c}`] = {
-                r: merge.s.r,
-                c: merge.s.c,
-                rowspan: merge.e.r - merge.s.r + 1,
-                colspan: merge.e.c - merge.s.c + 1,
-              };
-            }
-          }
-        }
+  //       const mergeMap: Record<
+  //         string,
+  //         { r: number; c: number; rowspan: number; colspan: number }
+  //       > = {};
+  //       for (const merge of merges) {
+  //         for (let r = merge.s.r; r <= merge.e.r; r++) {
+  //           for (let c = merge.s.c; c <= merge.e.c; c++) {
+  //             mergeMap[`${r}_${c}`] = {
+  //               r: merge.s.r,
+  //               c: merge.s.c,
+  //               rowspan: merge.e.r - merge.s.r + 1,
+  //               colspan: merge.e.c - merge.s.c + 1,
+  //             };
+  //           }
+  //         }
+  //       }
 
-        const getCellBg = (cell: any): string | null => {
-          const tryColor = (fc: any): string | null => {
-            if (!fc) return null;
-            if (
-              fc.rgb &&
-              fc.rgb.length === 8 &&
-              fc.rgb !== "00000000" &&
-              fc.rgb !== "FFFFFFFF"
-            )
-              return "#" + fc.rgb.slice(2);
-            if (
-              fc.rgb &&
-              fc.rgb.length === 6 &&
-              fc.rgb !== "000000" &&
-              fc.rgb !== "FFFFFF"
-            )
-              return "#" + fc.rgb;
-            if (fc.theme !== undefined) {
-              const themeColors: Record<number, string> = {
-                0: "#FFFFFF",
-                1: "#000000",
-                2: "#EEECE1",
-                3: "#1F497D",
-                4: "#4F81BD",
-                5: "#C0504D",
-                6: "#9BBB59",
-                7: "#8064A2",
-                8: "#4BACC6",
-                9: "#F79646",
-              };
-              return themeColors[fc.theme] ?? null;
-            }
-            return null;
-          };
-          return tryColor(cell?.s?.fgColor) ?? tryColor(cell?.s?.bgColor);
-        };
+  //       const getCellBg = (cell: any): string | null => {
+  //         const tryColor = (fc: any): string | null => {
+  //           if (!fc) return null;
+  //           if (
+  //             fc.rgb &&
+  //             fc.rgb.length === 8 &&
+  //             fc.rgb !== "00000000" &&
+  //             fc.rgb !== "FFFFFFFF"
+  //           )
+  //             return "#" + fc.rgb.slice(2);
+  //           if (
+  //             fc.rgb &&
+  //             fc.rgb.length === 6 &&
+  //             fc.rgb !== "000000" &&
+  //             fc.rgb !== "FFFFFF"
+  //           )
+  //             return "#" + fc.rgb;
+  //           if (fc.theme !== undefined) {
+  //             const themeColors: Record<number, string> = {
+  //               0: "#FFFFFF",
+  //               1: "#000000",
+  //               2: "#EEECE1",
+  //               3: "#1F497D",
+  //               4: "#4F81BD",
+  //               5: "#C0504D",
+  //               6: "#9BBB59",
+  //               7: "#8064A2",
+  //               8: "#4BACC6",
+  //               9: "#F79646",
+  //             };
+  //             return themeColors[fc.theme] ?? null;
+  //           }
+  //           return null;
+  //         };
+  //         return tryColor(cell?.s?.fgColor) ?? tryColor(cell?.s?.bgColor);
+  //       };
 
-        const rawRows: {
-          value: any;
-          bg: string | null;
-          bold: boolean;
-          mergeInfo?: {
-            r: number;
-            c: number;
-            rowspan: number;
-            colspan: number;
-            isOrigin: boolean;
-          };
-        }[][] = [];
+  //       const rawRows: {
+  //         value: any;
+  //         bg: string | null;
+  //         bold: boolean;
+  //         mergeInfo?: {
+  //           r: number;
+  //           c: number;
+  //           rowspan: number;
+  //           colspan: number;
+  //           isOrigin: boolean;
+  //         };
+  //       }[][] = [];
 
-        for (let r = range.s.r; r <= range.e.r; r++) {
-          const row: (typeof rawRows)[0] = [];
-          for (let c = range.s.c; c <= range.e.c; c++) {
-            const cellAddr = XLSX.utils.encode_cell({ r, c });
-            const cell = worksheet[cellAddr];
-            const value = cell
-              ? cell.t === "n"
-                ? cell.v
-                : cell.v ?? ""
-              : "";
-            const bg = getCellBg(cell);
-            const bold =
-              cell?.s?.bold === true || cell?.s?.font?.bold === true;
-            const key = `${r}_${c}`;
-            const mi = mergeMap[key];
-            if (mi) {
-              const isOrigin = mi.r === r && mi.c === c;
-              row.push({
-                value: isOrigin ? value : null,
-                bg,
-                bold,
-                mergeInfo: { ...mi, isOrigin },
-              });
-            } else {
-              row.push({ value, bg, bold });
-            }
-          }
-          rawRows.push(row);
-        }
+  //       for (let r = range.s.r; r <= range.e.r; r++) {
+  //         const row: (typeof rawRows)[0] = [];
+  //         for (let c = range.s.c; c <= range.e.c; c++) {
+  //           const cellAddr = XLSX.utils.encode_cell({ r, c });
+  //           const cell = worksheet[cellAddr];
+  //           const value = cell
+  //             ? cell.t === "n"
+  //               ? cell.v
+  //               : cell.v ?? ""
+  //             : "";
+  //           const bg = getCellBg(cell);
+  //           const bold =
+  //             cell?.s?.bold === true || cell?.s?.font?.bold === true;
+  //           const key = `${r}_${c}`;
+  //           const mi = mergeMap[key];
+  //           if (mi) {
+  //             const isOrigin = mi.r === r && mi.c === c;
+  //             row.push({
+  //               value: isOrigin ? value : null,
+  //               bg,
+  //               bold,
+  //               mergeInfo: { ...mi, isOrigin },
+  //             });
+  //           } else {
+  //             row.push({ value, bg, bold });
+  //           }
+  //         }
+  //         rawRows.push(row);
+  //       }
 
-        let headerRowIdx = -1;
-        const totalCols = range.e.c - range.s.c + 1;
-        for (let i = 0; i < rawRows.length; i++) {
-          const nonEmpty = rawRows[i].filter(
-            (c) => c.value != null && c.value !== ""
-          ).length;
-          if (nonEmpty >= Math.max(2, totalCols * 0.6)) {
-            headerRowIdx = i;
-            break;
-          }
-        }
+  //       let headerRowIdx = -1;
+  //       const totalCols = range.e.c - range.s.c + 1;
+  //       for (let i = 0; i < rawRows.length; i++) {
+  //         const nonEmpty = rawRows[i].filter(
+  //           (c) => c.value != null && c.value !== ""
+  //         ).length;
+  //         if (nonEmpty >= Math.max(2, totalCols * 0.6)) {
+  //           headerRowIdx = i;
+  //           break;
+  //         }
+  //       }
 
-        let headerEndIdx = headerRowIdx;
-        if (headerRowIdx >= 0 && headerRowIdx + 1 < rawRows.length) {
-          const nextRow = rawRows[headerRowIdx + 1];
-          const nextNonEmpty = nextRow.filter(
-            (c) => c.value != null && c.value !== ""
-          ).length;
-          const nextHasStyling = nextRow.some((c) => c.bg || c.bold);
-          if (nextNonEmpty > 0 && nextHasStyling) {
-            headerEndIdx = headerRowIdx + 1;
-          }
-        }
+  //       let headerEndIdx = headerRowIdx;
+  //       if (headerRowIdx >= 0 && headerRowIdx + 1 < rawRows.length) {
+  //         const nextRow = rawRows[headerRowIdx + 1];
+  //         const nextNonEmpty = nextRow.filter(
+  //           (c) => c.value != null && c.value !== ""
+  //         ).length;
+  //         const nextHasStyling = nextRow.some((c) => c.bg || c.bold);
+  //         if (nextNonEmpty > 0 && nextHasStyling) {
+  //           headerEndIdx = headerRowIdx + 1;
+  //         }
+  //       }
 
-        const metaRows = rawRows
-          .slice(0, headerRowIdx)
-          .map((row) =>
-            row.map((c) => ({ value: c.value, bg: c.bg, mergeInfo: c.mergeInfo }))
-          );
-        const headerRows =
-          headerRowIdx >= 0
-            ? rawRows.slice(headerRowIdx, headerEndIdx + 1)
-            : [];
-        const dataRows =
-          headerEndIdx >= 0 ? rawRows.slice(headerEndIdx + 1) : rawRows;
+  //       const metaRows = rawRows
+  //         .slice(0, headerRowIdx)
+  //         .map((row) =>
+  //           row.map((c) => ({ value: c.value, bg: c.bg, mergeInfo: c.mergeInfo }))
+  //         );
+  //       const headerRows =
+  //         headerRowIdx >= 0
+  //           ? rawRows.slice(headerRowIdx, headerEndIdx + 1)
+  //           : [];
+  //       const dataRows =
+  //         headerEndIdx >= 0 ? rawRows.slice(headerEndIdx + 1) : rawRows;
 
-        const colWidths = Array.from({ length: totalCols }, (_, i) => {
-          const colInfo = colsInfo[i];
-          if (colInfo?.wch) return Math.min(400, Math.max(80, colInfo.wch * 7));
-          if (colInfo?.wpx) return Math.min(400, Math.max(80, colInfo.wpx));
-          return 120;
-        });
+  //       const colWidths = Array.from({ length: totalCols }, (_, i) => {
+  //         const colInfo = colsInfo[i];
+  //         if (colInfo?.wch) return Math.min(400, Math.max(80, colInfo.wch * 7));
+  //         if (colInfo?.wpx) return Math.min(400, Math.max(80, colInfo.wpx));
+  //         return 120;
+  //       });
 
-        return {
-          name: sheetName,
-          headers:
-            headerRows[0]?.map((c) =>
-              c.value != null ? String(c.value) : ""
-            ) ?? [],
-          rows: dataRows.map((row) => row.map((c) => c.value)),
-          metaRows,
-          totalCols,
-          colWidths,
-          headerRows,
-        };
-      });
+  //       return {
+  //         name: sheetName,
+  //         headers:
+  //           headerRows[0]?.map((c) =>
+  //             c.value != null ? String(c.value) : ""
+  //           ) ?? [],
+  //         rows: dataRows.map((row) => row.map((c) => c.value)),
+  //         metaRows,
+  //         totalCols,
+  //         colWidths,
+  //         headerRows,
+  //       };
+  //     });
 
-      setPreviewSheets(sheets as any);
-    } catch (error: any) {
-      messageApi.error(error?.message || "Xem trước file thất bại");
-      setPreviewModalVisible(false);
-    } finally {
-      setPreviewLoading(false);
-    }
-  };
+  //     setPreviewSheets(sheets as any);
+  //   } catch (error: any) {
+  //     messageApi.error(error?.message || "Xem trước file thất bại");
+  //     setPreviewModalVisible(false);
+  //   } finally {
+  //     setPreviewLoading(false);
+  //   }
+  // };
 
-  const buildExcelColumns = (sheet: any) => {
-    const { headerRows, colWidths } = sheet;
-    if (!headerRows || headerRows.length === 0) return [];
-    const totalCols = sheet.totalCols;
+  // const buildExcelColumns = (sheet: any) => {
+  //   const { headerRows, colWidths } = sheet;
+  //   if (!headerRows || headerRows.length === 0) return [];
+  //   const totalCols = sheet.totalCols;
 
-    if (headerRows.length === 1) {
-      return headerRows[0].map((cell: any, i: number) => ({
-        title: (
-          <div
-            style={{
-              background: cell.bg || undefined,
-              margin: "-8px -8px",
-              padding: "8px",
-              fontWeight: 600,
-              fontSize: 12,
-              textAlign: "center",
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-word",
-              lineHeight: 1.3,
-            }}
-          >
-            {cell.value != null && cell.value !== ""
-              ? String(cell.value)
-              : `Cột ${i + 1}`}
-          </div>
-        ),
-        dataIndex: i,
-        key: i,
-        width: colWidths[i] ?? 120,
-        onHeaderCell: () => ({ style: { padding: 0, background: "transparent" } }),
-        ellipsis: { showTitle: true },
-        render: (val: any) => (
-          <span style={{ fontSize: 13 }}>
-            {val != null && val !== "" ? String(val) : ""}
-          </span>
-        ),
-      }));
-    }
+  //   if (headerRows.length === 1) {
+  //     return headerRows[0].map((cell: any, i: number) => ({
+  //       title: (
+  //         <div
+  //           style={{
+  //             background: cell.bg || undefined,
+  //             margin: "-8px -8px",
+  //             padding: "8px",
+  //             fontWeight: 600,
+  //             fontSize: 12,
+  //             textAlign: "center",
+  //             whiteSpace: "pre-wrap",
+  //             wordBreak: "break-word",
+  //             lineHeight: 1.3,
+  //           }}
+  //         >
+  //           {cell.value != null && cell.value !== ""
+  //             ? String(cell.value)
+  //             : `Cột ${i + 1}`}
+  //         </div>
+  //       ),
+  //       dataIndex: i,
+  //       key: i,
+  //       width: colWidths[i] ?? 120,
+  //       onHeaderCell: () => ({ style: { padding: 0, background: "transparent" } }),
+  //       ellipsis: { showTitle: true },
+  //       render: (val: any) => (
+  //         <span style={{ fontSize: 13 }}>
+  //           {val != null && val !== "" ? String(val) : ""}
+  //         </span>
+  //       ),
+  //     }));
+  //   }
 
-    const row1 = headerRows[0];
-    const row2 = headerRows[1];
-    const columns: any[] = [];
-    const processed = new Set<number>();
+  //   const row1 = headerRows[0];
+  //   const row2 = headerRows[1];
+  //   const columns: any[] = [];
+  //   const processed = new Set<number>();
 
-    for (let c = 0; c < totalCols; c++) {
-      if (processed.has(c)) continue;
-      const cell = row1[c];
-      if (!cell) continue;
-      const mi = cell.mergeInfo;
-      const isOrigin = !mi || mi.isOrigin;
-      if (!isOrigin) {
-        processed.add(c);
-        continue;
-      }
-      const colspan = mi?.colspan ?? 1;
-      const rowspan = mi?.rowspan ?? 1;
-      const label =
-        cell.value != null && cell.value !== "" ? String(cell.value) : "";
-      const bg = cell.bg;
+  //   for (let c = 0; c < totalCols; c++) {
+  //     if (processed.has(c)) continue;
+  //     const cell = row1[c];
+  //     if (!cell) continue;
+  //     const mi = cell.mergeInfo;
+  //     const isOrigin = !mi || mi.isOrigin;
+  //     if (!isOrigin) {
+  //       processed.add(c);
+  //       continue;
+  //     }
+  //     const colspan = mi?.colspan ?? 1;
+  //     const rowspan = mi?.rowspan ?? 1;
+  //     const label =
+  //       cell.value != null && cell.value !== "" ? String(cell.value) : "";
+  //     const bg = cell.bg;
 
-      if (rowspan > 1 || colspan === 1) {
-        columns.push({
-          title: (
-            <div
-              style={{
-                background: bg || undefined,
-                margin: "-8px -8px",
-                padding: "8px 4px",
-                fontWeight: 600,
-                fontSize: 12,
-                textAlign: "center",
-                whiteSpace: "pre-wrap",
-                wordBreak: "break-word",
-                lineHeight: 1.3,
-                minHeight: rowspan > 1 ? 52 : undefined,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              {label || `Cột ${c + 1}`}
-            </div>
-          ),
-          dataIndex: c,
-          key: c,
-          width: colWidths[c] ?? 120,
-          onHeaderCell: () => ({ style: { padding: 0, background: "transparent" } }),
-          ellipsis: { showTitle: true },
-          render: (val: any) => (
-            <span style={{ fontSize: 13 }}>
-              {val != null && val !== "" ? String(val) : ""}
-            </span>
-          ),
-        });
-        processed.add(c);
-      } else {
-        const children: any[] = [];
-        for (let cc = c; cc < c + colspan; cc++) {
-          const childCell = row2[cc];
-          const childLabel =
-            childCell?.value != null && childCell?.value !== ""
-              ? String(childCell.value)
-              : `Cột ${cc + 1}`;
-          const childBg = childCell?.bg;
-          children.push({
-            title: (
-              <div
-                style={{
-                  background: childBg || bg || undefined,
-                  margin: "-8px -8px",
-                  padding: "8px 4px",
-                  fontWeight: 600,
-                  fontSize: 12,
-                  textAlign: "center",
-                  whiteSpace: "pre-wrap",
-                  wordBreak: "break-word",
-                  lineHeight: 1.3,
-                }}
-              >
-                {childLabel}
-              </div>
-            ),
-            dataIndex: cc,
-            key: cc,
-            width: colWidths[cc] ?? 100,
-            ellipsis: { showTitle: true },
-            render: (val: any) => (
-              <span style={{ fontSize: 13 }}>
-                {val != null && val !== "" ? String(val) : ""}
-              </span>
-            ),
-          });
-          processed.add(cc);
-        }
-        columns.push({
-          title: (
-            <div
-              style={{
-                background: bg || undefined,
-                margin: "-8px -8px",
-                padding: "8px 4px",
-                fontWeight: 700,
-                fontSize: 12,
-                textAlign: "center",
-                lineHeight: 1.3,
-              }}
-            >
-              {label}
-            </div>
-          ),
-          key: `group_${c}`,
-          children,
-        });
-        processed.add(c);
-      }
-    }
+  //     if (rowspan > 1 || colspan === 1) {
+  //       columns.push({
+  //         title: (
+  //           <div
+  //             style={{
+  //               background: bg || undefined,
+  //               margin: "-8px -8px",
+  //               padding: "8px 4px",
+  //               fontWeight: 600,
+  //               fontSize: 12,
+  //               textAlign: "center",
+  //               whiteSpace: "pre-wrap",
+  //               wordBreak: "break-word",
+  //               lineHeight: 1.3,
+  //               minHeight: rowspan > 1 ? 52 : undefined,
+  //               display: "flex",
+  //               alignItems: "center",
+  //               justifyContent: "center",
+  //             }}
+  //           >
+  //             {label || `Cột ${c + 1}`}
+  //           </div>
+  //         ),
+  //         dataIndex: c,
+  //         key: c,
+  //         width: colWidths[c] ?? 120,
+  //         onHeaderCell: () => ({ style: { padding: 0, background: "transparent" } }),
+  //         ellipsis: { showTitle: true },
+  //         render: (val: any) => (
+  //           <span style={{ fontSize: 13 }}>
+  //             {val != null && val !== "" ? String(val) : ""}
+  //           </span>
+  //         ),
+  //       });
+  //       processed.add(c);
+  //     } else {
+  //       const children: any[] = [];
+  //       for (let cc = c; cc < c + colspan; cc++) {
+  //         const childCell = row2[cc];
+  //         const childLabel =
+  //           childCell?.value != null && childCell?.value !== ""
+  //             ? String(childCell.value)
+  //             : `Cột ${cc + 1}`;
+  //         const childBg = childCell?.bg;
+  //         children.push({
+  //           title: (
+  //             <div
+  //               style={{
+  //                 background: childBg || bg || undefined,
+  //                 margin: "-8px -8px",
+  //                 padding: "8px 4px",
+  //                 fontWeight: 600,
+  //                 fontSize: 12,
+  //                 textAlign: "center",
+  //                 whiteSpace: "pre-wrap",
+  //                 wordBreak: "break-word",
+  //                 lineHeight: 1.3,
+  //               }}
+  //             >
+  //               {childLabel}
+  //             </div>
+  //           ),
+  //           dataIndex: cc,
+  //           key: cc,
+  //           width: colWidths[cc] ?? 100,
+  //           ellipsis: { showTitle: true },
+  //           render: (val: any) => (
+  //             <span style={{ fontSize: 13 }}>
+  //               {val != null && val !== "" ? String(val) : ""}
+  //             </span>
+  //           ),
+  //         });
+  //         processed.add(cc);
+  //       }
+  //       columns.push({
+  //         title: (
+  //           <div
+  //             style={{
+  //               background: bg || undefined,
+  //               margin: "-8px -8px",
+  //               padding: "8px 4px",
+  //               fontWeight: 700,
+  //               fontSize: 12,
+  //               textAlign: "center",
+  //               lineHeight: 1.3,
+  //             }}
+  //           >
+  //             {label}
+  //           </div>
+  //         ),
+  //         key: `group_${c}`,
+  //         children,
+  //       });
+  //       processed.add(c);
+  //     }
+  //   }
 
-    return columns;
-  };
+  //   return columns;
+  // };
 
   // ── Auto-approve logic ────────────────────────────────────────────────────────
 
@@ -1006,7 +1003,7 @@ export const WareBatchDetailApprove: React.FC = () => {
               </Tooltip>
 
               {/* Nút xem trước Excel */}
-              <Tooltip
+              {/* <Tooltip
                 title={
                   batchDetail?.s3FileKey
                     ? "Xem trước file Excel đã tải lên"
@@ -1023,7 +1020,7 @@ export const WareBatchDetailApprove: React.FC = () => {
                 >
                   Xem trước Excel
                 </Button>
-              </Tooltip>
+              </Tooltip> */}
 
               {getActionButtons()}
             </Space>
@@ -1068,7 +1065,7 @@ export const WareBatchDetailApprove: React.FC = () => {
       </Card>
 
       {/* ── Modal xem trước Excel ── */}
-      <Modal
+      {/* <Modal
         title={
           <div className="flex items-center gap-3 pb-3 border-b">
             <div className="w-10 h-10 flex items-center justify-center bg-green-100 rounded-lg">
@@ -1158,7 +1155,7 @@ export const WareBatchDetailApprove: React.FC = () => {
             }))}
           />
         )}
-      </Modal>
+      </Modal> */}
 
       {/* ── Modal push TKV ── */}
       <Modal

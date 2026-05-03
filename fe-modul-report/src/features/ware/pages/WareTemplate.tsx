@@ -11,6 +11,7 @@ import {
   Space,
   Card,
   Tag,
+  Upload,
 } from "antd";
 import {
   ExclamationCircleOutlined,
@@ -23,8 +24,11 @@ import {
   EditOutlined,
   FileTextOutlined,
   AppstoreOutlined,
+  UploadOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
+import type { UploadFile } from "antd/es/upload/interface";
 import { wareTemplateApi } from "../api/wareTemplateApi";
 import { wareCategoryApi } from "../api/wareCategoryApi";
 import type {
@@ -64,6 +68,7 @@ const WareTemplate = () => {
   const [configCheckModal, setConfigCheckModal] = useState(false);
   const [selectedRecord, setSelectedRecord] =
     useState<WareTemplateResponse | null>(null);
+  const [excelFileList, setExcelFileList] = useState<UploadFile[]>([]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -133,7 +138,27 @@ const WareTemplate = () => {
   const handleAdd = () => {
     setEditing(null);
     form.resetFields();
+    setExcelFileList([]);
     setModalOpen(true);
+  };
+
+  const handleExportExcel = async (record: WareTemplateResponse) => {
+    try {
+      const blob = await wareTemplateApi.exportTemplateExcel(record.id);
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = `${record.code || record.name || `template-${record.id}`}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(objectUrl);
+      messageApi.success("Xuất file Excel thành công");
+    } catch (err: any) {
+      messageApi.error(
+        err?.response?.data?.message || "Xuất file Excel thất bại",
+      );
+    }
   };
 
   const handleDelete = (id: number, categoryId: number) => {
@@ -157,6 +182,7 @@ const WareTemplate = () => {
       const request: WareTemplateRequest = {
         ...values,
         id: editing?.id,
+        excelFile: excelFileList[0]?.originFileObj as File | undefined,
       };
 
       if (editing) {
@@ -168,6 +194,7 @@ const WareTemplate = () => {
       }
 
       setModalOpen(false);
+      setExcelFileList([]);
       if (values.wareCategoryId) {
         loadTemplatesByCategory(values.wareCategoryId);
       }
@@ -238,7 +265,6 @@ const WareTemplate = () => {
       align: "center" as const,
       render: (_: any, record) => (
         <Space size="small">
-
           <Button
             icon={<SettingOutlined />}
             size="large"
@@ -248,7 +274,6 @@ const WareTemplate = () => {
             Cấu hình
           </Button>
 
-
           <Button
             icon={<EditOutlined />}
             size="large"
@@ -256,6 +281,15 @@ const WareTemplate = () => {
             onClick={() => handleApproveOrInput(record, "input")}
           >
             Nhập Liệu
+          </Button>
+
+          <Button
+            icon={<DownloadOutlined />}
+            size="large"
+            className="bg-green-600! hover:bg-green-700! text-white! border-0"
+            onClick={() => handleExportExcel(record)}
+          >
+            Xuất Excel
           </Button>
 
           <Button
@@ -390,7 +424,10 @@ const WareTemplate = () => {
         }
         open={modalOpen}
         onOk={handleOk}
-        onCancel={() => setModalOpen(false)}
+        onCancel={() => {
+          setModalOpen(false);
+          setExcelFileList([]);
+        }}
         okText={editing ? "Lưu" : "Thêm"}
         cancelText="Hủy"
         width={700}
@@ -490,6 +527,35 @@ const WareTemplate = () => {
                 className="rounded-lg"
                 type="number"
               />
+            </Form.Item>
+
+            <Form.Item
+              label={<span className="font-medium text-gray-700">File mẫu Excel</span>}
+              labelCol={{ span: 24 }}
+              wrapperCol={{ span: 24 }}
+            >
+              <Upload
+                accept=".xlsx,.xls"
+                maxCount={1}
+                beforeUpload={(file) => {
+                  setExcelFileList([
+                    {
+                      uid: file.uid,
+                      name: file.name,
+                      status: "done",
+                      originFileObj: file,
+                    },
+                  ]);
+                  return false;
+                }}
+                onRemove={() => {
+                  setExcelFileList([]);
+                  return true;
+                }}
+                fileList={excelFileList}
+              >
+                <Button icon={<UploadOutlined />}>Chọn file Excel</Button>
+              </Upload>
             </Form.Item>
           </div>
 
