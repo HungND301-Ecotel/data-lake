@@ -38,6 +38,10 @@ public class WareTemplateApprovalConfig {
     private Integer approvalOrder; 
 
     @Builder.Default
+    @Column(name = "auto_approve", nullable = false)
+    private Boolean autoApprove = false;
+    
+    @Builder.Default
     @Column(nullable = false)
     private Boolean isActive = true;
 

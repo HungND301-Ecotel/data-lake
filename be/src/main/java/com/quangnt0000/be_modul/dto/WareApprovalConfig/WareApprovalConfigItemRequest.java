@@ -28,4 +28,7 @@ public class WareApprovalConfigItemRequest {
     @NotNull(message = "ApprovalOrder không được null")
     @Min(value = 1, message = "ApprovalOrder phải >= 1")
     private Integer approvalOrder;
+
+    @NotNull(message = "AutoApprove không được null")
+    private Boolean autoApprove;
 }

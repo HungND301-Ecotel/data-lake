@@ -9,6 +9,8 @@ import {
   Tag,
   Avatar,
   Space,
+  Radio,
+  Upload,
 } from "antd";
 import type {
   WareTemplateRequest,
@@ -30,8 +32,11 @@ import {
   TeamOutlined,
   FileTextOutlined,
   CalendarOutlined,
+  UploadOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons";
 import type { EmployeeResponse } from "../../employee/types/employee";
+import type { UploadFile } from "antd/es/upload/interface";
 
 interface TemplateFormProps {
   templateId: number;
@@ -43,6 +48,7 @@ interface ApprovalConfig {
   approverName?: string;
   approvalOrder: number;
   isActive: boolean;
+  autoApprove?: boolean;
 }
 
 
@@ -63,6 +69,8 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
   const [tempApprovers, setTempApprovers] = useState<string[]>([]);
   const [searchEmployee, setSearchEmployee] = useState("");
   const [filteredEmployees, setFilteredEmployees] = useState<EmployeeResponse[]>([]);
+  const [autoApprove, setAutoApprove] = useState(false);
+  const [excelFileList, setExcelFileList] = useState<UploadFile[]>([]);
 
   const fetchTemplate = async () => {
     try {
@@ -154,8 +162,12 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
     }
 
     try {
-      await wareTemplateApi.updateWareTemplate(request);
+      await wareTemplateApi.updateWareTemplate({
+        ...request,
+        excelFile: excelFileList[0]?.originFileObj as File | undefined,
+      });
       message.success("Cập nhật template thành công");
+      setExcelFileList([]);
       setIsEditing(false);
       fetchTemplate();
     } catch (err) {
@@ -167,11 +179,32 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
 
   const handleCancel = () => {
     setIsEditing(false);
+    setExcelFileList([]);
     fetchTemplate();
+  };
+
+  const handleExportExcel = async () => {
+    if (!template) return;
+
+    try {
+      const blob = await wareTemplateApi.exportTemplateExcel(template.id);
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = `${template.code || template.name || `template-${template.id}`}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(objectUrl);
+      message.success("Xuất file Excel thành công");
+    } catch (err: any) {
+      message.error(err?.response?.data?.message || "Xuất file Excel thất bại");
+    }
   };
 
   const handleOpenApprovalModal = () => {
     setTempApprovers(approvalConfigs.map((config) => config.approverId));
+    setAutoApprove(approvalConfigs[0]?.autoApprove ?? false);
     setEditingApproverIndex(null);
     setSearchEmployee("");
     setIsApprovalModalVisible(true);
@@ -254,6 +287,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
           ...(existingConfig?.id && { id: existingConfig.id }),
           approverId,
           approvalOrder: index + 1,
+          autoApprove,
         };
       });
 
@@ -414,6 +448,52 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                 size="large"
                 className="rounded-lg"
               />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block font-medium text-gray-700 mb-2">
+                File Excel mẫu
+              </label>
+              <Upload
+                accept=".xlsx,.xls"
+                maxCount={1}
+                beforeUpload={(file) => {
+                  setExcelFileList([
+                    {
+                      uid: file.uid,
+                      name: file.name,
+                      status: "done",
+                      originFileObj: file,
+                    },
+                  ]);
+                  return false;
+                }}
+                onRemove={() => {
+                  setExcelFileList([]);
+                  return true;
+                }}
+                fileList={excelFileList}
+                disabled={!isEditing}
+              >
+                <Button icon={<UploadOutlined />} disabled={!isEditing}>
+                  {isEditing ? "Chọn file Excel" : "Bật chỉnh sửa để thay file"}
+                </Button>
+              </Upload>
+            </div>
+
+            <div>
+              <label className="block font-medium text-gray-700 mb-2">
+                Xuất file Excel
+              </label>
+              <Button
+                icon={<DownloadOutlined />}
+                onClick={handleExportExcel}
+                disabled={!template?.excelFileKey}
+              >
+                Xuất file Excel hiện tại
+              </Button>
             </div>
           </div>
 
@@ -625,8 +705,8 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                   <div
                     key={idx}
                     className={`p-4 transition-all ${isEditing
-                        ? "border-2 border-blue-500 bg-blue-50 shadow-md"
-                        : "border border-gray-200 bg-white hover:shadow-md"
+                      ? "border-2 border-blue-500 bg-blue-50 shadow-md"
+                      : "border border-gray-200 bg-white hover:shadow-md"
                       }`}
                   >
                     {isEditing ? (
@@ -740,6 +820,19 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
               <p className="text-gray-400">Chưa có người duyệt nào</p>
             </div>
           )}
+
+          <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200 mb-4">
+            <label className="block mb-3 font-semibold text-gray-800">
+              Tự động duyệt báo cáo khi người duyệt cuối cùng duyệt
+            </label>
+            <Radio.Group
+              value={autoApprove}
+              onChange={(e) => setAutoApprove(e.target.value)}
+            >
+              <Radio value={true}>Có</Radio>
+              <Radio value={false}>Không</Radio>
+            </Radio.Group>
+          </div>
 
           {editingApproverIndex === null && (
             <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">

@@ -22,6 +22,7 @@ import com.quangnt0000.be_modul.modal.DataWH.WareTemplateApprovalConfig;
 import com.quangnt0000.be_modul.repository.DataLake.EmployeeRepository;
 import com.quangnt0000.be_modul.repository.DataLake.UserRepository;
 import com.quangnt0000.be_modul.repository.DataWH.*;
+import com.quangnt0000.be_modul.service.S3Service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
@@ -49,6 +50,7 @@ public class WareBatchService {
     private final WareApprovalConfigRepository approvalConfigRepository;
     private final WareBatchApprovalRepository batchApprovalRepository;
     private final WareBatchActionRepository batchActionRepository;
+    private final S3Service s3Service;
     
     // FormulaEvaluator để xử lý công thức Excel
     private FormulaEvaluator formulaEvaluator;
@@ -152,6 +154,13 @@ public class WareBatchService {
             }
 
             wareDataRowRepository.saveAll(wareDataRows);
+
+            // Upload file excel goc len S3 de luu tru doi soat sau khi da doc du lieu
+            if (request.getFile() != null && !request.getFile().isEmpty()) {
+                String s3Key = s3Service.uploadFile("warehouse-batch*" + batch.getId(), request.getFile()).getKey();
+                batch.setS3FileKey(s3Key);
+                wareBatchRepository.save(batch);
+            }
 
             // Khởi tạo approval workflow - tạo snapshot từ WareApprovalConfig
             initializeApprovalWorkflow(batch);
@@ -416,6 +425,7 @@ public class WareBatchService {
                                 .code(item.getCode())
                                 .name(item.getName())
                                 .description(item.getDescription())
+                            .s3FileKey(item.getS3FileKey())
                                 .createdAt(item.getCreatedAt())
                                 .updatedAt(item.getUpdatedAt())
                                 .employeeName(item.getEmployee() != null ? item.getEmployee().getName() : null)
@@ -476,6 +486,7 @@ public class WareBatchService {
                 .code(wareBatch.getCode())
                 .name(wareBatch.getName())
                 .description(wareBatch.getDescription())
+            .s3FileKey(wareBatch.getS3FileKey())
                 .templateId(wareBatch.getWareTemplate().getId())
                 .templateName(wareBatch.getWareTemplate().getName())
                 .employeeId(wareBatch.getEmployee().getId())

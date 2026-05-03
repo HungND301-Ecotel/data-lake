@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState, type JSX } from "react";
 import {
   Table,
   Input,
@@ -29,6 +29,107 @@ import {
   CloseOutlined,
   ReloadOutlined,
 } from "@ant-design/icons";
+// import * as XLSX from "xlsx";
+
+export const ExcelMetaRows = ({
+  metaRows,
+  totalCols,
+  colWidths,
+  onColWidthChange  // callback để update width
+}: {
+  metaRows: any[][];
+  totalCols: number;
+  colWidths: number[];
+  onColWidthChange?: (colIdx: number, newWidth: number) => void;
+}) => {
+  if (!metaRows || metaRows.length === 0) return null;
+
+  return (
+    <div style={{ background: "#f0f7ff", borderBottom: "2px solid #1677ff", padding: 0, overflowX: "auto" }}>
+      <table style={{ borderCollapse: "collapse", tableLayout: "fixed", width: colWidths.reduce((a, b) => a + b, 0) }}>
+        <colgroup>
+          {colWidths.map((w, i) => (
+            <col key={i} style={{ width: w }} />
+          ))}
+        </colgroup>
+        <tbody>
+          {metaRows.map((row, rIdx) => {
+            const cells: JSX.Element[] = [];
+            let cIdx = 0;
+            for (const cell of row) {
+              if (cell.mergeInfo && !cell.mergeInfo.isOrigin) { cIdx++; continue; }
+              const colspan = cell.mergeInfo?.colspan || 1;
+              const rowspan = cell.mergeInfo?.rowspan || 1;
+              // Tính width tổng của merged cell
+              const totalWidth = colWidths.slice(cIdx, cIdx + colspan).reduce((a, b) => a + b, 0);
+              cells.push(
+                <td key={cIdx} colSpan={colspan} rowSpan={rowspan}
+                  style={{
+                    width: totalWidth,
+                    padding: "6px 10px",
+                    fontSize: colspan > 1 ? 15 : 13,
+                    fontWeight: colspan > 1 ? 600 : 500,
+                    color: "#1a3c6e",
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-word",
+                    verticalAlign: "top",
+                    position: "relative",
+                    background: cell.bg ?? undefined,  // ← thêm dòng này
+                  }}
+                >
+                  {cell.value != null && cell.value !== "" ? String(cell.value) : ""}
+                  {/* Drag handle để resize - chỉ trên cell gốc không merge */}
+                  {colspan === 1 && onColWidthChange && (
+                    <ResizeHandle colIdx={cIdx} onResize={onColWidthChange} />
+                  )}
+                </td>
+              );
+              cIdx++;
+            }
+            while (cIdx < totalCols) { cells.push(<td key={cIdx++} />); }
+            return <tr key={rIdx}>{cells}</tr>;
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+// Component drag handle
+const ResizeHandle = ({ colIdx, onResize }: { colIdx: number; onResize: (i: number, w: number) => void }) => {
+  const startX = useRef(0);
+  const startW = useRef(0);
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    startX.current = e.clientX;
+    const th = (e.target as HTMLElement).closest("td");
+    startW.current = th?.offsetWidth ?? 100;
+
+    const onMove = (ev: MouseEvent) => {
+      const diff = ev.clientX - startX.current;
+      onResize(colIdx, Math.max(60, startW.current + diff));
+    };
+    const onUp = () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    };
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  };
+
+  return (
+    <div
+      onMouseDown={onMouseDown}
+      style={{
+        position: "absolute", right: 0, top: 0, bottom: 0, width: 5,
+        cursor: "col-resize", background: "transparent",
+      }}
+      onMouseEnter={e => (e.currentTarget.style.background = "#1677ff44")}
+      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+    />
+  );
+};
 
 export const WareBatchDetail: React.FC = () => {
   const wareBatchId = Number(
@@ -37,15 +138,30 @@ export const WareBatchDetail: React.FC = () => {
 
   const [rows, setRows] = useState<WareDataRowResponse[]>([]);
   const [mappings, setMappings] = useState<WareMappingResponse[]>([]);
-  const [batchDetail, setBatchDetail] = useState<WareBatchResponse | null>(
-    null,
-  );
+  const [batchDetail, setBatchDetail] = useState<WareBatchResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState("");
   const [pushModalVisible, setPushModalVisible] = useState(false);
   const [rejectModalVisible, setRejectModalVisible] = useState(false);
   const [deleteMissing, setDeleteMissing] = useState(false);
   const [messageApi, contextHolderMessage] = message.useMessage();
+
+  // Excel preview state
+  // const [previewModalVisible, setPreviewModalVisible] = useState(false);
+  // const [previewLoading, setPreviewLoading] = useState(false);
+  // const [sheetColWidths, setSheetColWidths] = useState<Record<string, number[]>>({});
+  // const [previewSheets, setPreviewSheets] = useState<
+  //   {
+  //     name: string;
+  //     headers: string[];
+  //     rows: any[][];
+  //     metaRows: { value: any; mergeInfo?: any }[][];
+  //     totalCols: number;
+  //     colWidths: number[];
+  //     headerRows: any[][];
+  //   }[]
+  // >([]);
+  // const [activeSheet, setActiveSheet] = useState("0");
 
   const [form] = Form.useForm();
   const [rejectForm] = Form.useForm();
@@ -86,6 +202,170 @@ export const WareBatchDetail: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // useEffect(() => {
+  //   const init: Record<string, number[]> = {};
+  //   previewSheets.forEach((s, i) => { init[String(i)] = [...s.colWidths]; });
+  //   setSheetColWidths(init);
+  // }, [previewSheets]);
+
+  // const handleColResize = (sheetIdx: string, colIdx: number, newWidth: number) => {
+  //   setSheetColWidths(prev => {
+  //     const widths = [...(prev[sheetIdx] ?? [])];
+  //     widths[colIdx] = newWidth;
+  //     return { ...prev, [sheetIdx]: widths };
+  //   });
+  // };
+
+  // const handlePreviewExcel = async () => {
+  //   if (!batchDetail?.s3FileKey) {
+  //     messageApi.warning("Không tìm thấy file đính kèm");
+  //     return;
+  //   }
+  //   setPreviewModalVisible(true);
+  //   setPreviewLoading(true);
+  //   setPreviewSheets([]);
+  //   setActiveSheet("0");
+
+  //   try {
+  //     const arrayBuffer = await wareBatchApi.getFileBlob(batchDetail.s3FileKey);
+  //     const workbook = XLSX.read(arrayBuffer, { type: "array", cellStyles: true });
+
+  //     const sheets = workbook.SheetNames.map((sheetName) => {
+  //       const worksheet = workbook.Sheets[sheetName];
+  //       const ref = worksheet["!ref"];
+  //       if (!ref) return { name: sheetName, headers: [], rows: [], metaRows: [], totalCols: 0, colWidths: [], headerRows: [] };
+
+  //       const range = XLSX.utils.decode_range(ref);
+  //       const merges = worksheet["!merges"] || [];
+  //       const colsInfo = worksheet["!cols"] || [];
+
+  //       // Build merge map
+  //       const mergeMap: Record<string, { r: number; c: number; rowspan: number; colspan: number }> = {};
+  //       for (const merge of merges) {
+  //         for (let r = merge.s.r; r <= merge.e.r; r++) {
+  //           for (let c = merge.s.c; c <= merge.e.c; c++) {
+  //             mergeMap[`${r}_${c}`] = {
+  //               r: merge.s.r, c: merge.s.c,
+  //               rowspan: merge.e.r - merge.s.r + 1,
+  //               colspan: merge.e.c - merge.s.c + 1,
+  //             };
+  //           }
+  //         }
+  //       }
+
+  //       // Helper: lấy màu nền từ cell style
+  //       const getCellBg = (cell: any): string | null => {
+  //         const tryColor = (fc: any): string | null => {
+  //           if (!fc) return null;
+  //           // ARGB 8 ký tự: bỏ 2 ký tự alpha đầu
+  //           if (fc.rgb && fc.rgb.length === 8 && fc.rgb !== "00000000" && fc.rgb !== "FFFFFFFF") {
+  //             return "#" + fc.rgb.slice(2);
+  //           }
+  //           // RGB 6 ký tự thường
+  //           if (fc.rgb && fc.rgb.length === 6 && fc.rgb !== "000000" && fc.rgb !== "FFFFFF") {
+  //             return "#" + fc.rgb;
+  //           }
+  //           // Theme color fallback
+  //           if (fc.theme !== undefined) {
+  //             const themeColors: Record<number, string> = {
+  //               0: "#FFFFFF", 1: "#000000", 2: "#EEECE1", 3: "#1F497D",
+  //               4: "#4F81BD", 5: "#C0504D", 6: "#9BBB59", 7: "#8064A2",
+  //               8: "#4BACC6", 9: "#F79646",
+  //             };
+  //             return themeColors[fc.theme] ?? null;
+  //           }
+  //           return null;
+  //         };
+
+  //         // fgColor là màu fill chính, bgColor là fallback
+  //         return tryColor(cell?.s?.fgColor) ?? tryColor(cell?.s?.bgColor);
+  //       };
+
+  //       // Đọc raw rows
+  //       const rawRows: {
+  //         value: any;
+  //         bg: string | null;
+  //         bold: boolean;
+  //         mergeInfo?: { r: number; c: number; rowspan: number; colspan: number; isOrigin: boolean };
+  //       }[][] = [];
+
+  //       for (let r = range.s.r; r <= range.e.r; r++) {
+  //         const row: typeof rawRows[0] = [];
+  //         for (let c = range.s.c; c <= range.e.c; c++) {
+  //           const cellAddr = XLSX.utils.encode_cell({ r, c });
+  //           const cell = worksheet[cellAddr];
+  //           const value = cell ? (cell.t === "n" ? cell.v : (cell.v ?? "")) : "";
+  //           const bg = getCellBg(cell);
+  //           const bold = cell?.s?.bold === true || cell?.s?.font?.bold === true;
+  //           const key = `${r}_${c}`;
+  //           const mi = mergeMap[key];
+  //           if (mi) {
+  //             const isOrigin = mi.r === r && mi.c === c;
+  //             row.push({ value: isOrigin ? value : null, bg, bold, mergeInfo: { ...mi, isOrigin } });
+  //           } else {
+  //             row.push({ value, bg, bold });
+  //           }
+  //         }
+  //         rawRows.push(row);
+  //       }
+
+  //       // Tìm header row
+  //       let headerRowIdx = -1;
+  //       const totalCols = range.e.c - range.s.c + 1;
+  //       for (let i = 0; i < rawRows.length; i++) {
+  //         const nonEmpty = rawRows[i].filter(c => c.value != null && c.value !== "").length;
+  //         if (nonEmpty >= Math.max(2, totalCols * 0.6)) {
+  //           headerRowIdx = i;
+  //           break;
+  //         }
+  //       }
+
+  //       // Kiểm tra có header 2 tầng không (row tiếp theo vẫn có header-like cells)
+  //       let headerEndIdx = headerRowIdx;
+  //       if (headerRowIdx >= 0 && headerRowIdx + 1 < rawRows.length) {
+  //         const nextRow = rawRows[headerRowIdx + 1];
+  //         const nextNonEmpty = nextRow.filter(c => c.value != null && c.value !== "").length;
+  //         // Nếu row tiếp theo có cell với bg hoặc bold → cũng là header
+  //         const nextHasStyling = nextRow.some(c => c.bg || c.bold);
+  //         if (nextNonEmpty > 0 && nextHasStyling) {
+  //           headerEndIdx = headerRowIdx + 1;
+  //         }
+  //       }
+
+  //       const metaRows = rawRows.slice(0, headerRowIdx).map(row =>
+  //         row.map(c => ({ value: c.value, bg: c.bg, mergeInfo: c.mergeInfo }))
+  //       );
+  //       const headerRows = headerRowIdx >= 0 ? rawRows.slice(headerRowIdx, headerEndIdx + 1) : [];
+  //       const dataRows = headerEndIdx >= 0 ? rawRows.slice(headerEndIdx + 1) : rawRows;
+
+  //       // Column widths từ Excel (1 unit ≈ 7px)
+  //       const colWidths = Array.from({ length: totalCols }, (_, i) => {
+  //         const colInfo = colsInfo[i];
+  //         if (colInfo?.wch) return Math.min(400, Math.max(80, colInfo.wch * 7));
+  //         if (colInfo?.wpx) return Math.min(400, Math.max(80, colInfo.wpx));
+  //         return 120;
+  //       });
+
+  //       return {
+  //         name: sheetName,
+  //         headers: headerRows[0]?.map(c => c.value != null ? String(c.value) : "") ?? [],
+  //         rows: dataRows.map(row => row.map(c => c.value)),
+  //         metaRows,
+  //         totalCols,
+  //         colWidths,
+  //         headerRows, // raw header rows với style info
+  //       };
+  //     });
+
+  //     setPreviewSheets(sheets as any);
+  //   } catch (error: any) {
+  //     messageApi.error(error?.message || "Xem trước file thất bại");
+  //     setPreviewModalVisible(false);
+  //   } finally {
+  //     setPreviewLoading(false);
+  //   }
+  // };
 
   useEffect(() => {
     fetchBatchDetail();
@@ -141,8 +421,7 @@ export const WareBatchDetail: React.FC = () => {
 
   const formatVNDate = (iso?: string) => {
     if (!iso) return "-";
-
-    const formatted = new Date(iso + "Z").toLocaleString("vi-VN", {
+    return new Date(iso + "Z").toLocaleString("vi-VN", {
       timeZone: "Asia/Ho_Chi_Minh",
       day: "2-digit",
       month: "2-digit",
@@ -151,8 +430,6 @@ export const WareBatchDetail: React.FC = () => {
       minute: "2-digit",
       second: "2-digit",
     });
-
-    return formatted;
   };
 
   const handlePushConfirm = async (values: {
@@ -161,7 +438,6 @@ export const WareBatchDetail: React.FC = () => {
     deleteMissing: boolean;
   }) => {
     if (!wareBatchId) return;
-
     try {
       const res = await wareBatchApi.pushWareBatch({
         id: wareBatchId,
@@ -179,7 +455,6 @@ export const WareBatchDetail: React.FC = () => {
 
   const handleRejectConfirm = async () => {
     if (!wareBatchId) return;
-
     try {
       await wareBatchApi.rejectBatch(wareBatchId);
       messageApi.success("Từ chối batch thành công");
@@ -192,28 +467,12 @@ export const WareBatchDetail: React.FC = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    const statusConfig: {
-      [key: string]: { color: string; label: string };
-    } = {
-      Cho_Phe_Duyet: {
-        color: "orange",
-        label: "Chờ duyệt",
-      },
-      Da_Phe_Duyet: {
-        color: "success",
-        label: "Đã duyệt",
-      },
-      Tu_Choi_Phe_Duyet: {
-        color: "error",
-        label: "Từ chối",
-      },
+    const statusConfig: { [key: string]: { color: string; label: string } } = {
+      Cho_Phe_Duyet: { color: "orange", label: "Chờ duyệt" },
+      Da_Phe_Duyet: { color: "success", label: "Đã duyệt" },
+      Tu_Choi_Phe_Duyet: { color: "error", label: "Từ chối" },
     };
-
-    const config = statusConfig[status] || {
-      color: "default",
-      label: status,
-    };
-
+    const config = statusConfig[status] || { color: "default", label: status };
     return (
       <Tag color={config.color} className="px-3 py-1 text-sm font-medium">
         {config.label}
@@ -221,11 +480,8 @@ export const WareBatchDetail: React.FC = () => {
     );
   };
 
-  // Logic hiển thị nút duyệt và từ chối
   const getActionButtons = () => {
     const status = batchDetail?.status;
-
-    // Trường hợp 4: status = Tu_Choi_Phe_Duyet => Dữ liệu đã bị từ chối
     if (status === "Tu_Choi_Phe_Duyet") {
       return (
         <Tooltip title="Batch đã bị từ chối, không thể duyệt">
@@ -241,11 +497,158 @@ export const WareBatchDetail: React.FC = () => {
         </Tooltip>
       );
     }
-
     return null;
   };
 
   const isRejected = batchDetail?.status === "Tu_Choi_Phe_Duyet";
+
+  // const buildExcelColumns = (sheet: any) => {
+  //   const { headerRows, colWidths } = sheet;
+  //   if (!headerRows || headerRows.length === 0) return [];
+
+  //   const totalCols = sheet.totalCols;
+
+  //   // Nếu chỉ có 1 tầng header
+  //   if (headerRows.length === 1) {
+  //     return headerRows[0].map((cell: any, i: number) => ({
+  //       title: (
+  //         <div style={{
+  //           background: cell.bg || undefined,
+  //           margin: "-8px -8px",
+  //           padding: "8px",
+  //           fontWeight: 600,
+  //           fontSize: 12,
+  //           textAlign: "center",
+  //           whiteSpace: "pre-wrap",
+  //           wordBreak: "break-word",
+  //           lineHeight: 1.3,
+  //         }}>
+  //           {cell.value != null && cell.value !== "" ? String(cell.value) : `Cột ${i + 1}`}
+  //         </div>
+  //       ),
+  //       dataIndex: i,
+  //       key: i,
+  //       width: colWidths[i] ?? 120,
+  //       onHeaderCell: () => ({ style: { padding: 0, background: "transparent" } }),
+  //       ellipsis: { showTitle: true },
+  //       render: (val: any) => (
+  //         <span style={{ fontSize: 13 }}>{val != null && val !== "" ? String(val) : ""}</span>
+  //       ),
+  //     }));
+  //   }
+
+  //   // 2 tầng header: tầng 1 là row đầu, tầng 2 là row sau
+  //   // Xây dựng cây column dựa trên merge info
+  //   const row1 = headerRows[0];
+  //   const row2 = headerRows[1];
+
+  //   const columns: any[] = [];
+  //   const processed = new Set<number>();
+
+  //   for (let c = 0; c < totalCols; c++) {
+  //     if (processed.has(c)) continue;
+  //     const cell = row1[c];
+  //     if (!cell) continue;
+
+  //     const mi = cell.mergeInfo;
+  //     const isOrigin = !mi || mi.isOrigin;
+  //     if (!isOrigin) { processed.add(c); continue; }
+
+  //     const colspan = mi?.colspan ?? 1;
+  //     const rowspan = mi?.rowspan ?? 1;
+  //     const label = cell.value != null && cell.value !== "" ? String(cell.value) : "";
+  //     const bg = cell.bg;
+
+  //     if (rowspan > 1 || colspan === 1) {
+  //       // Cell này span xuống row 2 → leaf column
+  //       columns.push({
+  //         title: (
+  //           <div style={{
+  //             background: bg || undefined,
+  //             margin: "-8px -8px",
+  //             padding: "8px 4px",
+  //             fontWeight: 600,
+  //             fontSize: 12,
+  //             textAlign: "center",
+  //             whiteSpace: "pre-wrap",
+  //             wordBreak: "break-word",
+  //             lineHeight: 1.3,
+  //             minHeight: rowspan > 1 ? 52 : undefined,
+  //             display: "flex",
+  //             alignItems: "center",
+  //             justifyContent: "center",
+  //           }}>
+  //             {label || `Cột ${c + 1}`}
+  //           </div>
+  //         ),
+  //         dataIndex: c,
+  //         key: c,
+  //         width: colWidths[c] ?? 120,
+  //         onHeaderCell: () => ({
+  //           style: { padding: 0, background: "transparent" }  // ← thêm dòng này
+  //         }),
+  //         ellipsis: { showTitle: true },
+  //         render: (val: any) => (
+  //           <span style={{ fontSize: 13 }}>{val != null && val !== "" ? String(val) : ""}</span>
+  //         ),
+  //       });
+  //       processed.add(c);
+  //     } else {
+  //       // colspan > 1 → group column, children từ row 2
+  //       const children: any[] = [];
+  //       for (let cc = c; cc < c + colspan; cc++) {
+  //         const childCell = row2[cc];
+  //         const childLabel = childCell?.value != null && childCell?.value !== "" ? String(childCell.value) : `Cột ${cc + 1}`;
+  //         const childBg = childCell?.bg;
+  //         children.push({
+  //           title: (
+  //             <div style={{
+  //               background: childBg || bg || undefined,
+  //               margin: "-8px -8px",
+  //               padding: "8px 4px",
+  //               fontWeight: 600,
+  //               fontSize: 12,
+  //               textAlign: "center",
+  //               whiteSpace: "pre-wrap",
+  //               wordBreak: "break-word",
+  //               lineHeight: 1.3,
+  //             }}>
+  //               {childLabel}
+  //             </div>
+  //           ),
+  //           dataIndex: cc,
+  //           key: cc,
+  //           width: colWidths[cc] ?? 100,
+  //           ellipsis: { showTitle: true },
+  //           render: (val: any) => (
+  //             <span style={{ fontSize: 13 }}>{val != null && val !== "" ? String(val) : ""}</span>
+  //           ),
+  //         });
+  //         processed.add(cc);
+  //       }
+  //       columns.push({
+  //         title: (
+  //           <div style={{
+  //             background: bg || undefined,
+  //             margin: "-8px -8px",
+  //             padding: "8px 4px",
+  //             fontWeight: 700,
+  //             fontSize: 12,
+  //             textAlign: "center",
+  //             lineHeight: 1.3,
+  //           }}>
+  //             {label}
+  //           </div>
+  //         ),
+  //         key: `group_${c}`,
+  //         children,
+  //       });
+  //       processed.add(c);
+  //     }
+  //   }
+
+  //   return columns;
+  // };
 
   return (
     <div className="px-6 py-6 bg-linear-to-br from-gray-50 to-gray-100 min-h-screen">
@@ -308,6 +711,26 @@ export const WareBatchDetail: React.FC = () => {
                 </Button>
               </Tooltip>
 
+              {/* ── Nút xem trước Excel ── */}
+              {/* <Tooltip
+                title={
+                  batchDetail?.s3FileKey
+                    ? "Xem trước file Excel đã tải lên"
+                    : "Chưa có file đính kèm"
+                }
+              >
+                <Button
+                  size="large"
+                  icon={<FileExcelOutlined />}
+                  onClick={handlePreviewExcel}
+                  disabled={!batchDetail?.s3FileKey}
+                  className="h-10 px-6"
+                  style={{ borderColor: "#16a34a", color: "#16a34a" }}
+                >
+                  Xem trước Excel
+                </Button>
+              </Tooltip> */}
+
               {getActionButtons()}
             </Space>
           </Col>
@@ -350,6 +773,94 @@ export const WareBatchDetail: React.FC = () => {
         )}
       </Card>
 
+      {/* ── Modal xem trước Excel ── */}
+      {/* <Modal
+        title={
+          <div className="flex items-center gap-3 pb-3 border-b">
+            <div className="w-10 h-10 flex items-center justify-center bg-green-100 rounded-lg">
+              <FileExcelOutlined className="text-green-600 text-lg" />
+            </div>
+            <div>
+              <div className="text-lg font-semibold text-gray-800">
+                Xem trước file Excel
+              </div>
+              {batchDetail?.s3FileKey && (
+                <div className="text-xs text-gray-400 mt-0.5 truncate max-w-xs">
+                  {batchDetail.s3FileKey.split("/").pop()}
+                </div>
+              )}
+            </div>
+          </div>
+        }
+        open={previewModalVisible}
+        onCancel={() => setPreviewModalVisible(false)}
+        footer={null}
+        width="90vw"
+        style={{ top: 24 }}
+        styles={{ body: { padding: "16px 0 0 0" } }}
+      >
+        {previewLoading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <Spin size="large" />
+            <p className="text-gray-500">Đang tải file Excel...</p>
+          </div>
+        ) : previewSheets.length === 0 ? (
+          <div className="text-center py-20 text-gray-400">
+            <FileExcelOutlined className="text-4xl mb-3" />
+            <p>Không có dữ liệu trong file</p>
+          </div>
+        ) : (
+          <Tabs
+            activeKey={activeSheet}
+            onChange={setActiveSheet}
+            type="card"
+            size="small"
+            className="px-4"
+            items={previewSheets.map((sheet, index) => ({
+              key: String(index),
+              label: (
+                <span>
+                  <FileExcelOutlined className="mr-1 text-green-600" />
+                  {sheet.name}
+                </span>
+              ),
+              children: (
+                <div>
+                  <ExcelMetaRows
+                    metaRows={sheet.metaRows}
+                    totalCols={sheet.totalCols}
+                    colWidths={sheetColWidths[String(index)] ?? sheet.colWidths}
+                    onColWidthChange={(ci, w) => handleColResize(String(index), ci, w)}
+                  />
+                  <div className="overflow-x-auto rounded-lg border border-gray-200 mt-2">
+                    <Table
+                      rowKey={(record: any) => record._key}
+                      columns={buildExcelColumns(sheet)}   // <-- truyền cả sheet thay vì headers + rows
+                      dataSource={sheet.rows.map((row, i) =>
+                        Object.assign({ _key: i }, row as any[])
+                      )}
+                      pagination={{
+                        pageSize: 50,
+                        showSizeChanger: true,
+                        pageSizeOptions: ["20", "50", "100"],
+                        showTotal: (total) => `Tổng ${total} dòng`,
+                        size: "small",
+                      }}
+                      size="small"
+                      bordered
+                      scroll={{ x: "max-content", y: 420 }}
+                      locale={{ emptyText: "Sheet này không có dữ liệu" }}
+                      rowClassName={(_, i) => i % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                    />
+                  </div>
+                </div>
+              ),
+            }))}
+          />
+        )}
+      </Modal> */}
+
+      {/* ── Modal push TKV ── */}
       <Modal
         title={
           <div className="flex items-center gap-3 pb-3 border-b">
@@ -384,7 +895,6 @@ export const WareBatchDetail: React.FC = () => {
             <Radio.Group
               onChange={(e) => setDeleteMissing(e.target.value)}
               value={deleteMissing}
-              className="text-gray-700"
             >
               <Radio value={true}>Có</Radio>
               <Radio value={false}>Không</Radio>
@@ -406,7 +916,9 @@ export const WareBatchDetail: React.FC = () => {
           </Form.Item>
 
           <Form.Item
-            label={<span className="font-medium text-gray-800">Mật khẩu</span>}
+            label={
+              <span className="font-medium text-gray-800">Mật khẩu</span>
+            }
             name="password"
             rules={[{ required: true, message: "Vui lòng nhập password!" }]}
           >
@@ -432,6 +944,7 @@ export const WareBatchDetail: React.FC = () => {
         </Form>
       </Modal>
 
+      {/* ── Modal từ chối ── */}
       <Modal
         title={
           <div className="flex items-center gap-3 pb-3 border-b">
@@ -492,11 +1005,6 @@ export const WareBatchDetail: React.FC = () => {
         .ant-table-cell {
           padding: 12px !important;
         }
-        .ant-table-header .ant-table-cell {
-          background: linear-gradient(to right, #f3f4f6, #e5e7eb);
-          font-weight: 600;
-          color: #374151;
-        }
         .ant-table-row {
           transition: all 0.2s ease;
         }
@@ -506,10 +1014,6 @@ export const WareBatchDetail: React.FC = () => {
         .ant-input:focus,
         .ant-input-affix-wrapper:focus,
         .ant-input-affix-wrapper-focused {
-          border-color: #3b82f6;
-          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-        }
-        .ant-input-password:focus-within {
           border-color: #3b82f6;
           box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
         }

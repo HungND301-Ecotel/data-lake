@@ -34,6 +34,7 @@ public class WareTemplate {
     //ch
     private String tableName;
     private String tableCode;
+    private String excelFileKey;
 
     @ManyToOne
     @JoinColumn(name = "wareCategoryId")
