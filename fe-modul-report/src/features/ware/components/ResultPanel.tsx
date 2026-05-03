@@ -61,7 +61,7 @@ const ResultPanel = ({ results }: ResultPanelProps) => {
   }));
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 bg-gray-50 h-screen">
+    <div className="flex-1 flex flex-col min-w-0 bg-gray-50 h-full">
       {/* Header cố định - flex-shrink-0 để không bị co lại */}
       <div className="shrink-0 px-6 py-4 bg-white border-b shadow-sm flex justify-between items-center">
         <div className="flex items-center gap-3">

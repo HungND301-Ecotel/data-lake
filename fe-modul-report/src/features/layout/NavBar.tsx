@@ -16,22 +16,9 @@ import {
   EyeOutlined,
   CheckCircleOutlined,
   SyncOutlined,
-  RobotOutlined,
-  DatabaseOutlined,
-  CloudServerOutlined,
-  HddOutlined,
-  SearchOutlined,
-  ScheduleOutlined,
-  CloudUploadOutlined,
-  GoldOutlined,
-  TableOutlined,
-  FileSearchOutlined,
-  CodeOutlined,
-  FileExcelOutlined,
   RightOutlined,
   LoadingOutlined,
   SettingOutlined,
-  PieChartOutlined,
 } from "@ant-design/icons";
 import { Button, Dropdown, Menu, Spin } from "antd";
 import { employeeApi } from "../employee/api/employeeApi";
@@ -42,12 +29,14 @@ import type { DepartmentResponse } from "../department/types/department";
 import { useAuthStore } from "../../stores/authStore";
 
 type Cat = { id: number; code: string; name: string };
-type Tmpl = { id: number; code: string; name: string; deptName?: string; catName?: string };
+type Tmpl = { id: number; code: string; name: string; tableCode?: string; deptName?: string; catName?: string };
 
 const QuickInputPanel = ({
   onSelectTemplate,
+  footerText,
 }: {
   onSelectTemplate: (tmpl: Tmpl) => void;
+  footerText?: string;
 }) => {
   const [depts, setDepts] = useState<DepartmentResponse[]>([]);
   const [loadingDepts, setLoadingDepts] = useState(true);
@@ -234,7 +223,7 @@ const QuickInputPanel = ({
       {/* Footer */}
       <div className="px-5 py-2.5 bg-gray-50 border-t border-gray-100">
         <span className="text-gray-400" style={{ fontSize: 13 }}>
-          💡 Di chuột vào các mục để điều hướng • Click vào Template để mở nhập liệu ngay
+          {footerText || "💡 Di chuột vào các mục để điều hướng • Click vào Template để mở nhập liệu ngay"}
         </span>
       </div>
     </div>
@@ -247,6 +236,7 @@ const QuickInputPanel = ({
 export default function NavBar() {
   const [userName, setUserName] = useState<string>("");
   const [quickOpen, setQuickOpen] = useState(false);
+  const [quickViewOpen, setQuickViewOpen] = useState(false);
   const navigate = useNavigate();
   const { role: storeRole, setRole } = useAuthStore();
 
@@ -290,6 +280,16 @@ export default function NavBar() {
     navigate(`/ware/template/${tmpl.id}?${params.toString()}`);
   };
 
+  const handleSelectTemplateForView = (tmpl: Tmpl) => {
+    setQuickViewOpen(false);
+    const params = new URLSearchParams();
+    if (tmpl.deptName) params.set("dept", tmpl.deptName);
+    if (tmpl.catName) params.set("cat", tmpl.catName);
+    if (tmpl.name) params.set("tmpl", tmpl.name);
+    if (tmpl.tableCode) params.set("table", tmpl.tableCode);
+    navigate(`/search/master?${params.toString()}`);
+  };
+
   // ── Existing menus (unchanged) ──────────────
 
   const categoryMenu = (
@@ -328,146 +328,139 @@ export default function NavBar() {
     />
   );
 
-  const datalakeMenu = (
-    <Menu
-      items={[
-        {
-          key: "ai-group",
-          type: "group" as const,
-          label: <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">AI & Chat</span>,
-          children: [
-            {
-              key: "ai-chat",
-              icon: <RobotOutlined className="text-lg" />,
-              label: <span className="text-base font-medium">Chat AI</span>,
-              onClick: () => navigate("/ai-chat"),
-              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
-            },
-            {
-              key: "table-qa",
-              icon: <TableOutlined className="text-lg" />,
-              label: <span className="text-base font-medium">Table QA</span>,
-              onClick: () => navigate("/lakehouse/table-qa"),
-              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
-            },
-            {
-              key: "document-chat",
-              icon: <FileSearchOutlined className="text-lg" />,
-              label: <span className="text-base font-medium">Document Chat</span>,
-              onClick: () => navigate("/lakehouse/document-chat"),
-              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
-            },
-          ],
-        },
-        { type: "divider" as const, className: "my-1" },
-        {
-          key: "pipeline-group",
-          type: "group" as const,
-          label: <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Data Pipeline</span>,
-          children: [
-            {
-              key: "pipeline",
-              icon: <CloudUploadOutlined className="text-lg" />,
-              label: <span className="text-base font-medium">Pipeline</span>,
-              onClick: () => navigate("/lakehouse/pipeline"),
-              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
-            },
-            {
-              key: "gold",
-              icon: <GoldOutlined className="text-lg" />,
-              label: <span className="text-base font-medium">Gold Extraction</span>,
-              onClick: () => navigate("/lakehouse/gold"),
-              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
-            },
-          ],
-        },
-        { type: "divider" as const, className: "my-1" },
-        {
-          key: "data-group",
-          type: "group" as const,
-          label: <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Quản lý dữ liệu</span>,
-          children: [
-            {
-              key: "datalake-data",
-              icon: <DatabaseOutlined className="text-lg" />,
-              label: <span className="text-base font-medium">Quản lý dữ liệu</span>,
-              onClick: () => navigate("/datalake/data"),
-              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
-            },
-            {
-              key: "datalake-sync",
-              icon: <SyncOutlined className="text-lg" />,
-              label: <span className="text-base font-medium">Đồng bộ dữ liệu</span>,
-              onClick: () => navigate("/datalake/sync"),
-              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
-            },
-            {
-              key: "datalake-status",
-              icon: <CloudServerOutlined className="text-lg" />,
-              label: <span className="text-base font-medium">Trạng thái hệ thống</span>,
-              onClick: () => navigate("/datalake/status"),
-              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
-            },
-          ],
-        },
-        { type: "divider" as const, className: "my-1" },
-        {
-          key: "tools-group",
-          type: "group" as const,
-          label: <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Công cụ</span>,
-          children: [
-            {
-              key: "servers",
-              icon: <HddOutlined className="text-lg" />,
-              label: <span className="text-base font-medium">Quản lý Server</span>,
-              onClick: () => navigate("/servers"),
-              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
-            },
-            {
-              key: "database",
-              icon: <SearchOutlined className="text-lg" />,
-              label: <span className="text-base font-medium">Database Explorer</span>,
-              onClick: () => navigate("/database"),
-              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
-            },
-            {
-              key: "jobs",
-              icon: <ScheduleOutlined className="text-lg" />,
-              label: <span className="text-base font-medium">Job Tracking</span>,
-              onClick: () => navigate("/jobs"),
-              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
-            },
-            {
-              key: "sql-metadata",
-              icon: <CodeOutlined className="text-lg" />,
-              label: <span className="text-base font-medium">SQL Metadata</span>,
-              onClick: () => navigate("/sql-metadata"),
-              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
-            },
-            {
-              key: "excel-mapping",
-              icon: <FileExcelOutlined className="text-lg" />,
-              label: <span className="text-base font-medium">Excel Mapping</span>,
-              onClick: () => navigate("/excel-mapping"),
-              className: "py-2 px-4 hover:bg-[#f0f9f4]!",
-            },
-          ],
-        },
-      ]}
-      className="rounded-xl! shadow-2xl! min-w-[280px] py-2 max-h-[80vh] overflow-y-auto"
-    />
-  );
+  // const datalakeMenu = (
+  //   <Menu
+  //     items={[
+  //       {
+  //         key: "ai-group",
+  //         type: "group" as const,
+  //         label: <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">AI & Chat</span>,
+  //         children: [
+  //           {
+  //             key: "ai-chat",
+  //             icon: <RobotOutlined className="text-lg" />,
+  //             label: <span className="text-base font-medium">Chat AI</span>,
+  //             onClick: () => navigate("/ai-chat"),
+  //             className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+  //           },
+  //           {
+  //             key: "table-qa",
+  //             icon: <TableOutlined className="text-lg" />,
+  //             label: <span className="text-base font-medium">Table QA</span>,
+  //             onClick: () => navigate("/lakehouse/table-qa"),
+  //             className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+  //           },
+  //           {
+  //             key: "document-chat",
+  //             icon: <FileSearchOutlined className="text-lg" />,
+  //             label: <span className="text-base font-medium">Document Chat</span>,
+  //             onClick: () => navigate("/lakehouse/document-chat"),
+  //             className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+  //           },
+  //         ],
+  //       },
+  //       { type: "divider" as const, className: "my-1" },
+  //       {
+  //         key: "pipeline-group",
+  //         type: "group" as const,
+  //         label: <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Data Pipeline</span>,
+  //         children: [
+  //           {
+  //             key: "pipeline",
+  //             icon: <CloudUploadOutlined className="text-lg" />,
+  //             label: <span className="text-base font-medium">Pipeline</span>,
+  //             onClick: () => navigate("/lakehouse/pipeline"),
+  //             className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+  //           },
+  //           {
+  //             key: "gold",
+  //             icon: <GoldOutlined className="text-lg" />,
+  //             label: <span className="text-base font-medium">Gold Extraction</span>,
+  //             onClick: () => navigate("/lakehouse/gold"),
+  //             className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+  //           },
+  //         ],
+  //       },
+  //       { type: "divider" as const, className: "my-1" },
+  //       {
+  //         key: "data-group",
+  //         type: "group" as const,
+  //         label: <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Quản lý dữ liệu</span>,
+  //         children: [
+  //           {
+  //             key: "datalake-data",
+  //             icon: <DatabaseOutlined className="text-lg" />,
+  //             label: <span className="text-base font-medium">Quản lý dữ liệu</span>,
+  //             onClick: () => navigate("/datalake/data"),
+  //             className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+  //           },
+  //           {
+  //             key: "datalake-sync",
+  //             icon: <SyncOutlined className="text-lg" />,
+  //             label: <span className="text-base font-medium">Đồng bộ dữ liệu</span>,
+  //             onClick: () => navigate("/datalake/sync"),
+  //             className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+  //           },
+  //           {
+  //             key: "datalake-status",
+  //             icon: <CloudServerOutlined className="text-lg" />,
+  //             label: <span className="text-base font-medium">Trạng thái hệ thống</span>,
+  //             onClick: () => navigate("/datalake/status"),
+  //             className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+  //           },
+  //         ],
+  //       },
+  //       { type: "divider" as const, className: "my-1" },
+  //       {
+  //         key: "tools-group",
+  //         type: "group" as const,
+  //         label: <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Công cụ</span>,
+  //         children: [
+  //           {
+  //             key: "servers",
+  //             icon: <HddOutlined className="text-lg" />,
+  //             label: <span className="text-base font-medium">Quản lý Server</span>,
+  //             onClick: () => navigate("/servers"),
+  //             className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+  //           },
+  //           {
+  //             key: "database",
+  //             icon: <SearchOutlined className="text-lg" />,
+  //             label: <span className="text-base font-medium">Database Explorer</span>,
+  //             onClick: () => navigate("/database"),
+  //             className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+  //           },
+  //           {
+  //             key: "jobs",
+  //             icon: <ScheduleOutlined className="text-lg" />,
+  //             label: <span className="text-base font-medium">Job Tracking</span>,
+  //             onClick: () => navigate("/jobs"),
+  //             className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+  //           },
+  //           {
+  //             key: "sql-metadata",
+  //             icon: <CodeOutlined className="text-lg" />,
+  //             label: <span className="text-base font-medium">SQL Metadata</span>,
+  //             onClick: () => navigate("/sql-metadata"),
+  //             className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+  //           },
+  //           {
+  //             key: "excel-mapping",
+  //             icon: <FileExcelOutlined className="text-lg" />,
+  //             label: <span className="text-base font-medium">Excel Mapping</span>,
+  //             onClick: () => navigate("/excel-mapping"),
+  //             className: "py-2 px-4 hover:bg-[#f0f9f4]!",
+  //           },
+  //         ],
+  //       },
+  //     ]}
+  //     className="rounded-xl! shadow-2xl! min-w-[280px] py-2 max-h-[80vh] overflow-y-auto"
+  //   />
+  // );
 
   const reportsMenu = (
     <Menu
       items={[
-        {
-          key: "view",
-          icon: <EyeOutlined className="text-lg" />,
-          label: <span className="text-base font-medium">Xem báo cáo</span>,
-          onClick: () => navigate("/search/master"),
-          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
-        },
         {
           key: "approve",
           icon: <CheckCircleOutlined className="text-lg" />,
@@ -567,7 +560,10 @@ export default function NavBar() {
           open={quickOpen}
           onOpenChange={setQuickOpen}
           overlay={
-            <QuickInputPanel onSelectTemplate={handleSelectTemplate} />
+            <QuickInputPanel
+              onSelectTemplate={handleSelectTemplate}
+              footerText="💡 Di chuột vào các mục để điều hướng • Click vào Template để mở nhập liệu ngay"
+            />
           }
           placement="bottomLeft"
           trigger={["hover"]}
@@ -585,8 +581,34 @@ export default function NavBar() {
           </Button>
         </Dropdown>
 
+        {/* ── Xem báo cáo ── */}
+        <Dropdown
+          open={quickViewOpen}
+          onOpenChange={setQuickViewOpen}
+          overlay={
+            <QuickInputPanel
+              onSelectTemplate={handleSelectTemplateForView}
+              footerText="💡 Di chuột vào các mục để điều hướng • Click vào Template để mở xem báo cáo"
+            />
+          }
+          placement="bottomLeft"
+          trigger={["hover"]}
+          mouseEnterDelay={0.15}
+          mouseLeaveDelay={0.2}
+        >
+          <Button
+            type="text"
+            icon={<EyeOutlined className="text-lg mr-2" />}
+            className="text-white! border-0! bg-transparent! font-semibold text-base tracking-wide hover:bg-white/15! transition-all duration-300 rounded-lg cursor-pointer group"
+            size="large"
+          >
+            <span>Xem báo cáo</span>
+            <DownOutlined className="text-xs ml-2 group-hover:translate-y-0.5 transition-transform duration-300" />
+          </Button>
+        </Dropdown>
+
         {/* Data Lake Dropdown */}
-        <Dropdown overlay={datalakeMenu} placement="bottomLeft">
+        {/* <Dropdown overlay={datalakeMenu} placement="bottomLeft">
           <Button
             type="text"
             icon={<DatabaseOutlined className="text-lg mr-2" />}
@@ -596,7 +618,7 @@ export default function NavBar() {
             <span>Data Lake</span>
             <DownOutlined className="text-xs ml-2 group-hover:translate-y-0.5 transition-transform duration-300" />
           </Button>
-        </Dropdown>
+        </Dropdown> */}
 
         {/* Reports Dropdown */}
         <Dropdown overlay={reportsMenu} placement="bottomLeft">
@@ -611,7 +633,7 @@ export default function NavBar() {
           </Button>
         </Dropdown>
 
-        <Link to="/analytics">
+        {/* <Link to="/analytics">
           <Button
             type="text"
             icon={<PieChartOutlined className="text-lg mr-2" />}
@@ -620,7 +642,7 @@ export default function NavBar() {
           >
             Thống kê
           </Button>
-        </Link>
+        </Link> */}
 
         {/* Account Menu */}
         <div className="ml-auto">

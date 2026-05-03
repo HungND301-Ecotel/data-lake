@@ -10,6 +10,7 @@ import {
   Avatar,
   Space,
   Radio,
+  Upload,
 } from "antd";
 import type {
   WareTemplateRequest,
@@ -31,8 +32,11 @@ import {
   TeamOutlined,
   FileTextOutlined,
   CalendarOutlined,
+  UploadOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons";
 import type { EmployeeResponse } from "../../employee/types/employee";
+import type { UploadFile } from "antd/es/upload/interface";
 
 interface TemplateFormProps {
   templateId: number;
@@ -66,6 +70,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
   const [searchEmployee, setSearchEmployee] = useState("");
   const [filteredEmployees, setFilteredEmployees] = useState<EmployeeResponse[]>([]);
   const [autoApprove, setAutoApprove] = useState(false);
+  const [excelFileList, setExcelFileList] = useState<UploadFile[]>([]);
 
   const fetchTemplate = async () => {
     try {
@@ -157,8 +162,12 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
     }
 
     try {
-      await wareTemplateApi.updateWareTemplate(request);
+      await wareTemplateApi.updateWareTemplate({
+        ...request,
+        excelFile: excelFileList[0]?.originFileObj as File | undefined,
+      });
       message.success("Cập nhật template thành công");
+      setExcelFileList([]);
       setIsEditing(false);
       fetchTemplate();
     } catch (err) {
@@ -170,7 +179,27 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
 
   const handleCancel = () => {
     setIsEditing(false);
+    setExcelFileList([]);
     fetchTemplate();
+  };
+
+  const handleExportExcel = async () => {
+    if (!template) return;
+
+    try {
+      const blob = await wareTemplateApi.exportTemplateExcel(template.id);
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = `${template.code || template.name || `template-${template.id}`}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(objectUrl);
+      message.success("Xuất file Excel thành công");
+    } catch (err: any) {
+      message.error(err?.response?.data?.message || "Xuất file Excel thất bại");
+    }
   };
 
   const handleOpenApprovalModal = () => {
@@ -419,6 +448,52 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                 size="large"
                 className="rounded-lg"
               />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block font-medium text-gray-700 mb-2">
+                File Excel mẫu
+              </label>
+              <Upload
+                accept=".xlsx,.xls"
+                maxCount={1}
+                beforeUpload={(file) => {
+                  setExcelFileList([
+                    {
+                      uid: file.uid,
+                      name: file.name,
+                      status: "done",
+                      originFileObj: file,
+                    },
+                  ]);
+                  return false;
+                }}
+                onRemove={() => {
+                  setExcelFileList([]);
+                  return true;
+                }}
+                fileList={excelFileList}
+                disabled={!isEditing}
+              >
+                <Button icon={<UploadOutlined />} disabled={!isEditing}>
+                  {isEditing ? "Chọn file Excel" : "Bật chỉnh sửa để thay file"}
+                </Button>
+              </Upload>
+            </div>
+
+            <div>
+              <label className="block font-medium text-gray-700 mb-2">
+                Xuất file Excel
+              </label>
+              <Button
+                icon={<DownloadOutlined />}
+                onClick={handleExportExcel}
+                disabled={!template?.excelFileKey}
+              >
+                Xuất file Excel hiện tại
+              </Button>
             </div>
           </div>
 
