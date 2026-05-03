@@ -25,6 +25,8 @@ export interface WareBatchResponse {
   reportYear?: number | null;
   reportMonth?: number | null;
   reportDay?: number | null;
+  templateId?: number | null;
+  s3FileKey?: string | null;
 }
 
 export interface WareBatchSearch {

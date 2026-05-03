@@ -11,6 +11,7 @@ import {
   Space,
   Card,
   Tag,
+  Upload,
 } from "antd";
 import {
   ExclamationCircleOutlined,
@@ -23,8 +24,11 @@ import {
   EditOutlined,
   FileTextOutlined,
   AppstoreOutlined,
+  UploadOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
+import type { UploadFile } from "antd/es/upload/interface";
 import { wareTemplateApi } from "../api/wareTemplateApi";
 import { wareCategoryApi } from "../api/wareCategoryApi";
 import type {
@@ -64,6 +68,7 @@ const WareTemplate = () => {
   const [configCheckModal, setConfigCheckModal] = useState(false);
   const [selectedRecord, setSelectedRecord] =
     useState<WareTemplateResponse | null>(null);
+  const [excelFileList, setExcelFileList] = useState<UploadFile[]>([]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -94,7 +99,7 @@ const WareTemplate = () => {
             code: cat.code!,
             name: cat.name!,
             templates: [],
-          })
+          }),
         );
 
         setGroups(initGroups);
@@ -133,7 +138,27 @@ const WareTemplate = () => {
   const handleAdd = () => {
     setEditing(null);
     form.resetFields();
+    setExcelFileList([]);
     setModalOpen(true);
+  };
+
+  const handleExportExcel = async (record: WareTemplateResponse) => {
+    try {
+      const blob = await wareTemplateApi.exportTemplateExcel(record.id);
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = `${record.code || record.name || `template-${record.id}`}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(objectUrl);
+      messageApi.success("Xuất file Excel thành công");
+    } catch (err: any) {
+      messageApi.error(
+        err?.response?.data?.message || "Xuất file Excel thất bại",
+      );
+    }
   };
 
   const handleDelete = (id: number, categoryId: number) => {
@@ -157,6 +182,7 @@ const WareTemplate = () => {
       const request: WareTemplateRequest = {
         ...values,
         id: editing?.id,
+        excelFile: excelFileList[0]?.originFileObj as File | undefined,
       };
 
       if (editing) {
@@ -168,6 +194,7 @@ const WareTemplate = () => {
       }
 
       setModalOpen(false);
+      setExcelFileList([]);
       if (values.wareCategoryId) {
         loadTemplatesByCategory(values.wareCategoryId);
       }
@@ -179,7 +206,7 @@ const WareTemplate = () => {
 
   const handleApproveOrInput = (
     record: WareTemplateResponse,
-    action: "approve" | "input"
+    action: "approve" | "input",
   ) => {
     if (!record.hasApprovalConfig) {
       setSelectedRecord(record);
@@ -238,8 +265,7 @@ const WareTemplate = () => {
       align: "center" as const,
       render: (_: any, record) => (
         <Space size="small">
-          {canApprove ? (
-            <Button
+          <Button
             icon={<SettingOutlined />}
             size="large"
             className="bg-blue-600! hover:bg-blue-700! text-white! border-0"
@@ -247,10 +273,6 @@ const WareTemplate = () => {
           >
             Cấu hình
           </Button>
-          ): (
-            <></>
-          )}
-
 
           <Button
             icon={<EditOutlined />}
@@ -262,6 +284,15 @@ const WareTemplate = () => {
           </Button>
 
           <Button
+            icon={<DownloadOutlined />}
+            size="large"
+            className="bg-green-600! hover:bg-green-700! text-white! border-0"
+            onClick={() => handleExportExcel(record)}
+          >
+            Xuất Excel
+          </Button>
+
+          <Button
             danger
             icon={<DeleteOutlined />}
             size="large"
@@ -269,7 +300,7 @@ const WareTemplate = () => {
               handleDelete(
                 record.id!,
                 groups.find((g) => g.templates.some((t) => t.id === record.id))
-                  ?.id!
+                  ?.id!,
               )
             }
           >
@@ -316,9 +347,7 @@ const WareTemplate = () => {
         <div className="mb-6 p-4 bg-linear-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
           <div className="flex items-center gap-2">
             <AppstoreOutlined className="text-blue-500 text-xl" />
-            <span className="font-medium text-gray-700">
-              Tổng số danh mục:
-            </span>
+            <span className="font-medium text-gray-700">Tổng số danh mục:</span>
             <Tag color="blue" className="font-bold text-base px-3 py-1">
               {groups.length}
             </Tag>
@@ -352,7 +381,7 @@ const WareTemplate = () => {
                     </div>
                     <Tag
                       color="white"
-                      className="text-green-700! font-medium! px-3 py-1"
+                      className="text-blue-700! font-medium! px-3 py-1"
                     >
                       {grp.templates.length} template
                     </Tag>
@@ -381,11 +410,11 @@ const WareTemplate = () => {
       <Modal
         title={
           <div className="flex items-center gap-3 pb-3 border-b">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-green-100">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100">
               {editing ? (
-                <EditOutlined className="text-green-600 text-lg" />
+                <EditOutlined className="text-blue-600 text-lg" />
               ) : (
-                <PlusOutlined className="text-green-600 text-lg" />
+                <PlusOutlined className="text-blue-600 text-lg" />
               )}
             </div>
             <div className="text-lg font-semibold text-gray-800">
@@ -395,13 +424,16 @@ const WareTemplate = () => {
         }
         open={modalOpen}
         onOk={handleOk}
-        onCancel={() => setModalOpen(false)}
+        onCancel={() => {
+          setModalOpen(false);
+          setExcelFileList([]);
+        }}
         okText={editing ? "Lưu" : "Thêm"}
         cancelText="Hủy"
         width={700}
         okButtonProps={{
           className:
-            "bg-[#0891b2]! hover:bg-cyan-7000! text-white! border-0 h-10 px-6 text-base font-medium",
+            "bg-[#1976D2]! hover:bg-blue-700! text-white! border-0 h-10 px-6 text-base font-medium",
           size: "large",
         }}
         cancelButtonProps={{
@@ -470,9 +502,7 @@ const WareTemplate = () => {
 
             <Form.Item
               name="tableCode"
-              label={
-                <span className="font-medium text-gray-700">Mã bảng</span>
-              }
+              label={<span className="font-medium text-gray-700">Mã bảng</span>}
               labelCol={{ span: 24 }}
               wrapperCol={{ span: 24 }}
             >
@@ -497,6 +527,35 @@ const WareTemplate = () => {
                 className="rounded-lg"
                 type="number"
               />
+            </Form.Item>
+
+            <Form.Item
+              label={<span className="font-medium text-gray-700">File mẫu Excel</span>}
+              labelCol={{ span: 24 }}
+              wrapperCol={{ span: 24 }}
+            >
+              <Upload
+                accept=".xlsx,.xls"
+                maxCount={1}
+                beforeUpload={(file) => {
+                  setExcelFileList([
+                    {
+                      uid: file.uid,
+                      name: file.name,
+                      status: "done",
+                      originFileObj: file,
+                    },
+                  ]);
+                  return false;
+                }}
+                onRemove={() => {
+                  setExcelFileList([]);
+                  return true;
+                }}
+                fileList={excelFileList}
+              >
+                <Button icon={<UploadOutlined />}>Chọn file Excel</Button>
+              </Upload>
             </Form.Item>
           </div>
 
@@ -578,7 +637,7 @@ const WareTemplate = () => {
               type="primary"
               onClick={handleGoToConfig}
               size="large"
-              className="flex-1 bg-[#0891b2]! hover:bg-cyan-7000! h-10 font-medium"
+              className="flex-1 bg-[#1976D2]! hover:bg-blue-700! h-10 font-medium"
             >
               Đi tới cấu hình
             </Button>

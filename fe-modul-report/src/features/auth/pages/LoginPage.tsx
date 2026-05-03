@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { message } from "antd";
 import { useNavigate } from "react-router-dom";
-import { Phone, Mail, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Phone, Mail } from "lucide-react";
 
 import type { LoginResponse } from "../../employee/types/user";
 import { useAuthStore } from "../../../stores/authStore";
@@ -175,7 +175,7 @@ const LoginPage = () => {
           {/* Footer */}
           <div className="mt-6 text-center">
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              © 2024 CÔNG TY THAN UÔNG BÍ - TKV. All rights reserved.
+              © 2024 CÔNG TY THAN KHO VẬN ĐÁ BẠC - TKV. All rights reserved.
             </p>
           </div>
         </div>

@@ -1,7 +1,6 @@
 import axios from "axios";
 import type { ApiError } from "./erorr";
 import { message } from "antd";
-
 const axiosClient = axios.create({
   baseURL: import.meta.env.VITE_API,
   headers: {

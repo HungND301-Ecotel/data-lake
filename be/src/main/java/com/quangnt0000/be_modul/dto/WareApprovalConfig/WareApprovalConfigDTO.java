@@ -23,6 +23,8 @@ public class WareApprovalConfigDTO {
 
     private Integer approvalOrder;
 
+    private Boolean autoApprove;
+
     private Boolean isActive;
 
 }

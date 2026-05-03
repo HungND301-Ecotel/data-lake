@@ -1,5 +1,15 @@
 import { useState, useEffect } from "react";
-import { Table, Input, Button, Space, Modal, Form, message, Card, Tag } from "antd";
+import {
+  Table,
+  Input,
+  Button,
+  Space,
+  Modal,
+  Form,
+  message,
+  Card,
+  Tag,
+} from "antd";
 import {
   SearchOutlined,
   PlusOutlined,
@@ -13,7 +23,7 @@ import { departmentApi } from "../api/departmentApi";
 const DepartmentCategoryPage = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingDept, setEditingDept] = useState<DepartmentResponse | null>(
-    null
+    null,
   );
   const [form] = Form.useForm();
   const [modal, contextHolderModal] = Modal.useModal();
@@ -94,7 +104,7 @@ const DepartmentCategoryPage = () => {
         messageApi.success(
           editingDept
             ? "Cập nhật phòng ban thành công"
-            : "Tạo phòng ban thành công"
+            : "Tạo phòng ban thành công",
         );
         setModalVisible(false);
         await loadDepartments(search, 0, pageResponse.limit);
@@ -173,7 +183,6 @@ const DepartmentCategoryPage = () => {
       {contextHolderMessage}
 
       {/* Header Section */}
-
 
       {/* Main Card */}
       <Card className="shadow-lg border-0 rounded-xl">

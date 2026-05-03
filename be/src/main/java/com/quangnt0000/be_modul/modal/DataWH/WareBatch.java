@@ -30,6 +30,7 @@ public class WareBatch {
 
     private String name;
     private String description;
+    private String s3FileKey;
     
     private Integer reportYear;
     private Integer reportMonth;

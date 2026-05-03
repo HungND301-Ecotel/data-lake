@@ -152,9 +152,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
     { value: "STRING", label: "Chuỗi kí tự" },
   ];
 
-  // ---- Helpers ----
   const isNormalEditing = (record: WareMappingResponse) => {
-    // Row mới thêm thủ công (id=null, không phải pending từ AI)
     if (record.id === null && pendingRows.length === 0 && editingId === null && editingRequest !== null) {
       return true;
     }
