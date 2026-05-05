@@ -48,6 +48,7 @@ public class WareApiService {
     private final WebClient dataLakeWebClient;
     private final VinacominApiClient vinacominApiClient;
     private final ObjectMapper objectMapper;
+    private final AggregationEngine aggregationEngine;
 
     public WareApiService(
             WareBatchActionRepository wareBatchActionRepository,
@@ -56,7 +57,8 @@ public class WareApiService {
             @Qualifier("vinacominWebClient") WebClient webClient,
             @Qualifier("dataLakeWebClient") WebClient dataLakeWebClient,
             VinacominApiClient vinacominApiClient,
-            ObjectMapper objectMapper
+            ObjectMapper objectMapper,
+            AggregationEngine aggregationEngine
     ) {
         this.wareBatchActionRepository = wareBatchActionRepository;
         this.wareMappingRepository = wareMappingRepository;
@@ -65,6 +67,7 @@ public class WareApiService {
         this.dataLakeWebClient = dataLakeWebClient;
         this.vinacominApiClient = vinacominApiClient;
         this.objectMapper = objectMapper;
+        this.aggregationEngine = aggregationEngine;
     }
 
     public ResponseEntity<LoginResponse> login(LoginRequest request) {
@@ -258,20 +261,26 @@ public class WareApiService {
                     .ttlSeconds(3600)
                     .build()).getBody();
             String token = loginResponse.getAccessToken();
+            boolean aggregationReport = isAggregationReport(request);
+            Map<String, Object> filters = buildReportFilters(request);
             String filtersJson;
-            if (request.getFilters() == null || request.getFilters().isEmpty()) {
+            if (filters == null || filters.isEmpty()) {
                 filtersJson = null;
             } else {
-                filtersJson = objectMapper.writeValueAsString(request.getFilters());
+                filtersJson = objectMapper.writeValueAsString(filters);
             }
+            Integer limit = aggregationReport
+                    ? Math.max(request.getLimit() == null ? 0 : request.getLimit(), 10000)
+                    : request.getLimit();
+            Integer offset = aggregationReport ? 0 : request.getOffset();
 
             GetResponse response = vinacominApiClient.getMasterData(
                     request.getTable(),
                     filtersJson,
                     request.getColumns(),
                     request.getOrderBy(),
-                    request.getLimit(),
-                    request.getOffset(),
+                    limit,
+                    offset,
                     "Bearer " + token
             );
             // Transform fieldName to fieldTitle based on table name
@@ -284,6 +293,11 @@ public class WareApiService {
                     List<WareMapping> mappings = wareMappingRepository.findByWareTemplate_IdOrderByIdAsc(wareTemplate.getId());
                     
                     if (!mappings.isEmpty()) {
+                        if (aggregationReport) {
+                            response.setRows(aggregationEngine.aggregate(response.getRows(), mappings, request.getReportType()));
+                            response.setTotal(response.getRows().size());
+                        }
+
                         // Create a map of fieldName (lowercase) -> WareMapping for lookup
                         Map<String, WareMapping> fieldNameToMappingMap = mappings.stream()
                                 .collect(Collectors.toMap(
@@ -340,4 +354,43 @@ public class WareApiService {
         }
 
     }
+
+    private Map<String, Object> buildReportFilters(GetRequest request) {
+        if (request.getFilters() == null || request.getFilters().isEmpty()) {
+            return request.getFilters();
+        }
+
+        Map<String, Object> filters = new LinkedHashMap<>(request.getFilters());
+        String reportType = normalizeReportType(request.getReportType());
+
+        if ("MONTH".equals(reportType)) {
+            filters.remove("DAY");
+            filters.remove("NGAY");
+        } else if ("YEAR".equals(reportType)) {
+            filters.remove("PERIOD");
+            filters.remove("DAY");
+            filters.remove("NGAY");
+        }
+
+        return filters;
+    }
+
+    private boolean isAggregationReport(GetRequest request) {
+        String reportType = normalizeReportType(request.getReportType());
+        return "DAY".equals(reportType) || "MONTH".equals(reportType) || "YEAR".equals(reportType);
+    }
+
+    private String normalizeReportType(String reportType) {
+        if (reportType == null || reportType.isBlank()) {
+            return null;
+        }
+
+        String value = reportType.trim().toUpperCase(Locale.ROOT);
+        return switch (value) {
+            case "MONTH", "MONTHLY", "LUY_KE_THANG", "LŨY KẾ THÁNG", "LUY KE THANG" -> "MONTH";
+            case "YEAR", "YEARLY", "LUY_KE_NAM", "LŨY KẾ NĂM", "LUY KE NAM" -> "YEAR";
+            default -> value;
+        };
+    }
+
 }

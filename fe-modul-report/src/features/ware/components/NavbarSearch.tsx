@@ -6,6 +6,7 @@ import {
   Input,
   List,
   Modal,
+  Select,
   Spin,
   Tag,
 } from "antd";
@@ -25,6 +26,8 @@ interface NavbarSearchProps {
   setPeriod: (val?: string) => void;
   day?: string;
   setDay: (val?: string) => void;
+  reportType?: "MONTH" | "YEAR";
+  setReportType: (val?: "MONTH" | "YEAR") => void;
   onSearch: (tableOverride?: string) => Promise<void>;
 }
 
@@ -37,6 +40,8 @@ const NavbarSearch = ({
   setPeriod,
   day,
   setDay,
+  reportType,
+  setReportType,
   onSearch,
 }: NavbarSearchProps) => {
   const [tableLabel, setTableLabel] = useState("");
@@ -73,6 +78,9 @@ const NavbarSearch = ({
       await fetchTableInfo(tableToSearch);
     }
   };
+
+  const isMonthReport = reportType === "MONTH";
+  const isYearReport = reportType === "YEAR";
 
   return (
     <div className="px-3 pt-3 pb-2 bg-gray-100 border-b border-gray-200">
@@ -131,6 +139,7 @@ const NavbarSearch = ({
               className="w-full"
               value={period ?? ""}
               placeholder="04"
+              disabled={isYearReport}
               onChange={(e) => {
                 const val = e.target.value.trim();
                 setPeriod(val || undefined);
@@ -145,10 +154,40 @@ const NavbarSearch = ({
               className="w-full"
               value={day ?? ""}
               placeholder="01"
+              disabled={isMonthReport || isYearReport}
               onChange={(e) => {
                 const val = e.target.value.trim();
                 setDay(val || undefined);
               }}
+            />
+          </div>
+
+          <div className="w-[220px]">
+            <div className="text-xs font-semibold text-gray-600 mb-1">Loại báo cáo</div>
+            <Select
+              size="large"
+              className="w-full"
+              value={reportType ?? ""}
+              placeholder="Mặc định / Theo ngày"
+              onChange={(val) => {
+                if (!val) {
+                  setReportType(undefined);
+                  return;
+                }
+                const nextType = val as "MONTH" | "YEAR";
+                setReportType(nextType);
+                if (nextType === "MONTH") {
+                  setDay(undefined);
+                  return;
+                }
+                setPeriod(undefined);
+                setDay(undefined);
+              }}
+              options={[
+                { value: "", label: "Mặc định" },
+                { value: "MONTH", label: "Lũy kế theo tháng" },
+                { value: "YEAR", label: "Lũy kế theo năm" },
+              ]}
             />
           </div>
 

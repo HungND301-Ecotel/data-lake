@@ -11,6 +11,7 @@ const SearchMasterData = () => {
   const [year, setYear] = useState<number | undefined>();
   const [period, setPeriod] = useState<string | undefined>();
   const [day, setDay] = useState<string | undefined>();
+  const [reportType, setReportType] = useState<"MONTH" | "YEAR" | undefined>();
   const defaultLimit = 50;
   const defaultOffset = 0;
   const [results, setResults] = useState<any[]>([]);
@@ -30,15 +31,34 @@ const SearchMasterData = () => {
       return Object.keys(nextFilters).length ? nextFilters : undefined;
     };
 
-    const buildRequest = (filters?: Record<string, any>): GetRequest => ({
+    const buildReportFilters = (type: "MONTH" | "YEAR") => {
+      const nextFilters: Record<string, any> = {};
+      if (year) nextFilters["YEAR"] = year;
+      if (type === "MONTH" && period) nextFilters["PERIOD"] = period;
+      return Object.keys(nextFilters).length ? nextFilters : undefined;
+    };
+
+    const buildRequest = (
+      filters?: Record<string, any>,
+      reportTypeOverride?: "MONTH" | "YEAR"
+    ): GetRequest => ({
       table: tableToSearch,
       limit: defaultLimit,
       offset: defaultOffset,
+      reportType: reportTypeOverride,
       filters,
     });
 
     try {
       setResults([]);
+
+      if (reportType === "MONTH" || reportType === "YEAR") {
+        const res: GetResponse = await wareTkvApi.searchTkv(
+          buildRequest(buildReportFilters(reportType), reportType)
+        );
+        setResults(res.rows || []);
+        return;
+      }
 
       // Có filter ngày: ưu tiên DAY, nếu không có thì fallback sang NGAY
       if (day) {
@@ -89,6 +109,8 @@ const SearchMasterData = () => {
         setPeriod={setPeriod}
         day={day}
         setDay={setDay}
+        reportType={reportType}
+        setReportType={setReportType}
         onSearch={handleSearch}
       />
 

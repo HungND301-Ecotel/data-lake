@@ -60,6 +60,8 @@ const ResultPanel = ({ results }: ResultPanelProps) => {
     },
   }));
 
+  const tableScrollX = Math.max(columns.length * 150, 1200);
+
   return (
     <div className="flex-1 flex flex-col min-w-0 bg-gray-50 h-full">
       {/* Header cố định - flex-shrink-0 để không bị co lại */}
@@ -108,7 +110,7 @@ const ResultPanel = ({ results }: ResultPanelProps) => {
               showSizeChanger: true,
               size: "small",
             }}
-            scroll={{ x: "max-content", y: "100%" }}
+            scroll={{ x: tableScrollX, y: "100%" }}
             tableLayout="fixed"
             size="small"
             bordered
