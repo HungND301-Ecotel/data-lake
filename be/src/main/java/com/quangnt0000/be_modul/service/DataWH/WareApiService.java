@@ -306,6 +306,8 @@ public class WareApiService {
                                         (existing, replacement) -> existing
                                 ));
                         
+                        boolean includeUnmappedFields = request.getReportType() != null && !request.getReportType().isBlank();
+
                         // Transform each row - maintain order based on mappings
                         List<Map<String, Object>> transformedRows = response.getRows().stream()
                                 .map(row -> {
@@ -327,12 +329,14 @@ public class WareApiService {
                                         }
                                     }
                                     
-                                    // Then, add any remaining fields that weren't in mappings
-                                    row.forEach((key, value) -> {
-                                        if (!fieldNameToMappingMap.containsKey(key.toLowerCase())) {
-                                            transformedRow.put(key, value);
-                                        }
-                                    });
+                                    if (includeUnmappedFields) {
+                                        // Then, add any remaining fields that weren't in mappings
+                                        row.forEach((key, value) -> {
+                                            if (!fieldNameToMappingMap.containsKey(key.toLowerCase())) {
+                                                transformedRow.put(key, value);
+                                            }
+                                        });
+                                    }
                                     
                                     return transformedRow;
                                 })
