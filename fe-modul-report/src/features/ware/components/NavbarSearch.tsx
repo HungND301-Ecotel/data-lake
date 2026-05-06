@@ -86,7 +86,7 @@ const NavbarSearch = ({
     <div className="px-3 pt-3 pb-2 bg-gray-100 border-b border-gray-200">
       <Card className="shadow-sm border-0 rounded-xl">
         <div className="flex flex-wrap items-end gap-3">
-          <div className="min-w-[240px] max-w-[380px] flex-[0_1_320px]">
+          {/* <div className="min-w-60 max-w-[380px] flex-[0_1_320px]">
             <div className="text-xs font-semibold text-gray-600 mb-1">Mã bảng</div>
             <div className="relative">
               <Input
@@ -111,7 +111,7 @@ const NavbarSearch = ({
                 +
               </button>
             </div>
-          </div>
+          </div> */}
 
           <div className="w-[150px]">
             <div className="text-xs font-semibold text-gray-600 mb-1">Năm</div>
@@ -193,7 +193,7 @@ const NavbarSearch = ({
 
           <div className="flex-1 flex justify-end items-center gap-2">
             {tableLabel ? (
-              <Tag color="blue" className="!mr-0 max-w-[260px] truncate">
+              <Tag color="blue" className="mr-0! max-w-[260px] truncate">
                 {tableLabel}
               </Tag>
             ) : null}
