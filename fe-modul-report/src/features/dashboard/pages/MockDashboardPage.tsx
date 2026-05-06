@@ -633,7 +633,6 @@ export default function CoalMiningDashboard() {
   });
 
   const pipeColor: Record<EtlStatus, string> = { idle: "#9ca3af", running: "#2563eb", done: "#059669", error: "#dc2626" };
-  const pipeLabel: Record<EtlStatus, string> = { idle: "Chờ", running: "Đang chạy...", done: "Hoàn thành", error: "Lỗi" };
 
   const pipelines = [
     { icon: "⛏", label: "ETL — PX Than Nguyên Khai", sub: "DB Nguồn → Staging" },
