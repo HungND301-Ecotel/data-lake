@@ -275,12 +275,12 @@ function VatTuModal({ onClose }: { onClose: () => void }) {
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 1000, display: "flex", flexDirection: "column" }}>
       <div style={{ background: "#fff", borderBottom: "1px solid #e5e7eb", padding: "10px 20px", display: "flex", alignItems: "center", gap: 12 }}>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#1e3a5f" }}>Báo cáo Luân chuyển Vật tư — Quý I/2026</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#1976D2" }}>Báo cáo Luân chuyển Vật tư — Quý I/2026</div>
         </div>
         <button onClick={handlePrint} style={{ background: "#1d4ed8", color: "#fff", border: "none", borderRadius: 7, padding: "8px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
           🖨 In / Lưu PDF
         </button>
-        <button onClick={onClose} style={{ background: "#f3f4f6", color: "#374151", border: "1px solid #d1d5db", borderRadius: 7, padding: "8px 14px", fontSize: 12, cursor: "pointer" }}>
+        <button onClick={onClose} style={{ background: "#f3f4f6", color: "#1976D2", border: "1px solid #d1d5db", borderRadius: 7, padding: "8px 14px", fontSize: 12, cursor: "pointer" }}>
           ✕ Đóng
         </button>
       </div>
@@ -329,7 +329,7 @@ function PlanModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (plan
     }, 1800);
   };
 
-  const stepTabStyle = (n: number) : React.CSSProperties => ({
+  const stepTabStyle = (n: number): React.CSSProperties => ({
     flex: 1, textAlign: "center", padding: "8px 4px", fontSize: 10, fontWeight: 700,
     background: step === n ? "#eff6ff" : step > n ? "#ecfdf5" : "#f1f5f9",
     color: step === n ? "#1d4ed8" : step > n ? "#059669" : "#94a3b8",
@@ -365,7 +365,7 @@ function PlanModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (plan
           {step === 1 && (
             <>
               <div style={{ marginBottom: 14 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: "#374151", display: "block", marginBottom: 5 }}>Phòng ban *</label>
+                <label style={{ fontSize: 11, fontWeight: 700, color: "#1976D2", display: "block", marginBottom: 5 }}>Phòng ban *</label>
                 <select value={dept} onChange={(e) => setDept(e.target.value)} style={inp}>
                   <option value="">-- Chọn phòng ban --</option>
                   {DEPTS.slice(1).map((d) => <option key={d} value={d}>{d}</option>)}
@@ -373,7 +373,7 @@ function PlanModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (plan
               </div>
 
               <div style={{ marginBottom: 14 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: "#374151", display: "block", marginBottom: 8 }}>Loại kế hoạch *</label>
+                <label style={{ fontSize: 11, fontWeight: 700, color: "#1976D2", display: "block", marginBottom: 8 }}>Loại kế hoạch *</label>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                   {planCards.map((pc) => (
                     <div
@@ -398,7 +398,7 @@ function PlanModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (plan
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 <div>
-                  <label style={{ fontSize: 11, fontWeight: 700, color: "#374151", display: "block", marginBottom: 5 }}>Kỳ kế hoạch</label>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: "#1976D2", display: "block", marginBottom: 5 }}>Kỳ kế hoạch</label>
                   <select value={period} onChange={(e) => setPeriod(e.target.value)} style={inp}>
                     <option>Tháng 4/2026</option>
                     <option>Tháng 5/2026</option>
@@ -407,7 +407,7 @@ function PlanModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (plan
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: 11, fontWeight: 700, color: "#374151", display: "block", marginBottom: 5 }}>Gắn vào báo cáo</label>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: "#1976D2", display: "block", marginBottom: 5 }}>Gắn vào báo cáo</label>
                   <select value={target} onChange={(e) => setTarget(e.target.value)} style={inp}>
                     <option value="both">Nội bộ + TKV</option>
                     <option value="noidung">Chỉ báo cáo nội bộ</option>
@@ -425,7 +425,7 @@ function PlanModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (plan
                 {["upload", "form"].map((m) => (
                   <button key={m} onClick={() => setInputMode(m)} style={{
                     background: inputMode === m ? "#1d4ed8" : "#f3f4f6",
-                    color: inputMode === m ? "#fff" : "#374151",
+                    color: inputMode === m ? "#fff" : "#1976D2",
                     border: inputMode === m ? "none" : "1px solid #d1d5db",
                     borderRadius: 7, padding: "6px 14px", fontSize: 11, cursor: "pointer", fontFamily: "inherit",
                   }}>
@@ -455,12 +455,12 @@ function PlanModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (plan
 
               {inputMode === "form" && (
                 <>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#374151", marginBottom: 8 }}>Nhập chỉ tiêu kế hoạch</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#1976D2", marginBottom: 8 }}>Nhập chỉ tiêu kế hoạch</div>
                   <table style={{ width: "100%", borderCollapse: "collapse" }}>
                     <thead>
                       <tr>
                         {["Chỉ tiêu", "ĐVT", "Kế hoạch tháng", "Kế hoạch năm"].map((h) => (
-                          <th key={h} style={{ padding: "5px 7px", border: "1px solid #9ca3af", fontSize: 10, fontWeight: 700, background: "#374151", color: "#fff", textAlign: "center" }}>{h}</th>
+                          <th key={h} style={{ padding: "5px 7px", border: "1px solid #9ca3af", fontSize: 10, fontWeight: 700, background: "#1976D2", color: "#fff", textAlign: "center" }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -495,7 +495,7 @@ function PlanModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (plan
                       ["Nguồn dữ liệu:", inputMode === "upload" ? (uploadedFile || "File chưa chọn") : "Nhập tay qua form"],
                     ].map(([label, value]) => (
                       <tr key={label}>
-                        <td style={{ border: "none", fontSize: 11, color: "#374151", padding: "4px 0", width: 140 }}>{label}</td>
+                        <td style={{ border: "none", fontSize: 11, color: "#1976D2", padding: "4px 0", width: 140 }}>{label}</td>
                         <td style={{ border: "none", fontSize: 11, fontWeight: 700 }}>{value}</td>
                       </tr>
                     ))}
@@ -525,7 +525,7 @@ function PlanModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (plan
         {/* Footer */}
         <div style={{ padding: "12px 20px", borderTop: "1px solid #e5e7eb", display: "flex", justifyContent: "flex-end", gap: 8 }}>
           {step > 1 && !submitted && (
-            <button onClick={() => setStep((s) => s - 1)} style={{ background: "#f3f4f6", color: "#374151", border: "1px solid #d1d5db", borderRadius: 7, padding: "8px 16px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>
+            <button onClick={() => setStep((s) => s - 1)} style={{ background: "#f3f4f6", color: "#1976D2", border: "1px solid #d1d5db", borderRadius: 7, padding: "8px 16px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>
               ← Quay lại
             </button>
           )}
@@ -551,11 +551,11 @@ function PlanModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (plan
 }
 
 // ─── PLAN BADGE ───────────────────────────────────────────────────────────────
-function PlanBadge({ plan } : { plan: any }) {
+function PlanBadge({ plan }: { plan: any }) {
   return (
     <div style={{ border: "1px solid #e5e7eb", borderLeft: "3px solid #1d4ed8", borderRadius: 0, padding: "5px 8px", marginBottom: 5, display: "flex", alignItems: "center", gap: 8 }}>
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: "#1e3a5f" }}>{plan.type}</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "#1976D2" }}>{plan.type}</div>
         <div style={{ fontSize: 9, color: "#64748b" }}>{plan.dept} — {plan.period}</div>
       </div>
       <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 3, fontWeight: 700, background: "#eff6ff", color: "#1d4ed8" }}>Đã gắn</span>
@@ -567,7 +567,7 @@ function PlanBadge({ plan } : { plan: any }) {
 function KPICard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div style={{ background: "#fff", borderRadius: 10, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.07)", display: "flex", flexDirection: "column" }}>
-      <div style={{ background: "#1e3a5f", color: "#fff", padding: "6px 12px", fontSize: 10, fontWeight: 700, textAlign: "center", letterSpacing: "0.3px" }}>
+      <div style={{ background: "#1976D2", color: "#fff", padding: "6px 12px", fontSize: 10, fontWeight: 700, textAlign: "center", letterSpacing: "0.3px" }}>
         {title}
       </div>
       <div style={{ padding: 14, flex: 1 }}>
@@ -578,7 +578,7 @@ function KPICard({ title, children }: { title: string; children: React.ReactNode
 }
 
 // ─── SECTION CARD ─────────────────────────────────────────────────────────────
-function SectionCard({ title, titleBg = "#1e3a5f", children }: { title: string; titleBg?: string; children: React.ReactNode }) {
+function SectionCard({ title, titleBg = "#1976D2", children }: { title: string; titleBg?: string; children: React.ReactNode }) {
   return (
     <div style={{ background: "#fff", borderRadius: 10, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.07)" }}>
       <div style={{ background: titleBg, color: "#fff", padding: "6px 12px", fontSize: 10, fontWeight: 700, textAlign: "center", letterSpacing: "0.3px" }}>
@@ -602,7 +602,7 @@ function Badge({ children, color = "#1d4ed8", bg = "#eff6ff" }: { children: Reac
 }
 
 // ─── PROGRESS BAR ─────────────────────────────────────────────────────────────
-function ProgressBar({ value, max, color = "#2563eb" } : { value: number; max: number; color?: string }) {
+function ProgressBar({ value, max, color = "#2563eb" }: { value: number; max: number; color?: string }) {
   const pct = Math.min(100, Math.round((value / max) * 100));
   return (
     <div>
@@ -620,7 +620,7 @@ function ProgressBar({ value, max, color = "#2563eb" } : { value: number; max: n
 // ─── TH / TD helpers ─────────────────────────────────────────────────────────
 const TH = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   padding: "5px 7px", border: "1px solid #9ca3af", fontSize: 10,
-  fontWeight: 700, background: "#1e3a5f", color: "#fff", textAlign: "center" as const, ...extra,
+  fontWeight: 700, background: "#1976D2", color: "#fff", textAlign: "center" as const, ...extra,
 });
 const TD = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   padding: "6px 7px", border: "1px solid #d1d5db", fontSize: 11, ...extra,
@@ -682,8 +682,8 @@ export default function CoalMiningDashboard() {
       <style>{`
         *{box-sizing:border-box;margin:0;padding:0;}
         body{background:#f1f5f9;font-family:'Segoe UI',system-ui,sans-serif;color:#1f2937;font-size:13px;}
-        .fbtn{background:#e2e8f0;border:none;padding:5px 11px;border-radius:5px;cursor:pointer;font-size:11px;font-family:inherit;color:#374151;font-weight:500;transition:all .12s;}
-        .fbtn.on{background:#1e3a5f;color:#fff;}
+        .fbtn{background:#e2e8f0;border:none;padding:5px 11px;border-radius:5px;cursor:pointer;font-size:11px;font-family:inherit;color:#1976D2;font-weight:500;transition:all .12s;}
+        .fbtn.on{background:#1976D2;color:#fff;}
         .fbtn:hover:not(.on){background:#cbd5e1;}
         tbody tr:hover td{background:#eff6ff!important;}
         @keyframes spin{to{transform:rotate(360deg);}}
@@ -692,13 +692,11 @@ export default function CoalMiningDashboard() {
       <div style={{ minHeight: "100vh", background: "#f1f5f9" }}>
 
         {/* ═══ HEADER ═══ */}
-        <div style={{ background: "#fff", borderBottom: "3px solid #1e3a5f", padding: "10px 16px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <div style={{ width: 52, height: 52, background: "#1e3a5f", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#93c5fd", fontSize: 9, textAlign: "center", fontWeight: 700 }}>
-            <div><div style={{ fontSize: 22 }}>⛏</div>ĐÈO NAI<br />CỌC SÁU</div>
-          </div>
+        <div style={{ background: "#fff", borderBottom: "3px solid #0d47a1", padding: "10px 16px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          
           <div style={{ flex: 1 }}>
-            <h1 style={{ fontSize: 16, fontWeight: 800, color: "#1e3a5f" }}>BÁO CÁO ĐIỀU HÀNH SẢN XUẤT & NHÂN SỰ</h1>
-            <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>
+            <h1 style={{ fontSize: 16, fontWeight: 800, color: "#1f2937" }}>BÁO CÁO ĐIỀU HÀNH SẢN XUẤT & NHÂN SỰ</h1>
+            <div style={{ fontSize: 10, color: "#6b7280", marginTop: 2 }}>
               {COMPANY_NAME} — Cập nhật: {dayStr}
             </div>
           </div>
@@ -798,7 +796,7 @@ export default function CoalMiningDashboard() {
                 {fmtNum(581.1)}
               </div>
               <div style={{ fontSize: 11, marginTop: 5, color: "#64748b" }}>
-                Hôm nay <b style={{ color: "#1e3a5f" }}>{fmtNum(3140)} m</b>
+                Hôm nay <b style={{ color: "#1976D2" }}>{fmtNum(3140)} m</b>
               </div>
               <div style={{ marginTop: 8 }}>
                 <ProgressBar value={581.1} max={600} color="#1a56db" />
@@ -819,7 +817,7 @@ export default function CoalMiningDashboard() {
                 <div style={{ fontSize: 11, color: "#64748b" }}>tổng biên chế</div>
               </div>
               <div style={{ display: "flex", gap: 6, marginTop: 10, alignItems: "center", flexWrap: "wrap" }}>
-                <div style={{ background: "#1e3a5f", color: "#fff", borderRadius: 7, padding: "4px 12px", fontSize: 20, fontWeight: 800, fontFamily: "monospace" }}>
+                <div style={{ background: "#1976D2", color: "#fff", borderRadius: 7, padding: "4px 12px", fontSize: 20, fontWeight: 800, fontFamily: "monospace" }}>
                   {WORKFORCE.diLam}
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
@@ -837,7 +835,7 @@ export default function CoalMiningDashboard() {
           </div>
 
           {/* ═══ ROW 2: WORKER TABLE + PRODUCTION ═══ */}
-          <div style={{ display: "grid", gridTemplateColumns: "1.15fr 1fr", gap: 10, alignItems: "start" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10, alignItems: "start" }}>
 
             {/* Worker Table */}
             <SectionCard title="BẢNG CÔNG NHÂN LỰC CHI TIẾT">
@@ -902,7 +900,7 @@ export default function CoalMiningDashboard() {
                         <tr key={i} style={{ background: i % 2 === 0 ? "#f9fafb" : "#fff" }}>
                           <td style={TD({ fontWeight: 500, fontSize: 11 })}>{row.chiTieu}</td>
                           <td style={TD({ textAlign: "center", color: "#6b7280", fontSize: 10 })}>{row.dvj}</td>
-                          <td style={TD({ textAlign: "right", fontFamily: "monospace", fontWeight: 700, color: "#1e3a5f" })}>{fmtNum(row.homNay)}</td>
+                          <td style={TD({ textAlign: "right", fontFamily: "monospace", fontWeight: 700, color: "#1976D2" })}>{fmtNum(row.homNay)}</td>
                           <td style={TD({ textAlign: "right", fontFamily: "monospace", fontWeight: 700, color: "#1a56db" })}>{fmtNum(row.luyKe)}</td>
                           <td style={TD({ textAlign: "right", fontFamily: "monospace", color: "#6b7280" })}>{fmtNum(row.kh)}</td>
                           <td style={TD({ textAlign: "center", fontWeight: 700, color: pctColor, fontSize: 11 })}>{pct}%</td>
@@ -919,7 +917,7 @@ export default function CoalMiningDashboard() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
 
             {/* A — Báo cáo nội bộ */}
-            <SectionCard title="A. BÁO CÁO NỘI BỘ — TỪ CÁC PHÂN XƯỞNG" titleBg="#065f46">
+            <SectionCard title="A. BÁO CÁO NỘI BỘ — TỪ CÁC PHÂN XƯỞNG" titleBg="#1976D2">
               <div style={{ padding: 12 }}>
                 <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 10 }}>
                   <span style={{ fontSize: 11, fontWeight: 700 }}>Phân xưởng:</span>
@@ -976,7 +974,7 @@ export default function CoalMiningDashboard() {
             </SectionCard>
 
             {/* B — Báo cáo TKV */}
-            <SectionCard title="B. BÁO CÁO TKV — TỔNG HỢP GỬI TẬP ĐOÀN" titleBg="#92400e">
+            <SectionCard title="B. BÁO CÁO TKV — TỔNG HỢP GỬI TẬP ĐOÀN" titleBg="#1976D2">
               <div style={{ padding: 12 }}>
                 <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 10 }}>
                   <span style={{ fontSize: 11, fontWeight: 700 }}>Loại báo cáo:</span>
@@ -999,14 +997,14 @@ export default function CoalMiningDashboard() {
                   ].map((row) => (
                     <div key={row.dept} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, background: "#fff", borderRadius: 5, padding: "5px 8px", marginBottom: 4 }}>
                       <StatusDot ok={row.ok} />
-                      <span style={{ flex: 1, color: "#374151" }}>{row.dept} — Ngày {dayStr}</span>
+                      <span style={{ flex: 1, color: "#1976D2" }}>{row.dept} — Ngày {dayStr}</span>
                       <span style={{ fontFamily: "monospace", fontWeight: 700, color: "#1d4ed8" }}>{row.value}</span>
                     </div>
                   ))}
                   {/* Grand total */}
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 8px", background: "#d1fae5", borderRadius: 5, fontWeight: 700, fontSize: 11, marginTop: 4 }}>
                     <span style={{ color: "#065f46" }}>Tổng hợp TKV — Ngày {dayStr}</span>
-                    <span style={{ fontFamily: "monospace", color: "#1e3a5f" }}>11.037 tấn</span>
+                    <span style={{ fontFamily: "monospace", color: "#1976D2" }}>11.037 tấn</span>
                   </div>
                   <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
                     <button
@@ -1042,12 +1040,12 @@ export default function CoalMiningDashboard() {
           </div>
 
           {/* ═══ ROW 4: ETL PIPELINE ═══ */}
-          <SectionCard title="ĐỒNG BỘ DỮ LIỆU TỪ CÁC PHÂN XƯỞNG → PIPELINE ETL → BÁO CÁO TKV" titleBg="#374151">
+          <SectionCard title="ĐỒNG BỘ DỮ LIỆU TỪ CÁC PHÂN XƯỞNG → PIPELINE ETL → BÁO CÁO TKV" titleBg="#1976D2">
             <div style={{ padding: "12px 14px", display: "grid", gridTemplateColumns: "260px 1fr 1fr", gap: 14 }}>
 
               {/* DB Config */}
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#1e3a5f", marginBottom: 8 }}>Kết nối nguồn dữ liệu</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#1976D2", marginBottom: 8 }}>Kết nối nguồn dữ liệu</div>
                 {[
                   { label: "PX THAN NGUYÊN KHAI", color: "#0369a1", bg: "#f0f9ff", border: "#bae6fd", ip: "192.168.1.100" },
                   { label: "PX THAN SẠCH", color: "#15803d", bg: "#f0fdf4", border: "#bbf7d0", ip: "192.168.1.102" },
@@ -1061,7 +1059,7 @@ export default function CoalMiningDashboard() {
                 <button
                   onClick={handleSync}
                   disabled={syncing}
-                  style={{ width: "100%", background: syncing ? "#6b7280" : "#1e3a5f", color: "#fff", border: "none", borderRadius: 8, padding: "10px", fontSize: 12, fontWeight: 800, cursor: syncing ? "not-allowed" : "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+                  style={{ width: "100%", background: syncing ? "#6b7280" : "#1976D2", color: "#fff", border: "none", borderRadius: 8, padding: "10px", fontSize: 12, fontWeight: 800, cursor: syncing ? "not-allowed" : "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
                 >
                   {syncing
                     ? <><span style={{ display: "inline-block", animation: "spin 1s linear infinite" }}>⟳</span> Đang đồng bộ...</>
@@ -1078,7 +1076,7 @@ export default function CoalMiningDashboard() {
 
               {/* Pipeline steps */}
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#1e3a5f", marginBottom: 8 }}>ETL Pipeline Flow</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#1976D2", marginBottom: 8 }}>ETL Pipeline Flow</div>
                 <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: 10, display: "flex", flexDirection: "column", gap: 6 }}>
                   {pipelines.map((p, i) => (
                     <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", background: "#fff", borderRadius: 8, border: `1px solid ${pipeColor}33` }}>
@@ -1095,9 +1093,9 @@ export default function CoalMiningDashboard() {
 
               {/* Sync log */}
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#1e3a5f", marginBottom: 8 }}>Nhật ký đồng bộ</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#1976D2", marginBottom: 8 }}>Nhật ký đồng bộ</div>
                 <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, overflow: "hidden" }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "85px 1fr 55px", padding: "5px 10px", background: "#1e3a5f" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "85px 1fr 55px", padding: "5px 10px", background: "#1976D2" }}>
                     {["Thời gian", "Nội dung", "Trạng thái"].map((h) => (
                       <span key={h} style={{ fontSize: 9, color: "#fff", fontWeight: 700 }}>{h}</span>
                     ))}
