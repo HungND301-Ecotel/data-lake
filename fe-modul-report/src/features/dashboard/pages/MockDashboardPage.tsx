@@ -626,6 +626,51 @@ const TD = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   padding: "6px 7px", border: "1px solid #d1d5db", fontSize: 11, ...extra,
 });
 
+function SetupModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ background: "#fff", borderRadius: 12, width: 480, boxShadow: "0 20px 60px rgba(0,0,0,0.3)", overflow: "hidden" }}>
+        <div style={{ background: "#1976D2", color: "#fff", padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ fontSize: 14, fontWeight: 700 }}>⚙ Cấu hình kết nối Server</div>
+          <button onClick={onClose} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 5, padding: "4px 10px", cursor: "pointer" }}>✕</button>
+        </div>
+        <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
+          {[
+            { label: "PX THAN NGUYÊN KHAI", color: "#0369a1", bg: "#f0f9ff", border: "#bae6fd", ip: "192.168.1.100" },
+            { label: "PX THAN SẠCH", color: "#15803d", bg: "#f0fdf4", border: "#bbf7d0", ip: "192.168.1.102" },
+          ].map((db) => (
+            <div key={db.label} style={{ background: db.bg, border: `1px solid ${db.border}`, borderRadius: 8, padding: 12 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: db.color, marginBottom: 8 }}>{db.label}</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <div>
+                  <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 3 }}>IP Server</label>
+                  <input defaultValue={db.ip} style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: 5, padding: "6px 8px", fontSize: 11, fontFamily: "inherit" }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 3 }}>Username</label>
+                  <input defaultValue="sa" style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: 5, padding: "6px 8px", fontSize: 11, fontFamily: "inherit" }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 3 }}>Password</label>
+                  <input type="password" defaultValue="••••••" style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: 5, padding: "6px 8px", fontSize: 11, fontFamily: "inherit" }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 3 }}>Database</label>
+                  <input defaultValue="QLSX_DB" style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: 5, padding: "6px 8px", fontSize: 11, fontFamily: "inherit" }} />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ padding: "12px 20px", borderTop: "1px solid #e5e7eb", display: "flex", justifyContent: "flex-end", gap: 8 }}>
+          <button onClick={onClose} style={{ background: "#f3f4f6", border: "1px solid #d1d5db", borderRadius: 7, padding: "8px 16px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>Huỷ</button>
+          <button onClick={onClose} style={{ background: "#1976D2", color: "#fff", border: "none", borderRadius: 7, padding: "8px 18px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>💾 Lưu cấu hình</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── MAIN DASHBOARD ───────────────────────────────────────────────────────────
 export default function CoalMiningDashboard() {
   const today = new Date();
@@ -645,6 +690,7 @@ export default function CoalMiningDashboard() {
   const [etlStatus, setEtlStatus] = useState("idle"); // "idle" | "running" | "done" | "error"
   const [syncLog, setSyncLog] = useState(MOCK_SYNC_LOG);
   const [syncing, setSyncing] = useState(false);
+  const [showSetupModal, setShowSetupModal] = useState(false);
 
   // Derived
   const displayDate = new Date(selectedDate);
@@ -693,7 +739,7 @@ export default function CoalMiningDashboard() {
 
         {/* ═══ HEADER ═══ */}
         <div style={{ background: "#fff", borderBottom: "3px solid #0d47a1", padding: "10px 16px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          
+
           <div style={{ flex: 1 }}>
             <h1 style={{ fontSize: 16, fontWeight: 800, color: "#1f2937" }}>BÁO CÁO ĐIỀU HÀNH SẢN XUẤT & NHÂN SỰ</h1>
             <div style={{ fontSize: 10, color: "#6b7280", marginTop: 2 }}>
@@ -1040,43 +1086,30 @@ export default function CoalMiningDashboard() {
           </div>
 
           {/* ═══ ROW 4: ETL PIPELINE ═══ */}
-          <SectionCard title="ĐỒNG BỘ DỮ LIỆU TỪ CÁC PHÂN XƯỞNG → PIPELINE ETL → BÁO CÁO TKV" titleBg="#1976D2">
-            <div style={{ padding: "12px 14px", display: "grid", gridTemplateColumns: "260px 1fr 1fr", gap: 14 }}>
-
-              {/* DB Config */}
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#1976D2", marginBottom: 8 }}>Kết nối nguồn dữ liệu</div>
-                {[
-                  { label: "PX THAN NGUYÊN KHAI", color: "#0369a1", bg: "#f0f9ff", border: "#bae6fd", ip: "192.168.1.100" },
-                  { label: "PX THAN SẠCH", color: "#15803d", bg: "#f0fdf4", border: "#bbf7d0", ip: "192.168.1.102" },
-                ].map((db) => (
-                  <div key={db.label} style={{ background: db.bg, border: `1px solid ${db.border}`, borderRadius: 7, padding: 10, marginBottom: 8 }}>
-                    <div style={{ fontSize: 10, fontWeight: 800, color: db.color, marginBottom: 6 }}>{db.label}</div>
-                    <input defaultValue={db.ip} style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: 5, padding: "5px 8px", fontSize: 11, marginBottom: 4, fontFamily: "inherit" }} placeholder="IP Server" />
-                    <input defaultValue="sa" style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: 5, padding: "5px 8px", fontSize: 11, fontFamily: "inherit" }} placeholder="Username" />
-                  </div>
-                ))}
-                <button
-                  onClick={handleSync}
-                  disabled={syncing}
-                  style={{ width: "100%", background: syncing ? "#6b7280" : "#1976D2", color: "#fff", border: "none", borderRadius: 8, padding: "10px", fontSize: 12, fontWeight: 800, cursor: syncing ? "not-allowed" : "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
-                >
-                  {syncing
-                    ? <><span style={{ display: "inline-block", animation: "spin 1s linear infinite" }}>⟳</span> Đang đồng bộ...</>
-                    : "⬇ Đồng bộ tất cả"
-                  }
-                </button>
-                <div style={{ marginTop: 6, padding: "6px 10px", borderRadius: 6, background: etlStatus === "done" ? "#ecfdf5" : etlStatus === "running" ? "#eff6ff" : "#f3f4f6", fontSize: 10, display: "flex", alignItems: "center", gap: 6 }}>
-                  <div style={{ width: 7, height: 7, borderRadius: "50%", background: pipeColor }} />
-                  <span style={{ color: pipeColor, fontWeight: 700 }}>
-                    {etlStatus === "done" ? "Đồng bộ hoàn thành" : etlStatus === "running" ? "Đang đồng bộ..." : "Chờ đồng bộ"}
-                  </span>
-                </div>
-              </div>
+          <SectionCard title="ĐỒNG BỘ DỮ LIỆU TỪ CÁC PHÂN XƯỞNG → PIPELINE ETL → BÁO CÁO TKV" titleBg="#0d47a1">
+            <div style={{ padding: "12px 14px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
 
               {/* Pipeline steps */}
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#1976D2", marginBottom: 8 }}>ETL Pipeline Flow</div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#1976D2" }}>ETL Pipeline Flow</div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <button
+                      onClick={() => setShowSetupModal(true)}
+                      style={{ background: "#f3f4f6", border: "1px solid #d1d5db", borderRadius: 6, padding: "5px 10px", fontSize: 10, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", color: "#374151" }}
+                    >
+                      ⚙ Cấu hình Server
+                    </button>
+                    <button
+                      onClick={handleSync}
+                      disabled={syncing}
+                      style={{ background: syncing ? "#6b7280" : "#1976D2", color: "#fff", border: "none", borderRadius: 6, padding: "5px 12px", fontSize: 10, fontWeight: 700, cursor: syncing ? "not-allowed" : "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 5 }}
+                    >
+                      {syncing ? <><span style={{ display: "inline-block", animation: "spin 1s linear infinite" }}>⟳</span> Đang đồng bộ...</> : "⬇ Đồng bộ tất cả"}
+                    </button>
+                  </div>
+                </div>
+
                 <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: 10, display: "flex", flexDirection: "column", gap: 6 }}>
                   {pipelines.map((p, i) => (
                     <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", background: "#fff", borderRadius: 8, border: `1px solid ${pipeColor}33` }}>
@@ -1089,18 +1122,25 @@ export default function CoalMiningDashboard() {
                     </div>
                   ))}
                 </div>
+
+                <div style={{ marginTop: 6, padding: "6px 10px", borderRadius: 6, background: etlStatus === "done" ? "#ecfdf5" : etlStatus === "running" ? "#eff6ff" : "#f3f4f6", fontSize: 10, display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ width: 7, height: 7, borderRadius: "50%", background: pipeColor }} />
+                  <span style={{ color: pipeColor, fontWeight: 700 }}>
+                    {etlStatus === "done" ? "Đồng bộ hoàn thành" : etlStatus === "running" ? "Đang đồng bộ..." : "Chờ đồng bộ"}
+                  </span>
+                </div>
               </div>
 
               {/* Sync log */}
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#1976D2", marginBottom: 8 }}>Nhật ký đồng bộ</div>
-                <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, overflow: "hidden" }}>
+              <div className="border-l-2 border-blue-500">
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#1976D2", marginBottom: 8, marginLeft:8 }}>Nhật ký đồng bộ</div>
+                <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, overflow: "hidden", marginLeft:8 }}>
                   <div style={{ display: "grid", gridTemplateColumns: "85px 1fr 55px", padding: "5px 10px", background: "#1976D2" }}>
                     {["Thời gian", "Nội dung", "Trạng thái"].map((h) => (
                       <span key={h} style={{ fontSize: 9, color: "#fff", fontWeight: 700 }}>{h}</span>
                     ))}
                   </div>
-                  <div style={{ maxHeight: 170, overflowY: "auto" }}>
+                  <div style={{ maxHeight: 200, overflowY: "auto" }}>
                     {syncLog.map((row, i) => (
                       <div key={i} style={{ display: "grid", gridTemplateColumns: "85px 1fr 55px", padding: "5px 10px", background: i % 2 === 0 ? "#fff" : "#f9fafb", borderBottom: "1px solid #e5e7eb" }}>
                         <span style={{ fontSize: 9, color: "#6b7280", fontFamily: "monospace" }}>{row.ts}</span>
@@ -1130,6 +1170,9 @@ export default function CoalMiningDashboard() {
           onClose={() => setShowPlanModal(false)}
           onSubmit={handlePlanSubmit}
         />
+      )}
+      {showSetupModal && (
+        <SetupModal onClose={() => setShowSetupModal(false)} />
       )}
       {showVattuModal && (
         <VatTuModal onClose={() => setShowVattuModal(false)} />
