@@ -1,12 +1,5 @@
 import { Upload } from "lucide-react";
-import { useState, useRef, useCallback } from "react";
-
-interface PlanEntry {
-  dept: string;
-  type: string;
-  period: string;
-  target: string;
-}
+import { useState, useRef } from "react";
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const COMPANY_NAME = "CÔNG TY CỔ PHẦN THAN ĐÈO NAI CỌC SÁU - VINACOMIN";
@@ -288,7 +281,7 @@ function VatTuModal({ onClose }: { onClose: () => void }) {
 }
 
 // ─── PLAN MODAL ───────────────────────────────────────────────────────────────
-function PlanModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (plan: any) => void }) {
+function PlanModal({ onClose }: { onClose: () => void }) {
   const [step, setStep] = useState(1);
   const [dept, setDept] = useState("");
   const [planType, setPlanType] = useState("");
@@ -319,7 +312,6 @@ function PlanModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (plan
     setTimeout(() => {
       setSubmitting(false);
       setSubmitted(true);
-      onSubmit({ dept, type: PLAN_TYPE_MAP[planType] || planType, period, target });
     }, 1800);
   };
 
@@ -540,19 +532,6 @@ function PlanModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (plan
           )}
         </div>
       </div>
-    </div>
-  );
-}
-
-// ─── PLAN BADGE ───────────────────────────────────────────────────────────────
-function PlanBadge({ plan }: { plan: any }) {
-  return (
-    <div style={{ border: "1px solid #e5e7eb", borderLeft: "3px solid #1d4ed8", borderRadius: 0, padding: "5px 8px", marginBottom: 5, display: "flex", alignItems: "center", gap: 8 }}>
-      <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: "#1976D2" }}>{plan.type}</div>
-        <div style={{ fontSize: 9, color: "#64748b" }}>{plan.dept} — {plan.period}</div>
-      </div>
-      <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 3, fontWeight: 700, background: "#eff6ff", color: "#1d4ed8" }}>Đã gắn</span>
     </div>
   );
 }
@@ -1047,7 +1026,6 @@ export default function CoalMiningDashboard() {
 
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [showVattuModal, setShowVattuModal] = useState(false);
-  const [plans, setPlans] = useState<PlanEntry[]>([]);
 
   const [syncing, setSyncing] = useState(false);
   const [showSetupModal, setShowSetupModal] = useState(false);
@@ -1063,9 +1041,6 @@ export default function CoalMiningDashboard() {
   const displayDate = new Date(selectedDate);
   const dayStr = `${String(displayDate.getDate()).padStart(2, "0")}/${String(displayDate.getMonth() + 1).padStart(2, "0")}/${displayDate.getFullYear()}`;
 
-  const handlePlanSubmit = useCallback((plan: any) => {
-    setPlans((prev) => [...prev, plan]);
-  }, []);
 
   const handleSync = () => {
     setSyncing(true);
@@ -1100,8 +1075,6 @@ export default function CoalMiningDashboard() {
   const handleBatchSync = () => {
     setShowBatchSyncModal(true);
   };
-
-  const tkvPlans = plans.filter((p) => p.target === "both" || p.target === "tkv");
 
   return (
     <>
@@ -1445,15 +1418,6 @@ export default function CoalMiningDashboard() {
                     </tbody>
                   </table>
                 </div>
-
-                {/* Kế hoạch gắn */}
-                <div style={{ padding: "8px 10px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 7 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: "#9a3412", marginBottom: 6 }}>📌 KẾ HOẠCH ĐÃ GẮN</div>
-                  {tkvPlans.length === 0
-                    ? <div style={{ fontSize: 10, color: "#64748b", fontStyle: "italic" }}>Chưa có kế hoạch</div>
-                    : tkvPlans.map((p, i) => <PlanBadge key={i} plan={p} />)
-                  }
-                </div>
               </div>
             </SectionCard>
           </div>
@@ -1489,7 +1453,6 @@ export default function CoalMiningDashboard() {
       {showPlanModal && (
         <PlanModal
           onClose={() => setShowPlanModal(false)}
-          onSubmit={handlePlanSubmit}
         />
       )}
       {showSetupModal && (
