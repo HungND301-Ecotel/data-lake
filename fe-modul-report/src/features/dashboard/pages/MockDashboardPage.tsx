@@ -1,3 +1,4 @@
+import { Upload } from "lucide-react";
 import { useState, useRef, useCallback } from "react";
 
 interface PlanEntry {
@@ -59,13 +60,6 @@ const WORKFORCE = {
   nghi: 1,
   nghiLuyKe: 16,
 };
-
-const MOCK_SYNC_LOG = [
-  { ts: "05/04 08:30", noidung: "PX Than NK — Ngày 5", ok: true },
-  { ts: "05/04 09:15", noidung: "PX Than Sạch — Ngày 5", ok: true },
-  { ts: "04/04 08:20", noidung: "PX Than NK — Ngày 4", ok: true },
-  { ts: "04/04 09:00", noidung: "PX Than Sạch — Ngày 4", ok: false },
-];
 
 const VATTU_GROUPS = [
   {
@@ -589,10 +583,6 @@ function SectionCard({ title, titleBg = "#1976D2", children }: { title: string; 
   );
 }
 
-// ─── STATUS DOT ───────────────────────────────────────────────────────────────
-function StatusDot({ ok }: { ok: boolean }) {
-  return <div style={{ width: 7, height: 7, borderRadius: "50%", background: ok ? "#10b981" : "#f59e0b", flexShrink: 0 }} />;
-}
 
 // ─── BADGE ────────────────────────────────────────────────────────────────────
 function Badge({ children, color = "#1d4ed8", bg = "#eff6ff" }: { children: React.ReactNode; color?: string; bg?: string }) {
@@ -627,49 +617,422 @@ const TD = (extra: React.CSSProperties = {}): React.CSSProperties => ({
 });
 
 function SetupModal({ onClose }: { onClose: () => void }) {
+  const [connections, setConnections] = useState<Record<string, { ip: string; port: string; db: string; user: string; pass: string }>>({
+    "PX Than Nguyên Khai": { ip: "192.168.1.100", port: "1433", db: "QLSX_DB", user: "sa", pass: "••••••" },
+    "PX Than Sạch": { ip: "192.168.1.102", port: "1433", db: "QLSX_DB", user: "sa", pass: "••••••" },
+  });
+
+  const [isAddingNew, setIsAddingNew] = useState(false);
+  const [newDept, setNewDept] = useState("");
+  const [editingDept, setEditingDept] = useState<string | null>(null);
+  const [tempConfig, setTempConfig] = useState<{ ip: string; port: string; db: string; user: string; pass: string } | null>(null);
+
+  const deptOptions = ["PX Than Nguyên Khai", "PX Than Sạch", "PX Cơ điện"];
+
+  const handleEditStart = (dept: string) => {
+    setEditingDept(dept);
+    setTempConfig({ ...connections[dept] });
+  };
+
+  const handleEditSave = () => {
+    if (editingDept && tempConfig) {
+      setConnections(prev => ({
+        ...prev,
+        [editingDept]: tempConfig
+      }));
+      setEditingDept(null);
+      setTempConfig(null);
+    }
+  };
+
+  const handleEditCancel = () => {
+    setEditingDept(null);
+    setTempConfig(null);
+  };
+
+  const handleDeleteConnection = (dept: string) => {
+    if (confirm(`Xác nhận xóa cấu hình: ${dept}?`)) {
+      setConnections(prev => {
+        const newConnections = { ...prev };
+        delete newConnections[dept];
+        return newConnections;
+      });
+    }
+  };
+
+  const handleAddNewStart = () => {
+    setIsAddingNew(true);
+    setNewDept("");
+    setTempConfig({ ip: "", port: "1433", db: "QLSX_DB", user: "sa", pass: "" });
+  };
+
+  const handleAddNewSave = () => {
+    if (!newDept || !tempConfig) {
+      alert("Vui lòng nhập tên phòng ban");
+      return;
+    }
+    if (connections[newDept]) {
+      alert("Phòng ban này đã tồn tại!");
+      return;
+    }
+    setConnections(prev => ({
+      ...prev,
+      [newDept]: tempConfig
+    }));
+    setIsAddingNew(false);
+    setNewDept("");
+    setTempConfig(null);
+  };
+
+  const handleAddNewCancel = () => {
+    setIsAddingNew(false);
+    setNewDept("");
+    setTempConfig(null);
+  };
+
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ background: "#fff", borderRadius: 12, width: 480, boxShadow: "0 20px 60px rgba(0,0,0,0.3)", overflow: "hidden" }}>
+      <div style={{ background: "#fff", borderRadius: 12, width: 500, maxWidth: "96vw", maxHeight: "90vh", boxShadow: "0 20px 60px rgba(0,0,0,0.3)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
         <div style={{ background: "#1976D2", color: "#fff", padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ fontSize: 14, fontWeight: 700 }}>⚙ Cấu hình kết nối Server</div>
           <button onClick={onClose} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 5, padding: "4px 10px", cursor: "pointer" }}>✕</button>
         </div>
-        <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
-          {[
-            { label: "PX THAN NGUYÊN KHAI", color: "#0369a1", bg: "#f0f9ff", border: "#bae6fd", ip: "192.168.1.100" },
-            { label: "PX THAN SẠCH", color: "#15803d", bg: "#f0fdf4", border: "#bbf7d0", ip: "192.168.1.102" },
-          ].map((db) => (
-            <div key={db.label} style={{ background: db.bg, border: `1px solid ${db.border}`, borderRadius: 8, padding: 12 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: db.color, marginBottom: 8 }}>{db.label}</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+        <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16, maxHeight: "70vh", overflowY: "auto" }}>
+
+          {/* DANH SÁCH ĐANG CẤU HÌNH */}
+          {!isAddingNew && !editingDept && (
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#1976D2", marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span>📋 Danh sách Server đã cấu hình</span>
+                <button
+                  onClick={handleAddNewStart}
+                  style={{ background: "#1976D2", color: "#fff", border: "none", borderRadius: 6, padding: "5px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+                >
+                  + Thêm mới
+                </button>
+              </div>
+
+              {Object.entries(connections).length === 0 ? (
+                <div style={{ padding: "20px", textAlign: "center", background: "#f3f4f6", borderRadius: 8 }}>
+                  <div style={{ fontSize: 11, color: "#94a3b8" }}>Chưa có cấu hình nào</div>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {Object.entries(connections).map(([dept, cfg]) => (
+                    <div key={dept} style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 8, padding: 12, display: "flex", alignItems: "center", gap: 12 }}>
+                      <div style={{ width: 40, height: 40, background: "#1976D2", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: "#fff", flexShrink: 0 }}>
+                        🔗
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: "#1976D2" }}>{dept}</div>
+                        <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>
+                          {cfg.ip}:{cfg.port} • DB: <b>{cfg.db}</b> • User: <b>{cfg.user}</b>
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button
+                          onClick={() => handleEditStart(dept)}
+                          style={{ background: "#fff", border: "1px solid #d1d5db", borderRadius: 5, padding: "5px 10px", fontSize: 10, cursor: "pointer", fontFamily: "inherit", color: "#1976D2", fontWeight: 700 }}
+                        >
+                          ✏️ Sửa
+                        </button>
+                        <button
+                          onClick={() => handleDeleteConnection(dept)}
+                          style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 5, padding: "5px 10px", fontSize: 10, cursor: "pointer", fontFamily: "inherit", color: "#dc2626", fontWeight: 700 }}
+                        >
+                          🗑️ Xóa
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* FORM THÊM MỚI */}
+          {isAddingNew && tempConfig && (
+            <div style={{ background: "#f0fdf4", border: "2px solid #10b981", borderRadius: 8, padding: 14 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#065f46", marginBottom: 12 }}>
+                + Thêm cấu hình Server mới
+              </div>
+
+              {/* Chọn phòng ban */}
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 4, fontWeight: 700 }}>Chọn phòng ban *</label>
+                <select
+                  value={newDept}
+                  onChange={(e) => setNewDept(e.target.value)}
+                  style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: 6, padding: "8px 10px", fontSize: 11, fontFamily: "inherit" }}
+                >
+                  <option value="">-- Chọn phòng ban --</option>
+                  {deptOptions
+                    .filter(opt => !connections[opt] || opt === newDept)
+                    .map(opt => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                </select>
+              </div>
+
+              {/* Các field config */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
                 <div>
-                  <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 3 }}>IP Server</label>
-                  <input defaultValue={db.ip} style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: 5, padding: "6px 8px", fontSize: 11, fontFamily: "inherit" }} />
+                  <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 4, fontWeight: 700 }}>IP / Hostname</label>
+                  <input
+                    value={tempConfig.ip}
+                    onChange={(e) => setTempConfig({ ...tempConfig, ip: e.target.value })}
+                    placeholder="vd: 192.168.1.100"
+                    style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: 5, padding: "6px 8px", fontSize: 11, fontFamily: "inherit" }}
+                  />
                 </div>
                 <div>
-                  <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 3 }}>Username</label>
-                  <input defaultValue="sa" style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: 5, padding: "6px 8px", fontSize: 11, fontFamily: "inherit" }} />
+                  <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 4, fontWeight: 700 }}>Port</label>
+                  <input
+                    value={tempConfig.port}
+                    onChange={(e) => setTempConfig({ ...tempConfig, port: e.target.value })}
+                    placeholder="1433"
+                    style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: 5, padding: "6px 8px", fontSize: 11, fontFamily: "inherit" }}
+                  />
                 </div>
                 <div>
-                  <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 3 }}>Password</label>
-                  <input type="password" defaultValue="••••••" style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: 5, padding: "6px 8px", fontSize: 11, fontFamily: "inherit" }} />
+                  <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 4, fontWeight: 700 }}>Tên Database</label>
+                  <input
+                    value={tempConfig.db}
+                    onChange={(e) => setTempConfig({ ...tempConfig, db: e.target.value })}
+                    placeholder="QLSX_DB"
+                    style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: 5, padding: "6px 8px", fontSize: 11, fontFamily: "inherit" }}
+                  />
                 </div>
                 <div>
-                  <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 3 }}>Database</label>
-                  <input defaultValue="QLSX_DB" style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: 5, padding: "6px 8px", fontSize: 11, fontFamily: "inherit" }} />
+                  <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 4, fontWeight: 700 }}>Tài khoản</label>
+                  <input
+                    value={tempConfig.user}
+                    onChange={(e) => setTempConfig({ ...tempConfig, user: e.target.value })}
+                    placeholder="sa"
+                    style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: 5, padding: "6px 8px", fontSize: 11, fontFamily: "inherit" }}
+                  />
+                </div>
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 4, fontWeight: 700 }}>Mật khẩu</label>
+                  <input
+                    type="password"
+                    value={tempConfig.pass}
+                    onChange={(e) => setTempConfig({ ...tempConfig, pass: e.target.value })}
+                    placeholder="••••••"
+                    style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: 5, padding: "6px 8px", fontSize: 11, fontFamily: "inherit" }}
+                  />
                 </div>
               </div>
+
+              {/* Button hành động */}
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  onClick={handleAddNewSave}
+                  style={{ flex: 1, background: "#10b981", color: "#fff", border: "none", borderRadius: 6, padding: "8px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+                >
+                  ✓ Lưu
+                </button>
+                <button
+                  onClick={handleAddNewCancel}
+                  style={{ flex: 1, background: "#f3f4f6", color: "#374151", border: "1px solid #d1d5db", borderRadius: 6, padding: "8px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+                >
+                  ✕ Hủy
+                </button>
+              </div>
             </div>
-          ))}
+          )}
+
+          {/* FORM SỬA CẤU HÌNH HIỆN TẠI */}
+          {editingDept && tempConfig && (
+            <div style={{ background: "#fffbeb", border: "2px solid #f59e0b", borderRadius: 8, padding: 14 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#92400e", marginBottom: 12 }}>
+                ✏️ Sửa cấu hình: <b>{editingDept}</b>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+                <div>
+                  <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 4, fontWeight: 700 }}>IP / Hostname</label>
+                  <input
+                    value={tempConfig.ip}
+                    onChange={(e) => setTempConfig({ ...tempConfig, ip: e.target.value })}
+                    style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: 5, padding: "6px 8px", fontSize: 11, fontFamily: "inherit" }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 4, fontWeight: 700 }}>Port</label>
+                  <input
+                    value={tempConfig.port}
+                    onChange={(e) => setTempConfig({ ...tempConfig, port: e.target.value })}
+                    style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: 5, padding: "6px 8px", fontSize: 11, fontFamily: "inherit" }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 4, fontWeight: 700 }}>Tên Database</label>
+                  <input
+                    value={tempConfig.db}
+                    onChange={(e) => setTempConfig({ ...tempConfig, db: e.target.value })}
+                    style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: 5, padding: "6px 8px", fontSize: 11, fontFamily: "inherit" }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 4, fontWeight: 700 }}>Tài khoản</label>
+                  <input
+                    value={tempConfig.user}
+                    onChange={(e) => setTempConfig({ ...tempConfig, user: e.target.value })}
+                    style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: 5, padding: "6px 8px", fontSize: 11, fontFamily: "inherit" }}
+                  />
+                </div>
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 4, fontWeight: 700 }}>Mật khẩu</label>
+                  <input
+                    type="password"
+                    value={tempConfig.pass}
+                    onChange={(e) => setTempConfig({ ...tempConfig, pass: e.target.value })}
+                    style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: 5, padding: "6px 8px", fontSize: 11, fontFamily: "inherit" }}
+                  />
+                </div>
+              </div>
+
+              {/* Button hành động */}
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  onClick={handleEditSave}
+                  style={{ flex: 1, background: "#f59e0b", color: "#fff", border: "none", borderRadius: 6, padding: "8px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+                >
+                  ✓ Lưu thay đổi
+                </button>
+                <button
+                  onClick={handleEditCancel}
+                  style={{ flex: 1, background: "#f3f4f6", color: "#374151", border: "1px solid #d1d5db", borderRadius: 6, padding: "8px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+                >
+                  ✕ Hủy
+                </button>
+              </div>
+            </div>
+          )}
         </div>
         <div style={{ padding: "12px 20px", borderTop: "1px solid #e5e7eb", display: "flex", justifyContent: "flex-end", gap: 8 }}>
-          <button onClick={onClose} style={{ background: "#f3f4f6", border: "1px solid #d1d5db", borderRadius: 7, padding: "8px 16px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>Huỷ</button>
-          <button onClick={onClose} style={{ background: "#1976D2", color: "#fff", border: "none", borderRadius: 7, padding: "8px 18px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>💾 Lưu cấu hình</button>
+          <button
+            onClick={onClose}
+            style={{ background: "#059669", color: "#fff", border: "none", borderRadius: 7, padding: "8px 18px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+          >
+            ✓ Đóng
+          </button>
         </div>
       </div>
     </div>
   );
 }
+
+function BatchSyncModal({ onClose, selectedBatches = [] }: { onClose: () => void; selectedBatches?: any[] }) {
+  const [syncing, setSyncing] = useState(false);
+  const [synced, setSynced] = useState(false);
+
+  const handleSync = () => {
+    setSyncing(true);
+    setTimeout(() => {
+      setSyncing(false);
+      setSynced(true);
+    }, 2500);
+  };
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ background: "#fff", borderRadius: 12, width: 500, maxWidth: "96vw", boxShadow: "0 20px 60px rgba(0,0,0,0.3)", overflow: "hidden" }}>
+        {/* Header */}
+        <div style={{ background: "#1976D2", color: "#fff", padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ fontSize: 13, fontWeight: 700 }}>⬇️ Đồng bộ Batch TKV</div>
+          <button onClick={onClose} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 5, padding: "4px 10px", cursor: "pointer", fontSize: 12 }}>✕</button>
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: 20 }}>
+          {!syncing && !synced && (
+            <>
+              {/* Danh sách batch sẽ đồng bộ */}
+              {selectedBatches.length > 0 && (
+                <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 8, padding: 12, marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#0369a1", marginBottom: 8 }}>
+                    📋 Batch sẽ được đồng bộ:
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    {selectedBatches.map((batch, i) => (
+                      <div key={i} style={{ fontSize: 10, color: "#1976D2", padding: "6px 10px", background: "#fff", borderRadius: 5, border: "1px solid #bae6fd" }}>
+                        <span style={{ fontWeight: 700 }}>✓</span> {batch.name || batch}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Thông tin đồng bộ */}
+              <div style={{ background: "#fffbeb", border: "1px solid #fed7aa", borderRadius: 8, padding: 12 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#92400e", marginBottom: 8 }}>
+                  ℹ️ Thông tin đồng bộ
+                </div>
+                <div style={{ fontSize: 10, color: "#d97706", lineHeight: 1.6 }}>
+                  <p style={{ marginBottom: 6 }}>Dữ liệu từ các batch sẽ được:</p>
+                  <ul style={{ marginLeft: 16, marginBottom: 0 }}>
+                    <li>✓ Xác minh và kiểm tra</li>
+                    <li>✓ Cập nhật vào Báo cáo TKV</li>
+                    <li>✓ Lưu trữ trong hệ thống</li>
+                  </ul>
+                </div>
+              </div>
+            </>
+          )}
+
+          {syncing && (
+            <div style={{ background: "#eff6ff", border: "1px solid #93c5fd", borderRadius: 8, padding: 20, textAlign: "center" }}>
+              <div style={{ fontSize: 28, marginBottom: 12, animation: "spin 1s linear infinite", display: "inline-block" }}>⟳</div>
+              <div style={{ fontSize: 12, color: "#1d4ed8", fontWeight: 700, marginBottom: 4 }}>Đang đồng bộ...</div>
+              <div style={{ fontSize: 10, color: "#64748b" }}>Vui lòng chờ, không đóng cửa sổ này</div>
+            </div>
+          )}
+
+          {synced && (
+            <div style={{ background: "#ecfdf5", border: "1px solid #6ee7b7", borderRadius: 8, padding: 20, textAlign: "center" }}>
+              <div style={{ fontSize: 32, marginBottom: 8 }}>✅</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#065f46", marginBottom: 4 }}>Đồng bộ thành công!</div>
+              <div style={{ fontSize: 10, color: "#059669", marginTop: 8 }}>
+                {selectedBatches.length} batch đã được cập nhật vào Báo cáo TKV
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding: "12px 20px", borderTop: "1px solid #e5e7eb", display: "flex", justifyContent: "flex-end", gap: 8 }}>
+          {!syncing && !synced && (
+            <>
+              <button
+                onClick={onClose}
+                style={{ background: "#f3f4f6", color: "#374151", border: "1px solid #d1d5db", borderRadius: 7, padding: "8px 16px", fontSize: 11, cursor: "pointer", fontFamily: "inherit" }}
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleSync}
+                style={{ background: "#1976D2", color: "#fff", border: "none", borderRadius: 7, padding: "8px 18px", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+              >
+                ✓ Đồng bộ {selectedBatches.length} batch
+              </button>
+            </>
+          )}
+          {synced && (
+            <button
+              onClick={onClose}
+              style={{ background: "#059669", color: "#fff", border: "none", borderRadius: 7, padding: "8px 18px", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+            >
+              ✓ Đóng
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 // ─── MAIN DASHBOARD ───────────────────────────────────────────────────────────
 export default function CoalMiningDashboard() {
@@ -686,11 +1049,15 @@ export default function CoalMiningDashboard() {
   const [showVattuModal, setShowVattuModal] = useState(false);
   const [plans, setPlans] = useState<PlanEntry[]>([]);
 
-
-  const [etlStatus, setEtlStatus] = useState("idle"); // "idle" | "running" | "done" | "error"
-  const [syncLog, setSyncLog] = useState(MOCK_SYNC_LOG);
   const [syncing, setSyncing] = useState(false);
   const [showSetupModal, setShowSetupModal] = useState(false);
+
+  const [batches, setBatches] = useState([
+    { id: 1, name: "Kế hoạch sản xuất Q1", creator: "Nguyễn Văn A", year: 2026, month: "01-03", day: "05/05", status: "Chưa đồng bộ", file: "KH_SX_2026_Q1.xlsx" },
+    { id: 2, name: "Kế hoạch nhân sự tháng 4", creator: "Trần Thị B", year: 2026, month: "04", day: "08/05", status: "Đã đồng bộ", file: "KH_NS_2026_T4.xlsx" },
+  ]);
+
+  const [showBatchSyncModal, setShowBatchSyncModal] = useState(false);
 
   // Derived
   const displayDate = new Date(selectedDate);
@@ -702,26 +1069,40 @@ export default function CoalMiningDashboard() {
 
   const handleSync = () => {
     setSyncing(true);
-    setEtlStatus("running");
     setTimeout(() => {
       setSyncing(false);
-      setEtlStatus("done");
-      const now = new Date();
-      const ts = `${String(now.getDate()).padStart(2, "0")}/${String(now.getMonth() + 1).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-      setSyncLog((prev) => [{ ts, noidung: "PX Than NK + PX Than Sạch", ok: true }, ...prev]);
     }, 3000);
   };
 
-  const pipeColor = { idle: "#9ca3af", running: "#2563eb", done: "#059669", error: "#dc2626" }[etlStatus];
+  const handleBatchEdit = (id: number) => {
+    // Mở file dialog để chọn file mới
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.xlsx,.xls';
+    fileInput.onchange = (e: any) => {
+      const file = e.target.files[0];
+      if (file) {
+        // Cập nhật file trong batch (không cần setEditingBatchId)
+        setBatches(prev => prev.map(b =>
+          b.id === id ? { ...b, file: file.name } : b
+        ));
+      }
+    };
+    fileInput.click();
+  };
+
+  const handleBatchDelete = (id: number) => {
+    if (confirm("Xác nhận xóa batch này?")) {
+      setBatches(prev => prev.filter(b => b.id !== id));
+    }
+  };
+
+  const handleBatchSync = () => {
+    setShowBatchSyncModal(true);
+  };
+
   const noidungPlans = plans.filter((p) => p.target === "both" || p.target === "noidung");
   const tkvPlans = plans.filter((p) => p.target === "both" || p.target === "tkv");
-
-  const pipelines = [
-    { icon: "⛏", label: "ETL — PX Than Nguyên Khai", sub: "DB (192.168.1.100) → Staging" },
-    { icon: "🔩", label: "ETL — PX Than Sạch", sub: "DB (192.168.1.102) → Staging" },
-    { icon: "✔", label: "Validate & Transform", sub: "Kiểm tra chỉ tiêu, chuyển đổi định dạng" },
-    { icon: "📋", label: "Tổng hợp → Báo cáo TKV", sub: "Staging → Báo cáo nội bộ + TKV" },
-  ];
 
   return (
     <>
@@ -964,55 +1345,44 @@ export default function CoalMiningDashboard() {
 
             {/* A — Báo cáo nội bộ */}
             <SectionCard title="A. BÁO CÁO NỘI BỘ — TỪ CÁC PHÂN XƯỞNG" titleBg="#1976D2">
-              <div style={{ padding: 12 }}>
-                <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 10 }}>
-                  <span style={{ fontSize: 11, fontWeight: 700 }}>Phân xưởng:</span>
-                  <select style={{ flex: 1, border: "1px solid #d1d5db", borderRadius: 6, padding: "4px 8px", fontSize: 11 }}>
-                    <option>Tất cả phân xưởng</option>
-                    <option>PX Than Nguyên Khai</option>
-                    <option>PX Than Sạch</option>
-                    <option>PX Cơ điện</option>
-                  </select>
+              <div style={{ padding: 12, display: "flex", flexDirection: "column", gap: 10 }}>
+
+                {/* Bảng phân xưởng */}
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead>
+                      <tr>
+                        {["Phân xưởng", "Đồng bộ lúc", "Trạng thái", "Dữ liệu", "Thao tác"].map((h) => (
+                          <th key={h} style={TH({ fontSize: 10, padding: "6px 8px" })}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { icon: "⛏", name: "PX Than Nguyên Khai", syncTime: "08:30", status: "✓ Đã đồng bộ", data: "6.917 tấn", color: "#1d4ed8" },
+                        { icon: "🔩", name: "PX Than Sạch", syncTime: "09:15", status: "✓ Đã đồng bộ", data: "4.120 tấn", color: "#059669" },
+                      ].map((row, i) => (
+                        <tr key={i} style={{ background: i % 2 === 0 ? "#f9fafb" : "#fff" }}>
+                          <td style={TD({ fontWeight: 700, color: row.color })}>{row.icon} {row.name}</td>
+                          <td style={TD({ fontSize: 10, color: "#6b7280" })}>{row.syncTime}</td>
+                          <td style={TD({ fontSize: 10, color: row.color, fontWeight: 700 })}>{row.status}</td>
+                          <td style={TD({ fontSize: 10, fontFamily: "monospace", fontWeight: 700, color: "#1976D2" })}>{row.data}</td>
+                          <td style={TD({ textAlign: "center", padding: "4px" })}>
+                            <button style={{ background: "transparent", border: "none", color: "#1976D2", fontWeight: 700, fontSize: 10, cursor: "pointer", fontFamily: "inherit" }}>
+                              👁 Xem
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
 
-                {/* PX Than NK row */}
-                {[
-                  { icon: "⛏", color: "#1d4ed8", bg: "#eff6ff", name: "PX Than Nguyên Khai", syncTime: `Ngày ${dayStr} lúc 08:30`, badges: [{ label: "Đã đồng bộ", c: "#059669", bg: "#ecfdf5" }, { label: "6.917 tấn", c: "#1d4ed8", bg: "#eff6ff" }] },
-                  { icon: "🔩", color: "#059669", bg: "#ecfdf5", name: "PX Than Sạch", syncTime: `Ngày ${dayStr} lúc 09:15`, badges: [{ label: "Đã đồng bộ", c: "#059669", bg: "#ecfdf5" }, { label: "4.120 tấn", c: "#1d4ed8", bg: "#eff6ff" }, { label: "Chờ xác nhận", c: "#dc2626", bg: "#fef2f2" }] },
-                ].map((item) => (
-                  <div key={item.name} style={{ border: "1px solid #e5e7eb", borderLeft: `3px solid ${item.color}`, borderRadius: 0, padding: "8px 10px", marginBottom: 8, display: "flex", alignItems: "center", gap: 8, background: item.bg }}>
-                    <div style={{ width: 32, height: 32, background: "#fff", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>{item.icon}</div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 700, fontSize: 12, color: item.color }}>{item.name}</div>
-                      <div style={{ fontSize: 10, color: "#64748b" }}>Đồng bộ lần cuối: <b>{item.syncTime}</b></div>
-                      <div style={{ display: "flex", gap: 4, marginTop: 3, flexWrap: "wrap" }}>
-                        {item.badges.map((b) => <span key={b.label} style={{ fontSize: 9, padding: "1px 6px", borderRadius: 3, fontWeight: 700, background: b.bg, color: b.c }}>{b.label}</span>)}
-                      </div>
-                    </div>
-                    <button className="fbtn" style={{ fontSize: 10 }}>Xem</button>
-                  </div>
-                ))}
-
-                {/* Tài chính & Vật tư nội bộ */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 10 }}>
-                  {[
-                    { label: "Doanh thu ngày", value: "550 Tỷ VNĐ", color: "#059669" },
-                    { label: "Lợi nhuận ngày", value: "275 Tỷ VNĐ", color: "#1d4ed8" },
-                    { label: "Giá thành/Tấn", value: "24.932 VNĐ", color: "#d97706" },
-                    { label: "Tồn vật tư", value: "1.200 Tr VNĐ", color: "#6b7280" },
-                  ].map((m) => (
-                    <div key={m.label} style={{ background: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: 6, padding: "6px 10px" }}>
-                      <div style={{ fontSize: 9, color: "#94a3b8" }}>{m.label}</div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: m.color, fontFamily: "monospace" }}>{m.value}</div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Kế hoạch nội bộ */}
+                {/* Kế hoạch gắn */}
                 <div style={{ padding: "8px 10px", background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 7 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: "#0369a1", marginBottom: 6 }}>KẾ HOẠCH ĐÃ GẮN</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#0369a1", marginBottom: 6 }}>📌 KẾ HOẠCH ĐÃ GẮN</div>
                   {noidungPlans.length === 0
-                    ? <div style={{ fontSize: 10, color: "#64748b", fontStyle: "italic" }}>Chưa có kế hoạch. Nhấn "+ Lập kế hoạch" để tạo.</div>
+                    ? <div style={{ fontSize: 10, color: "#64748b", fontStyle: "italic" }}>Chưa có kế hoạch</div>
                     : noidungPlans.map((p, i) => <PlanBadge key={i} plan={p} />)
                   }
                 </div>
@@ -1021,63 +1391,76 @@ export default function CoalMiningDashboard() {
 
             {/* B — Báo cáo TKV */}
             <SectionCard title="B. BÁO CÁO TKV — TỔNG HỢP GỬI TẬP ĐOÀN" titleBg="#1976D2">
-              <div style={{ padding: 12 }}>
-                <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 10 }}>
-                  <span style={{ fontSize: 11, fontWeight: 700 }}>Loại báo cáo:</span>
-                  <select style={{ flex: 1, border: "1px solid #d1d5db", borderRadius: 6, padding: "4px 8px", fontSize: 11 }}>
-                    <option>Báo cáo sản lượng (Mẫu TKV)</option>
-                    <option>Báo cáo lao động (Mẫu TKV)</option>
-                    <option>Báo cáo tổng hợp (Mẫu TKV)</option>
-                  </select>
+              <div style={{ padding: 12, display: "flex", flexDirection: "column", gap: 10 }}>
+
+                {/* Bảng quản lý batch */}
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead>
+                      <tr>
+                        {["Tên", "Người tạo", "Năm", "Tháng", "Ngày", "Upload", "Trạng thái", "Thao tác"].map((h) => (
+                          <th key={h} style={TH({ fontSize: 10, padding: "6px 6px" })}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {batches.length === 0 ? (
+                        <tr>
+                          <td colSpan={8} style={TD({ textAlign: "center", padding: "12px", color: "#94a3b8" })}>
+                            Chưa có batch nào
+                          </td>
+                        </tr>
+                      ) : (
+                        batches.map((batch, i) => (
+                          <tr key={batch.id} style={{ background: i % 2 === 0 ? "#f9fafb" : "#fff" }}>
+                            <td style={TD({ fontWeight: 700, color: "#1976D2", fontSize: 10 })}>{batch.name}</td>
+                            <td style={TD({ fontSize: 10, color: "#6b7280" })}>{batch.creator}</td>
+                            <td style={TD({ fontSize: 10, textAlign: "center", color: "#6b7280" })}>{batch.year}</td>
+                            <td style={TD({ fontSize: 10, textAlign: "center", color: "#6b7280" })}>{batch.month}</td>
+                            <td style={TD({ fontSize: 10, textAlign: "center", color: "#6b7280" })}>{batch.day}</td>
+                            <td style={TD({ fontSize: 9, color: "#1976D2", fontFamily: "monospace" })}>
+                              {batch.file}
+                            </td>
+                            <td style={TD({ fontSize: 10, fontWeight: 700, textAlign: "center", color: batch.status === "Đã đồng bộ" ? "#059669" : "#d97706" })}>
+                              {batch.status === "Đã đồng bộ" ? "✓ OK" : "⏳ Chờ"}
+                            </td>
+                            <td style={TD({ textAlign: "center", padding: "4px 0" })}>
+                              <div style={{ display: "flex", gap: 3, justifyContent: "center" }}>
+                                <button
+                                  onClick={() => handleBatchEdit(batch.id)}
+                                  title="Sửa"
+                                  style={{ background: "transparent", border: "none", color: "#1976D2", fontSize: 11, cursor: "pointer", padding: "2px 4px" }}
+                                >
+                                  ✏️
+                                </button>
+                                <button
+                                  onClick={() => handleBatchDelete(batch.id)}
+                                  title="Xóa"
+                                  style={{ background: "transparent", border: "none", color: "#dc2626", fontSize: 11, cursor: "pointer", padding: "2px 4px" }}
+                                >
+                                  🗑️
+                                </button>
+                                <button
+                                  onClick={() => handleBatchSync()}
+                                  title="Đồng bộ"
+                                  style={{ background: "transparent", border: "none", color: "#059669", fontSize: 11, cursor: "pointer", padding: "2px 4px" }}
+                                >
+                                  <Upload size={15} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 </div>
 
-                {/* TKV summary box */}
-                <div style={{ border: "1px solid #bbf7d0", borderRadius: 8, padding: "10px 12px", background: "#f0fdf4", marginBottom: 8 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#065f46", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
-                    Báo cáo Than — Ngày {dayStr}
-                    <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 3, fontWeight: 700, background: "#dcfce7", color: "#15803d" }}>Đủ dữ liệu</span>
-                  </div>
-                  {[
-                    { dept: "PX Than Nguyên Khai", value: "6.917 tấn", ok: true },
-                    { dept: "PX Than Sạch", value: "4.120 tấn", ok: true },
-                  ].map((row) => (
-                    <div key={row.dept} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, background: "#fff", borderRadius: 5, padding: "5px 8px", marginBottom: 4 }}>
-                      <StatusDot ok={row.ok} />
-                      <span style={{ flex: 1, color: "#1976D2" }}>{row.dept} — Ngày {dayStr}</span>
-                      <span style={{ fontFamily: "monospace", fontWeight: 700, color: "#1d4ed8" }}>{row.value}</span>
-                    </div>
-                  ))}
-                  {/* Grand total */}
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 8px", background: "#d1fae5", borderRadius: 5, fontWeight: 700, fontSize: 11, marginTop: 4 }}>
-                    <span style={{ color: "#065f46" }}>Tổng hợp TKV — Ngày {dayStr}</span>
-                    <span style={{ fontFamily: "monospace", color: "#1976D2" }}>11.037 tấn</span>
-                  </div>
-                  <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
-                    <button
-                      onClick={() => setShowVattuModal(true)}
-                      style={{ background: "#059669", color: "#fff", border: "none", borderRadius: 6, padding: "6px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
-                    >
-                      Xuất Excel / PDF
-                    </button>
-                    <button className="fbtn" style={{ fontSize: 11 }}>Xem trước</button>
-                  </div>
-                </div>
-
-                {/* Pending data */}
-                <div style={{ border: "1px solid #fde68a", borderRadius: 7, padding: "8px 10px", background: "#fffbeb", marginBottom: 8 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: "#92400e", marginBottom: 5 }}>CÒN CHỜ DỮ LIỆU</div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10 }}>
-                    <StatusDot ok={false} />
-                    <span style={{ flex: 1 }}>PX Than Sạch — Ngày tiếp theo</span>
-                    <span style={{ color: "#d97706", fontWeight: 700 }}>Chưa đồng bộ</span>
-                  </div>
-                </div>
-
-                {/* Kế hoạch TKV */}
+                {/* Kế hoạch gắn */}
                 <div style={{ padding: "8px 10px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 7 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: "#9a3412", marginBottom: 6 }}>KẾ HOẠCH ĐÃ GẮN VÀO BÁO CÁO TKV</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#9a3412", marginBottom: 6 }}>📌 KẾ HOẠCH ĐÃ GẮN</div>
                   {tkvPlans.length === 0
-                    ? <div style={{ fontSize: 10, color: "#64748b", fontStyle: "italic" }}>Chưa có kế hoạch. Nhấn "+ Lập kế hoạch" để tạo.</div>
+                    ? <div style={{ fontSize: 10, color: "#64748b", fontStyle: "italic" }}>Chưa có kế hoạch</div>
                     : tkvPlans.map((p, i) => <PlanBadge key={i} plan={p} />)
                   }
                 </div>
@@ -1086,73 +1469,21 @@ export default function CoalMiningDashboard() {
           </div>
 
           {/* ═══ ROW 4: ETL PIPELINE ═══ */}
-          <SectionCard title="ĐỒNG BỘ DỮ LIỆU TỪ CÁC PHÂN XƯỞNG → PIPELINE ETL → BÁO CÁO TKV" titleBg="#0d47a1">
-            <div style={{ padding: "12px 14px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-
-              {/* Pipeline steps */}
-              <div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#1976D2" }}>ETL Pipeline Flow</div>
-                  <div style={{ display: "flex", gap: 6 }}>
-                    <button
-                      onClick={() => setShowSetupModal(true)}
-                      style={{ background: "#f3f4f6", border: "1px solid #d1d5db", borderRadius: 6, padding: "5px 10px", fontSize: 10, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", color: "#374151" }}
-                    >
-                      ⚙ Cấu hình Server
-                    </button>
-                    <button
-                      onClick={handleSync}
-                      disabled={syncing}
-                      style={{ background: syncing ? "#6b7280" : "#1976D2", color: "#fff", border: "none", borderRadius: 6, padding: "5px 12px", fontSize: 10, fontWeight: 700, cursor: syncing ? "not-allowed" : "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 5 }}
-                    >
-                      {syncing ? <><span style={{ display: "inline-block", animation: "spin 1s linear infinite" }}>⟳</span> Đang đồng bộ...</> : "⬇ Đồng bộ tất cả"}
-                    </button>
-                  </div>
-                </div>
-
-                <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: 10, display: "flex", flexDirection: "column", gap: 6 }}>
-                  {pipelines.map((p, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", background: "#fff", borderRadius: 8, border: `1px solid ${pipeColor}33` }}>
-                      <div style={{ width: 32, height: 32, borderRadius: 6, background: pipeColor + "18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, flexShrink: 0 }}>{p.icon}</div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 11, fontWeight: 700 }}>{p.label}</div>
-                        <div style={{ fontSize: 9, color: "#64748b" }}>{p.sub}</div>
-                      </div>
-                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: pipeColor }} />
-                    </div>
-                  ))}
-                </div>
-
-                <div style={{ marginTop: 6, padding: "6px 10px", borderRadius: 6, background: etlStatus === "done" ? "#ecfdf5" : etlStatus === "running" ? "#eff6ff" : "#f3f4f6", fontSize: 10, display: "flex", alignItems: "center", gap: 6 }}>
-                  <div style={{ width: 7, height: 7, borderRadius: "50%", background: pipeColor }} />
-                  <span style={{ color: pipeColor, fontWeight: 700 }}>
-                    {etlStatus === "done" ? "Đồng bộ hoàn thành" : etlStatus === "running" ? "Đang đồng bộ..." : "Chờ đồng bộ"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Sync log */}
-              <div className="border-l-2 border-blue-500">
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#1976D2", marginBottom: 8, marginLeft:8 }}>Nhật ký đồng bộ</div>
-                <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, overflow: "hidden", marginLeft:8 }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "85px 1fr 55px", padding: "5px 10px", background: "#1976D2" }}>
-                    {["Thời gian", "Nội dung", "Trạng thái"].map((h) => (
-                      <span key={h} style={{ fontSize: 9, color: "#fff", fontWeight: 700 }}>{h}</span>
-                    ))}
-                  </div>
-                  <div style={{ maxHeight: 200, overflowY: "auto" }}>
-                    {syncLog.map((row, i) => (
-                      <div key={i} style={{ display: "grid", gridTemplateColumns: "85px 1fr 55px", padding: "5px 10px", background: i % 2 === 0 ? "#fff" : "#f9fafb", borderBottom: "1px solid #e5e7eb" }}>
-                        <span style={{ fontSize: 9, color: "#6b7280", fontFamily: "monospace" }}>{row.ts}</span>
-                        <span style={{ fontSize: 9 }}>{row.noidung}</span>
-                        <span style={{ fontSize: 9, fontWeight: 700, color: row.ok ? "#059669" : "#d97706" }}>{row.ok ? "✓ OK" : "⚠ Warn"}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </SectionCard>
+          <div style={{ display: "flex", gap: 8, justifyContent: "center", padding: "10px 14px" }}>
+            <button
+              onClick={() => setShowSetupModal(true)}
+              style={{ background: "#f3f4f6", border: "1px solid #d1d5db", borderRadius: 6, padding: "8px 16px", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", color: "#374151", display: "flex", alignItems: "center", gap: 6 }}
+            >
+              ⚙ Cấu hình Server
+            </button>
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              style={{ background: syncing ? "#6b7280" : "#1976D2", color: "#fff", border: "none", borderRadius: 6, padding: "8px 16px", fontSize: 11, fontWeight: 700, cursor: syncing ? "not-allowed" : "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6 }}
+            >
+              {syncing ? <><span style={{ display: "inline-block", animation: "spin 1s linear infinite" }}>⟳</span> Đang đồng bộ...</> : "⬇ Đồng bộ tất cả"}
+            </button>
+          </div>
 
           {/* ═══ FOOTER ═══ */}
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#94a3b8", paddingBottom: 10 }}>
@@ -1176,6 +1507,12 @@ export default function CoalMiningDashboard() {
       )}
       {showVattuModal && (
         <VatTuModal onClose={() => setShowVattuModal(false)} />
+      )}
+      {showBatchSyncModal && (
+        <BatchSyncModal
+          onClose={() => setShowBatchSyncModal(false)}
+          selectedBatches={[{ name: "Kế hoạch sản xuất Q1" }]}
+        />
       )}
     </>
   );
