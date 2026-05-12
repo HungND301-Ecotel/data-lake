@@ -1101,7 +1101,6 @@ export default function CoalMiningDashboard() {
     setShowBatchSyncModal(true);
   };
 
-  const noidungPlans = plans.filter((p) => p.target === "both" || p.target === "noidung");
   const tkvPlans = plans.filter((p) => p.target === "both" || p.target === "tkv");
 
   return (
@@ -1376,15 +1375,6 @@ export default function CoalMiningDashboard() {
                       ))}
                     </tbody>
                   </table>
-                </div>
-
-                {/* Kế hoạch gắn */}
-                <div style={{ padding: "8px 10px", background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 7 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: "#0369a1", marginBottom: 6 }}>📌 KẾ HOẠCH ĐÃ GẮN</div>
-                  {noidungPlans.length === 0
-                    ? <div style={{ fontSize: 10, color: "#64748b", fontStyle: "italic" }}>Chưa có kế hoạch</div>
-                    : noidungPlans.map((p, i) => <PlanBadge key={i} plan={p} />)
-                  }
                 </div>
               </div>
             </SectionCard>
