@@ -109,7 +109,6 @@ public class UserService {
         return ResponseEntity.ok(response);
     }
 
-
     public ResponseEntity<?> changePassword(ChangePasswordRequest request) {
         // Lấy thông tin user hiện tại từ SecurityContext
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();

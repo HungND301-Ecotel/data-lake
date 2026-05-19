@@ -174,7 +174,6 @@ const DepartmentCategoryPage = () => {
 
       {/* Header Section */}
 
-
       {/* Main Card */}
       <Card className="shadow-lg border-0 rounded-xl">
         <div className="font-semibold mb-2 text-lg text-blue-600">/ Danh mục phòng ban</div>

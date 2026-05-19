@@ -101,6 +101,7 @@ public class WareApprovalConfigService {
                     .wareTemplate(wareTemplate)
                     .approver(approver)
                     .approvalOrder(item.getApprovalOrder())
+                    .autoApprove(item.getAutoApprove() != null ? item.getAutoApprove() : false)
                     .isActive(true)
                     .build();
 
@@ -196,6 +197,7 @@ public class WareApprovalConfigService {
                 .approverId(entity.getApprover().getId())
                 .approverName(entity.getApprover().getName())
                 .approvalOrder(entity.getApprovalOrder())
+                .autoApprove(entity.getAutoApprove())
                 .isActive(entity.getIsActive())
                 .build();
     }

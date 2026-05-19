@@ -249,7 +249,6 @@ const DashboardWare = () => {
     <div className="px-10 py-6 min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
       {/* Header */}
 
-
       {/* Statistics Cards */}
       <Row gutter={[24, 24]} className="mb-8">
         <Col xs={24} sm={12} lg={6}>
@@ -390,7 +389,7 @@ const DashboardWare = () => {
           <Card
             title={
               <div className="flex items-center">
-                <div className="w-1 h-6 bg-black rounded mr-3"></div>
+                <div className="w-1 h-6 bg-blue-500 rounded mr-3"></div>
                 <span className="text-lg font-semibold text-gray-800">
                   Thống kê upload theo thời gian
                 </span>

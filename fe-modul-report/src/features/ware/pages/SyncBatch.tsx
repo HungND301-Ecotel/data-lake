@@ -13,6 +13,7 @@ import {
   Radio,
   Alert,
   Select,
+  Space,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import type { WareBatchResponse, WareBatchSearch } from "../types/wareBacth";
@@ -26,11 +27,13 @@ import {
   ReloadOutlined,
   CloudUploadOutlined,
   FilterOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 import { userPushApi } from "../../auth/api/accountConfigApi";
 import type { UserPushResponse } from "../../auth/types/accountConfig";
 import { departmentApi } from "../../department/api/departmentApi";
 import { employeeApi } from "../../employee/api/employeeApi";
+import { useNavigate } from "react-router-dom";
 
 const { Search } = Input;
 const { Option } = Select;
@@ -54,7 +57,7 @@ export const SyncBatch: React.FC = () => {
   const [departments, setDepartments] = useState<any[]>([]);
   const [myDepartmentIds, setMyDepartmentIds] = useState<string[]>([]);
   const [departmentFilter, setDepartmentFilter] = useState<string[]>([]);
-
+  const nav = useNavigate();
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
@@ -425,6 +428,27 @@ export const SyncBatch: React.FC = () => {
       dataIndex: "wareBatchStatus",
       key: "wareBatchStatus",
       render: (status: string) => getStatusBadge(status),
+    },
+    {
+      title: "Thao tác",
+      key: "action",
+      align: "center",
+      width: 140,
+      render: (_, record) => (
+        <Space>
+          <Tooltip title="Xem chi tiết">
+            <Button
+              type="primary"
+              icon={<EditOutlined />}
+              onClick={() => nav(`/ware/batch-approve/${record.id}`)}
+              className="bg-blue-600! hover:bg-blue-700!"
+              size="large"
+            >
+              Xem
+            </Button>
+          </Tooltip>
+        </Space>
+      ),
     },
   ];
 

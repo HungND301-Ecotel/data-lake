@@ -60,7 +60,7 @@ const WareCategoryPage = () => {
     keyword = search,
     page = 0,
     limit = pageResponse.limit,
-    depId = departmentId
+    depId = departmentId,
   ) => {
     try {
       const res = await wareCategoryApi.searchWareCategory({
@@ -122,7 +122,9 @@ const WareCategoryPage = () => {
 
       try {
         await wareCategoryApi.updateWareCategory(req);
-        messageApi.success(editing ? "Cập nhật danh mục thành công" : "Tạo danh mục thành công");
+        messageApi.success(
+          editing ? "Cập nhật danh mục thành công" : "Tạo danh mục thành công",
+        );
         setModalVisible(false);
         await loadData(search, 0);
       } catch (error: any) {

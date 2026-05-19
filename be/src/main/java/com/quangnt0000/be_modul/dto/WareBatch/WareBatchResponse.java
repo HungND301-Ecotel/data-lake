@@ -16,6 +16,7 @@ public class WareBatchResponse {
     private String code;
     private String name;
     private String description;
+    private String s3FileKey;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String employeeName;

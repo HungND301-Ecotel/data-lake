@@ -1,77 +1,147 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import type { GetRequest, GetResponse } from "../types/getMaster";
 import { wareTkvApi } from "../api/wareTkvApi";
-import SidebarSearch from "../components/SidebarSearchProps";
+import NavbarSearch from "../components/NavbarSearch";
 import ResultPanel from "../components/ResultPanel";
 
+interface ReportHeader {
+  tableName?: string;
+  tmplName?: string; // Tên template hiển thị trên header
+  year?: number;
+  period?: string;
+  day?: string;
+  reportType?: "MONTH" | "YEAR" | "DAY";
+}
+
 const SearchMasterData = () => {
-  const [table, setTable] = useState("");
+  const [searchParams] = useSearchParams();
+
+  const [table, setTable] = useState(() => searchParams.get("table") || "");
+  const [tmplName, setTmplName] = useState(() => searchParams.get("tmpl") || "");
+
   const [year, setYear] = useState<number | undefined>();
-  const [columns, setColumns] = useState<string[]>([]);
-  const [orderBy, setOrderBy] = useState<string[]>([]);
-  const [limit, setLimit] = useState(50);
-  const [filters, setFilters] = useState<{ key: string; value: string }[]>([]);
-  const [offset, setOffset] = useState(0);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [period, setPeriod] = useState<string | undefined>();
+  const [day, setDay] = useState<string | undefined>();
+  const [reportType, setReportType] = useState<"MONTH" | "YEAR" | undefined>();
+
+  const defaultLimit = 50;
+  const defaultOffset = 0;
+
   const [results, setResults] = useState<any[]>([]);
+  const [reportHeader, setReportHeader] = useState<ReportHeader>({});
 
-  const handleSearch = async () => {
-    const allFilters: Record<string, any> = {};
+  // Đồng bộ table và tmplName khi URL params thay đổi
+  useEffect(() => {
+    setTable(searchParams.get("table") || "");
+    setTmplName(searchParams.get("tmpl") || "");
+  }, [searchParams]);
 
-    if (year) allFilters["YEAR"] = year;
+  const handleSearch = async (tableOverride?: string) => {
+    const tableToSearch = tableOverride || table;
 
-    filters.forEach((f) => {
-      if (f.key && f.value) {
-        allFilters[f.key] = f.value;
-      }
+    // Cập nhật report header — bao gồm tmplName
+    setReportHeader({
+      tableName: tableToSearch,
+      tmplName: tmplName,
+      year: year,
+      period: period,
+      day: day,
+      reportType: reportType,
     });
 
-    const request: GetRequest = {
-      table,
-      columns: columns.length ? columns : undefined,
-      order_by: orderBy.length ? orderBy : undefined,
-      limit,
-      filters: Object.keys(allFilters).length ? allFilters : undefined,
+    const buildFilters = (dayKey?: "DAY" | "NGAY") => {
+      const nextFilters: Record<string, any> = {};
+      if (year) nextFilters["YEAR"] = year;
+      if (period) nextFilters["PERIOD"] = period;
+      if (day && dayKey) nextFilters[dayKey] = day;
+      return Object.keys(nextFilters).length ? nextFilters : undefined;
     };
+
+    const buildReportFilters = (type: "MONTH" | "YEAR") => {
+      const nextFilters: Record<string, any> = {};
+      if (year) nextFilters["YEAR"] = year;
+      if (type === "MONTH" && period) nextFilters["PERIOD"] = period;
+      return Object.keys(nextFilters).length ? nextFilters : undefined;
+    };
+
+    const buildRequest = (
+      filters?: Record<string, any>,
+      reportTypeOverride?: "MONTH" | "YEAR"
+    ): GetRequest => ({
+      table: tableToSearch,
+      limit: defaultLimit,
+      offset: defaultOffset,
+      reportType: reportTypeOverride,
+      filters,
+    });
 
     try {
       setResults([]);
 
-      const res: GetResponse = await wareTkvApi.searchTkv(request);
+      if (reportType === "MONTH" || reportType === "YEAR") {
+        const res: GetResponse = await wareTkvApi.searchTkv(
+          buildRequest(buildReportFilters(reportType), reportType)
+        );
+        setResults(res.rows || []);
+        return;
+      }
 
-      // Set kết quả mới - nếu không có dữ liệu thì set array rỗng
+      // Có filter ngày: ưu tiên DAY, nếu không có thì fallback sang NGAY
+      if (day) {
+        try {
+          const resByDay: GetResponse = await wareTkvApi.searchTkv(
+            buildRequest(buildFilters("DAY"))
+          );
+
+          if ((resByDay.rows?.length || 0) > 0) {
+            setResults(resByDay.rows || []);
+            return;
+          }
+
+          const resByNgay: GetResponse = await wareTkvApi.searchTkv(
+            buildRequest(buildFilters("NGAY"))
+          );
+          setResults(resByNgay.rows || []);
+          return;
+        } catch (dayError) {
+          console.warn("Search by DAY failed, fallback to NGAY", dayError);
+          const resByNgay: GetResponse = await wareTkvApi.searchTkv(
+            buildRequest(buildFilters("NGAY"))
+          );
+          setResults(resByNgay.rows || []);
+          return;
+        }
+      }
+
+      const res: GetResponse = await wareTkvApi.searchTkv(
+        buildRequest(buildFilters())
+      );
       setResults(res.rows || []);
     } catch (err) {
       console.error(err);
-      // Quan trọng: Reset results khi có lỗi
       setResults([]);
     }
   };
 
   return (
-    <div className="flex h-screen bg-gray-100 overflow-x-hidden">
-      <SidebarSearch
+    <div className="flex flex-col h-screen bg-gray-100 overflow-hidden">
+      <NavbarSearch
         table={table}
         setTable={setTable}
-        columns={columns}
-        setColumns={setColumns}
-        orderBy={orderBy}
-        setOrderBy={setOrderBy}
-        limit={limit}
-        setLimit={setLimit}
         year={year}
         setYear={setYear}
-        filters={filters}
-        setFilters={setFilters}
+        period={period}
+        setPeriod={setPeriod}
+        day={day}
+        setDay={setDay}
+        reportType={reportType}
+        setReportType={setReportType}
         onSearch={handleSearch}
-        offset={offset}
-        setOffset={setOffset}
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
       />
 
-      <main className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
-        <ResultPanel results={results} />
+      <main className="flex-1 min-h-0 min-w-0 overflow-hidden">
+        <ResultPanel results={results} reportHeader={reportHeader} />
       </main>
     </div>
   );
