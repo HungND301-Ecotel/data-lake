@@ -41,33 +41,33 @@ jobs:
       - name: Ensure target directory exists
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{ secrets.STAGING_HOST }}        # ← đổi
-          username: ${{ secrets.STAGING_USER }}    # ← đổi
-          key: ${{ secrets.STAGING_SSH_KEY }}      # ← đổi
-          port: ${{ secrets.STAGING_PORT }}        # ← đổi
+          host: ${{ secrets.STAGING_CAOSON_HOST }}        # ← đổi
+          username: ${{ secrets.STAGING_CAOSON_USER }}    # ← đổi
+          key: ${{ secrets.STAGING_CAOSON_SSH_KEY }}      # ← đổi
+          port: ${{ secrets.STAGING_CAOSON_PORT }}        # ← đổi
           script: |
-            mkdir -p /home/${{ secrets.STAGING_USER }}/data-lake/caoson/deployment/staging  # ← đổi
+            mkdir -p /home/${{ secrets.STAGING_CAOSON_USER }}/data-lake/caoson/deployment/staging  # ← đổi
 
       - name: Transfer docker-compose file to VPS for deployment
         uses: appleboy/scp-action@v0.1.4
         with:
-          host: ${{ secrets.STAGING_HOST }}        # ← đổi
-          username: ${{ secrets.STAGING_USER }}    # ← đổi
-          key: ${{ secrets.STAGING_SSH_KEY }}      # ← đổi
-          port: ${{ secrets.STAGING_PORT }}        # ← đổi
+          host: ${{ secrets.STAGING_CAOSON_HOST }}        # ← đổi
+          username: ${{ secrets.STAGING_CAOSON_USER }}    # ← đổi
+          key: ${{ secrets.STAGING_CAOSON_SSH_KEY }}      # ← đổi
+          port: ${{ secrets.STAGING_CAOSON_PORT }}        # ← đổi
           source: deployment/staging/*             # ← đổi
-          target: "/home/${{ secrets.STAGING_USER }}/data-lake/caoson/deployment/staging"  # ← đổi
+          target: "/home/${{ secrets.STAGING_CAOSON_USER }}/data-lake/caoson/deployment/staging"  # ← đổi
           strip_components: 2
 
       - name: Clean up containers and stuff via SSH
         uses: appleboy/ssh-action@v0.1.7
         with:
-          host: ${{ secrets.STAGING_HOST }}        # ← đổi
-          username: ${{ secrets.STAGING_USER }}    # ← đổi
-          key: ${{ secrets.STAGING_SSH_KEY }}      # ← đổi
-          port: ${{ secrets.STAGING_PORT }}        # ← đổi
+          host: ${{ secrets.STAGING_CAOSON_HOST }}        # ← đổi
+          username: ${{ secrets.STAGING_CAOSON_USER }}    # ← đổi
+          key: ${{ secrets.STAGING_CAOSON_SSH_KEY }}      # ← đổi
+          port: ${{ secrets.STAGING_CAOSON_PORT }}        # ← đổi
           script: |
-            cd /home/${{ secrets.STAGING_USER }}/data-lake/caoson/deployment/staging  # ← đổi
+            cd /home/${{ secrets.STAGING_CAOSON_USER }}/data-lake/caoson/deployment/staging  # ← đổi
             pwd
             ls -al
             docker image prune -f
@@ -77,12 +77,12 @@ jobs:
       - name: Deploy to release via SSH
         uses: appleboy/ssh-action@v0.1.7
         with:
-          host: ${{ secrets.STAGING_HOST }}        # ← đổi
-          username: ${{ secrets.STAGING_USER }}    # ← đổi
-          key: ${{ secrets.STAGING_SSH_KEY }}      # ← đổi
-          port: ${{ secrets.STAGING_PORT }}        # ← đổi
+          host: ${{ secrets.STAGING_CAOSON_HOST }}        # ← đổi
+          username: ${{ secrets.STAGING_CAOSON_USER }}    # ← đổi
+          key: ${{ secrets.STAGING_CAOSON_SSH_KEY }}      # ← đổi
+          port: ${{ secrets.STAGING_CAOSON_PORT }}        # ← đổi
           script: |
-            cd /home/${{ secrets.STAGING_USER }}/data-lake/caoson/deployment/staging  # ← đổi
+            cd /home/${{ secrets.STAGING_CAOSON_USER }}/data-lake/caoson/deployment/staging  # ← đổi
             docker image prune -f
             chmod +x start-app.sh
             ./start-app.sh
