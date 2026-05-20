@@ -65,7 +65,7 @@ const EmployeePage = () => {
       const res = await employeeApi.searchEmployee(keyword, 0, 50);
       let list = res.content;
       if (departmentId)
-        list = list.filter((e) => e.departmentId === departmentId);
+        list = list.filter((e) => e.departments.some((d) => d.id === departmentId));
       setEmployees(list);
       setTotal(res.totalElements);
     } catch {
@@ -112,6 +112,7 @@ const EmployeePage = () => {
       setSelectedEmployee(emp);
       formEmployeeDetail.setFieldsValue({
         ...emp,
+        departmentIds: emp.departments.map((d) => d.id),
         birthday: emp.birthday,
       });
       setEmployeeDetailModal(true);
@@ -207,15 +208,23 @@ const EmployeePage = () => {
     },
     {
       title: "Phòng ban",
-      dataIndex: "departmentName",
-      key: "departmentName",
+      dataIndex: "departments",
+      key: "departments",
       width: "15%",
-      render: (text: string) => (
-        <div className="flex items-center gap-2">
-          <TeamOutlined className="text-blue-500" />
-          <span className="text-gray-700">{text}</span>
-        </div>
-      ),
+      render: (depts: { id: string; name: string }[]) => {
+        if (!depts || depts.length === 0) return <span className="text-gray-400">—</span>;
+        const first = depts[0];
+        const remainCount = depts.length - 1;
+        return (
+          <div className="flex items-center gap-1">
+            <TeamOutlined className="text-blue-500" />
+            <span className="text-gray-700 truncate max-w-[100px]">{first.name}</span>
+            {remainCount > 0 && (
+              <Tag color="geekblue" className="ml-1 shrink-0">+{remainCount}</Tag>
+            )}
+          </div>
+        );
+      },
     },
     {
       title: "Ngày sinh",
@@ -266,7 +275,7 @@ const EmployeePage = () => {
         <Space size="small">
           <Button
             icon={<EyeOutlined />}
-            className="bg-green-600! hover:bg-green-700! text-white! border-0"
+            className="bg-[#0891b2]! hover:bg-cyan-7000! text-white! border-0"
             onClick={() => handleShowEmployeeDetail(record.id)}
           >
             Chi tiết
@@ -290,6 +299,7 @@ const EmployeePage = () => {
 
       {/* Main Card */}
       <Card className="shadow-lg border-0 rounded-xl">
+        <div className="font-semibold mb-2 text-lg text-blue-600">/ Danh mục nhân viên</div>
         {/* Search and Action Bar */}
         <div className="flex gap-3 mb-6">
           <Input
@@ -329,7 +339,7 @@ const EmployeePage = () => {
             size="large"
             icon={<PlusOutlined />}
             onClick={() => setCreateEmployeeModal(true)}
-            className="bg-green-600! hover:bg-green-700! text-white! border-0 shadow-md"
+            className="bg-[#0891b2]! hover:bg-cyan-7000! text-white! border-0 shadow-md"
             style={{ borderRadius: "8px", minWidth: "160px" }}
           >
             Thêm nhân viên
@@ -393,7 +403,7 @@ const EmployeePage = () => {
         width={700}
         onCancel={() => setCreateEmployeeModal(false)}
         okButtonProps={{
-          className: "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
+          className: "bg-[#0891b2]! hover:bg-cyan-7000! text-white! border-0 h-10 px-6 text-base font-medium",
           size: "large",
         }}
         cancelButtonProps={{
@@ -412,7 +422,7 @@ const EmployeePage = () => {
               birthday: values.birthday,
               gender: values.gender,
               position: values.position,
-              departmentId: values.departmentId,
+              departmentIds: values.departmentIds,
               avatarFile: null,
             };
 
@@ -457,8 +467,8 @@ const EmployeePage = () => {
             </Form.Item>
             <Form.Item
               name="birthday"
-              label={<span className="font-medium text-gray-700">Ngày sinh <span className="text-red-500">*</span></span>}
-              rules={[{ required: true, message: "Vui lòng chọn ngày sinh" }]}
+              label={<span className="font-medium text-gray-700">Ngày sinh</span>}
+              rules={[{ required: false, message: "Vui lòng chọn ngày sinh" }]}
               labelCol={{ span: 24 }}
               wrapperCol={{ span: 24 }}
             >
@@ -466,8 +476,8 @@ const EmployeePage = () => {
             </Form.Item>
             <Form.Item
               name="gender"
-              label={<span className="font-medium text-gray-700">Giới tính <span className="text-red-500">*</span></span>}
-              rules={[{ required: true, message: "Vui lòng chọn giới tính" }]}
+              label={<span className="font-medium text-gray-700">Giới tính</span>}
+              rules={[{ required: false, message: "Vui lòng chọn giới tính" }]}
               labelCol={{ span: 24 }}
               wrapperCol={{ span: 24 }}
             >
@@ -488,21 +498,21 @@ const EmployeePage = () => {
           </div>
           <Form.Item
             name="address"
-            label={<span className="font-medium text-gray-700">Địa chỉ <span className="text-red-500">*</span></span>}
-            rules={[{ required: true, message: "Vui lòng nhập địa chỉ" }]}
+            label={<span className="font-medium text-gray-700">Địa chỉ</span>}
+            rules={[{ required: false, message: "Vui lòng nhập địa chỉ" }]}
             labelCol={{ span: 24 }}
             wrapperCol={{ span: 24 }}
           >
             <Input placeholder="123 Đường ABC, Quận XYZ" size="large" className="rounded-lg" />
           </Form.Item>
           <Form.Item
-            name="departmentId"
+            name="departmentIds"
             label={<span className="font-medium text-gray-700">Phòng ban <span className="text-red-500">*</span></span>}
             rules={[{ required: true, message: "Vui lòng chọn phòng ban" }]}
             labelCol={{ span: 24 }}
             wrapperCol={{ span: 24 }}
           >
-            <Select placeholder="Chọn phòng ban" size="large" className="rounded-lg">
+            <Select placeholder="Chọn phòng ban" mode="multiple" size="large" className="rounded-lg">
               {departments.map((dept) => (
                 <Select.Option key={dept.id} value={dept.id}>
                   {dept.name}
@@ -536,7 +546,7 @@ const EmployeePage = () => {
         width={800}
         onCancel={() => setEmployeeDetailModal(false)}
         okButtonProps={{
-          className: "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
+          className: "bg-[#0891b2]! hover:bg-cyan-7000! text-white! border-0 h-10 px-6 text-base font-medium",
           size: "large",
         }}
         cancelButtonProps={{
@@ -546,24 +556,21 @@ const EmployeePage = () => {
         onOk={async () => {
           try {
             const values = await formEmployeeDetail.validateFields();
-            const formData = new FormData();
-            Object.entries(values).forEach(([key, value]) => {
-              if (
-                key === "avatarFile" &&
-                Array.isArray(value) &&
-                value.length > 0
-              ) {
-                formData.append(key, value[0].originFileObj);
-              } else {
-                formData.append(key, value as any);
-              }
-            });
 
-            formData.append("id", selectedEmployee?.id || "");
+            const request: EmployeeRequest = {
+              id: selectedEmployee?.id || "",
+              name: values.name,
+              email: values.email,
+              phone: values.phone,
+              address: values.address,
+              birthday: values.birthday,
+              gender: values.gender,
+              position: values.position,
+              departmentIds: values.departmentIds,
+              avatarFile: null,
+            };
 
-            await employeeApi.updateEmployee(
-              formData as unknown as EmployeeRequest
-            );
+            await employeeApi.updateEmployee(request);
             message.success("Cập nhật nhân viên thành công");
             setEmployeeDetailModal(false);
             loadEmployees();
@@ -606,8 +613,28 @@ const EmployeePage = () => {
           <Form.Item name="address" label={<span className="font-medium text-gray-700">Địa chỉ</span>}>
             <Input size="large" className="rounded-lg" />
           </Form.Item>
-          <Form.Item name="departmentId" label={<span className="font-medium text-gray-700">Phòng ban</span>}>
-            <Select size="large" className="rounded-lg">
+          <Form.Item name="departmentIds" label={<span className="font-medium text-gray-700">Phòng ban</span>}>
+            <Select
+              mode="multiple"
+              size="large"
+              className="rounded-lg"
+              optionFilterProp="children"
+              placeholder="Chọn phòng ban"
+              tagRender={(props) => {
+                const dept = departments.find((d) => d.id === props.value);
+                return (
+                  <Tag
+                    color="blue"
+                    closable={props.closable}
+                    onClose={props.onClose}
+                    className="flex items-center gap-1 my-0.5"
+                    icon={<TeamOutlined />}
+                  >
+                    {dept?.name || props.label}
+                  </Tag>
+                );
+              }}
+            >
               {departments.map((dept) => (
                 <Select.Option key={dept.id} value={dept.id}>
                   {dept.name}
@@ -650,7 +677,7 @@ const EmployeePage = () => {
         onOk={handleSaveUserDetail}
         width={600}
         okButtonProps={{
-          className: "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
+          className: "bg-[#0891b2]! hover:bg-cyan-7000! text-white! border-0 h-10 px-6 text-base font-medium",
           size: "large",
         }}
         cancelButtonProps={{

@@ -19,8 +19,10 @@ const DashboardWare = () => {
   });
 
   const formatVNDate = (iso: string) => {
-    const d = new Date(iso);
+    const normalized = iso.endsWith("Z") || iso.includes("+") ? iso : iso + "Z";
+    const d = new Date(normalized);
     return d.toLocaleString("vi-VN", {
+      timeZone: "Asia/Ho_Chi_Minh", // ← thêm timezone VN
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -29,7 +31,6 @@ const DashboardWare = () => {
       second: "2-digit",
     });
   };
-
   const [lineChartData, setLineChartData] = useState<TimeCountDto[]>([]);
   const [lineType, setLineType] = useState<"DAY" | "MONTH" | "YEAR">("DAY");
   const [page, setPage] = useState(0);
@@ -81,8 +82,8 @@ const DashboardWare = () => {
 
       const res = await wareBatchActionApi.searchWareActionBatch(req);
 
-      setActions(res.content);
-      setTotalPages(res.totalPages);
+      setActions(res.content ?? []);
+      setTotalPages(res.totalPages ?? 1);
     } catch (err) {
       console.error("Fetch audit actions failed", err);
     } finally {
@@ -118,7 +119,9 @@ const DashboardWare = () => {
       dataIndex: "tableName",
       width: 120,
       render: (text: string) => (
-        <Tag color="purple" className="font-medium">{text}</Tag>
+        <Tag color="purple" className="font-medium">
+          {text}
+        </Tag>
       ),
     },
     {
@@ -246,7 +249,6 @@ const DashboardWare = () => {
   return (
     <div className="px-10 py-6 min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
       {/* Header */}
-      
 
       {/* Statistics Cards */}
       <Row gutter={[24, 24]} className="mb-8">
@@ -388,7 +390,7 @@ const DashboardWare = () => {
           <Card
             title={
               <div className="flex items-center">
-                <div className="w-1 h-6 bg-green-500 rounded mr-3"></div>
+                <div className="w-1 h-6 bg-blue-500 rounded mr-3"></div>
                 <span className="text-lg font-semibold text-gray-800">
                   Thống kê upload theo thời gian
                 </span>

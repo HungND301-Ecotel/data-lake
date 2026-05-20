@@ -22,6 +22,11 @@ export interface WareBatchResponse {
   myApprovalStatus: string;
   wareBatchStatus: string;
   canApprove: boolean;
+  reportYear?: number | null;
+  reportMonth?: number | null;
+  reportDay?: number | null;
+  templateId?: number | null;
+  s3FileKey?: string | null;
 }
 
 export interface WareBatchSearch {
@@ -30,6 +35,8 @@ export interface WareBatchSearch {
   keyword?: string | null;
   wareTemplateId?: number | null;
   status?: string | null;
+  departmentId?: string | null;
+  departmentIds?: string[] | null;
 }
 
 export interface WareBatchPush {

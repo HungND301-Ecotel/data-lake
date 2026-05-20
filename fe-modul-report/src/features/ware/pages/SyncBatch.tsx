@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   Table,
   Button,
@@ -12,12 +12,11 @@ import {
   Checkbox,
   Radio,
   Alert,
+  Select,
+  Space,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import type {
-  WareBatchResponse,
-  WareBatchSearch,
-} from "../types/wareBacth";
+import type { WareBatchResponse, WareBatchSearch } from "../types/wareBacth";
 import type { PageResponse } from "../../department/types/department";
 import { wareBatchApi } from "../api/wareBathApi";
 import {
@@ -27,18 +26,25 @@ import {
   FileTextOutlined,
   ReloadOutlined,
   CloudUploadOutlined,
+  FilterOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 import { userPushApi } from "../../auth/api/accountConfigApi";
 import type { UserPushResponse } from "../../auth/types/accountConfig";
+import { departmentApi } from "../../department/api/departmentApi";
+import { employeeApi } from "../../employee/api/employeeApi";
+import { useNavigate } from "react-router-dom";
 
 const { Search } = Input;
+const { Option } = Select;
 
 export const SyncBatch: React.FC = () => {
+  const [modal, contextHolder] = Modal.useModal();
   const [batches, setBatches] = useState<WareBatchResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState<string | null>(null);
   const [page, setPage] = useState(0);
-  const [limit] = useState(10);
+  const [limit, setLimit] = useState(10);
   const [total, setTotal] = useState(0);
   const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
   const [syncModalVisible, setSyncModalVisible] = useState(false);
@@ -47,22 +53,57 @@ export const SyncBatch: React.FC = () => {
   const [syncing, setSyncing] = useState(false);
   const [messageApi, contextHolderMessage] = message.useMessage();
   const [userPushConfig, setUserPushConfig] = useState<UserPushResponse | null>(null);
-  
+  const [pushStatusFilter, setPushStatusFilter] = useState<boolean | null>(null);
+  const [departments, setDepartments] = useState<any[]>([]);
+  const [myDepartmentIds, setMyDepartmentIds] = useState<string[]>([]);
+  const [departmentFilter, setDepartmentFilter] = useState<string[]>([]);
+  const nav = useNavigate();
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const res = await departmentApi.searchDepartment("", 0, 20000);
+        setDepartments(res.content);
+      } catch (error) {
+        console.error("Lấy danh sách phòng ban thất bại", error);
+      }
+    };
+
+    const fetchProfile = async () => {
+      try {
+        const profile = await employeeApi.getMyProfile();
+        const ids = profile.departments?.map((d: { id: string }) => d.id) ?? [];
+        setMyDepartmentIds(ids);
+      } catch (error) {
+        console.error("Lấy profile thất bại", error);
+      }
+    };
+
+    fetchProfile();
+    loadUserPushConfig();
+    fetchDepartments(); // giữ nguyên
+  }, []);
+
   const fetchBatches = async () => {
     setLoading(true);
     try {
+      const effectiveDeptIds =
+        departmentFilter.length > 0
+          ? departmentFilter // user đã chọn cụ thể
+          : myDepartmentIds; // mặc định: toàn bộ phòng ban của mình
+
       const params: WareBatchSearch = {
         page,
         limit,
         keyword: searchKeyword,
         status: "Da_Phe_Duyet",
+        departmentIds: effectiveDeptIds.length > 0 ? effectiveDeptIds : null,
       };
       const res: PageResponse<WareBatchResponse> =
         await wareBatchApi.searchWareBatch(params);
       setBatches(res.content);
       setTotal(res.totalElements);
     } catch (error) {
-      messageApi.error("Lấy danh sách batch thất bại");
+      messageApi.error("Lấy danh sách báo cáo thất bại");
     } finally {
       setLoading(false);
     }
@@ -83,9 +124,17 @@ export const SyncBatch: React.FC = () => {
   };
 
   useEffect(() => {
+    if (myDepartmentIds.length === 0) return;
     fetchBatches();
-    loadUserPushConfig();
-  }, [page, searchKeyword]);
+  }, [page, searchKeyword, departmentFilter, myDepartmentIds]);
+
+  // Filter FE cho isPushed
+  const filteredBatches = useMemo(() => {
+    if (pushStatusFilter === null) {
+      return batches;
+    }
+    return batches.filter((batch) => batch.isPushed === pushStatusFilter);
+  }, [batches, pushStatusFilter]);
 
   const getStatusBadge = (status: string) => {
     const statusConfig: {
@@ -117,13 +166,80 @@ export const SyncBatch: React.FC = () => {
     );
   };
 
+  const checkDuplicates = (batches: WareBatchResponse[]): string[] => {
+    const warnings: string[] = [];
+
+    for (let i = 0; i < batches.length; i++) {
+      for (let j = i + 1; j < batches.length; j++) {
+        const a = batches[i];
+        const b = batches[j];
+
+        if (a.name !== b.name) continue;
+        if (a.reportYear !== b.reportYear) continue;
+
+        // Báo cáo Năm: cả 2 đều không có month và không có day
+        if (!a.reportMonth && !a.reportDay && !b.reportMonth && !b.reportDay) {
+          warnings.push(
+            `Có 2 báo cáo "${a.name}" trùng tên, trùng năm (${a.reportYear}). Hãy bỏ chọn 1 báo cáo để tránh lặp dữ liệu.`
+          );
+          continue;
+        }
+
+        // Báo cáo Tháng: cả 2 đều có month, không có day, month giống nhau
+        if (
+          a.reportMonth && b.reportMonth &&
+          !a.reportDay && !b.reportDay &&
+          a.reportMonth === b.reportMonth
+        ) {
+          warnings.push(
+            `Có 2 báo cáo "${a.name}" trùng tên, trùng năm (${a.reportYear}), trùng tháng (${a.reportMonth}). Hãy bỏ chọn 1 báo cáo để tránh lặp dữ liệu.`
+          );
+          continue;
+        }
+
+        // Báo cáo Ngày: cả 2 đều có month, có day, month + day giống nhau
+        if (
+          a.reportMonth && b.reportMonth &&
+          a.reportDay && b.reportDay &&
+          a.reportMonth === b.reportMonth &&
+          a.reportDay === b.reportDay
+        ) {
+          warnings.push(
+            `Có 2 báo cáo "${a.name}" trùng tên, trùng năm (${a.reportYear}), trùng tháng (${a.reportMonth}), trùng ngày (${a.reportDay}). Hãy bỏ chọn 1 báo cáo để tránh lặp dữ liệu.`
+          );
+          continue;
+        }
+      }
+    }
+
+    return warnings;
+  };
+
+  const selectedBatches = filteredBatches.filter((b) => selectedIds.includes(b.id!));
+
   const handleSyncClick = () => {
     if (selectedIds.length === 0) {
       messageApi.warning("Vui lòng chọn ít nhất một batch để đồng bộ");
       return;
     }
 
-    // Fill dữ liệu từ config nếu có
+    const duplicateWarnings = checkDuplicates(selectedBatches);
+    if (duplicateWarnings.length > 0) {
+      modal.warning({  // ✅ dùng modal.warning thay vì Modal.warning
+        title: "Phát hiện báo cáo trùng lặp",
+        content: (
+          <ul className="space-y-2 mt-2">
+            {duplicateWarnings.map((w, i) => (
+              <li key={i} style={{ color: "#ea580c", fontSize: 14 }}>• {w}</li>
+            ))}
+          </ul>
+        ),
+        okText: "Đã hiểu",
+        width: 560,
+      });
+      return;
+    }
+
     if (userPushConfig) {
       form.setFieldsValue({
         username: userPushConfig.username,
@@ -152,7 +268,7 @@ export const SyncBatch: React.FC = () => {
         try {
           await wareBatchApi.pushWareBatch({
             id: batchId as number,
-            deleteMissing: deleteMissing, // Lấy từ state bên ngoài
+            deleteMissing: deleteMissing,
             username: values.username,
             password: values.password,
           });
@@ -163,7 +279,7 @@ export const SyncBatch: React.FC = () => {
       }
 
       messageApi.success(
-        `Đồng bộ thành công ${successCount} batch${failCount > 0 ? `, thất bại ${failCount}` : ""}`
+        `Đồng bộ thành công ${successCount} batch${failCount > 0 ? `, thất bại ${failCount}` : ""}`,
       );
       setSyncModalVisible(false);
       setSelectedIds([]);
@@ -176,6 +292,11 @@ export const SyncBatch: React.FC = () => {
     }
   };
 
+  const handleClearFilter = () => {
+    setPushStatusFilter(null);
+    setDepartmentFilter([]);
+  };
+
   const columns: ColumnsType<WareBatchResponse> = [
     {
       title: (
@@ -183,19 +304,26 @@ export const SyncBatch: React.FC = () => {
           checked={
             selectedIds.length > 0 &&
             selectedIds.length ===
-            batches.filter((b) => b.wareBatchStatus === "Da_Phe_Duyet").length
+            filteredBatches.filter(
+              (b) => b.wareBatchStatus === "Da_Phe_Duyet" && !b.isPushed
+            ).length
           }
           indeterminate={
             selectedIds.length > 0 &&
             selectedIds.length <
-            batches.filter((b) => b.wareBatchStatus === "Da_Phe_Duyet").length
+            filteredBatches.filter(
+              (b) => b.wareBatchStatus === "Da_Phe_Duyet" && !b.isPushed
+            ).length
           }
           onChange={(e) => {
             if (e.target.checked) {
-              const approvableIds = batches
-                .filter((b) => b.wareBatchStatus === "Da_Phe_Duyet")
+              const selectableIds = filteredBatches
+                .filter(
+                  (b) => b.wareBatchStatus === "Da_Phe_Duyet" && !b.isPushed
+                )
                 .map((b) => b.id!);
-              setSelectedIds(approvableIds);
+              setSelectedIds(selectableIds);
+
             } else {
               setSelectedIds([]);
             }
@@ -207,11 +335,11 @@ export const SyncBatch: React.FC = () => {
       width: 60,
       align: "center",
       render: (_, record) => {
-        const isApproved = record.wareBatchStatus === "Da_Phe_Duyet";
+        const isSelectable = record.wareBatchStatus === "Da_Phe_Duyet" && !record.isPushed;
         return (
           <Checkbox
             checked={selectedIds.includes(record.id!)}
-            disabled={!isApproved}
+            disabled={!isSelectable}
             onChange={(e) => {
               if (e.target.checked) {
                 setSelectedIds([...selectedIds, record.id!]);
@@ -268,6 +396,18 @@ export const SyncBatch: React.FC = () => {
       render: (text: string) => <span className="text-gray-700">{text}</span>,
     },
     {
+      title: "Ngày tạo",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (text: string) => {
+        if (!text) return <span className="text-gray-600">-</span>;
+        const formatted = new Date(text + "Z").toLocaleString("vi-VN", {
+          timeZone: "Asia/Ho_Chi_Minh",
+        });;
+        return <span className="text-gray-600">{formatted}</span>;
+      },
+    },
+    {
       title: "Upload",
       dataIndex: "isPushed",
       key: "isPushed",
@@ -276,7 +416,7 @@ export const SyncBatch: React.FC = () => {
       render: (value: boolean) => (
         <Tooltip title={value ? "Đã đẩy dữ liệu" : "Chưa đẩy dữ liệu"}>
           {value ? (
-            <CheckCircleOutlined className="text-lg text-green-600!" />
+            <CheckCircleOutlined className="text-lg text-blue-600!" />
           ) : (
             <CloseCircleOutlined className="text-lg text-red-600!" />
           )}
@@ -289,17 +429,37 @@ export const SyncBatch: React.FC = () => {
       key: "wareBatchStatus",
       render: (status: string) => getStatusBadge(status),
     },
+    {
+      title: "Thao tác",
+      key: "action",
+      align: "center",
+      width: 140,
+      render: (_, record) => (
+        <Space>
+          <Tooltip title="Xem chi tiết">
+            <Button
+              type="primary"
+              icon={<EditOutlined />}
+              onClick={() => nav(`/ware/batch-approve/${record.id}`)}
+              className="bg-blue-600! hover:bg-blue-700!"
+              size="large"
+            >
+              Xem
+            </Button>
+          </Tooltip>
+        </Space>
+      ),
+    },
   ];
-
-  const selectedBatches = batches.filter((b) => selectedIds.includes(b.id!));
 
   return (
     <div className="px-6 py-6 bg-linear-to-br from-gray-50 to-gray-100 min-h-screen">
       {contextHolderMessage}
+      {contextHolder}
 
       <Card className="shadow-sm border-0 rounded-xl mb-6">
-        <div className="flex justify-between items-center gap-4 mb-4">
-          <div className="flex items-center gap-3 flex-1">
+        <div className="flex justify-between items-center gap-4 mb-4 flex-wrap">
+          <div className="flex items-center gap-3 flex-1 min-w-64">
             <Search
               placeholder="Tìm kiếm theo mã, tên hoặc mô tả..."
               onSearch={(value) => setSearchKeyword(value || null)}
@@ -313,7 +473,62 @@ export const SyncBatch: React.FC = () => {
                 </Button>
               }
             />
+
+            <Select
+              placeholder="Lọc theo trạng thái đồng bộ"
+              value={pushStatusFilter}
+              onChange={(value) => setPushStatusFilter(value)}
+              allowClear
+              size="large"
+              className="w-56"
+              suffixIcon={<FilterOutlined />}
+            >
+              <Option value={true}>
+                <div className="flex items-center gap-2">
+                  <CheckCircleOutlined className="text-black!" />
+                  <span>Đã đồng bộ</span>
+                </div>
+              </Option>
+              <Option value={false}>
+                <div className="flex items-center gap-2">
+                  <CloseCircleOutlined className="text-red-600!" />
+                  <span>Chưa đồng bộ</span>
+                </div>
+              </Option>
+            </Select>
+
+            <Select
+              mode="multiple"
+              placeholder="Lọc theo phòng ban"
+              value={departmentFilter}
+              onChange={(value) => setDepartmentFilter(value)}
+              allowClear
+              size="large"
+              className="w-56"
+              showSearch
+              optionFilterProp="children"
+              filterOption={(input, option) => {
+                const label = typeof option?.children === "string" ? option.children : "";
+                return label.toLowerCase().includes(input.toLowerCase());
+              }}
+            >
+              {/* Chỉ hiện phòng ban mà nhân viên thuộc về */}
+              {departments
+                .filter((dept) => myDepartmentIds.includes(dept.id))
+                .map((dept) => (
+                  <Option key={dept.id} value={dept.id}>
+                    {dept.name}
+                  </Option>
+                ))}
+            </Select>
+
+            {(pushStatusFilter !== null || departmentFilter.length > 0) && (
+              <Button onClick={handleClearFilter} size="large">
+                Xóa bộ lọc
+              </Button>
+            )}
           </div>
+
           <Tooltip
             title={
               selectedIds.length === 0
@@ -333,18 +548,17 @@ export const SyncBatch: React.FC = () => {
             </Button>
           </Tooltip>
         </div>
-        
+
         {/* Checkbox Xóa dữ liệu cũ được đặt ở đây */}
         <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-end">
           <div className="flex items-center gap-3">
-            <span className="font-medium text-gray-700">Xóa dữ liệu cũ:</span>
             <Radio.Group
               onChange={(e) => setDeleteMissing(e.target.value)}
               value={deleteMissing}
               className="text-gray-700"
             >
-              <Radio value={true}>Có</Radio>
-              <Radio value={false}>Không</Radio>
+              <Radio value={true}>Cập nhật dữ liệu</Radio>
+              <Radio value={false}>Đồng bộ dữ liệu mới</Radio>
             </Radio.Group>
           </div>
         </div>
@@ -360,15 +574,20 @@ export const SyncBatch: React.FC = () => {
               Đồng bộ Batch
             </h1>
           </div>
-          <Button
-            size="large"
-            icon={<ReloadOutlined />}
-            onClick={() => fetchBatches()}
-            loading={loading}
-            className="h-10 px-6"
-          >
-            Tải lại
-          </Button>
+          <div className="flex items-center gap-3">
+            <div className="text-sm text-gray-600">
+              Hiển thị {filteredBatches.length} / {batches.length} batch
+            </div>
+            <Button
+              size="large"
+              icon={<ReloadOutlined />}
+              onClick={() => fetchBatches()}
+              loading={loading}
+              className="h-10 px-6"
+            >
+              Tải lại
+            </Button>
+          </div>
         </div>
 
         {selectedIds.length > 0 && (
@@ -384,13 +603,17 @@ export const SyncBatch: React.FC = () => {
           <Table
             rowKey="id"
             columns={columns}
-            dataSource={batches}
+            dataSource={filteredBatches}
             loading={loading}
             pagination={{
               current: page + 1,
               pageSize: limit,
               total: total,
               onChange: (pageNumber) => setPage(pageNumber - 1),
+              onShowSizeChange: (_, newSize) => {
+                setPage(0);
+                setLimit(newSize);
+              },
               showSizeChanger: true,
               showTotal: (total) => `Tổng cộng ${total} batch`,
               pageSizeOptions: [10, 20, 50],
@@ -406,10 +629,14 @@ export const SyncBatch: React.FC = () => {
           />
         </div>
 
-        {batches.length === 0 && !loading && (
+        {filteredBatches.length === 0 && !loading && (
           <div className="text-center py-16 bg-gray-50 rounded-lg mt-4">
             <FileTextOutlined className="text-4xl text-gray-300 mb-3" />
-            <p className="text-gray-500 text-lg">Không có batch nào</p>
+            <p className="text-gray-500 text-lg">
+              {pushStatusFilter !== null
+                ? "Không có batch nào phù hợp với bộ lọc"
+                : "Không có batch nào"}
+            </p>
           </div>
         )}
       </Card>
@@ -485,7 +712,9 @@ export const SyncBatch: React.FC = () => {
             </Form.Item>
 
             <Form.Item
-              label={<span className="font-medium text-gray-800">Mật khẩu</span>}
+              label={
+                <span className="font-medium text-gray-800">Mật khẩu</span>
+              }
               name="password"
               rules={[{ required: true, message: "Vui lòng nhập password!" }]}
             >

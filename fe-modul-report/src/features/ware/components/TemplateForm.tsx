@@ -1,5 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { Input, Button, message, Tabs, Modal, Card, Tag, Avatar, Space } from "antd";
+import {
+  Input,
+  Button,
+  message,
+  Tabs,
+  Modal,
+  Card,
+  Tag,
+  Avatar,
+  Space,
+  Radio,
+  Upload,
+} from "antd";
 import type {
   WareTemplateRequest,
   WareTemplateResponse,
@@ -20,7 +32,11 @@ import {
   TeamOutlined,
   FileTextOutlined,
   CalendarOutlined,
+  UploadOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons";
+import type { EmployeeResponse } from "../../employee/types/employee";
+import type { UploadFile } from "antd/es/upload/interface";
 
 interface TemplateFormProps {
   templateId: number;
@@ -32,22 +48,9 @@ interface ApprovalConfig {
   approverName?: string;
   approvalOrder: number;
   isActive: boolean;
+  autoApprove?: boolean;
 }
 
-interface Employee {
-  id: string;
-  name: string;
-  departmentId: string;
-  departmentName: string;
-  position: string;
-  phone: string;
-  email: string;
-  address: string;
-  gender: string;
-  birthday: string;
-  keyAvatar: string | null;
-  role: string | null;
-}
 
 const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
 
@@ -58,14 +61,16 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
   const [approvalConfigs, setApprovalConfigs] = useState<ApprovalConfig[]>([]);
   const [loadingConfigs, setLoadingConfigs] = useState(false);
   const [isApprovalModalVisible, setIsApprovalModalVisible] = useState(false);
-  const [editingApproverIndex, setEditingApproverIndex] = useState<number | null>(
-    null
-  );
+  const [editingApproverIndex, setEditingApproverIndex] = useState<
+    number | null
+  >(null);
 
-  const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
+  const [allEmployees, setAllEmployees] = useState<EmployeeResponse[]>([]);
   const [tempApprovers, setTempApprovers] = useState<string[]>([]);
   const [searchEmployee, setSearchEmployee] = useState("");
-  const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
+  const [filteredEmployees, setFilteredEmployees] = useState<EmployeeResponse[]>([]);
+  const [autoApprove, setAutoApprove] = useState(false);
+  const [excelFileList, setExcelFileList] = useState<UploadFile[]>([]);
 
   const fetchTemplate = async () => {
     try {
@@ -91,7 +96,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
     setLoadingConfigs(true);
     try {
       const res = await approvalConfigsApi.getByTemplateId(
-        templateId.toString()
+        templateId.toString(),
       );
       setApprovalConfigs(res.data.configs || []);
     } catch (err) {
@@ -103,12 +108,11 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
 
   const fetchAllEmployees = async () => {
     try {
-      const res = await employeeApi.getAll();
-      setAllEmployees(res);
-      setFilteredEmployees(res);
+      const res = await employeeApi.searchEmployee("", 0, 10000000);
+      setAllEmployees(res.content || []);
+      setFilteredEmployees(res.content || []);
     } catch (err) {
       message.error("Lấy danh sách nhân viên thất bại");
-    } finally {
     }
   };
 
@@ -144,7 +148,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
 
   const updateField = <K extends keyof WareTemplateRequest>(
     key: K,
-    value: WareTemplateRequest[K]
+    value: WareTemplateRequest[K],
   ) => {
     setRequest((prev) => (prev ? { ...prev, [key]: value } : prev));
   };
@@ -158,24 +162,49 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
     }
 
     try {
-      await wareTemplateApi.updateWareTemplate(request);
+      await wareTemplateApi.updateWareTemplate({
+        ...request,
+        excelFile: excelFileList[0]?.originFileObj as File | undefined,
+      });
       message.success("Cập nhật template thành công");
+      setExcelFileList([]);
       setIsEditing(false);
       fetchTemplate();
     } catch (err) {
       message.error(
-        (err as any)?.response?.data?.message || "Cập nhật template thất bại"
+        (err as any)?.response?.data?.message || "Cập nhật template thất bại",
       );
     }
   };
 
   const handleCancel = () => {
     setIsEditing(false);
+    setExcelFileList([]);
     fetchTemplate();
+  };
+
+  const handleExportExcel = async () => {
+    if (!template) return;
+
+    try {
+      const blob = await wareTemplateApi.exportTemplateExcel(template.id);
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = `${template.code || template.name || `template-${template.id}`}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(objectUrl);
+      message.success("Xuất file Excel thành công");
+    } catch (err: any) {
+      message.error(err?.response?.data?.message || "Xuất file Excel thất bại");
+    }
   };
 
   const handleOpenApprovalModal = () => {
     setTempApprovers(approvalConfigs.map((config) => config.approverId));
+    setAutoApprove(approvalConfigs[0]?.autoApprove ?? false);
     setEditingApproverIndex(null);
     setSearchEmployee("");
     setIsApprovalModalVisible(true);
@@ -216,7 +245,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
     }
 
     const selectedEmployee = filteredEmployees.find(
-      (emp) => emp.id === searchEmployee
+      (emp) => emp.id === searchEmployee,
     );
     if (!selectedEmployee) {
       message.warning("Nhân viên không tồn tại");
@@ -251,13 +280,14 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
     try {
       const configs = tempApprovers.map((approverId, index) => {
         const existingConfig = approvalConfigs.find(
-          (c) => c.approverId === approverId
+          (c) => c.approverId === approverId,
         );
 
         return {
           ...(existingConfig?.id && { id: existingConfig.id }),
           approverId,
           approvalOrder: index + 1,
+          autoApprove,
         };
       });
 
@@ -317,7 +347,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                   size="large"
                   icon={<SaveOutlined />}
                   onClick={handleSave}
-                  className="bg-green-600! hover:bg-green-700! h-10 px-6"
+                  className="bg-[#0891b2]! hover:bg-cyan-7000! h-10 px-6"
                 >
                   Lưu
                 </Button>
@@ -328,7 +358,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                 size="large"
                 icon={<EditOutlined />}
                 onClick={() => setIsEditing(true)}
-                className="bg-green-600! hover:bg-green-700! h-10 px-6"
+                className="bg-[#0891b2]! hover:bg-cyan-7000! h-10 px-6"
               >
                 Chỉnh sửa
               </Button>
@@ -412,10 +442,58 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                 type="number"
                 value={request.startRow}
                 disabled={!isEditing}
-                onChange={(e) => updateField("startRow", Number(e.target.value))}
+                onChange={(e) =>
+                  updateField("startRow", Number(e.target.value))
+                }
                 size="large"
                 className="rounded-lg"
               />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block font-medium text-gray-700 mb-2">
+                File Excel mẫu
+              </label>
+              <Upload
+                accept=".xlsx,.xls"
+                maxCount={1}
+                beforeUpload={(file) => {
+                  setExcelFileList([
+                    {
+                      uid: file.uid,
+                      name: file.name,
+                      status: "done",
+                      originFileObj: file,
+                    },
+                  ]);
+                  return false;
+                }}
+                onRemove={() => {
+                  setExcelFileList([]);
+                  return true;
+                }}
+                fileList={excelFileList}
+                disabled={!isEditing}
+              >
+                <Button icon={<UploadOutlined />} disabled={!isEditing}>
+                  {isEditing ? "Chọn file Excel" : "Bật chỉnh sửa để thay file"}
+                </Button>
+              </Upload>
+            </div>
+
+            <div>
+              <label className="block font-medium text-gray-700 mb-2">
+                Xuất file Excel
+              </label>
+              <Button
+                icon={<DownloadOutlined />}
+                onClick={handleExportExcel}
+                disabled={!template?.excelFileKey}
+              >
+                Xuất file Excel hiện tại
+              </Button>
             </div>
           </div>
 
@@ -465,8 +543,8 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
         <Card className="shadow-sm border-0 rounded-xl">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center bg-green-100">
-                <TeamOutlined className="text-green-600 text-lg" />
+              <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100">
+                <TeamOutlined className="text-blue-600 text-lg" />
               </div>
               <h1 className="text-xl font-bold text-gray-800 m-0">
                 Cấu hình người duyệt
@@ -487,9 +565,11 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                 size="large"
                 icon={hasApprovalConfigs ? <EditOutlined /> : <PlusOutlined />}
                 onClick={handleOpenApprovalModal}
-                className="bg-green-600! hover:bg-green-700! h-10 px-6"
+                className="bg-[#1976D2]! hover:bg-blue-700! h-10 px-6"
               >
-                {hasApprovalConfigs ? "Chỉnh sửa người duyệt" : "Thêm mới người duyệt"}
+                {hasApprovalConfigs
+                  ? "Chỉnh sửa người duyệt"
+                  : "Thêm mới người duyệt"}
               </Button>
             </Space>
           </div>
@@ -522,7 +602,10 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                       <label className="block text-sm font-medium text-gray-600 mb-2">
                         Thứ tự duyệt
                       </label>
-                      <Tag color="purple" className="px-3 py-1 text-base font-semibold">
+                      <Tag
+                        color="purple"
+                        className="px-3 py-1 text-base font-semibold"
+                      >
                         #{config.approvalOrder}
                       </Tag>
                     </div>
@@ -560,7 +643,6 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
               <p className="text-gray-500 mb-6 text-lg">
                 Không có cấu hình người duyệt
               </p>
-
             </div>
           )}
         </Card>
@@ -571,22 +653,17 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
   return (
     <>
       <div className="px-6 py-6 bg-linear-to-br from-gray-50 to-gray-100">
-        <Tabs
-          defaultActiveKey="1"
-          items={tabItems}
-          size="large"
-          className=""
-        />
+        <Tabs defaultActiveKey="1" items={tabItems} size="large" className="" />
       </div>
 
       <Modal
         title={
           <div className="flex items-center gap-3 pb-3 border-b">
-            <div className="w-10 h-10 flex items-center justify-center bg-green-100">
+            <div className="w-10 h-10 flex items-center justify-center bg-blue-100">
               {hasApprovalConfigs ? (
-                <EditOutlined className="text-green-600 text-lg" />
+                <EditOutlined className="text-blue-600 text-lg" />
               ) : (
-                <PlusOutlined className="text-green-600 text-lg" />
+                <PlusOutlined className="text-blue-600 text-lg" />
               )}
             </div>
             <div className="text-lg font-semibold text-gray-800">
@@ -604,7 +681,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
         width={800}
         okButtonProps={{
           className:
-            "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
+            "bg-[#1976D2]! hover:bg-blue-700! text-white! border-0 h-10 px-6 text-base font-medium",
           size: "large",
         }}
         cancelButtonProps={{
@@ -614,7 +691,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
       >
         <div className="py-4">
           <label className="block mb-4 font-semibold text-gray-800 text-base items-center gap-2">
-            <TeamOutlined className="text-green-600" />
+            <TeamOutlined className="text-blue-600" />
             Danh sách người duyệt
           </label>
 
@@ -627,15 +704,14 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                 return (
                   <div
                     key={idx}
-                    className={`p-4 transition-all ${
-                      isEditing
-                        ? "border-2 border-green-500 bg-green-50 shadow-md"
-                        : "border border-gray-200 bg-white hover:shadow-md"
-                    }`}
+                    className={`p-4 transition-all ${isEditing
+                      ? "border-2 border-blue-500 bg-blue-50 shadow-md"
+                      : "border border-gray-200 bg-white hover:shadow-md"
+                      }`}
                   >
                     {isEditing ? (
                       <div>
-                        <div className="flex justify-between items-center mb-4 pb-3 border-b border-green-200">
+                        <div className="flex justify-between items-center mb-4 pb-3 border-b border-blue-200">
                           <div className="flex items-center gap-3">
                             <Avatar
                               src={employee?.keyAvatar || DEFAULT_AVATAR}
@@ -674,9 +750,8 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                               <div
                                 key={emp.id}
                                 onClick={() => handleSelectNewApprover(emp.id)}
-                                className={`p-3 cursor-pointer border-b border-gray-100 hover:bg-blue-50 transition-colors ${
-                                  emp.id === approverId ? "bg-green-50" : ""
-                                }`}
+                                className={`p-3 cursor-pointer border-b border-gray-100 hover:bg-blue-50 transition-colors ${emp.id === approverId ? "bg-blue-50" : ""
+                                  }`}
                               >
                                 <div className="flex items-center gap-3">
                                   <Avatar
@@ -746,6 +821,19 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
             </div>
           )}
 
+          <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200 mb-4">
+            <label className="block mb-3 font-semibold text-gray-800">
+              Tự động duyệt báo cáo khi người duyệt cuối cùng duyệt
+            </label>
+            <Radio.Group
+              value={autoApprove}
+              onChange={(e) => setAutoApprove(e.target.value)}
+            >
+              <Radio value={true}>Có</Radio>
+              <Radio value={false}>Không</Radio>
+            </Radio.Group>
+          </div>
+
           {editingApproverIndex === null && (
             <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
               <label className="block mb-3 font-semibold text-gray-800 items-center gap-2">
@@ -767,12 +855,14 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                     <div
                       key={emp.id}
                       onClick={() => setSearchEmployee(emp.id)}
-                      className={`p-3 cursor-pointer border-b border-gray-100 hover:bg-blue-50 transition-colors ${
-                        tempApprovers.includes(emp.id) ? "bg-gray-100" : ""
-                      }`}
+                      className={`p-3 cursor-pointer border-b border-gray-100 hover:bg-blue-50 transition-colors ${tempApprovers.includes(emp.id) ? "bg-gray-100" : ""
+                        }`}
                     >
                       <div className="flex items-center gap-3">
-                        <Avatar src={emp.keyAvatar || DEFAULT_AVATAR} size={40} />
+                        <Avatar
+                          src={emp.keyAvatar || DEFAULT_AVATAR}
+                          size={40}
+                        />
                         <div className="flex-1">
                           <div className="font-semibold text-gray-800">
                             {emp.name}
@@ -793,7 +883,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                 block
                 size="large"
                 icon={<PlusOutlined />}
-                className="bg-green-600! hover:bg-green-700! h-11 font-medium rounded-lg"
+                className="bg-[#1976D2]! hover:bg-blue-700! h-11 font-medium rounded-lg"
               >
                 Thêm người duyệt
               </Button>

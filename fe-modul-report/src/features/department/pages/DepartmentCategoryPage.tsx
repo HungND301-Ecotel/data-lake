@@ -1,5 +1,15 @@
 import { useState, useEffect } from "react";
-import { Table, Input, Button, Space, Modal, Form, message, Card, Tag } from "antd";
+import {
+  Table,
+  Input,
+  Button,
+  Space,
+  Modal,
+  Form,
+  message,
+  Card,
+  Tag,
+} from "antd";
 import {
   SearchOutlined,
   PlusOutlined,
@@ -13,7 +23,7 @@ import { departmentApi } from "../api/departmentApi";
 const DepartmentCategoryPage = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingDept, setEditingDept] = useState<DepartmentResponse | null>(
-    null
+    null,
   );
   const [form] = Form.useForm();
   const [modal, contextHolderModal] = Modal.useModal();
@@ -94,7 +104,7 @@ const DepartmentCategoryPage = () => {
         messageApi.success(
           editingDept
             ? "Cập nhật phòng ban thành công"
-            : "Tạo phòng ban thành công"
+            : "Tạo phòng ban thành công",
         );
         setModalVisible(false);
         await loadDepartments(search, 0, pageResponse.limit);
@@ -151,7 +161,7 @@ const DepartmentCategoryPage = () => {
             type="primary"
             icon={<EditOutlined />}
             onClick={() => handleEdit(record)}
-            className="bg-green-600! hover:bg-green-700! text-white border-0 shadow-md"
+            className="bg-[#0891b2]! hover:bg-cyan-7000! text-white border-0 shadow-md"
           >
             Sửa
           </Button>
@@ -174,9 +184,9 @@ const DepartmentCategoryPage = () => {
 
       {/* Header Section */}
 
-
       {/* Main Card */}
       <Card className="shadow-lg border-0 rounded-xl">
+        <div className="font-semibold mb-2 text-lg text-blue-600">/ Danh mục phòng ban</div>
         {/* Search and Action Bar */}
         <div className="flex gap-3 mb-6">
           <Input
@@ -197,7 +207,7 @@ const DepartmentCategoryPage = () => {
             size="large"
             icon={<PlusOutlined />}
             onClick={handleAddNew}
-            className="bg-green-600! hover:bg-green-700! text-white border-0 shadow-md"
+            className="bg-[#0891b2]! hover:bg-cyan-7000! text-white border-0 shadow-md"
             style={{ borderRadius: "8px", minWidth: "140px" }}
           >
             Thêm mới
@@ -275,7 +285,7 @@ const DepartmentCategoryPage = () => {
         }
         width={800}
         okButtonProps={{
-          className: "bg-green-600! hover:bg-green-700! text-white border-0 h-10 px-6 text-base font-medium",
+          className: "bg-[#0891b2]! hover:bg-cyan-7000! text-white border-0 h-10 px-6 text-base font-medium",
           size: "large",
         }}
         cancelButtonProps={{

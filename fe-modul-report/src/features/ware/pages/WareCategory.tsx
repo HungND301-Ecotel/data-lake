@@ -60,7 +60,7 @@ const WareCategoryPage = () => {
     keyword = search,
     page = 0,
     limit = pageResponse.limit,
-    depId = departmentId
+    depId = departmentId,
   ) => {
     try {
       const res = await wareCategoryApi.searchWareCategory({
@@ -122,7 +122,9 @@ const WareCategoryPage = () => {
 
       try {
         await wareCategoryApi.updateWareCategory(req);
-        messageApi.success(editing ? "Cập nhật danh mục thành công" : "Tạo danh mục thành công");
+        messageApi.success(
+          editing ? "Cập nhật danh mục thành công" : "Tạo danh mục thành công",
+        );
         setModalVisible(false);
         await loadData(search, 0);
       } catch (error: any) {
@@ -212,7 +214,7 @@ const WareCategoryPage = () => {
           <Button
             icon={<EditOutlined />}
             onClick={() => handleEdit(record)}
-            className="bg-green-600! hover:bg-green-700! text-white! border-0"
+            className="bg-[#0891b2]! hover:bg-cyan-7000! text-white! border-0"
           >
             Sửa
           </Button>
@@ -235,6 +237,7 @@ const WareCategoryPage = () => {
 
       {/* Main Card */}
       <Card className="shadow-lg border-0 rounded-xl">
+        <div className="font-semibold mb-2 text-lg text-blue-600">/ Danh mục báo cáo</div>
         {/* Search and Action Bar */}
         <div className="flex gap-3 mb-6">
           <Input
@@ -271,7 +274,7 @@ const WareCategoryPage = () => {
             size="large"
             icon={<PlusOutlined />}
             onClick={handleAdd}
-            className="bg-green-600! hover:bg-green-700! text-white! border-0 shadow-md"
+            className="bg-[#0891b2]! hover:bg-cyan-7000! text-white! border-0 shadow-md"
             style={{ borderRadius: "8px", minWidth: "140px" }}
           >
             Thêm mới
@@ -292,7 +295,11 @@ const WareCategoryPage = () => {
             </div>
             {(search || departmentId) && (
               <div className="text-sm text-gray-600">
-                Tìm thấy <span className="font-semibold">{pageResponse.content.length}</span> kết quả
+                Tìm thấy{" "}
+                <span className="font-semibold">
+                  {pageResponse.content.length}
+                </span>{" "}
+                kết quả
               </div>
             )}
           </div>
@@ -334,7 +341,7 @@ const WareCategoryPage = () => {
               {editing ? (
                 <EditOutlined className="text-blue-600 text-lg" />
               ) : (
-                <PlusOutlined className="text-green-600 text-lg" />
+                <PlusOutlined className="text-blue-600 text-lg" />
               )}
             </div>
             <div>
@@ -349,12 +356,12 @@ const WareCategoryPage = () => {
         }
         width={800}
         okButtonProps={{
-          className: "bg-green-600! hover:bg-green-700! text-white border-0 h-10 px-6 text-base font-medium",
+          className: "bg-[#0891b2]! hover:bg-cyan-7000! text-white border-0 h-10 px-6 text-base font-medium",
           size: "large",
         }}
         cancelButtonProps={{
           size: "large",
-          className: "h-10 px-6 text-base"
+          className: "h-10 px-6 text-base",
         }}
       >
         <Form form={form} layout="vertical" className="mt-6">
@@ -396,9 +403,7 @@ const WareCategoryPage = () => {
 
           <Form.Item
             name="description"
-            label={
-              <span className="font-medium text-gray-700">Mô tả</span>
-            }
+            label={<span className="font-medium text-gray-700">Mô tả</span>}
           >
             <Input.TextArea
               placeholder="Nhập mô tả chi tiết về danh mục..."

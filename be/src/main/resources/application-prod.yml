@@ -39,6 +39,9 @@ webclient:
   connection-timeout: 5000
   read-timeout: 10000
 
+datalake:
+  base-url: ${DATALAKE_BASE_URL:http://1.53.45.49:1313}
+
 account:
   username: ${USERNAME_VINA}
   password: ${PASSWORD_VINA}
