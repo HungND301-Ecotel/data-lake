@@ -3,7 +3,7 @@ import {
   MailOutlined,
   PhoneOutlined,
 } from "@ant-design/icons";
-import logoUb from "../../file/logo-ub.jpg";
+import logoUb from "../../file/logo-kvdb.png";
 
 const Header = () => {
   const navigate = useNavigate();
