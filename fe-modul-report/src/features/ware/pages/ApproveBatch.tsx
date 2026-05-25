@@ -225,7 +225,7 @@ export const ApproveBatch: React.FC = () => {
       form.resetFields();
       fetchBatches();
     } catch (error: any) {
-      messageApi.error(error?.data || "Thêm batch thất bại");
+      messageApi.error(error?.message || "Thêm batch thất bại");
     }
   };
 
