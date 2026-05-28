@@ -6,6 +6,9 @@ export interface WareMappingRequest {
   fieldType?: "ROW" | "CELL" | "TEXT";
   isKeyColumn?: boolean;
   isScopFilter?: boolean;
+  isSummable?: boolean;
+  role?: string;
+  aggregateType?: string;
   cellAddress?: string;
   wareTemplateId: number;
 }
@@ -18,6 +21,9 @@ export interface WareMappingResponse {
   fieldType?: "ROW" | "CELL" | "TEXT";
   isKeyColumn?: boolean;
   isScopFilter?: boolean;
+  isSummable?: boolean;
+  role?: string;
+  aggregateType?: string;
   cellAddress?: string;
   defaultValue?: string | null;
 }

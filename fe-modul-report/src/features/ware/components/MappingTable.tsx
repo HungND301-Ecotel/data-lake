@@ -19,6 +19,8 @@ import { useAuthStore } from "../../../stores/authStore";
 
 // ---- Field type union (phải khớp với WareMappingRequest) ----
 type FieldType = "CELL" | "ROW" | "TEXT";
+type RoleType = "DIMENSION" | "MEASURE";
+type AggregateType = "SUM" | "LAST" | "FIRST" | "MAX" | "MIN" | "NONE";
 
 // ---- Build pending rows from AI response ----
 function buildRequestsFromAiResponse(
@@ -44,6 +46,9 @@ function buildRequestsFromAiResponse(
       fieldValue: meta.fieldValue,
       isKeyColumn: true,
       isScopFilter: true,
+      isSummable: false,
+      role: "DIMENSION",
+      aggregateType: "NONE",
       wareTemplateId: templateId,
     });
   }
@@ -58,6 +63,9 @@ function buildRequestsFromAiResponse(
       fieldValue: "",
       isKeyColumn: false,
       isScopFilter: false,
+      isSummable: false,
+      role: "DIMENSION",
+      aggregateType: "NONE",
       wareTemplateId: templateId,
     });
   }
@@ -121,6 +129,9 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
       fieldValue: r.fieldValue,
       isKeyColumn: r.isKeyColumn,
       isScopFilter: r.isScopFilter,
+      isSummable: r.isSummable,
+      role: r.role,
+      aggregateType: r.aggregateType,
     }));
 
     setData((prev) => [...previewRows, ...prev.filter((r) => r.id !== null)]);
@@ -154,6 +165,39 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
     { value: "NUMBER", label: "Giá trị" },
     { value: "STRING", label: "Chuỗi kí tự" },
   ];
+  const ROLE_OPTIONS = [
+    { value: "DIMENSION" as RoleType, label: "DIMENSION" },
+    { value: "MEASURE" as RoleType, label: "MEASURE" },
+  ];
+  const AGGREGATE_OPTIONS = [
+    { value: "NONE" as AggregateType, label: "NONE" },
+    { value: "SUM" as AggregateType, label: "SUM" },
+    { value: "FIRST" as AggregateType, label: "FIRST" },
+    { value: "LAST" as AggregateType, label: "LAST" },
+    { value: "MAX" as AggregateType, label: "MAX" },
+    { value: "MIN" as AggregateType, label: "MIN" },
+  ];
+
+  const resolveRole = (record: Pick<WareMappingRequest, "role" | "isSummable">): RoleType => {
+    if (record.role === "DIMENSION" || record.role === "MEASURE") return record.role;
+    return record.isSummable ? "MEASURE" : "DIMENSION";
+  };
+
+  const resolveAggregateType = (
+    record: Pick<WareMappingRequest, "aggregateType" | "isSummable">
+  ): AggregateType => {
+    if (
+      record.aggregateType === "SUM" ||
+      record.aggregateType === "LAST" ||
+      record.aggregateType === "FIRST" ||
+      record.aggregateType === "MAX" ||
+      record.aggregateType === "MIN" ||
+      record.aggregateType === "NONE"
+    ) {
+      return record.aggregateType;
+    }
+    return record.isSummable ? "SUM" : "NONE";
+  };
 
   const isNormalEditing = (record: WareMappingResponse) => {
     if (record.id === null && pendingRows.length === 0 && editingId === null && editingRequest !== null) {
@@ -191,17 +235,19 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
     setEditingRequest({
       id: null, fieldTitle: "", fieldName: "", fieldType: "ROW",
       cellAddress: "", fieldValue: "",
-      isKeyColumn: false, isScopFilter: false,
+      isKeyColumn: false, isScopFilter: false, isSummable: false,
+      role: "DIMENSION", aggregateType: "NONE",
       wareTemplateId: templateId,
     });
     setData((prev) => [
-      { id: null, fieldTitle: "", fieldName: "", fieldType: "ROW", cellAddress: "", fieldValue: "", isKeyColumn: false, isScopFilter: false },
+      { id: null, fieldTitle: "", fieldName: "", fieldType: "ROW", cellAddress: "", fieldValue: "", isKeyColumn: false, isScopFilter: false, isSummable: false, role: "DIMENSION", aggregateType: "NONE" },
       ...prev,
     ]);
   };
 
   const handleEdit = (record: WareMappingResponse) => {
-    if (!isAdmin) return;
+    const role = resolveRole(record);
+    const aggregateType = resolveAggregateType(record);
     setEditingId(record.id!);
     setEditingRequest({
       id: record.id!, fieldTitle: record.fieldTitle, fieldName: record.fieldName,
@@ -210,6 +256,9 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
       fieldValue: record.fieldValue ?? "",
       isKeyColumn: record.isKeyColumn ?? false,
       isScopFilter: record.isScopFilter ?? false,
+      isSummable: record.isSummable ?? false,
+      role,
+      aggregateType,
       wareTemplateId: templateId,
     });
   };
@@ -346,6 +395,34 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
     />
   );
 
+  const renderRoleSelect = (
+    value: RoleType | undefined,
+    onChange: (v: RoleType) => void
+  ) => (
+    <Select<RoleType>
+      value={value}
+      style={{ width: "100%" }}
+      onChange={onChange}
+      options={ROLE_OPTIONS}
+      size="large"
+    />
+  );
+
+  const renderAggregateSelect = (
+    value: AggregateType | undefined,
+    onChange: (v: AggregateType) => void,
+    disabled?: boolean
+  ) => (
+    <Select<AggregateType>
+      value={value}
+      style={{ width: "100%" }}
+      onChange={onChange}
+      options={AGGREGATE_OPTIONS}
+      size="large"
+      disabled={disabled}
+    />
+  );
+
   const renderCheckbox = (checked: boolean | undefined, onChange: (v: boolean) => void) => (
     <Checkbox checked={checked} onChange={(e) => onChange(e.target.checked)} />
   );
@@ -427,6 +504,87 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
         return record.isScopFilter
           ? <Tag color="warning">Filter</Tag>
           : <span className="text-gray-400">-</span>;
+      },
+    },
+    {
+      title: "Summable", width: 110, align: "center",
+      render: (_, record) => {
+        const pi = getPendingIndex(record);
+        if (pi >= 0) return renderCheckbox(pendingRows[pi]?.isSummable, (v) => {
+          updatePendingRow(pi, "isSummable", v);
+          updatePendingRow(pi, "role", v ? "MEASURE" : "DIMENSION");
+          updatePendingRow(pi, "aggregateType", v ? "SUM" : "NONE");
+        });
+        if (isNormalEditing(record)) return renderCheckbox(editingRequest?.isSummable, (v) => {
+          updateRequest("isSummable", v);
+          updateRequest("role", v ? "MEASURE" : "DIMENSION");
+          updateRequest("aggregateType", v ? "SUM" : "NONE");
+        });
+        return record.isSummable
+          ? <Tag color="processing">Sum</Tag>
+          : <span className="text-gray-400">-</span>;
+      },
+    },
+    {
+      title: "Role", width: 140, align: "center",
+      render: (_, record) => {
+        const pi = getPendingIndex(record);
+        if (pi >= 0) {
+          const role = resolveRole(pendingRows[pi]);
+          return renderRoleSelect(role, (v) => {
+            const currentAgg = resolveAggregateType(pendingRows[pi]);
+            const nextAgg = v === "DIMENSION"
+              ? "NONE"
+              : (currentAgg === "NONE" ? "SUM" : currentAgg);
+            updatePendingRow(pi, "role", v);
+            updatePendingRow(pi, "aggregateType", nextAgg);
+            updatePendingRow(pi, "isSummable", nextAgg !== "NONE");
+          });
+        }
+        if (isNormalEditing(record)) {
+          const role = resolveRole(editingRequest ?? record);
+          return renderRoleSelect(role, (v) => {
+            const currentAgg = resolveAggregateType(editingRequest ?? record);
+            const nextAgg = v === "DIMENSION" ? "NONE" : (currentAgg === "NONE" ? "SUM" : currentAgg);
+            updateRequest("role", v);
+            updateRequest("aggregateType", nextAgg);
+            updateRequest("isSummable", nextAgg !== "NONE");
+          });
+        }
+        const role = resolveRole(record);
+        return (
+          <Tag color={role === "DIMENSION" ? "blue" : "green"}>
+            {role}
+          </Tag>
+        );
+      },
+    },
+    {
+      title: "Aggregate", width: 150, align: "center",
+      render: (_, record) => {
+        const pi = getPendingIndex(record);
+        if (pi >= 0) {
+          const role = resolveRole(pendingRows[pi]);
+          const agg = resolveAggregateType(pendingRows[pi]);
+          return renderAggregateSelect(agg, (v) => {
+            updatePendingRow(pi, "aggregateType", v);
+            updatePendingRow(pi, "isSummable", v !== "NONE");
+          }, role === "DIMENSION");
+        }
+        if (isNormalEditing(record)) {
+          const role = resolveRole(editingRequest ?? record);
+          const agg = resolveAggregateType(editingRequest ?? record);
+          return renderAggregateSelect(agg, (v) => {
+            updateRequest("aggregateType", v);
+            updateRequest("isSummable", v !== "NONE");
+          }, role === "DIMENSION");
+        }
+        const role = resolveRole(record);
+        const agg = resolveAggregateType(record);
+        if (role === "DIMENSION") {
+          return <Tag color="blue">DIMENSION</Tag>;
+        }
+        return <Tag color="green">MEASURE / {agg}</Tag>;
       },
     },
     {
