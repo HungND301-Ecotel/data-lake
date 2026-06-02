@@ -37,10 +37,16 @@ import {
   RightOutlined,
   DownloadOutlined,
 } from "@ant-design/icons";
+import { Select } from "antd";
 import { wareTemplateApi } from "../api/wareTemplateApi";
 
 const { Search } = Input;
-
+const quarterMonthMap: Record<string, number[]> = {
+  Q1: [1, 2, 3],
+  Q2: [4, 5, 6],
+  Q3: [7, 8, 9],
+  Q4: [10, 11, 12],
+};
 interface BreadcrumbInfo {
   departmentName: string;
   categoryName: string;
@@ -519,7 +525,7 @@ export const WareBatch: React.FC<WareBatchProps> = ({ templateIdProp }) => {
             <Input placeholder="Nhập tên batch" size="large" className="rounded-lg" />
           </Form.Item>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <Form.Item
               name="reportYear"
               label={
@@ -534,8 +540,57 @@ export const WareBatch: React.FC<WareBatchProps> = ({ templateIdProp }) => {
             <Form.Item
               name="reportMonth"
               label={<span className="font-medium text-gray-800">Tháng báo cáo</span>}
+              dependencies={["reportQuarter"]}
+              rules={[
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    const quarter = getFieldValue("reportQuarter");
+
+                    if (!quarter || !value) {
+                      return Promise.resolve();
+                    }
+
+                    const validMonths = quarterMonthMap[quarter];
+
+                    if (validMonths.includes(Number(value))) {
+                      return Promise.resolve();
+                    }
+
+                    return Promise.reject(
+                      new Error(
+                        `Tháng phải thuộc ${quarter} (${validMonths.join(", ")})`
+                      )
+                    );
+                  },
+                }),
+              ]}
             >
               <Input placeholder="VD: 1-12" size="large" type="number" min={1} max={12} className="rounded-lg" />
+            </Form.Item>
+            <Form.Item
+              name="reportQuarter"
+              label={<span className="font-medium text-gray-800">Quý báo cáo</span>}
+            >
+              <Select
+                placeholder="Chọn quý (tùy chọn)"
+                allowClear
+                size="large"
+                onChange={(value) => {
+                  if (value) {
+                    const months = quarterMonthMap[value];
+                    form.setFieldValue(
+                      "reportMonth",
+                      months[months.length - 1]
+                    );
+                  }
+                }}
+                options={[
+                  { label: "Q1 (Tháng 1-3)", value: "Q1" },
+                  { label: "Q2 (Tháng 4-6)", value: "Q2" },
+                  { label: "Q3 (Tháng 7-9)", value: "Q3" },
+                  { label: "Q4 (Tháng 10-12)", value: "Q4" },
+                ]}
+              />
             </Form.Item>
             <Form.Item
               name="reportDay"
