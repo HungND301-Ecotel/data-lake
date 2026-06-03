@@ -6,6 +6,7 @@ import com.quangnt0000.be_modul.service.DataWH.WareTemplateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,11 +16,13 @@ public class WareTemplateController {
     private final WareTemplateService wareTemplateService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> add(@ModelAttribute WareTemplateRequest request) {
         return wareTemplateService.add(request);
     }
 
     @DeleteMapping("/{template-id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> delete(@PathVariable ("template-id") Integer templateId) {
         return wareTemplateService.delete(templateId);
     }
@@ -34,6 +37,7 @@ public class WareTemplateController {
     }
 
     @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> update(@ModelAttribute WareTemplateRequest request) {
         return wareTemplateService.update(request);
     }

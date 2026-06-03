@@ -295,7 +295,11 @@ const WareCategoryPage = () => {
             </div>
             {(search || departmentId) && (
               <div className="text-sm text-gray-600">
-                Tìm thấy <span className="font-semibold">{pageResponse.content.length}</span> kết quả
+                Tìm thấy{" "}
+                <span className="font-semibold">
+                  {pageResponse.content.length}
+                </span>{" "}
+                kết quả
               </div>
             )}
           </div>
@@ -399,9 +403,7 @@ const WareCategoryPage = () => {
 
           <Form.Item
             name="description"
-            label={
-              <span className="font-medium text-gray-700">Mô tả</span>
-            }
+            label={<span className="font-medium text-gray-700">Mô tả</span>}
           >
             <Input.TextArea
               placeholder="Nhập mô tả chi tiết về danh mục..."
