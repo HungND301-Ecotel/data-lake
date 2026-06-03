@@ -482,7 +482,7 @@ export const WareBatch: React.FC<WareBatchProps> = ({ templateIdProp }) => {
               size="large"
               icon={<PlusOutlined />}
               onClick={() => setIsModalOpen(true)}
-              className="bg-green-600! hover:bg-green-700! h-11 px-8"
+              className="bg-[#1976D2]! hover:bg-blue-700! h-11 px-8"
             >
               Thêm batch mới
             </Button>
