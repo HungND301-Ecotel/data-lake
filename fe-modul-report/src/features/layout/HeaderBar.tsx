@@ -1,5 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import logo from "../../file/logo.png";
+import {
+  MailOutlined,
+  PhoneOutlined,
+} from "@ant-design/icons";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -28,10 +32,10 @@ const Header = () => {
 
             <div className="flex justify-center gap-6 text-sm mt-1">
               <span className="flex items-center gap-1">
-                Điện thoại: (84)0203 3862 337
+                <PhoneOutlined /> 020.33565388
               </span>
               <span className="flex items-center gap-1">
-                Fax: 0203 3863 945
+                <MailOutlined /> 020.33565399
               </span>
             </div>
           </div>

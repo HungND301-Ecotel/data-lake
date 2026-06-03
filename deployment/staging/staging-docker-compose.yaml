@@ -48,6 +48,11 @@ services:
     restart: unless-stopped
     networks:
       - backnet
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   pgadmin:
     container_name: pgadmin_caoson_report_2211
@@ -62,7 +67,6 @@ services:
       - "2604:80"     # ← port mới
     networks:
       - backnet
-    restart: unless-stopped
 
 volumes:
   caoson_report_postgres_data:

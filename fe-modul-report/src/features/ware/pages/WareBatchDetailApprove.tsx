@@ -894,8 +894,7 @@ export const WareBatchDetailApprove: React.FC = () => {
               size="large"
               icon={<CheckOutlined />}
               onClick={handleApprove}
-              loading={approvalLoading}
-              className="bg-[#1976D2]! hover:bg-blue-700! h-10 px-6"
+              className="bg-[#0891b2]! hover:bg-cyan-7000! h-10 px-6"
             >
               Duyệt
             </Button>

@@ -409,9 +409,7 @@ const ReportDetail: React.FC = () => {
                             onChange={(updated) => {
                               if (!report) return;
                               const updatedItems = report.items.map((i) =>
-                                i.id === item.id
-                                  ? { ...i, object: updated }
-                                  : i,
+                                i.id === item.id ? { ...i, object: updated } : i
                               );
                               setReport({ ...report, items: updatedItems });
                             }}
@@ -441,9 +439,7 @@ const ReportDetail: React.FC = () => {
                             onChange={(updated) => {
                               if (!report) return;
                               const updatedItems = report.items.map((i) =>
-                                i.id === item.id
-                                  ? { ...i, object: updated }
-                                  : i,
+                                i.id === item.id ? { ...i, object: updated } : i
                               );
                               setReport({ ...report, items: updatedItems });
                             }}
