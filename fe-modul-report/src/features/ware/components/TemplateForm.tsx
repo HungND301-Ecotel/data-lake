@@ -37,6 +37,7 @@ import {
 } from "@ant-design/icons";
 import type { EmployeeResponse } from "../../employee/types/employee";
 import type { UploadFile } from "antd/es/upload/interface";
+import { useAuthStore } from "../../../stores/authStore";
 
 interface TemplateFormProps {
   templateId: number;
@@ -71,6 +72,8 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
   const [filteredEmployees, setFilteredEmployees] = useState<EmployeeResponse[]>([]);
   const [autoApprove, setAutoApprove] = useState(false);
   const [excelFileList, setExcelFileList] = useState<UploadFile[]>([]);
+  const role = useAuthStore((state) => state.role);
+  const isAdmin = role === "ADMIN";
 
   const fetchTemplate = async () => {
     try {
@@ -146,6 +149,12 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
     }
   }, [searchEmployee, allEmployees]);
 
+  useEffect(() => {
+    if (!isAdmin && isEditing) {
+      setIsEditing(false);
+    }
+  }, [isAdmin, isEditing]);
+
   const updateField = <K extends keyof WareTemplateRequest>(
     key: K,
     value: WareTemplateRequest[K],
@@ -172,7 +181,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
       fetchTemplate();
     } catch (err) {
       message.error(
-        (err as any)?.response?.data?.message || "Cập nhật template thất bại",
+        (err as any)?.message || "Cập nhật template thất bại",
       );
     }
   };
@@ -198,7 +207,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
       URL.revokeObjectURL(objectUrl);
       message.success("Xuất file Excel thành công");
     } catch (err: any) {
-      message.error(err?.response?.data?.message || "Xuất file Excel thất bại");
+      message.error(err?.message || "Xuất file Excel thất bại");
     }
   };
 
@@ -299,7 +308,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
       setSearchEmployee("");
       fetchApprovalConfigs();
     } catch (err) {
-      message.error("Lưu cấu hình thất bại");
+      message.error((err as any)?.message || "Lưu cấu hình thất bại");
     }
   };
 
@@ -352,7 +361,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                   Lưu
                 </Button>
               </Space>
-            ) : (
+            ) : isAdmin ? (
               <Button
                 type="primary"
                 size="large"
@@ -362,7 +371,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
               >
                 Chỉnh sửa
               </Button>
-            )}
+            ) : null}
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-4">
@@ -600,7 +609,10 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                       <label className="block text-sm font-medium text-gray-600 mb-2">
                         Thứ tự duyệt
                       </label>
-                      <Tag color="purple" className="px-3 py-1 text-base font-semibold">
+                      <Tag
+                        color="purple"
+                        className="px-3 py-1 text-base font-semibold"
+                      >
                         #{config.approvalOrder}
                       </Tag>
                     </div>

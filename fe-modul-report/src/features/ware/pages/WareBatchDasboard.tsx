@@ -31,7 +31,6 @@ const DashboardWare = () => {
       second: "2-digit",
     });
   };
-
   const [lineChartData, setLineChartData] = useState<TimeCountDto[]>([]);
   const [lineType, setLineType] = useState<"DAY" | "MONTH" | "YEAR">("DAY");
   const [page, setPage] = useState(0);
@@ -120,7 +119,9 @@ const DashboardWare = () => {
       dataIndex: "tableName",
       width: 120,
       render: (text: string) => (
-        <Tag color="purple" className="font-medium">{text}</Tag>
+        <Tag color="purple" className="font-medium">
+          {text}
+        </Tag>
       ),
     },
     {
