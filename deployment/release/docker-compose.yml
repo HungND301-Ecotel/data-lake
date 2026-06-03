@@ -1,11 +1,9 @@
 services:
   report_reverse_proxy_service:
-    image: report_reverse_proxy_img
-    build:
-      context: ./reverse_proxy
+    image: ${REGISTRY}/report_reverse_proxy_img:${VERSION}
     ports:
       # HOST_PORT:CONTAINER_PORT
-      - "8888:8888"
+      - "6565:8888"
     stdin_open: true
     environment:
       - TZ=Asia/Ho_Chi_Minh
@@ -18,10 +16,8 @@ services:
 
   report_backend_service:
     env_file:
-      - ./be/.env
-    image: report_backend_img
-    build:
-      context: ./be
+      - .env_backend
+    image: ${REGISTRY}/report_backend_img:${VERSION}
     depends_on:
       postgres:
         condition: service_healthy
@@ -32,12 +28,7 @@ services:
     restart: unless-stopped
 
   report_frontend_service:
-    platform: linux/amd64
-    env_file:
-      - ./fe-modul-report/.env
-    image: report_frontend_img
-    build:
-      context: ./fe-modul-report
+    image: ${REGISTRY}/report_frontend_img:${VERSION}
     # target: development
     stdin_open: true
     environment:
@@ -67,13 +58,6 @@ services:
     ports:
       - "5434:5432"
     restart: unless-stopped
-    networks:
-      - backnet
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   pgadmin:
     container_name: pgadmin_report_2211

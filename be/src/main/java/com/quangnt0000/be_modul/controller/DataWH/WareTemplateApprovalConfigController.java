@@ -5,6 +5,7 @@ import com.quangnt0000.be_modul.service.DataWH.WareApprovalConfigService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -30,6 +31,7 @@ public class WareTemplateApprovalConfigController {
 
     
     @PutMapping("/{template-id}/approval-configs")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateApprovalConfigs(
             @PathVariable("template-id") Integer wareTemplateId,
             @Valid @RequestBody WareApprovalConfigUpdateRequest request) {

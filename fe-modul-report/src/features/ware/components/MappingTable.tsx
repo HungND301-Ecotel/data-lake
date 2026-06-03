@@ -15,6 +15,7 @@ import type { ColumnsType } from "antd/es/table";
 import type { WareMappingResponse, WareMappingRequest } from "../types/wareMapping";
 import { wareMappingApi } from "../api/wareMappingApi";
 import { useExcelMapping } from "../../../features/excel-mapping/hooks/useExcelMapping";
+import { useAuthStore } from "../../../stores/authStore";
 
 // ---- Field type union (phải khớp với WareMappingRequest) ----
 type FieldType = "CELL" | "ROW" | "TEXT";
@@ -80,6 +81,8 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
   const [modal, contextHolderModal] = Modal.useModal();
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingRequest, setEditingRequest] = useState<WareMappingRequest | null>(null);
+  const role = useAuthStore((state) => state.role);
+  const isAdmin = role === "ADMIN";
 
   const [aiModalOpen, setAiModalOpen] = useState(false);
   const { result: aiResult, loading: aiLoading, error: aiError, analyze, clear: clearAi } = useExcelMapping();
@@ -145,7 +148,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
   const FIELD_TYPE_COLOR: Record<FieldType, string> = {
     ROW: "blue",
     CELL: "cyan",
-    TEXT: "blue",
+    TEXT: "green",
   };
   const FIELD_VALUE_LABEL: Record<string, string> = {
     INTEGER: "Số nguyên",
@@ -227,6 +230,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
 
   // ---- Normal add / edit / save ----
   const handleAdd = () => {
+    if (!isAdmin) return;
     setEditingId(null);
     setEditingRequest({
       id: null, fieldTitle: "", fieldName: "", fieldType: "ROW",
@@ -266,6 +270,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
   };
 
   const handleSave = async () => {
+    if (!isAdmin) return;
     if (!editingRequest) return;
     if (!editingRequest.fieldName || !editingRequest.fieldType) {
       messageApi.warning("Field Name và Field Type là bắt buộc");
@@ -282,12 +287,13 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
       setEditingId(null);
       setEditingRequest(null);
       fetchData();
-    } catch {
-      messageApi.error("Lưu mapping thất bại");
+    } catch (err) {
+      messageApi.error((err as any)?.message || "Lưu mapping thất bại");
     }
   };
 
   const handleDelete = async (id: number) => {
+    if (!isAdmin) return;
     modal.confirm({
       title: "Xác nhận xóa",
       icon: <ExclamationCircleOutlined />,
@@ -298,8 +304,8 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
           await wareMappingApi.deleteWareMapping(String(id));
           messageApi.success("Xóa mapping thành công");
           fetchData();
-        } catch {
-          messageApi.error("Xóa mapping thất bại");
+        } catch (err) {
+          messageApi.error((err as any)?.message || "Xóa mapping thất bại");
         }
       },
     });
@@ -307,6 +313,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
 
   // ---- Pending row save / cancel ----
   const handleSavePendingRow = async (rowIndex: number) => {
+    if (!isAdmin) return;
     const req = pendingRows[rowIndex];
     if (!req) return;
     if (!req.fieldName || !req.fieldType) {
@@ -333,8 +340,8 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
 
       if (newPending.length === 0) fetchData();
 
-    } catch {
-      messageApi.error("Lưu thất bại");
+    } catch (err) {
+      messageApi.error((err as any)?.message || "Lưu thất bại");
     }
   };
 
@@ -349,6 +356,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
   };
 
   const handleOpenAiModal = () => {
+    if (!isAdmin) return;
     clearAi();
     setAiModalOpen(true);
   };
@@ -584,6 +592,10 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
       render: (_, record) => {
         const pi = getPendingIndex(record);
 
+        if (!isAdmin) {
+          return <span className="text-gray-400">-</span>;
+        }
+
         if (pi >= 0) {
           return (
             <Space>
@@ -682,28 +694,30 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
             <h1 className="text-xl font-bold text-gray-800 m-0">Cấu hình dữ liệu Mapping</h1>
           </div>
 
-          <Space>
-            <Tooltip title="Dùng AI đọc file Excel để tự động tạo mapping">
+          {isAdmin ? (
+            <Space>
+              <Tooltip title="Dùng AI đọc file Excel để tự động tạo mapping">
+                <Button
+                  size="large"
+                  icon={<RobotOutlined />}
+                  onClick={handleOpenAiModal}
+                  style={{ borderColor: "#a855f7", color: "#9333ea" }}
+                  className="h-10 px-5"
+                >
+                  Cấu hình AI
+                </Button>
+              </Tooltip>
               <Button
+                type="primary"
                 size="large"
-                icon={<RobotOutlined />}
-                onClick={handleOpenAiModal}
-                style={{ borderColor: "#a855f7", color: "#9333ea" }}
-                className="h-10 px-5"
+                icon={<PlusOutlined />}
+                onClick={handleAdd}
+                className="bg-green-600! hover:bg-green-700! h-10 px-6"
               >
-                Cấu hình AI
+                Thêm mới
               </Button>
-            </Tooltip>
-            <Button
-              type="primary"
-              size="large"
-              icon={<PlusOutlined />}
-              onClick={handleAdd}
-              className="bg-green-600! hover:bg-green-700! h-10 px-6"
-            >
-              Thêm mới
-            </Button>
-          </Space>
+            </Space>
+          ) : null}
         </div>
 
         {pendingRows.length > 0 && (
@@ -750,14 +764,16 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
           <div className="text-center py-16 bg-gray-50 rounded-lg mt-4">
             <DatabaseOutlined className="text-4xl text-gray-300 mb-3" />
             <p className="text-gray-500 text-lg mb-6">Không có dữ liệu mapping</p>
-            <Space>
-              <Button size="large" icon={<RobotOutlined />} onClick={handleOpenAiModal} style={{ borderColor: "#a855f7", color: "#9333ea" }} className="h-11 px-8">
-                Cấu hình AI
-              </Button>
-              <Button type="primary" size="large" icon={<PlusOutlined />} onClick={handleAdd} className="bg-green-600! hover:bg-green-700! h-11 px-8">
-                Thêm mapping mới
-              </Button>
-            </Space>
+            {isAdmin ? (
+              <Space>
+                <Button size="large" icon={<RobotOutlined />} onClick={handleOpenAiModal} style={{ borderColor: "#a855f7", color: "#9333ea" }} className="h-11 px-8">
+                  Cấu hình AI
+                </Button>
+                <Button type="primary" size="large" icon={<PlusOutlined />} onClick={handleAdd} className="bg-green-600! hover:bg-green-700! h-11 px-8">
+                  Thêm mapping mới
+                </Button>
+              </Space>
+            ) : null}
           </div>
         )}
       </Card>

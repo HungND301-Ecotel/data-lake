@@ -27,6 +27,7 @@ public class WareMappingService {
     private final WareMappingRepository wareMappingRepository;
     private final WareTemplateRepository wareTemplateRepository;
     private final WareBatchRepository wareBatchRepository;
+
     public ResponseEntity<?> add(WareMappingRequest request) {
         WareTemplate wareTemplate = wareTemplateRepository.findById(request.getWareTemplateId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ware Template Not Found"));

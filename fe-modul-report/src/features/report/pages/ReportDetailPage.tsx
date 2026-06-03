@@ -280,24 +280,12 @@ const ReportDetailPage: React.FC = () => {
                   </div>
                 </Space>
               </Descriptions.Item>
-              <Descriptions.Item label="Ngày tạo">
-                {report.createdAt}
-              </Descriptions.Item>
-              <Descriptions.Item label="Ngày cập nhật">
-                {report.updatedAt}
-              </Descriptions.Item>
-              <Descriptions.Item label="Phòng ban">
-                {report.department}
-              </Descriptions.Item>
-              <Descriptions.Item label="Đầu mục báo cáo">
-                {report.category}
-              </Descriptions.Item>
-              <Descriptions.Item label="Kích thước">
-                {report.fileSize}
-              </Descriptions.Item>
-              <Descriptions.Item label="Version">
-                {report.version}
-              </Descriptions.Item>
+              <Descriptions.Item label="Ngày tạo">{report.createdAt}</Descriptions.Item>
+              <Descriptions.Item label="Ngày cập nhật">{report.updatedAt}</Descriptions.Item>
+              <Descriptions.Item label="Phòng ban">{report.department}</Descriptions.Item>
+              <Descriptions.Item label="Đầu mục báo cáo">{report.category}</Descriptions.Item>
+              <Descriptions.Item label="Kích thước">{report.fileSize}</Descriptions.Item>
+              <Descriptions.Item label="Version">{report.version}</Descriptions.Item>
             </Descriptions>
           </Card>
         </Col>

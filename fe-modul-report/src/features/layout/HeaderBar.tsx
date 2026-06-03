@@ -1,6 +1,9 @@
-import { useNavigate } from "react-router-dom";
+import {useNavigate } from "react-router-dom";
+import {
+  MailOutlined,
+  PhoneOutlined,
+} from "@ant-design/icons";
 import logo from "../../file/logo.png";
-
 const Header = () => {
   const navigate = useNavigate();
 
@@ -20,18 +23,18 @@ const Header = () => {
 
           <div className="ml-4 text-center">
             <div className="text-2xl font-bold">
-              PHẦN MỀM KHO DỮ LIỆU TẬP TRUNG
+              PHẦN MỀM QUẢN LÝ KHO DỮ LIỆU
             </div>
             <div className="text-base font-bold">
-              CÔNG TY CỔ PHẦN THAN ĐÈO NAI - CỌC SÁU - TKV
+             CÔNG TY CỔ PHẦN THAN ĐÈO NAI - CỌC SÁU - TKV
             </div>
 
             <div className="flex justify-center gap-6 text-sm mt-1">
               <span className="flex items-center gap-1">
-                Điện thoại: (84)02033 863739
+                <PhoneOutlined /> (84)02033 863739
               </span>
               <span className="flex items-center gap-1">
-                Fax: (84)033.863942
+                <MailOutlined /> (84)033.863942
               </span>
             </div>
           </div>

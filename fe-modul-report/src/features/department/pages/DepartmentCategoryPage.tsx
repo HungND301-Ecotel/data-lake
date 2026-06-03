@@ -228,11 +228,7 @@ const DepartmentCategoryPage = () => {
             </div>
             {search && (
               <div className="text-sm text-gray-600">
-                Tìm thấy{" "}
-                <span className="font-semibold">
-                  {pageResponse.content.length}
-                </span>{" "}
-                kết quả
+                Tìm thấy <span className="font-semibold">{pageResponse.content.length}</span> kết quả
               </div>
             )}
           </div>
@@ -294,7 +290,7 @@ const DepartmentCategoryPage = () => {
         }}
         cancelButtonProps={{
           size: "large",
-          className: "h-10 px-6 text-base",
+          className: "h-10 px-6 text-base"
         }}
       >
         <Form form={form} layout="vertical" className="mt-6">
@@ -307,18 +303,14 @@ const DepartmentCategoryPage = () => {
             }
             rules={[
               { required: true, message: "Vui lòng nhập mã phòng ban" },
-              {
-                pattern: /^[A-Z0-9_-]+$/,
-                message:
-                  "Mã phòng ban chỉ chứa chữ IN HOA, số, dấu gạch ngang và gạch dưới",
-              },
+              { pattern: /^[A-Z0-9_-]+$/, message: "Mã phòng ban chỉ chứa chữ IN HOA, số, dấu gạch ngang và gạch dưới" }
             ]}
           >
             <Input
               placeholder="VD: DEPT_001, IT-DEPT"
               size="large"
               className="rounded-lg"
-              style={{ textTransform: "uppercase" }}
+              style={{ textTransform: 'uppercase' }}
             />
           </Form.Item>
 
@@ -340,7 +332,9 @@ const DepartmentCategoryPage = () => {
 
           <Form.Item
             name="description"
-            label={<span className="font-medium text-gray-700">Mô tả</span>}
+            label={
+              <span className="font-medium text-gray-700">Mô tả</span>
+            }
           >
             <Input.TextArea
               placeholder="Nhập mô tả chi tiết về phòng ban..."

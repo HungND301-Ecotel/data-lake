@@ -1,11 +1,11 @@
 # Reference:
 # 1. https://github.com/actions/starter-workflows/blob/main/deployments/azure-webapps-node.yml
-name: Deploy for staging version
+name: Deploy for release version
 
 on:
   push:
     branches:
-      - dev/deonaicocsau # Deploy when code is pushed to 'develop'
+      - main # Deploy when code is pushed to 'develop'
 
 env:
   WEBAPP_NAME: data-lake # set this to your application's name
@@ -28,7 +28,7 @@ jobs:
 
       - name: Create an .env file in frontend for building image
         run: |
-          echo "VITE_API=${{ secrets.VITE_API }}" > ./fe-modul-report/.env
+          echo "VITE_APIL=${{ secrets.VITE_API }}" > ./fe-modul-report/.env
 
       - name: List Files
         run: ls -laR
@@ -38,59 +38,59 @@ jobs:
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
         run: |
-          make staging
+          make release
           ls -al .env
           cat .env
-          cp .env deployment/staging/
+          cp .env deployment/release/
 
       - name: Ensure target directory exists
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USER }}
-          key: ${{ secrets.STAGING_SSH_KEY }}
-          port: ${{ secrets.STAGING_PORT }}
+          host: ${{ secrets.RELEASE_HOST }}
+          username: ${{ secrets.RELEASE_USER }}
+          key: ${{ secrets.RELEASE_SSH_KEY }}
+          port: ${{ secrets.RELEASE_PORT }}
           script: |
-            mkdir -p /home/${{ secrets.STAGING_USER }}/data-lake/deonaicocsau/deployment/staging
+            mkdir -p /home/${{ secrets.RELEASE_USER }}/data-lake/deployment/release
 
       - name: Transfer docker-compose file to VPS for deployment
         uses: appleboy/scp-action@v0.1.4
         with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USER }}
-          key: ${{ secrets.STAGING_SSH_KEY }}
-          port: ${{ secrets.STAGING_PORT }}
-          source: deployment/staging/*
-          target: "/home/${{ secrets.STAGING_USER }}/data-lake/deonaicocsau/deployment/staging"
-          strip_components: 2 # Removes "deployment/staging/" folder path!
+          host: ${{ secrets.RELEASE_HOST }}
+          username: ${{ secrets.RELEASE_USER }}
+          key: ${{ secrets.RELEASE_SSH_KEY }}
+          port: ${{ secrets.RELEASE_PORT }}
+          source: deployment/release/*
+          target: "/home/${{ secrets.RELEASE_USER }}/data-lake/deployment/release"
+          strip_components: 2 # Removes "deployment/release/" folder path!
 
       - name: Clean up containers and stuff via SSH
         uses: appleboy/ssh-action@v0.1.7
         with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USER }}
-          key: ${{ secrets.STAGING_SSH_KEY }}
-          port: ${{ secrets.STAGING_PORT }}
+          host: ${{ secrets.RELEASE_HOST }}
+          username: ${{ secrets.RELEASE_USER }}
+          key: ${{ secrets.RELEASE_SSH_KEY }}
+          port: ${{ secrets.RELEASE_PORT }}
           script: |
-            # Change to staging deployment directory
-            cd /home/${{ secrets.STAGING_USER }}/data-lake/deonaicocsau/deployment/staging 
+            # Change to release deployment directory
+            cd /home/${{ secrets.RELEASE_USER }}/data-lake/deployment/release 
             # Debug info
             pwd
             ls -al
             docker image prune -f
-            docker compose -f staging-docker-compose.yaml down # always down first
+            docker compose -f release-docker-compose.yaml down # always down first
             docker ps
 
-      - name: Deploy to Staging via SSH
+      - name: Deploy to release via SSH
         uses: appleboy/ssh-action@v0.1.7
         with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USER }}
-          key: ${{ secrets.STAGING_SSH_KEY }}  
-          port: ${{ secrets.STAGING_PORT }}
+          host: ${{ secrets.RELEASE_HOST }}
+          username: ${{ secrets.RELEASE_USER }}
+          key: ${{ secrets.RELEASE_SSH_KEY }}
+          port: ${{ secrets.RELEASE_PORT }}
           script: |
-            ### Change to staging deployment directory
-            cd /home/${{ secrets.STAGING_USER }}/data-lake/deonaicocsau/deployment/staging 
+            ### Change to release deployment directory
+            cd /home/${{ secrets.RELEASE_USER }}/data-lake/deployment/release 
             ### Clean up unused images
             docker image prune -f # clean up unused images
             ### Provide permissions and start the application

@@ -214,7 +214,7 @@ const WareCategoryPage = () => {
           <Button
             icon={<EditOutlined />}
             onClick={() => handleEdit(record)}
-            className="bg-[#1976D2]! hover:bg-blue-700! text-white! border-0"
+            className="bg-green-600! hover:bg-green-700! text-white! border-0"
           >
             Sửa
           </Button>
@@ -274,7 +274,7 @@ const WareCategoryPage = () => {
             size="large"
             icon={<PlusOutlined />}
             onClick={handleAdd}
-            className="bg-[#1976D2]! hover:bg-blue-700! text-white! border-0 shadow-md"
+            className="bg-green-600! hover:bg-green-700! text-white! border-0 shadow-md"
             style={{ borderRadius: "8px", minWidth: "140px" }}
           >
             Thêm mới
