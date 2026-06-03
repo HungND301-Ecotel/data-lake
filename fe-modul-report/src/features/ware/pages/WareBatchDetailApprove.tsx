@@ -894,7 +894,7 @@ export const WareBatchDetailApprove: React.FC = () => {
               size="large"
               icon={<CheckOutlined />}
               onClick={handleApprove}
-              className="bg-[#0891b2]! hover:bg-cyan-7000! h-10 px-6"
+              className="bg-green-600! hover:bg-green-700! h-10 px-6"
             >
               Duyệt
             </Button>
@@ -1230,7 +1230,7 @@ export const WareBatchDetailApprove: React.FC = () => {
               block
               size="large"
               icon={<CloudUploadOutlined />}
-              className="bg-[#0891b2]! hover:bg-cyan-7000! h-11 font-medium rounded-lg"
+              className="bg-green-600! hover:bg-green-700! h-11 font-medium rounded-lg"
             >
               Upload dữ liệu
             </Button>

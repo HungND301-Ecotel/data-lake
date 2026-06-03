@@ -356,7 +356,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                   size="large"
                   icon={<SaveOutlined />}
                   onClick={handleSave}
-                  className="bg-[#0891b2]! hover:bg-cyan-7000! h-10 px-6"
+                  className="bg-green-600! hover:bg-green-700! h-10 px-6"
                 >
                   Lưu
                 </Button>
@@ -367,7 +367,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                 size="large"
                 icon={<EditOutlined />}
                 onClick={() => setIsEditing(true)}
-                className="bg-[#0891b2]! hover:bg-cyan-7000! h-10 px-6"
+                className="bg-green-600! hover:bg-green-700! h-10 px-6"
               >
                 Chỉnh sửa
               </Button>

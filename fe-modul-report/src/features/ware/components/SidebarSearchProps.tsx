@@ -189,7 +189,7 @@ const SidebarSearch = ({
                 size="large"
                 type="primary"
                 icon={<SearchOutlined />}
-                className="bg-[#0891b2]! hover:bg-cyan-7000!"
+                className="bg-green-600! hover:bg-green-700!"
                 onClick={handleSearch}
               >
                 Tìm kiếm

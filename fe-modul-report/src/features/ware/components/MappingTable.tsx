@@ -600,7 +600,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
           return (
             <Space>
               <Tooltip title="Lưu dòng này">
-                <Button type="primary" icon={<SaveOutlined />} onClick={() => handleSavePendingRow(pi)} className="bg-[#0891b2]! hover:bg-cyan-7000!" size="large">Lưu</Button>
+                <Button type="primary" icon={<SaveOutlined />} onClick={() => handleSavePendingRow(pi)} className="bg-green-600! hover:bg-green-700!" size="large">Lưu</Button>
               </Tooltip>
               <Tooltip title="Bỏ dòng này">
                 <Button icon={<CloseOutlined />} onClick={() => handleCancelPendingRow(pi)} size="large">Bỏ</Button>
@@ -613,7 +613,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
           return (
             <Space>
               <Tooltip title="Lưu thay đổi">
-                <Button type="primary" icon={<SaveOutlined />} onClick={handleSave} className="bg-[#0891b2]! hover:bg-cyan-7000!" size="large">Lưu</Button>
+                <Button type="primary" icon={<SaveOutlined />} onClick={handleSave} className="bg-green-600! hover:bg-green-700!" size="large">Lưu</Button>
               </Tooltip>
               <Tooltip title="Hủy thay đổi">
                 <Button icon={<CloseOutlined />} onClick={handleCancel} size="large">Hủy</Button>
@@ -625,7 +625,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
         return (
           <Space>
             <Tooltip title="Chỉnh sửa mapping">
-              <Button type="primary" icon={<EditOutlined />} onClick={() => handleEdit(record)} className="bg-[#0891b2]! hover:bg-cyan-7000!" size="large">Sửa</Button>
+              <Button type="primary" icon={<EditOutlined />} onClick={() => handleEdit(record)} className="bg-green-600! hover:bg-green-700!" size="large">Sửa</Button>
             </Tooltip>
             <Tooltip title="Xóa mapping">
               <Button danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id!)} size="large">Xóa</Button>
@@ -712,7 +712,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
                 size="large"
                 icon={<PlusOutlined />}
                 onClick={handleAdd}
-                className="bg-[#0891b2]! hover:bg-cyan-7000! h-10 px-6"
+                className="bg-green-600! hover:bg-green-700! h-10 px-6"
               >
                 Thêm mới
               </Button>
@@ -769,7 +769,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
                 <Button size="large" icon={<RobotOutlined />} onClick={handleOpenAiModal} style={{ borderColor: "#a855f7", color: "#9333ea" }} className="h-11 px-8">
                   Cấu hình AI
                 </Button>
-                <Button type="primary" size="large" icon={<PlusOutlined />} onClick={handleAdd} className="bg-[#0891b2]! hover:bg-cyan-7000! h-11 px-8">
+                <Button type="primary" size="large" icon={<PlusOutlined />} onClick={handleAdd} className="bg-green-600! hover:bg-green-700! h-11 px-8">
                   Thêm mapping mới
                 </Button>
               </Space>

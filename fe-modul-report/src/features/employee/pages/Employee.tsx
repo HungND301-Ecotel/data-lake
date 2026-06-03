@@ -243,7 +243,7 @@ const EmployeePage = () => {
       align: "center" as const,
       render: (_role: string | null, record: EmployeeResponse) =>
         _role ? (
-          <Tag color="green" className="px-3 py-1 cursor-pointer">
+          <Tag color="blue" className="px-3 py-1 cursor-pointer">
             {_role}{" "}
             <EyeOutlined
               style={{ marginLeft: 8 }}
@@ -275,7 +275,7 @@ const EmployeePage = () => {
         <Space size="small">
           <Button
             icon={<EyeOutlined />}
-            className="bg-[#0891b2]! hover:bg-cyan-7000! text-white! border-0"
+            className="bg-[#1976D2]! hover:bg-blue-700! text-white! border-0"
             onClick={() => handleShowEmployeeDetail(record.id)}
           >
             Chi tiết
@@ -339,7 +339,7 @@ const EmployeePage = () => {
             size="large"
             icon={<PlusOutlined />}
             onClick={() => setCreateEmployeeModal(true)}
-            className="bg-[#0891b2]! hover:bg-cyan-7000! text-white! border-0 shadow-md"
+            className="bg-[#1976D2]! hover:bg-blue-700! text-white! border-0 shadow-md"
             style={{ borderRadius: "8px", minWidth: "160px" }}
           >
             Thêm nhân viên
@@ -389,8 +389,8 @@ const EmployeePage = () => {
       <Modal
         title={
           <div className="flex items-center gap-3 pb-3 border-b">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-green-100">
-              <PlusOutlined className="text-green-600 text-lg" />
+            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100">
+              <PlusOutlined className="text-blue-600 text-lg" />
             </div>
             <div className="text-lg font-semibold text-gray-800">
               Thêm nhân viên mới
@@ -403,7 +403,7 @@ const EmployeePage = () => {
         width={700}
         onCancel={() => setCreateEmployeeModal(false)}
         okButtonProps={{
-          className: "bg-[#0891b2]! hover:bg-cyan-7000! text-white! border-0 h-10 px-6 text-base font-medium",
+          className: "bg-[#1976D2]! hover:bg-blue-700! text-white! border-0 h-10 px-6 text-base font-medium",
           size: "large",
         }}
         cancelButtonProps={{

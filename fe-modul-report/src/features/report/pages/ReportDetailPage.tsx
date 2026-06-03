@@ -227,7 +227,7 @@ const fakeReports: Report[] = [
 const statusColorMap: Record<string, string> = {
   Nháp: "default",
   "Chờ duyệt": "orange",
-  "Đã duyệt": "green",
+  "Đã duyệt": "blue",
   "Từ chối": "red",
 };
 

@@ -3,22 +3,21 @@ import {
   MailOutlined,
   PhoneOutlined,
 } from "@ant-design/icons";
-import logoUb from "../../file/logo-kvdb.png";
-
+import logo from "../../file/logo.png";
 const Header = () => {
   const navigate = useNavigate();
 
   return (
     <header className="w-full">
       <div
-        className={`bg-[#0891b2] border-b border-cyan-600 transition-all duration-300 overflow-hidden`}
+        className={`bg-[#1976D2] border-b border-blue-600 transition-all duration-300 overflow-hidden`}
       >
         <div
           className={`flex items-center justify-center px-6 py-3 text-white transition-all duration-300 `}
         >
           <img
-            src={logoUb}
-            className="h-14 w-20 rounded-full cursor-pointer"
+            src={logo}
+            className="h-16 w-18 rounded-full cursor-pointer"
             onClick={() => navigate("/dashboard")}
           />
 
@@ -27,15 +26,15 @@ const Header = () => {
               PHẦN MỀM QUẢN LÝ KHO DỮ LIỆU
             </div>
             <div className="text-base font-bold">
-              CÔNG TY KHO VẬN ĐÁ BẠC - TKV
+             CÔNG TY CỔ PHẦN THAN ĐÈO NAI - CỌC SÁU - TKV
             </div>
 
             <div className="flex justify-center gap-6 text-sm mt-1">
               <span className="flex items-center gap-1">
-                <PhoneOutlined /> 020.33565388
+                <PhoneOutlined /> (84)02033 863739
               </span>
               <span className="flex items-center gap-1">
-                <MailOutlined /> 020.33565399
+                <MailOutlined /> (84)033.863942
               </span>
             </div>
           </div>

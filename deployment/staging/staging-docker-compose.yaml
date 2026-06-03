@@ -1,9 +1,9 @@
 services:
-  kvdabac_report_reverse_proxy_service:
-    image: ${REGISTRY}/kvdabac_report_reverse_proxy_img:${VERSION}
+  deonaicocsau_report_reverse_proxy_service:
+    image: ${REGISTRY}/deonaicocsau_report_reverse_proxy_img:${VERSION}
     ports:
       # HOST_PORT:CONTAINER_PORT
-      - "6969:8888"
+      - "1303:8888"
     stdin_open: true
     environment:
       - TZ=Asia/Ho_Chi_Minh
@@ -11,24 +11,23 @@ services:
       - backnet
       - frontnet
     depends_on:
-      - kvdabac_report_backend_service
-      - kvdabac_report_frontend_service
+      - deonaicocsau_report_backend_service
+      - deonaicocsau_report_frontend_service
 
-  kvdabac_report_backend_service:
+  deonaicocsau_report_backend_service:
     env_file:
       - .env_backend
-    image: ${REGISTRY}/kvdabac_report_backend_img:${VERSION}
+    image: ${REGISTRY}/deonaicocsau_report_backend_img:${VERSION}
     depends_on:
-      kvdabac_postgres:
-        condition: service_healthy
+      - deonaicocsau_postgres
     ports:
-      - "8585:8080"
+      - "3611:8080"
     networks:
       - backnet
     restart: unless-stopped
 
-  kvdabac_report_frontend_service:
-    image: ${REGISTRY}/kvdabac_report_frontend_img:${VERSION}
+  deonaicocsau_report_frontend_service:
+    image: ${REGISTRY}/deonaicocsau_report_frontend_img:${VERSION}
     # target: development
     stdin_open: true
     environment:
@@ -40,8 +39,8 @@ services:
     networks:
       - frontnet
 
-  kvdabac_postgres:
-    container_name: kvdabac_pg_report_2211
+  deonaicocsau_postgres:
+    container_name: pg_deonaicocsau_report_2211
     image: postgres:16
     environment:
       - POSTGRES_USER=admin
@@ -49,46 +48,39 @@ services:
       - POSTGRES_DB=report
       - PGDATA=/var/lib/postgresql/data
     volumes:
-      - kvdabac_report_postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5436:5432"
+      - deonaicocsau_report_postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
     networks:
       - backnet
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
-  kvdabac_pgadmin:
-    container_name: kvdabac_pgadmin_report_2211
+  deonaicocsau_pgadmin:
+    container_name: pgadmin_deonaicocsau_report_2211
     image: dpage/pgadmin4:8.6
     environment:
       - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL:-pgadmin@pgadmin.org}
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD:-admin}
       - PGADMIN_CONFIG_SERVER_MODE=False
     volumes:
-      - kvdabac_report_pgadmin_data:/var/lib/pgadmin
+      - deonaicocsau_report_pgadmin_data:/var/lib/pgadmin
     ports:
-      - "5052:80"
-    restart: unless-stopped
+      - "3603:80"
     networks:
       - backnet
+    restart: unless-stopped
 
 volumes:
-  kvdabac_report_postgres_data: # ✅ Cho postgres
+  deonaicocsau_report_postgres_data: # ✅ Cho postgres
     driver: local
     driver_opts:
       type: none
-      device: /mnt/hdd/kvdabac_report_postgres_data
+      device: /mnt/hdd/deonaicocsau_report_postgres_data
       o: bind
 
-  kvdabac_report_pgadmin_data: # ✅ Cho pgadmin (thêm mới)
+  deonaicocsau_report_pgadmin_data: # ✅ Cho pgadmin (thêm mới)
     driver: local
     driver_opts:
       type: none
-      device: /mnt/hdd/kvdabac_report_pgadmin_data
+      device: /mnt/hdd/deonaicocsau_report_pgadmin_data
       o: bind
 
 networks:
