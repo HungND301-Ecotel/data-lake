@@ -72,12 +72,14 @@ const LoginPage = () => {
               CÔNG TY CỔ PHẦN THAN ĐÈO NAI - CỌC SÁU - TKV
             </div>
             <div className="flex flex-col sm:flex-row items-center sm:items-end sm:justify-center gap-2 sm:gap-4 text-white text-sm sm:text-xl sm:text-center font-medium">
-              <span className="flex items-center gap-1">
-                Điện thoại: (84)02033 863739
-              </span>
-              <span className="flex items-center gap-1">
-                Fax: (84)033.863942
-              </span>
+              <div className="flex items-center gap-2">
+                <Phone className="w-4 h-4 text-white" />
+                <span>Hotline: 020.33565388</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Mail className="w-4 h-4 text-white" />
+                <span>Fax: 020.33565399</span>
+              </div>
             </div>
           </span>
         </div>
