@@ -74,7 +74,6 @@ const PdfPreviewModal: React.FC<PdfPreviewModalProps> = ({
       messageApi.error("PDF không tồn tại");
       return;
     }
-
     if (!fileName || !selectedCategory) {
       messageApi.error("Vui lòng nhập tên báo cáo và chọn danh mục");
       return;
@@ -95,7 +94,6 @@ const PdfPreviewModal: React.FC<PdfPreviewModalProps> = ({
         description,
         note,
       };
-
       const res = await reportStorageApi.addReportStorage(request);
       console.log("Upload PDF result:", res);
       messageApi.success("Lưu PDF thành công!");

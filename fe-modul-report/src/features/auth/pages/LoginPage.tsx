@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { message } from "antd";
+import { Alert, message } from "antd";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Phone, Mail } from "lucide-react";
 
 import type { LoginResponse } from "../../employee/types/user";
 import { useAuthStore } from "../../../stores/authStore";
@@ -14,6 +14,7 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState<string | null>(null);
   const navigate = useNavigate();
   const setRole = useAuthStore((s) => s.setRole);
 
@@ -21,15 +22,18 @@ const LoginPage = () => {
     e?.preventDefault();
 
     if (!username.trim()) {
-      message.error("Vui lòng nhập tài khoản");
+      setLoginError(null);
+      message.error('Vui lòng nhập tài khoản');
       return;
     }
 
     if (!password.trim()) {
-      message.error("Vui lòng nhập mật khẩu");
+      setLoginError(null);
+      message.error('Vui lòng nhập mật khẩu');
       return;
     }
 
+    setLoginError(null);
     setLoading(true);
     try {
       const res: LoginResponse = await userApi.login({ username, password });
@@ -41,7 +45,14 @@ const LoginPage = () => {
       navigate("/");
     } catch (err: any) {
       console.log(err);
-      message.error(err?.response?.data?.message || "Đăng nhập thất bại");
+      const errorMessage =
+        err?.message ||
+        err?.response?.data?.message ||
+        err?.response?.data ||
+        "Đăng nhập thất bại";
+
+      setLoginError(errorMessage);
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -57,15 +68,17 @@ const LoginPage = () => {
               KHO DỮ LIỆU TẬP TRUNG
             </div>
             <div className="text-base sm:text-xl font-bold text-center">
-              CÔNG TY CỔ PHẦN THAN CAO SƠN - TKV
+              CÔNG TY KHO VẬN ĐÁ BẠC - TKV
             </div>
             <div className="flex flex-col sm:flex-row items-center sm:items-end sm:justify-center gap-2 sm:gap-4 text-white text-sm sm:text-xl sm:text-center font-medium">
-              <span className="flex items-center gap-1">
-                Điện thoại: (84)0203 3862 337
-              </span>
-              <span className="flex items-center gap-1">
-                Fax: 0203 3863 945
-              </span>
+              <div className="flex items-center gap-2">
+                <Phone className="w-4 h-4 text-white" />
+                <span>Hotline: 020.33565388</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Mail className="w-4 h-4 text-white" />
+                <span>Fax: 020.33565399</span>
+              </div>
             </div>
           </span>
         </div>
@@ -169,6 +182,15 @@ const LoginPage = () => {
                   {loading ? "Đang đăng nhập..." : "Đăng nhập"}
                 </button>
               </div>
+
+              {loginError ? (
+                <Alert
+                  type="error"
+                  showIcon
+                  message={loginError}
+                  className="mt-2"
+                />
+              ) : null}
             </div>
           </form>
 
