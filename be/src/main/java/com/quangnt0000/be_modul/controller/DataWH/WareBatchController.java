@@ -37,10 +37,10 @@ public class WareBatchController {
         return wareBatchService.getWareBatchDetail(wareBatchId);
     }
 
-    // @PostMapping("/push")
-    // public ResponseEntity<?> push(@RequestBody  WareBatchPush request) {
-    //     return wareBatchService.push(request);
-    // }
+    @PostMapping("/push")
+    public ResponseEntity<?> push(@RequestBody  WareBatchPush request) {
+        return wareBatchService.push(request);
+    }
 
     // endpoint sau khi duyệt nội bộ, không push server tổng
     @PostMapping("/approve-internal")

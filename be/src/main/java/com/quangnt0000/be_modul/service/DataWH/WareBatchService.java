@@ -617,7 +617,7 @@ public class WareBatchService {
         }
     }
 
-    // Sau khi duyệt báo cáo nội bộ từng bước, không gọi API push lên server tổng
+    // Phê duyệt báo cáo nội bộ
     public ResponseEntity<?> approveInternal(WareBatchPush request) {
         WareBatch wareBatch = wareBatchRepository.findById(request.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "batch not found"));
@@ -633,6 +633,56 @@ public class WareBatchService {
                     "Batch chưa hoàn tất phê duyệt, không thể push dữ liệu");
         }
 
+        List<WareDataRow> wareDataRows = wareDataRowService.getByBatchId(request.getId());
+
+        List<WareMapping> filters = wareBatch.getWareTemplate().getWareMappings().stream()
+                .filter(WareMapping::getIsScopFilter)
+                .toList();
+        List<String> keyColumns = new ArrayList<>(wareBatch.getWareTemplate().getWareMappings().stream()
+                .filter(WareMapping::getIsKeyColumn)
+                .map(WareMapping::getFieldName)
+                .toList());
+        keyColumns.add("ID");
+        Map<String, Object> filter = new HashMap<>();
+        if (!wareDataRows.isEmpty()) {
+            WareDataRow firstRow = wareDataRows.get(0);
+            Map<String, Object> rowData = firstRow.getData();
+
+            for (WareMapping m : filters) {
+                String key = m.getFieldName();
+                Object value = rowData.get(key);
+                filter.put(key, value);
+            }
+        }
+
+        WareTemplate wareTemplate = wareBatch.getWareTemplate();
+        List<Map<String, Object>> rowsToSync = wareDataRows.stream()
+                .map(row -> {
+                    Map<String, Object> data = new HashMap<>(row.getData());
+                    data.putIfAbsent("ID", row.getId());
+                    return data;
+                }).toList();
+
+        int processedCount = 0;
+
+        try {
+            Map<String, Integer> syncResult = wareBatchJdbc.syncInternalTableData(
+                    wareTemplate.getTableCode(), 
+                    keyColumns, 
+                    filter, 
+                    rowsToSync, 
+                    request.getDeleteMissing()
+            );
+            
+            // Lấy ra số lượng bản ghi thực tế được tạo mới hoặc cập nhật
+            processedCount = syncResult.getOrDefault("processed", 0);
+
+        } catch (Exception e) {
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR, 
+                    "Lỗi hệ thống khi dịch dữ liệu vào bảng nội bộ: " + e.getMessage()
+            );
+        }
         batchActionRepository.save(
                 WareBatchAction.builder()
                         .action("APPROVE_INTERNAL")
@@ -640,11 +690,10 @@ public class WareBatchService {
                         .wareBatch(wareBatch)
                         .tableName(wareBatch.getWareTemplate().getTableName())
                         .updated(0)
-                        .inserted(0)
+                        .inserted(processedCount)
                         .build()
         );
-        wareBatch.setStatus(WareBatchEnum.Da_Phe_Duyet);
-        wareBatchRepository.save(wareBatch);
+
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
