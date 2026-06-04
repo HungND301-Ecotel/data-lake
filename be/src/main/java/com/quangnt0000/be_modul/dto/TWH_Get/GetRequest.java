@@ -1,5 +1,6 @@
 package com.quangnt0000.be_modul.dto.TWH_Get;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -18,6 +19,9 @@ public class GetRequest {
     private String table;
 
     private Map<String, Object> filters;
+
+    @JsonAlias("report_type")
+    private String reportType;
 
     private List<String> columns;
 

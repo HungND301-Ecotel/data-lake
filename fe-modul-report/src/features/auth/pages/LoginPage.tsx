@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { message } from "antd";
+import { Alert, message } from "antd";
 import { useNavigate } from "react-router-dom";
 import { Phone, Mail, Eye, EyeOff } from 'lucide-react';
 
@@ -15,6 +15,7 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState<string | null>(null);
   const navigate = useNavigate();
   const setRole = useAuthStore((s) => s.setRole);
 
@@ -22,15 +23,18 @@ const LoginPage = () => {
     e?.preventDefault();
 
     if (!username.trim()) {
+      setLoginError(null);
       message.error('Vui lòng nhập tài khoản');
       return;
     }
 
     if (!password.trim()) {
+      setLoginError(null);
       message.error('Vui lòng nhập mật khẩu');
       return;
     }
 
+    setLoginError(null);
     setLoading(true);
     try {
       const res: LoginResponse = await userApi.login({ username, password });
@@ -42,7 +46,14 @@ const LoginPage = () => {
       navigate("/");
     } catch (err: any) {
       console.log(err);
-      message.error(err?.response?.data?.message || "Đăng nhập thất bại");
+      const errorMessage =
+        err?.message ||
+        err?.response?.data?.message ||
+        err?.response?.data ||
+        "Đăng nhập thất bại";
+
+      setLoginError(errorMessage);
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -63,11 +74,11 @@ const LoginPage = () => {
             <div className="flex flex-col sm:flex-row items-center sm:items-end sm:justify-center gap-2 sm:gap-4 text-white text-sm sm:text-xl sm:text-center font-medium">
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-white" />
-                <span>Hotline: 02033.854491</span>
+                <span>Hotline: 020.33565388</span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-white" />
-                <span>Email: ctythanub@gmail.com</span>
+                <span>Fax: 020.33565399</span>
               </div>
             </div>
           </span>
@@ -92,7 +103,7 @@ const LoginPage = () => {
           <div className="mb-5 sm:mb-1 flex justify-center">
             <img
               src={logoUb}
-              className="h-18 w-18 rounded-full cursor-pointer"
+              className="h-14 w-20 rounded-full cursor-pointer"
             />
           </div>
 
@@ -169,6 +180,15 @@ const LoginPage = () => {
                   {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
                 </button>
               </div>
+
+              {loginError ? (
+                <Alert
+                  type="error"
+                  showIcon
+                  message={loginError}
+                  className="mt-2"
+                />
+              ) : null}
             </div>
           </form>
 

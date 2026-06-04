@@ -29,7 +29,9 @@ public class WareMapping {
     private String fieldType;   //row - cell - input
     private Boolean isKeyColumn;
     private Boolean isScopFilter;
-
+    private Boolean isSummable;
+    private String role; // DIMENSION | MEASURE
+    private String aggregateType; // SUM | LAST | FIRST | MAX | MIN | NONE
 
     @ManyToOne
     @JoinColumn(name = "wareTemplateId")

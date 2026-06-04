@@ -129,6 +129,15 @@ public class WareBatchService {
                 rows.add(data);
             }
 
+            List<Map<String, Object>> validRows = rows.stream()
+                    .filter(row -> !isDataRowEmpty(row))
+                    .toList();
+
+            if (validRows.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("File báo cáo không có dữ liệu. Vui lòng kiểm tra và upload lại file.");
+            }
+
             // Lưu WareBatch
             WareBatch batch = wareBatchRepository.save(WareBatch.builder()
                     .code("new")
@@ -146,7 +155,7 @@ public class WareBatchService {
 
             // Lưu các WareDataRow
             List<WareDataRow> wareDataRows = new ArrayList<>();
-            for (Map<String, Object> dataRow : rows) {
+            for (Map<String, Object> dataRow : validRows) {
                 wareDataRows.add(WareDataRow.builder()
                         .data(dataRow)
                         .wareBatch(batch)
@@ -230,6 +239,27 @@ public class WareBatchService {
                 );
             }
         }
+        return true;
+    }
+
+    private boolean isDataRowEmpty(Map<String, Object> rowData) {
+        if (rowData == null || rowData.isEmpty()) {
+            return true;
+        }
+
+        for (Object value : rowData.values()) {
+            if (value == null) {
+                continue;
+            }
+            if (value instanceof String strValue) {
+                if (!strValue.trim().isEmpty()) {
+                    return false;
+                }
+                continue;
+            }
+            return false;
+        }
+
         return true;
     }
 
