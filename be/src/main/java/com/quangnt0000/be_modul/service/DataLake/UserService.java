@@ -57,7 +57,7 @@ public class UserService {
 
     public ResponseEntity<?> login(UserLogin request) {
         User user = userRepository.findByUsernameAndStatusTrue(request.getUsername());
-        if(passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+                if (user != null && passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             long expiration = 1000 * 60 * 60 * 24;
             SecretKey key = Keys.hmacShaKeyFor(Base64.getDecoder().decode(secretKey));
             String token = Jwts.builder()
@@ -81,7 +81,7 @@ public class UserService {
             return ResponseEntity.ok(loginResponse);
         }
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Sai thông tin đăng nhập");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Sai tài khoản hoặc mật khẩu");
     }
 
     public ResponseEntity<?> getUserByEmployeeId(String employeeId) {

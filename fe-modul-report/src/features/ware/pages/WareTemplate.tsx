@@ -336,7 +336,7 @@ const WareTemplate = () => {
             size="large"
             icon={<PlusOutlined />}
             onClick={handleAdd}
-            className="bg-[#1976D2]! hover:bg-blue-700! text-white! border-0 shadow-md"
+            className="bg-[#0891b2]! hover:bg-cyan-7000! text-white! border-0 shadow-md"
             style={{ borderRadius: "8px", minWidth: "160px" }}
           >
             Thêm mới

@@ -1,0 +1,83 @@
+services:
+  report_reverse_proxy_service:
+    image: ${REGISTRY}/report_reverse_proxy_img:${VERSION}
+    ports:
+      # HOST_PORT:CONTAINER_PORT
+      - "6565:8888"
+    stdin_open: true
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+    networks:
+      - backnet
+      - frontnet
+    depends_on:
+      - report_backend_service
+      - report_frontend_service
+
+  report_backend_service:
+    env_file:
+      - .env_backend
+    image: ${REGISTRY}/report_backend_img:${VERSION}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    networks:
+      - backnet
+    restart: unless-stopped
+
+  report_frontend_service:
+    image: ${REGISTRY}/report_frontend_img:${VERSION}
+    # target: development
+    stdin_open: true
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+    volumes:
+      # For development only, to synced src code to container
+      - /usr/src/app/node_modules
+    # restart: always
+    networks:
+      - frontnet
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "30"
+
+  postgres:
+    container_name: pg_report_2211
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=report
+      - PGDATA=/var/lib/postgresql/data
+    volumes:
+      - report_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    restart: unless-stopped
+
+  pgadmin:
+    container_name: pgadmin_report_2211
+    image: dpage/pgadmin4:8.6
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL:-pgadmin@pgadmin.org}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD:-admin}
+      - PGADMIN_CONFIG_SERVER_MODE=False
+    volumes:
+      - report_pgadmin_data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    restart: unless-stopped
+    networks:
+      - backnet
+
+volumes:
+  report_postgres_data: # ✅ Cho postgres
+  report_pgadmin_data: # ✅ Cho pgadmin (thêm mới)
+
+networks:
+  backnet:
+  frontnet:

@@ -1,5 +1,6 @@
 export interface GetRequest {
   table: string;
+  reportType?: "MONTH" | "YEAR";
   filters?: Record<string, any>;
   columns?: string[];
   order_by?: string[];
