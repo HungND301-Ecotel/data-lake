@@ -17,20 +17,27 @@ public class WareBatchActionJdbc {
     public Map<String, Object> execute() {
         StringBuilder sql = new StringBuilder("""
                 SELECT
-                            COALESCE(SUM(CASE
-                                WHEN wba.created_at >= CURRENT_DATE
-                                THEN wba.inserted ELSE 0 END), 0) AS insert_today,
-                
-                            COALESCE(SUM(CASE
-                                WHEN wba.created_at >= CURRENT_DATE
-                                THEN wba.updated ELSE 0 END), 0) AS update_today,
-                
-                            COALESCE(SUM(wba.inserted), 0) AS insert_total,
-                            COALESCE(SUM(wba.updated), 0) AS update_total
+                            COALESCE(COUNT(DISTINCT CASE
+                                WHEN wba.created_at >= CURRENT_DATE AND wba.inserted > 0
+                                THEN wba.ware_batch_id END), 0) AS insert_today,
+
+                            COALESCE(COUNT(DISTINCT CASE
+                                WHEN wba.created_at >= CURRENT_DATE AND wba.updated > 0
+                                THEN wba.ware_batch_id END), 0) AS update_today,
+
+                            COALESCE(COUNT(DISTINCT CASE
+                                WHEN wba.inserted > 0
+                                THEN wba.ware_batch_id END), 0) AS insert_total,
+                            COALESCE(COUNT(DISTINCT CASE
+                                WHEN wba.updated > 0
+                                THEN wba.ware_batch_id END), 0) AS update_total
                         FROM ware_batch_action wba
                         WHERE wba.deleted = false
                 """);
-
+        // Sử dụng COUNT(DISTINCT ware_batch_id) thay vì SUM(inserted/updated)
+        // vì mục tiêu là đếm số batch đã phát sinh thao tác insert/update,
+        // không phải tổng số bản ghi được insert/update.
+        // Một batch có thể có nhiều row action, nên cần DISTINCT để tránh đếm trùng batch.
         return jdbcTemplate.queryForMap(sql.toString());
     }
 

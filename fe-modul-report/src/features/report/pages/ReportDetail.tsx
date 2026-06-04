@@ -122,19 +122,18 @@ const ReportDetail: React.FC = () => {
   const handleExportExcel = async () => {
     try {
       if (!report) return;
-  
+
       const excelBytes = await excelApi.exportExcel(report);
-  
+
       console.log("fetched json:", JSON.stringify(report, null, 2));
-  
+
       const blob = new Blob([excelBytes], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
-  
-      const url = URL.createObjectURL(blob);
-  
-      window.open(url); 
 
+      const url = URL.createObjectURL(blob);
+
+      window.open(url);
     } catch (error: any) {
       messageApi.error(error?.data || "Lỗi xuất Excel");
     }

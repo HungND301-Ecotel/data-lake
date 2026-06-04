@@ -263,7 +263,9 @@ const ReportDetailPage: React.FC = () => {
               <Descriptions.Item label="Mô tả" span={2}>
                 {report.description}
               </Descriptions.Item>
-              <Descriptions.Item label="Loại file">{report.type}</Descriptions.Item>
+              <Descriptions.Item label="Loại file">
+                {report.type}
+              </Descriptions.Item>
               <Descriptions.Item label="Trạng thái">
                 <Tag color={statusColorMap[report.status]}>
                   {statusIconMap[report.status]} {report.status}
