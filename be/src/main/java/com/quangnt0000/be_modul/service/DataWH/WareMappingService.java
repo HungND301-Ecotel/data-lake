@@ -27,6 +27,7 @@ public class WareMappingService {
     private final WareMappingRepository wareMappingRepository;
     private final WareTemplateRepository wareTemplateRepository;
     private final WareBatchRepository wareBatchRepository;
+
     public ResponseEntity<?> add(WareMappingRequest request) {
         WareTemplate wareTemplate = wareTemplateRepository.findById(request.getWareTemplateId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ware Template Not Found"));
@@ -37,6 +38,9 @@ public class WareMappingService {
                .fieldType(request.getFieldType())
                .isKeyColumn(request.getIsKeyColumn())
                .isScopFilter(request.getIsScopFilter())
+               .isSummable(request.getIsSummable())
+               .role(request.getRole())
+               .aggregateType(request.getAggregateType())
                .cellAddress(request.getCellAddress())
                .wareTemplate(wareTemplate)
                .build();
@@ -64,6 +68,9 @@ public class WareMappingService {
                         .fieldType(wareMapping.getFieldType())
                         .isKeyColumn(wareMapping.getIsKeyColumn())
                         .isScopFilter(wareMapping.getIsScopFilter())
+                        .isSummable(wareMapping.getIsSummable())
+                        .role(wareMapping.getRole())
+                        .aggregateType(wareMapping.getAggregateType())
                         .cellAddress(wareMapping.getCellAddress())
                         .build()
         ).toList();
@@ -89,6 +96,9 @@ public class WareMappingService {
         wareMapping.setFieldType(request.getFieldType());
         wareMapping.setIsKeyColumn(request.getIsKeyColumn());
         wareMapping.setIsScopFilter(request.getIsScopFilter());
+        wareMapping.setIsSummable(request.getIsSummable());
+        wareMapping.setRole(request.getRole());
+        wareMapping.setAggregateType(request.getAggregateType());
         wareMapping.setCellAddress(request.getCellAddress());
         wareMapping = wareMappingRepository.save(wareMapping);
         return ResponseEntity.ok(wareMapping.getId());

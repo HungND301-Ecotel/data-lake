@@ -15,9 +15,12 @@ import type { ColumnsType } from "antd/es/table";
 import type { WareMappingResponse, WareMappingRequest } from "../types/wareMapping";
 import { wareMappingApi } from "../api/wareMappingApi";
 import { useExcelMapping } from "../../../features/excel-mapping/hooks/useExcelMapping";
+import { useAuthStore } from "../../../stores/authStore";
 
 // ---- Field type union (phải khớp với WareMappingRequest) ----
 type FieldType = "CELL" | "ROW" | "TEXT";
+type RoleType = "DIMENSION" | "MEASURE";
+type AggregateType = "SUM" | "LAST" | "FIRST" | "MAX" | "MIN" | "NONE";
 
 // ---- Build pending rows from AI response ----
 function buildRequestsFromAiResponse(
@@ -43,6 +46,9 @@ function buildRequestsFromAiResponse(
       fieldValue: meta.fieldValue,
       isKeyColumn: true,
       isScopFilter: true,
+      isSummable: false,
+      role: "DIMENSION",
+      aggregateType: "NONE",
       wareTemplateId: templateId,
     });
   }
@@ -57,6 +63,9 @@ function buildRequestsFromAiResponse(
       fieldValue: "",
       isKeyColumn: false,
       isScopFilter: false,
+      isSummable: false,
+      role: "DIMENSION",
+      aggregateType: "NONE",
       wareTemplateId: templateId,
     });
   }
@@ -72,6 +81,8 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
   const [modal, contextHolderModal] = Modal.useModal();
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingRequest, setEditingRequest] = useState<WareMappingRequest | null>(null);
+  const role = useAuthStore((state) => state.role);
+  const isAdmin = role === "ADMIN";
 
   const [aiModalOpen, setAiModalOpen] = useState(false);
   const { result: aiResult, loading: aiLoading, error: aiError, analyze, clear: clearAi } = useExcelMapping();
@@ -118,6 +129,9 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
       fieldValue: r.fieldValue,
       isKeyColumn: r.isKeyColumn,
       isScopFilter: r.isScopFilter,
+      isSummable: r.isSummable,
+      role: r.role,
+      aggregateType: r.aggregateType,
     }));
 
     setData((prev) => [...previewRows, ...prev.filter((r) => r.id !== null)]);
@@ -134,7 +148,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
   const FIELD_TYPE_COLOR: Record<FieldType, string> = {
     ROW: "blue",
     CELL: "cyan",
-    TEXT: "blue",
+    TEXT: "green",
   };
   const FIELD_VALUE_LABEL: Record<string, string> = {
     INTEGER: "Số nguyên",
@@ -151,6 +165,39 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
     { value: "NUMBER", label: "Giá trị" },
     { value: "STRING", label: "Chuỗi kí tự" },
   ];
+  const ROLE_OPTIONS = [
+    { value: "DIMENSION" as RoleType, label: "DIMENSION" },
+    { value: "MEASURE" as RoleType, label: "MEASURE" },
+  ];
+  const AGGREGATE_OPTIONS = [
+    { value: "NONE" as AggregateType, label: "NONE" },
+    { value: "SUM" as AggregateType, label: "SUM" },
+    { value: "FIRST" as AggregateType, label: "FIRST" },
+    { value: "LAST" as AggregateType, label: "LAST" },
+    { value: "MAX" as AggregateType, label: "MAX" },
+    { value: "MIN" as AggregateType, label: "MIN" },
+  ];
+
+  const resolveRole = (record: Pick<WareMappingRequest, "role" | "isSummable">): RoleType => {
+    if (record.role === "DIMENSION" || record.role === "MEASURE") return record.role;
+    return record.isSummable ? "MEASURE" : "DIMENSION";
+  };
+
+  const resolveAggregateType = (
+    record: Pick<WareMappingRequest, "aggregateType" | "isSummable">
+  ): AggregateType => {
+    if (
+      record.aggregateType === "SUM" ||
+      record.aggregateType === "LAST" ||
+      record.aggregateType === "FIRST" ||
+      record.aggregateType === "MAX" ||
+      record.aggregateType === "MIN" ||
+      record.aggregateType === "NONE"
+    ) {
+      return record.aggregateType;
+    }
+    return record.isSummable ? "SUM" : "NONE";
+  };
 
   const isNormalEditing = (record: WareMappingResponse) => {
     if (record.id === null && pendingRows.length === 0 && editingId === null && editingRequest !== null) {
@@ -183,20 +230,24 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
 
   // ---- Normal add / edit / save ----
   const handleAdd = () => {
+    if (!isAdmin) return;
     setEditingId(null);
     setEditingRequest({
       id: null, fieldTitle: "", fieldName: "", fieldType: "ROW",
       cellAddress: "", fieldValue: "",
-      isKeyColumn: false, isScopFilter: false,
+      isKeyColumn: false, isScopFilter: false, isSummable: false,
+      role: "DIMENSION", aggregateType: "NONE",
       wareTemplateId: templateId,
     });
     setData((prev) => [
-      { id: null, fieldTitle: "", fieldName: "", fieldType: "ROW", cellAddress: "", fieldValue: "", isKeyColumn: false, isScopFilter: false },
+      { id: null, fieldTitle: "", fieldName: "", fieldType: "ROW", cellAddress: "", fieldValue: "", isKeyColumn: false, isScopFilter: false, isSummable: false, role: "DIMENSION", aggregateType: "NONE" },
       ...prev,
     ]);
   };
 
   const handleEdit = (record: WareMappingResponse) => {
+    const role = resolveRole(record);
+    const aggregateType = resolveAggregateType(record);
     setEditingId(record.id!);
     setEditingRequest({
       id: record.id!, fieldTitle: record.fieldTitle, fieldName: record.fieldName,
@@ -205,6 +256,9 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
       fieldValue: record.fieldValue ?? "",
       isKeyColumn: record.isKeyColumn ?? false,
       isScopFilter: record.isScopFilter ?? false,
+      isSummable: record.isSummable ?? false,
+      role,
+      aggregateType,
       wareTemplateId: templateId,
     });
   };
@@ -216,6 +270,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
   };
 
   const handleSave = async () => {
+    if (!isAdmin) return;
     if (!editingRequest) return;
     if (!editingRequest.fieldName || !editingRequest.fieldType) {
       messageApi.warning("Field Name và Field Type là bắt buộc");
@@ -232,12 +287,13 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
       setEditingId(null);
       setEditingRequest(null);
       fetchData();
-    } catch {
-      messageApi.error("Lưu mapping thất bại");
+    } catch (err) {
+      messageApi.error((err as any)?.message || "Lưu mapping thất bại");
     }
   };
 
   const handleDelete = async (id: number) => {
+    if (!isAdmin) return;
     modal.confirm({
       title: "Xác nhận xóa",
       icon: <ExclamationCircleOutlined />,
@@ -248,8 +304,8 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
           await wareMappingApi.deleteWareMapping(String(id));
           messageApi.success("Xóa mapping thành công");
           fetchData();
-        } catch {
-          messageApi.error("Xóa mapping thất bại");
+        } catch (err) {
+          messageApi.error((err as any)?.message || "Xóa mapping thất bại");
         }
       },
     });
@@ -257,6 +313,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
 
   // ---- Pending row save / cancel ----
   const handleSavePendingRow = async (rowIndex: number) => {
+    if (!isAdmin) return;
     const req = pendingRows[rowIndex];
     if (!req) return;
     if (!req.fieldName || !req.fieldType) {
@@ -283,8 +340,8 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
 
       if (newPending.length === 0) fetchData();
 
-    } catch {
-      messageApi.error("Lưu thất bại");
+    } catch (err) {
+      messageApi.error((err as any)?.message || "Lưu thất bại");
     }
   };
 
@@ -299,6 +356,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
   };
 
   const handleOpenAiModal = () => {
+    if (!isAdmin) return;
     clearAi();
     setAiModalOpen(true);
   };
@@ -334,6 +392,34 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
       options={FIELD_VALUE_OPTIONS}
       size="large"
       placeholder="Chọn kiểu..."
+    />
+  );
+
+  const renderRoleSelect = (
+    value: RoleType | undefined,
+    onChange: (v: RoleType) => void
+  ) => (
+    <Select<RoleType>
+      value={value}
+      style={{ width: "100%" }}
+      onChange={onChange}
+      options={ROLE_OPTIONS}
+      size="large"
+    />
+  );
+
+  const renderAggregateSelect = (
+    value: AggregateType | undefined,
+    onChange: (v: AggregateType) => void,
+    disabled?: boolean
+  ) => (
+    <Select<AggregateType>
+      value={value}
+      style={{ width: "100%" }}
+      onChange={onChange}
+      options={AGGREGATE_OPTIONS}
+      size="large"
+      disabled={disabled}
     />
   );
 
@@ -421,15 +507,100 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
       },
     },
     {
+      title: "Summable", width: 110, align: "center",
+      render: (_, record) => {
+        const pi = getPendingIndex(record);
+        if (pi >= 0) return renderCheckbox(pendingRows[pi]?.isSummable, (v) => {
+          updatePendingRow(pi, "isSummable", v);
+          updatePendingRow(pi, "role", v ? "MEASURE" : "DIMENSION");
+          updatePendingRow(pi, "aggregateType", v ? "SUM" : "NONE");
+        });
+        if (isNormalEditing(record)) return renderCheckbox(editingRequest?.isSummable, (v) => {
+          updateRequest("isSummable", v);
+          updateRequest("role", v ? "MEASURE" : "DIMENSION");
+          updateRequest("aggregateType", v ? "SUM" : "NONE");
+        });
+        return record.isSummable
+          ? <Tag color="processing">Sum</Tag>
+          : <span className="text-gray-400">-</span>;
+      },
+    },
+    {
+      title: "Role", width: 140, align: "center",
+      render: (_, record) => {
+        const pi = getPendingIndex(record);
+        if (pi >= 0) {
+          const role = resolveRole(pendingRows[pi]);
+          return renderRoleSelect(role, (v) => {
+            const currentAgg = resolveAggregateType(pendingRows[pi]);
+            const nextAgg = v === "DIMENSION"
+              ? "NONE"
+              : (currentAgg === "NONE" ? "SUM" : currentAgg);
+            updatePendingRow(pi, "role", v);
+            updatePendingRow(pi, "aggregateType", nextAgg);
+            updatePendingRow(pi, "isSummable", nextAgg !== "NONE");
+          });
+        }
+        if (isNormalEditing(record)) {
+          const role = resolveRole(editingRequest ?? record);
+          return renderRoleSelect(role, (v) => {
+            const currentAgg = resolveAggregateType(editingRequest ?? record);
+            const nextAgg = v === "DIMENSION" ? "NONE" : (currentAgg === "NONE" ? "SUM" : currentAgg);
+            updateRequest("role", v);
+            updateRequest("aggregateType", nextAgg);
+            updateRequest("isSummable", nextAgg !== "NONE");
+          });
+        }
+        const role = resolveRole(record);
+        return (
+          <Tag color={role === "DIMENSION" ? "blue" : "green"}>
+            {role}
+          </Tag>
+        );
+      },
+    },
+    {
+      title: "Aggregate", width: 150, align: "center",
+      render: (_, record) => {
+        const pi = getPendingIndex(record);
+        if (pi >= 0) {
+          const role = resolveRole(pendingRows[pi]);
+          const agg = resolveAggregateType(pendingRows[pi]);
+          return renderAggregateSelect(agg, (v) => {
+            updatePendingRow(pi, "aggregateType", v);
+            updatePendingRow(pi, "isSummable", v !== "NONE");
+          }, role === "DIMENSION");
+        }
+        if (isNormalEditing(record)) {
+          const role = resolveRole(editingRequest ?? record);
+          const agg = resolveAggregateType(editingRequest ?? record);
+          return renderAggregateSelect(agg, (v) => {
+            updateRequest("aggregateType", v);
+            updateRequest("isSummable", v !== "NONE");
+          }, role === "DIMENSION");
+        }
+        const role = resolveRole(record);
+        const agg = resolveAggregateType(record);
+        if (role === "DIMENSION") {
+          return <Tag color="blue">DIMENSION</Tag>;
+        }
+        return <Tag color="green">MEASURE / {agg}</Tag>;
+      },
+    },
+    {
       title: "Thao tác", width: 180, align: "center",
       render: (_, record) => {
         const pi = getPendingIndex(record);
+
+        if (!isAdmin) {
+          return <span className="text-gray-400">-</span>;
+        }
 
         if (pi >= 0) {
           return (
             <Space>
               <Tooltip title="Lưu dòng này">
-                <Button type="primary" icon={<SaveOutlined />} onClick={() => handleSavePendingRow(pi)} className="bg-green-600! hover:bg-green-700!" size="large">Lưu</Button>
+                <Button type="primary" icon={<SaveOutlined />} onClick={() => handleSavePendingRow(pi)} className="bg-[#0891b2]! hover:bg-cyan-7000!" size="large">Lưu</Button>
               </Tooltip>
               <Tooltip title="Bỏ dòng này">
                 <Button icon={<CloseOutlined />} onClick={() => handleCancelPendingRow(pi)} size="large">Bỏ</Button>
@@ -442,7 +613,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
           return (
             <Space>
               <Tooltip title="Lưu thay đổi">
-                <Button type="primary" icon={<SaveOutlined />} onClick={handleSave} className="bg-green-600! hover:bg-green-700!" size="large">Lưu</Button>
+                <Button type="primary" icon={<SaveOutlined />} onClick={handleSave} className="bg-[#0891b2]! hover:bg-cyan-7000!" size="large">Lưu</Button>
               </Tooltip>
               <Tooltip title="Hủy thay đổi">
                 <Button icon={<CloseOutlined />} onClick={handleCancel} size="large">Hủy</Button>
@@ -454,7 +625,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
         return (
           <Space>
             <Tooltip title="Chỉnh sửa mapping">
-              <Button type="primary" icon={<EditOutlined />} onClick={() => handleEdit(record)} className="bg-green-600! hover:bg-green-700!" size="large">Sửa</Button>
+              <Button type="primary" icon={<EditOutlined />} onClick={() => handleEdit(record)} className="bg-[#0891b2]! hover:bg-cyan-7000!" size="large">Sửa</Button>
             </Tooltip>
             <Tooltip title="Xóa mapping">
               <Button danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id!)} size="large">Xóa</Button>
@@ -523,28 +694,30 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
             <h1 className="text-xl font-bold text-gray-800 m-0">Cấu hình dữ liệu Mapping</h1>
           </div>
 
-          <Space>
-            <Tooltip title="Dùng AI đọc file Excel để tự động tạo mapping">
+          {isAdmin ? (
+            <Space>
+              <Tooltip title="Dùng AI đọc file Excel để tự động tạo mapping">
+                <Button
+                  size="large"
+                  icon={<RobotOutlined />}
+                  onClick={handleOpenAiModal}
+                  style={{ borderColor: "#a855f7", color: "#9333ea" }}
+                  className="h-10 px-5"
+                >
+                  Cấu hình AI
+                </Button>
+              </Tooltip>
               <Button
+                type="primary"
                 size="large"
-                icon={<RobotOutlined />}
-                onClick={handleOpenAiModal}
-                style={{ borderColor: "#a855f7", color: "#9333ea" }}
-                className="h-10 px-5"
+                icon={<PlusOutlined />}
+                onClick={handleAdd}
+                className="bg-[#0891b2]! hover:bg-cyan-7000! h-10 px-6"
               >
-                Cấu hình AI
+                Thêm mới
               </Button>
-            </Tooltip>
-            <Button
-              type="primary"
-              size="large"
-              icon={<PlusOutlined />}
-              onClick={handleAdd}
-              className="bg-green-600! hover:bg-green-700! h-10 px-6"
-            >
-              Thêm mới
-            </Button>
-          </Space>
+            </Space>
+          ) : null}
         </div>
 
         {pendingRows.length > 0 && (
@@ -591,14 +764,16 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
           <div className="text-center py-16 bg-gray-50 rounded-lg mt-4">
             <DatabaseOutlined className="text-4xl text-gray-300 mb-3" />
             <p className="text-gray-500 text-lg mb-6">Không có dữ liệu mapping</p>
-            <Space>
-              <Button size="large" icon={<RobotOutlined />} onClick={handleOpenAiModal} style={{ borderColor: "#a855f7", color: "#9333ea" }} className="h-11 px-8">
-                Cấu hình AI
-              </Button>
-              <Button type="primary" size="large" icon={<PlusOutlined />} onClick={handleAdd} className="bg-green-600! hover:bg-green-700! h-11 px-8">
-                Thêm mapping mới
-              </Button>
-            </Space>
+            {isAdmin ? (
+              <Space>
+                <Button size="large" icon={<RobotOutlined />} onClick={handleOpenAiModal} style={{ borderColor: "#a855f7", color: "#9333ea" }} className="h-11 px-8">
+                  Cấu hình AI
+                </Button>
+                <Button type="primary" size="large" icon={<PlusOutlined />} onClick={handleAdd} className="bg-[#0891b2]! hover:bg-cyan-7000! h-11 px-8">
+                  Thêm mapping mới
+                </Button>
+              </Space>
+            ) : null}
           </div>
         )}
       </Card>

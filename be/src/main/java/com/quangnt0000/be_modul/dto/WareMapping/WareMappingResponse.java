@@ -17,5 +17,8 @@ public class WareMappingResponse {
     private String fieldType;   //row - cell - input
     private Boolean isKeyColumn;
     private Boolean isScopFilter;
+    private Boolean isSummable;
+    private String role;
+    private String aggregateType;
     private String cellAddress; //địa chỉ cell
 }
