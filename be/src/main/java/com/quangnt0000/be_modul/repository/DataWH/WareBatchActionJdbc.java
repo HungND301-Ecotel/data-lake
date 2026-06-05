@@ -34,7 +34,10 @@ public class WareBatchActionJdbc {
                         FROM ware_batch_action wba
                         WHERE wba.deleted = false
                 """);
-
+        // Sử dụng COUNT(DISTINCT ware_batch_id) thay vì SUM(inserted/updated)
+        // vì mục tiêu là đếm số batch đã phát sinh thao tác insert/update,
+        // không phải tổng số bản ghi được insert/update.
+        // Một batch có thể có nhiều row action, nên cần DISTINCT để tránh đếm trùng batch.
         return jdbcTemplate.queryForMap(sql.toString());
     }
 

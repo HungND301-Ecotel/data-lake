@@ -6,6 +6,7 @@ import {
   Input,
   List,
   Modal,
+  Select,
   Spin,
   Tag,
 } from "antd";
@@ -25,6 +26,8 @@ interface NavbarSearchProps {
   setPeriod: (val?: string) => void;
   day?: string;
   setDay: (val?: string) => void;
+  reportType?: "MONTH" | "YEAR";
+  setReportType: (val?: "MONTH" | "YEAR") => void;
   onSearch: (tableOverride?: string) => Promise<void>;
 }
 
@@ -37,6 +40,8 @@ const NavbarSearch = ({
   setPeriod,
   day,
   setDay,
+  reportType,
+  setReportType,
   onSearch,
 }: NavbarSearchProps) => {
   const [tableLabel, setTableLabel] = useState("");
@@ -74,11 +79,14 @@ const NavbarSearch = ({
     }
   };
 
+  const isMonthReport = reportType === "MONTH";
+  const isYearReport = reportType === "YEAR";
+
   return (
     <div className="px-3 pt-3 pb-2 bg-gray-100 border-b border-gray-200">
       <Card className="shadow-sm border-0 rounded-xl">
         <div className="flex flex-wrap items-end gap-3">
-          <div className="min-w-[240px] max-w-[380px] flex-[0_1_320px]">
+          {/* <div className="min-w-60 max-w-[380px] flex-[0_1_320px]">
             <div className="text-xs font-semibold text-gray-600 mb-1">Mã bảng</div>
             <div className="relative">
               <Input
@@ -103,7 +111,7 @@ const NavbarSearch = ({
                 +
               </button>
             </div>
-          </div>
+          </div> */}
 
           <div className="w-[150px]">
             <div className="text-xs font-semibold text-gray-600 mb-1">Năm</div>
@@ -131,6 +139,7 @@ const NavbarSearch = ({
               className="w-full"
               value={period ?? ""}
               placeholder="04"
+              disabled={isYearReport}
               onChange={(e) => {
                 const val = e.target.value.trim();
                 setPeriod(val || undefined);
@@ -145,6 +154,7 @@ const NavbarSearch = ({
               className="w-full"
               value={day ?? ""}
               placeholder="01"
+              disabled={isMonthReport || isYearReport}
               onChange={(e) => {
                 const val = e.target.value.trim();
                 setDay(val || undefined);
@@ -152,9 +162,38 @@ const NavbarSearch = ({
             />
           </div>
 
+          <div className="w-[220px]">
+            <div className="text-xs font-semibold text-gray-600 mb-1">Loại báo cáo</div>
+            <Select
+              size="large"
+              className="w-full"
+              value={reportType ?? ""}
+              placeholder="Mặc định / Theo ngày"
+              onChange={(val) => {
+                if (!val) {
+                  setReportType(undefined);
+                  return;
+                }
+                const nextType = val as "MONTH" | "YEAR";
+                setReportType(nextType);
+                if (nextType === "MONTH") {
+                  setDay(undefined);
+                  return;
+                }
+                setPeriod(undefined);
+                setDay(undefined);
+              }}
+              options={[
+                { value: "", label: "Mặc định" },
+                { value: "MONTH", label: "Lũy kế theo tháng" },
+                { value: "YEAR", label: "Lũy kế theo năm" },
+              ]}
+            />
+          </div>
+
           <div className="flex-1 flex justify-end items-center gap-2">
             {tableLabel ? (
-              <Tag color="blue" className="!mr-0 max-w-[260px] truncate">
+              <Tag color="blue" className="mr-0! max-w-[260px] truncate">
                 {tableLabel}
               </Tag>
             ) : null}
