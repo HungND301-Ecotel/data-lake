@@ -1,5 +1,7 @@
 package com.quangnt0000.be_modul.dto.WareBatch;
 
+import com.quangnt0000.be_modul.enums.WareBatchTargetEnum;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,5 +16,6 @@ public class WareBatchPush {
     private Boolean deleteMissing;
     private String username;
     private String password;
+    private WareBatchTargetEnum syncTarget;
 
 }

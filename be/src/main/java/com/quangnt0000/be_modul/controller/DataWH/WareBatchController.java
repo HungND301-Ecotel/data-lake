@@ -42,12 +42,6 @@ public class WareBatchController {
         return wareBatchService.push(request);
     }
 
-    // endpoint sau khi duyệt nội bộ, không push server tổng
-    @PostMapping("/approve-internal")
-    public ResponseEntity<?> approveInternal(@RequestBody  WareBatchPush request) {
-        return wareBatchService.approveInternal(request);
-    }
-
     @PutMapping()
     public ResponseEntity<?> update(@RequestBody WareBatchRequest request) {
         return wareBatchService.update(request);

@@ -7,8 +7,8 @@ spring:
       max-request-size: 500MB
   datasource:
     url: jdbc:postgresql://localhost:5432/report
-    username: postgres
-    password: 123456
+    username: admin
+    password: admin
   jpa:
     hibernate:
       ddl-auto: update

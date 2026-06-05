@@ -12,6 +12,7 @@ import com.quangnt0000.be_modul.dto.WareBatch.WareBatchResponse;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchSearch;
 import com.quangnt0000.be_modul.dto.WareBatch.MyApprovalBatchResponse;
 import com.quangnt0000.be_modul.enums.WareBatchEnum;
+import com.quangnt0000.be_modul.enums.WareBatchTargetEnum;
 import com.quangnt0000.be_modul.modal.DataLake.User;
 import com.quangnt0000.be_modul.modal.DataWH.WareBatch;
 import com.quangnt0000.be_modul.modal.DataWH.WareBatchAction;
@@ -149,6 +150,7 @@ public class WareBatchService {
                     .reportYear(request.getReportYear())
                     .reportMonth(request.getReportMonth())
                     .reportDay(request.getReportDay())
+                    .syncTarget(null)
                     .status(WareBatchEnum.Cho_Phe_Duyet)
                     .build());
 
@@ -563,7 +565,6 @@ public class WareBatchService {
                     "Batch chưa hoàn tất phê duyệt, không thể push dữ liệu"
             );
         }
-
         List<WareDataRow> wareDataRows = wareDataRowService.getByBatchId(request.getId());
 
         List<WareMapping> filters = wareBatch.getWareTemplate().getWareMappings().stream()
@@ -585,7 +586,6 @@ public class WareBatchService {
                 filter.put(key, value);
             }
         }
-
         WareTemplate wareTemplate = wareBatch.getWareTemplate();
         PushRequest body = PushRequest.builder()
                 .table(wareTemplate.getTableCode())
@@ -605,96 +605,30 @@ public class WareBatchService {
                 .changedBy(UUID.randomUUID().toString())
                 .dataUploadId(UUID.randomUUID().toString())
                 .build();
+                
+        WareBatchTargetEnum target = request.getSyncTarget() != null ? request.getSyncTarget() : WareBatchTargetEnum.Duyet_Noi_Bo;
         try {
-            ResponseEntity<?> response = wareApiService.push(body, wareBatch, request).block();
-            if (response != null && response.getStatusCode().is2xxSuccessful()) {
+            if (target == WareBatchTargetEnum.Day_Server_TKV) {
+                ResponseEntity<?> response = wareApiService.push(body, wareBatch, request).block();
+                if (response != null && response.getStatusCode().is2xxSuccessful()) {
+                    wareBatch.setStatus(WareBatchEnum.Da_Phe_Duyet);
+                    wareBatch.setSyncTarget(WareBatchTargetEnum.Day_Server_TKV);
+                    wareBatchRepository.save(wareBatch);
+                }
+
+                return response;
+            } else if (target == WareBatchTargetEnum.Duyet_Noi_Bo) {
                 wareBatch.setStatus(WareBatchEnum.Da_Phe_Duyet);
+                wareBatch.setSyncTarget(WareBatchTargetEnum.Duyet_Noi_Bo);
                 wareBatchRepository.save(wareBatch);
+
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
             }
-            return response;
-        }catch (Exception e){
+
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Sync target không hợp lệ");
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
-    }
-
-    // Phê duyệt báo cáo nội bộ
-    public ResponseEntity<?> approveInternal(WareBatchPush request) {
-        WareBatch wareBatch = wareBatchRepository.findById(request.getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "batch not found"));
-        if (wareBatch.getStatus() == WareBatchEnum.Tu_Choi_Phe_Duyet) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Batch đã bị từ chối, không thể push dữ liệu");
-        }
-
-        if (wareBatch.getStatus() == WareBatchEnum.Cho_Phe_Duyet) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Batch chưa hoàn tất phê duyệt, không thể push dữ liệu");
-        }
-
-        List<WareDataRow> wareDataRows = wareDataRowService.getByBatchId(request.getId());
-
-        List<WareMapping> filters = wareBatch.getWareTemplate().getWareMappings().stream()
-                .filter(WareMapping::getIsScopFilter)
-                .toList();
-        List<String> keyColumns = new ArrayList<>(wareBatch.getWareTemplate().getWareMappings().stream()
-                .filter(WareMapping::getIsKeyColumn)
-                .map(WareMapping::getFieldName)
-                .toList());
-        keyColumns.add("ID");
-        Map<String, Object> filter = new HashMap<>();
-        if (!wareDataRows.isEmpty()) {
-            WareDataRow firstRow = wareDataRows.get(0);
-            Map<String, Object> rowData = firstRow.getData();
-
-            for (WareMapping m : filters) {
-                String key = m.getFieldName();
-                Object value = rowData.get(key);
-                filter.put(key, value);
-            }
-        }
-
-        WareTemplate wareTemplate = wareBatch.getWareTemplate();
-        List<Map<String, Object>> rowsToSync = wareDataRows.stream()
-                .map(row -> {
-                    Map<String, Object> data = new HashMap<>(row.getData());
-                    data.putIfAbsent("ID", row.getId());
-                    return data;
-                }).toList();
-
-        int processedCount = 0;
-
-        try {
-            Map<String, Integer> syncResult = wareBatchJdbc.syncInternalTableData(
-                    wareTemplate.getTableCode(), 
-                    keyColumns, 
-                    filter, 
-                    rowsToSync, 
-                    request.getDeleteMissing()
-            );
-            
-            // Lấy ra số lượng bản ghi thực tế được tạo mới hoặc cập nhật
-            processedCount = syncResult.getOrDefault("processed", 0);
-
-        } catch (Exception e) {
-            throw new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR, 
-                    "Lỗi hệ thống khi dịch dữ liệu vào bảng nội bộ: " + e.getMessage()
-            );
-        }
-        batchActionRepository.save(
-                WareBatchAction.builder()
-                        .action("APPROVE_INTERNAL")
-                        .actionName("Duyệt nội bộ")
-                        .wareBatch(wareBatch)
-                        .tableName(wareBatch.getWareTemplate().getTableName())
-                        .updated(0)
-                        .inserted(processedCount)
-                        .build()
-        );
-
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     public ResponseEntity<?> update(WareBatchRequest request) {
