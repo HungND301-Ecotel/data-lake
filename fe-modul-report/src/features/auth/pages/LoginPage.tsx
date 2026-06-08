@@ -74,11 +74,11 @@ const LoginPage = () => {
             <div className="flex flex-col sm:flex-row items-center sm:items-end sm:justify-center gap-2 sm:gap-4 text-white text-sm sm:text-xl sm:text-center font-medium">
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-white" />
-                <span>Hotline: 020.33565388</span>
+                <span>Hotline: 02033.854491</span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-white" />
-                <span>Fax: 020.33565399</span>
+                <span>Email: ctythanub@gmail.com</span>
               </div>
             </div>
           </span>
