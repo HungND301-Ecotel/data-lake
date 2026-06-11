@@ -20,13 +20,14 @@ import {
   LoadingOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
-import { Button, Dropdown, Menu, Spin } from "antd";
+import { Button, Dropdown, Menu, Spin, message } from "antd";
 import { employeeApi } from "../employee/api/employeeApi";
 import { departmentApi } from "../department/api/departmentApi";
 import { wareCategoryApi } from "../ware/api/wareCategoryApi";
 import { wareTemplateApi } from "../ware/api/wareTemplateApi";
 import type { DepartmentResponse } from "../department/types/department";
 import { useAuthStore } from "../../stores/authStore";
+import { userApi } from "../auth/api/userApi";
 
 type Cat = { id: number; code: string; name: string };
 type Tmpl = { id: number; code: string; name: string; tableCode?: string; deptName?: string; catName?: string };
@@ -238,7 +239,7 @@ export default function NavBar() {
   const [quickOpen, setQuickOpen] = useState(false);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
   const navigate = useNavigate();
-  const { role: storeRole, setRole } = useAuthStore();
+  const { role: storeRole, setRole, clearRole } = useAuthStore();
 
   const getRoleFromToken = (): string | null => {
     try {
@@ -496,7 +497,19 @@ export default function NavBar() {
           icon: <LogoutOutlined className="text-lg" />,
           danger: true,
           label: <span className="text-base font-medium">Đăng xuất</span>,
-          onClick: () => navigate("/login"),
+          onClick: async () => {
+            try {
+              await userApi.logout();
+            } catch (e) {
+              console.error("Failed to logout on backend:", e);
+            } finally {
+              localStorage.removeItem("token");
+              localStorage.removeItem("refreshToken");
+              clearRole();
+              message.success("Đăng xuất thành công");
+              navigate("/login");
+            }
+          },
           className: "py-3 px-4 hover:bg-[#fff1f0]!",
         },
       ]}
