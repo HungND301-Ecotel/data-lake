@@ -30,10 +30,12 @@ import type { EmployeeResponse, EmployeeRequest } from "../types/employee";
 import type { UserRequest, UserResponse } from "../types/user";
 import type { DepartmentResponse } from "../../department/types/department";
 import { userApi } from "../../auth/api/userApi";
+import { useAuthStore } from "../../../stores/authStore";
 
 const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
 
 const EmployeePage = () => {
+  const role = useAuthStore((state) => state.role);
   const [employees, setEmployees] = useState<EmployeeResponse[]>([]);
   const [total, setTotal] = useState(0);
   const [departments, setDepartments] = useState<DepartmentResponse[]>([]);
@@ -245,25 +247,31 @@ const EmployeePage = () => {
         _role ? (
           <Tag color="green" className="px-3 py-1 cursor-pointer">
             {_role}{" "}
-            <EyeOutlined
-              style={{ marginLeft: 8 }}
-              onClick={() => handleShowUserDetail(record.id)}
-            />
+            {role === "ADMIN" && (
+              <EyeOutlined
+                style={{ marginLeft: 8 }}
+                onClick={() => handleShowUserDetail(record.id)}
+              />
+            )}
           </Tag>
         ) : (
-          <Button
-            icon={<UserAddOutlined />}
-            size="small"
-            className="bg-purple-500 hover:bg-purple-600 text-white border-0"
-            onClick={() => {
-              setSelectedEmployee(record);
-              setSelectedUser(null);
-              formUserDetail.resetFields();
-              setUserDetailModal(true);
-            }}
-          >
-            Tạo tài khoản
-          </Button>
+          role === "ADMIN" ? (
+            <Button
+              icon={<UserAddOutlined />}
+              size="small"
+              className="bg-purple-500 hover:bg-purple-600 text-white border-0"
+              onClick={() => {
+                setSelectedEmployee(record);
+                setSelectedUser(null);
+                formUserDetail.resetFields();
+                setUserDetailModal(true);
+              }}
+            >
+              Tạo tài khoản
+            </Button>
+          ) : (
+            <span className="text-gray-400">—</span>
+          )
         ),
     },
     {
@@ -280,13 +288,15 @@ const EmployeePage = () => {
           >
             Chi tiết
           </Button>
-          <Button
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => handleDeleteEmployee(record.id)}
-          >
-            Xoá
-          </Button>
+          {role === "ADMIN" && (
+            <Button
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => handleDeleteEmployee(record.id)}
+            >
+              Xoá
+            </Button>
+          )}
         </Space>
       ),
     },
@@ -335,15 +345,17 @@ const EmployeePage = () => {
             ))}
           </Select>
 
-          <Button
-            size="large"
-            icon={<PlusOutlined />}
-            onClick={() => setCreateEmployeeModal(true)}
-            className="bg-green-600! hover:bg-green-700! text-white! border-0 shadow-md"
-            style={{ borderRadius: "8px", minWidth: "160px" }}
-          >
-            Thêm nhân viên
-          </Button>
+          {role === "ADMIN" && (
+            <Button
+              size="large"
+              icon={<PlusOutlined />}
+              onClick={() => setCreateEmployeeModal(true)}
+              className="bg-green-600! hover:bg-green-700! text-white! border-0 shadow-md"
+              style={{ borderRadius: "8px", minWidth: "160px" }}
+            >
+              Thêm nhân viên
+            </Button>
+          )}
         </div>
 
         {/* Statistics Bar */}
@@ -528,11 +540,15 @@ const EmployeePage = () => {
         title={
           <div className="flex items-center gap-3 pb-3 border-b">
             <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100">
-              <EditOutlined className="text-blue-600 text-lg" />
+              {role === "ADMIN" ? (
+                <EditOutlined className="text-blue-600 text-lg" />
+              ) : (
+                <UserOutlined className="text-blue-600 text-lg" />
+              )}
             </div>
             <div>
               <div className="text-lg font-semibold text-gray-800">
-                Chi tiết nhân viên
+                {role === "ADMIN" ? "Chi tiết nhân viên" : "Thông tin nhân viên"}
               </div>
               {selectedEmployee && (
                 <div className="text-sm text-gray-500">{selectedEmployee.name}</div>
@@ -545,6 +561,20 @@ const EmployeePage = () => {
         cancelText="Hủy"
         width={800}
         onCancel={() => setEmployeeDetailModal(false)}
+        footer={
+          role === "ADMIN"
+            ? undefined
+            : [
+                <Button
+                  key="close"
+                  type="primary"
+                  onClick={() => setEmployeeDetailModal(false)}
+                  className="bg-blue-600! hover:bg-blue-700! text-white! border-0 h-10 px-6 text-base font-medium"
+                >
+                  Đóng
+                </Button>,
+              ]
+        }
         okButtonProps={{
           className: "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
           size: "large",
@@ -579,7 +609,7 @@ const EmployeePage = () => {
           }
         }}
       >
-        <Form form={formEmployeeDetail} layout="vertical" className="mt-6">
+        <Form form={formEmployeeDetail} layout="vertical" className="mt-6" disabled={role !== "ADMIN"}>
           <Form.Item label="" className="flex items-center justify-center">
             <Avatar
               size={100}
