@@ -270,7 +270,10 @@ const ProfilePage: React.FC = () => {
       <Modal
         title="Đổi mật khẩu"
         open={passwordModalOpen}
-        onCancel={() => setPasswordModalOpen(false)}
+        onCancel={() => {
+          setPasswordModalOpen(false);
+          formPassword.resetFields();
+        }}
         onOk={handleChangePassword}
         confirmLoading={passwordLoading}
         okText="Đổi mật khẩu"

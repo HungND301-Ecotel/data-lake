@@ -123,9 +123,10 @@ const EmployeePage = () => {
     }
   };
 
-  const handleShowUserDetail = async (employeeId: string) => {
+  const handleShowUserDetail = async (record: EmployeeResponse) => {
     try {
-      const user = await userApi.getByEmployeeId(employeeId);
+      setSelectedEmployee(record);
+      const user = await userApi.getByEmployeeId(record.id);
       setSelectedUser(user);
       formUserDetail.setFieldsValue({
         username: user.username,
@@ -250,7 +251,7 @@ const EmployeePage = () => {
             {role === "ADMIN" && (
               <EyeOutlined
                 style={{ marginLeft: 8 }}
-                onClick={() => handleShowUserDetail(record.id)}
+                onClick={() => handleShowUserDetail(record)}
               />
             )}
           </Tag>
