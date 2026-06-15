@@ -10,9 +10,11 @@ import com.quangnt0000.be_modul.dto.WareBatch.WareBatchRejectRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchResponse;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchSearch;
+import com.quangnt0000.be_modul.dto.WareCategory.WareCategoryResponse;
+import com.quangnt0000.be_modul.dto.dashboard.DashboardRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.MyApprovalBatchResponse;
 import com.quangnt0000.be_modul.enums.WareBatchEnum;
-import com.quangnt0000.be_modul.enums.WareBatchTargetEnum;
+import com.quangnt0000.be_modul.enums.ReportType;
 import com.quangnt0000.be_modul.modal.DataLake.User;
 import com.quangnt0000.be_modul.modal.DataWH.WareBatch;
 import com.quangnt0000.be_modul.modal.DataWH.WareBatchAction;
@@ -150,7 +152,6 @@ public class WareBatchService {
                     .reportYear(request.getReportYear())
                     .reportMonth(request.getReportMonth())
                     .reportDay(request.getReportDay())
-                    .syncTarget(null)
                     .status(WareBatchEnum.Cho_Phe_Duyet)
                     .build());
 
@@ -605,27 +606,14 @@ public class WareBatchService {
                 .changedBy(UUID.randomUUID().toString())
                 .dataUploadId(UUID.randomUUID().toString())
                 .build();
-                
-        WareBatchTargetEnum target = request.getSyncTarget() != null ? request.getSyncTarget() : WareBatchTargetEnum.Duyet_Noi_Bo;
+ 
         try {
-            if (target == WareBatchTargetEnum.Day_Server_TKV) {
-                ResponseEntity<?> response = wareApiService.push(body, wareBatch, request).block();
-                if (response != null && response.getStatusCode().is2xxSuccessful()) {
-                    wareBatch.setStatus(WareBatchEnum.Da_Phe_Duyet);
-                    wareBatch.setSyncTarget(WareBatchTargetEnum.Day_Server_TKV);
-                    wareBatchRepository.save(wareBatch);
-                }
-
-                return response;
-            } else if (target == WareBatchTargetEnum.Duyet_Noi_Bo) {
+            ResponseEntity<?> response = wareApiService.push(body, wareBatch, request).block();
+            if (response != null && response.getStatusCode().is2xxSuccessful()) {
                 wareBatch.setStatus(WareBatchEnum.Da_Phe_Duyet);
-                wareBatch.setSyncTarget(WareBatchTargetEnum.Duyet_Noi_Bo);
                 wareBatchRepository.save(wareBatch);
-
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
             }
-
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Sync target không hợp lệ");
+            return response;
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
@@ -883,7 +871,8 @@ public class WareBatchService {
                     // Batch info
                     .batchId(batch.getId())
                     .batchCode(batch.getCode())
-                    .batchName(batch.getName())
+                    .tableCode(batch.getWareTemplate() != null ? batch.getWareTemplate().getTableCode() : null)
+                    .reportName(batch.getWareTemplate() != null ? batch.getWareTemplate().getTableName() : null)
                     .batchDescription(batch.getDescription())
                     .createdAt(batch.getCreatedAt())
                     // Thời gian báo cáo
@@ -937,5 +926,11 @@ public class WareBatchService {
 
         // Lưu tất cả approvals
         batchApprovalRepository.saveAll(batchApprovals);
+    }
+
+    
+    public ResponseEntity<?> getWareBatches(DashboardRequest request) {
+        List<WareBatchResponse> wareCategoryResponses = wareBatchJdbc.getWareBatches(request);
+        return ResponseEntity.ok(wareCategoryResponses);
     }
 }

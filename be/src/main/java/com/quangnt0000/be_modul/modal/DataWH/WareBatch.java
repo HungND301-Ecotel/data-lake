@@ -1,7 +1,6 @@
 package com.quangnt0000.be_modul.modal.DataWH;
 
 import com.quangnt0000.be_modul.enums.WareBatchEnum;
-import com.quangnt0000.be_modul.enums.WareBatchTargetEnum;
 import com.quangnt0000.be_modul.modal.DataLake.Employee;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -47,10 +46,6 @@ public class WareBatch {
 
     @OneToMany(mappedBy = "wareBatch")
     private List<WareDataRow> wareDataRows;
-
-    @Column(name = "syncTarget", nullable = true)
-    @Enumerated(EnumType.STRING)
-    private WareBatchTargetEnum syncTarget;
 
     // Trạng thái phê duyệt
     @Enumerated(EnumType.STRING)
