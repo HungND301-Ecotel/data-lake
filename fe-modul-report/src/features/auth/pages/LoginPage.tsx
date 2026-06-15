@@ -6,7 +6,7 @@ import { Eye, EyeOff, Phone, Mail } from "lucide-react";
 import type { LoginResponse } from "../../employee/types/user";
 import { useAuthStore } from "../../../stores/authStore";
 import { userApi } from "../api/userApi";
-import logoUb from "../../../file/logo-company.png";
+import logoUb from "../../../file/logo.png";
 import Banner from "../../../file/background.png";
 
 
@@ -69,16 +69,16 @@ const LoginPage = () => {
               KHO DỮ LIỆU TẬP TRUNG
             </div>
             <div className="text-base sm:text-xl font-bold text-center">
-              CÔNG TY CỔ PHẦN THAN ĐÈO NAI - CỌC SÁU - TKV
+              CÔNG TY CỔ PHẦN THAN MAO KHÊ - TKV
             </div>
             <div className="flex flex-col sm:flex-row items-center sm:items-end sm:justify-center gap-2 sm:gap-4 text-white text-sm sm:text-xl sm:text-center font-medium">
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-white" />
-                <span>Hotline: 020.33565388</span>
+                <span>Hotline: 02033871240</span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-white" />
-                <span>Fax: 020.33565399</span>
+                <span>Fax: 02033871375</span>
               </div>
             </div>
           </span>
@@ -195,7 +195,7 @@ const LoginPage = () => {
           {/* Footer */}
           <div className="mt-6 text-center">
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              © 2024 CÔNG TY CỔ PHẦN THAN ĐÈO NAI - CỌC SÁU - TKV. All rights reserved.
+              © 2024 CÔNG TY CỔ PHẦN THAN MAO KHÊ - TKV. All rights reserved.
             </p>
           </div>
         </div>

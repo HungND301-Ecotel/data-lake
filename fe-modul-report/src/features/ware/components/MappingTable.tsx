@@ -87,6 +87,8 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
   const [aiModalOpen, setAiModalOpen] = useState(false);
   const { result: aiResult, loading: aiLoading, error: aiError, analyze, clear: clearAi } = useExcelMapping();
   const [pendingRows, setPendingRows] = useState<WareMappingRequest[]>([]);
+  const [isEditingAll, setIsEditingAll] = useState(false);
+  const [editData, setEditData] = useState<WareMappingResponse[]>([]);
 
   // ---- Fetch ----
   const fetchData = async () => {
@@ -218,6 +220,18 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
     setEditingRequest((prev) => (prev ? { ...prev, [key]: value } : prev));
   };
 
+  const updateEditDataRow = <K extends keyof WareMappingResponse>(
+    index: number, key: K, value: WareMappingResponse[K]
+  ) => {
+    setEditData((prev) => {
+      const updated = [...prev];
+      if (updated[index]) {
+        updated[index] = { ...updated[index], [key]: value };
+      }
+      return updated;
+    });
+  };
+
   const updatePendingRow = <K extends keyof WareMappingRequest>(
     index: number, key: K, value: WareMappingRequest[K]
   ) => {
@@ -226,6 +240,97 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
       updated[index] = { ...updated[index], [key]: value };
       return updated;
     });
+  };
+
+  const handleAddNewRow = () => {
+    if (!isAdmin) return;
+    if (isEditingAll) {
+      const newRow: WareMappingResponse = {
+        id: null,
+        fieldTitle: "",
+        fieldName: "",
+        fieldType: "ROW",
+        cellAddress: "",
+        fieldValue: "",
+        isKeyColumn: false,
+        isScopFilter: false,
+        isSummable: false,
+        role: "DIMENSION",
+        aggregateType: "NONE"
+      };
+      setData((prev) => [newRow, ...prev]);
+      setEditData((prev) => [newRow, ...prev]);
+    } else {
+      handleAdd();
+    }
+  };
+
+  const handleDeleteRow = async (record: WareMappingResponse, index: number) => {
+    if (!isAdmin) return;
+    if (record.id === null) {
+      setData((prev) => prev.filter((_, i) => i !== index));
+      setEditData((prev) => prev.filter((_, i) => i !== index));
+      messageApi.success("Đã gỡ dòng mới");
+    } else {
+      await handleDelete(record.id!);
+    }
+  };
+
+  const handleStartEditAll = () => {
+    setEditingId(null);
+    setEditingRequest(null);
+    setEditData(JSON.parse(JSON.stringify(data)));
+    setIsEditingAll(true);
+  };
+
+  const handleCancelEditAll = () => {
+    setIsEditingAll(false);
+    setEditData([]);
+    fetchData();
+  };
+
+  const handleSaveAll = async () => {
+    if (!isAdmin) return;
+    const invalidRows = editData.filter(row => !row.fieldName || !row.fieldType);
+    if (invalidRows.length > 0) {
+      messageApi.warning("Tên dữ liệu và Kiểu đối chiếu là bắt buộc cho tất cả các dòng");
+      return;
+    }
+    setLoading(true);
+    try {
+      const requests = editData.map(row => ({
+        id: row.id,
+        fieldName: row.fieldName,
+        fieldTitle: row.fieldTitle || "",
+        fieldType: row.fieldType,
+        cellAddress: row.cellAddress || "",
+        fieldValue: row.fieldValue || "",
+        isKeyColumn: row.isKeyColumn || false,
+        isScopFilter: row.isScopFilter || false,
+        isSummable: row.isSummable || false,
+        role: resolveRole(row),
+        aggregateType: resolveAggregateType(row),
+        wareTemplateId: templateId,
+      }));
+
+      await Promise.all(
+        requests.map(req => {
+          if (req.id === null || req.id === undefined) {
+            return wareMappingApi.saveWareMapping(req);
+          } else {
+            return wareMappingApi.updateWareMapping(req);
+          }
+        })
+      );
+      messageApi.success("Lưu cấu hình mapping thành công");
+      setIsEditingAll(false);
+      setPendingRows([]);
+      fetchData();
+    } catch (err) {
+      messageApi.error((err as any)?.message || "Có lỗi xảy ra khi lưu");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // ---- Normal add / edit / save ----
@@ -431,7 +536,8 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
   const columns: ColumnsType<WareMappingResponse> = [
     {
       title: "Tên dữ liệu", width: 150,
-      render: (_, record) => {
+      render: (_, record, index) => {
+        if (isEditingAll) return renderInput(editData[index]?.fieldName, (v) => updateEditDataRow(index, "fieldName", v), "Nhập tên dữ liệu");
         const pi = getPendingIndex(record);
         if (pi >= 0) return renderInput(pendingRows[pi]?.fieldName, (v) => updatePendingRow(pi, "fieldName", v), "Nhập tên dữ liệu");
         if (isNormalEditing(record)) return renderInput(editingRequest?.fieldName, (v) => updateRequest("fieldName", v), "Nhập tên dữ liệu");
@@ -440,7 +546,8 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
     },
     {
       title: "Tên hiển thị", width: 150,
-      render: (_, record) => {
+      render: (_, record, index) => {
+        if (isEditingAll) return renderInput(editData[index]?.fieldTitle, (v) => updateEditDataRow(index, "fieldTitle", v), "Nhập tên hiển thị");
         const pi = getPendingIndex(record);
         if (pi >= 0) return renderInput(pendingRows[pi]?.fieldTitle, (v) => updatePendingRow(pi, "fieldTitle", v), "Nhập tên hiển thị");
         if (isNormalEditing(record)) return renderInput(editingRequest?.fieldTitle, (v) => updateRequest("fieldTitle", v), "Nhập tên hiển thị");
@@ -449,7 +556,11 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
     },
     {
       title: "Kiểu đối chiếu", width: 140, align: "center",
-      render: (_, record) => {
+      render: (_, record, index) => {
+        if (isEditingAll) return renderFieldTypeSelect(
+          editData[index]?.fieldType as FieldType,
+          (v) => updateEditDataRow(index, "fieldType", v)
+        );
         const pi = getPendingIndex(record);
         if (pi >= 0) return renderFieldTypeSelect(
           pendingRows[pi]?.fieldType as FieldType,
@@ -468,7 +579,8 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
     },
     {
       title: "Địa chỉ ô/cột", width: 140, align: "center",
-      render: (_, record) => {
+      render: (_, record, index) => {
+        if (isEditingAll) return renderInput(editData[index]?.cellAddress, (v) => updateEditDataRow(index, "cellAddress", v), "VD: A1, B2");
         const pi = getPendingIndex(record);
         if (pi >= 0) return renderInput(pendingRows[pi]?.cellAddress, (v) => updatePendingRow(pi, "cellAddress", v), "VD: A1, B2");
         if (isNormalEditing(record)) return renderInput(editingRequest?.cellAddress, (v) => updateRequest("cellAddress", v), "VD: A1, B2");
@@ -477,7 +589,8 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
     },
     {
       title: "Kiểu giá trị", width: 150, align: "center",
-      render: (_, record) => {
+      render: (_, record, index) => {
+        if (isEditingAll) return renderFieldValueSelect(editData[index]?.fieldValue, (v) => updateEditDataRow(index, "fieldValue", v));
         const pi = getPendingIndex(record);
         if (pi >= 0) return renderFieldValueSelect(pendingRows[pi]?.fieldValue, (v) => updatePendingRow(pi, "fieldValue", v));
         if (isNormalEditing(record)) return renderFieldValueSelect(editingRequest?.fieldValue, (v) => updateRequest("fieldValue", v));
@@ -486,7 +599,8 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
     },
     {
       title: "Key", width: 80, align: "center",
-      render: (_, record) => {
+      render: (_, record, index) => {
+        if (isEditingAll) return renderCheckbox(editData[index]?.isKeyColumn, (v) => updateEditDataRow(index, "isKeyColumn", v));
         const pi = getPendingIndex(record);
         if (pi >= 0) return renderCheckbox(pendingRows[pi]?.isKeyColumn, (v) => updatePendingRow(pi, "isKeyColumn", v));
         if (isNormalEditing(record)) return renderCheckbox(editingRequest?.isKeyColumn, (v) => updateRequest("isKeyColumn", v));
@@ -497,7 +611,8 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
     },
     {
       title: "Scope_Filter", width: 120, align: "center",
-      render: (_, record) => {
+      render: (_, record, index) => {
+        if (isEditingAll) return renderCheckbox(editData[index]?.isScopFilter, (v) => updateEditDataRow(index, "isScopFilter", v));
         const pi = getPendingIndex(record);
         if (pi >= 0) return renderCheckbox(pendingRows[pi]?.isScopFilter, (v) => updatePendingRow(pi, "isScopFilter", v));
         if (isNormalEditing(record)) return renderCheckbox(editingRequest?.isScopFilter, (v) => updateRequest("isScopFilter", v));
@@ -508,7 +623,12 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
     },
     {
       title: "Summable", width: 110, align: "center",
-      render: (_, record) => {
+      render: (_, record, index) => {
+        if (isEditingAll) return renderCheckbox(editData[index]?.isSummable, (v) => {
+          updateEditDataRow(index, "isSummable", v);
+          updateEditDataRow(index, "role", v ? "MEASURE" : "DIMENSION");
+          updateEditDataRow(index, "aggregateType", v ? "SUM" : "NONE");
+        });
         const pi = getPendingIndex(record);
         if (pi >= 0) return renderCheckbox(pendingRows[pi]?.isSummable, (v) => {
           updatePendingRow(pi, "isSummable", v);
@@ -527,7 +647,19 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
     },
     {
       title: "Role", width: 140, align: "center",
-      render: (_, record) => {
+      render: (_, record, index) => {
+        if (isEditingAll) {
+          const role = resolveRole(editData[index]);
+          return renderRoleSelect(role, (v) => {
+            const currentAgg = resolveAggregateType(editData[index]);
+            const nextAgg = v === "DIMENSION"
+              ? "NONE"
+              : (currentAgg === "NONE" ? "SUM" : currentAgg);
+            updateEditDataRow(index, "role", v);
+            updateEditDataRow(index, "aggregateType", nextAgg);
+            updateEditDataRow(index, "isSummable", nextAgg !== "NONE");
+          });
+        }
         const pi = getPendingIndex(record);
         if (pi >= 0) {
           const role = resolveRole(pendingRows[pi]);
@@ -561,7 +693,15 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
     },
     {
       title: "Aggregate", width: 150, align: "center",
-      render: (_, record) => {
+      render: (_, record, index) => {
+        if (isEditingAll) {
+          const role = resolveRole(editData[index]);
+          const agg = resolveAggregateType(editData[index]);
+          return renderAggregateSelect(agg, (v) => {
+            updateEditDataRow(index, "aggregateType", v);
+            updateEditDataRow(index, "isSummable", v !== "NONE");
+          }, role === "DIMENSION");
+        }
         const pi = getPendingIndex(record);
         if (pi >= 0) {
           const role = resolveRole(pendingRows[pi]);
@@ -589,13 +729,29 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
     },
     {
       title: "Thao tác", width: 180, align: "center",
-      render: (_, record) => {
-        const pi = getPendingIndex(record);
-
+      render: (_, record, index) => {
         if (!isAdmin) {
           return <span className="text-gray-400">-</span>;
         }
 
+        if (isEditingAll) {
+          return (
+            <Space>
+              <Tooltip title="Xóa dòng này">
+                <Button
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={() => handleDeleteRow(record, index)}
+                  size="large"
+                >
+                  Xóa
+                </Button>
+              </Tooltip>
+            </Space>
+          );
+        }
+
+        const pi = getPendingIndex(record);
         if (pi >= 0) {
           return (
             <Space>
@@ -696,22 +852,56 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
 
           {isAdmin ? (
             <Space>
-              <Tooltip title="Dùng AI đọc file Excel để tự động tạo mapping">
-                <Button
-                  size="large"
-                  icon={<RobotOutlined />}
-                  onClick={handleOpenAiModal}
-                  style={{ borderColor: "#a855f7", color: "#9333ea" }}
-                  className="h-10 px-5"
-                >
-                  Cấu hình AI
-                </Button>
-              </Tooltip>
+              {isEditingAll ? (
+                <>
+                  <Button
+                    type="primary"
+                    size="large"
+                    icon={<SaveOutlined />}
+                    onClick={handleSaveAll}
+                    loading={loading}
+                    className="bg-green-600! hover:bg-green-700! h-10 px-5"
+                  >
+                    Lưu tất cả
+                  </Button>
+                  <Button
+                    size="large"
+                    icon={<CloseOutlined />}
+                    onClick={handleCancelEditAll}
+                    className="h-10 px-5"
+                  >
+                    Hủy
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    size="large"
+                    icon={<EditOutlined />}
+                    onClick={handleStartEditAll}
+                    style={{ borderColor: "#3b82f6", color: "#2563eb" }}
+                    className="h-10 px-5"
+                  >
+                    Sửa tất cả
+                  </Button>
+                  <Tooltip title="Dùng AI đọc file Excel để tự động tạo mapping">
+                    <Button
+                      size="large"
+                      icon={<RobotOutlined />}
+                      onClick={handleOpenAiModal}
+                      style={{ borderColor: "#a855f7", color: "#9333ea" }}
+                      className="h-10 px-5"
+                    >
+                      Cấu hình AI
+                    </Button>
+                  </Tooltip>
+                </>
+              )}
               <Button
                 type="primary"
                 size="large"
                 icon={<PlusOutlined />}
-                onClick={handleAdd}
+                onClick={handleAddNewRow}
                 className="bg-green-600! hover:bg-green-700! h-10 px-6"
               >
                 Thêm mới
@@ -769,7 +959,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
                 <Button size="large" icon={<RobotOutlined />} onClick={handleOpenAiModal} style={{ borderColor: "#a855f7", color: "#9333ea" }} className="h-11 px-8">
                   Cấu hình AI
                 </Button>
-                <Button type="primary" size="large" icon={<PlusOutlined />} onClick={handleAdd} className="bg-green-600! hover:bg-green-700! h-11 px-8">
+                <Button type="primary" size="large" icon={<PlusOutlined />} onClick={handleAddNewRow} className="bg-green-600! hover:bg-green-700! h-11 px-8">
                   Thêm mapping mới
                 </Button>
               </Space>

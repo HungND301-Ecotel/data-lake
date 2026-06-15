@@ -185,7 +185,7 @@ const ResultPanel = ({ results, reportHeader }: ResultPanelProps) => {
         {/* Tên công ty - căn giữa */}
         <div className="text-center mb-1 print:mb-0.5">
           <div className="font-bold text-sm print:text-xs tracking-wide text-gray-700">
-            CÔNG TY CỔ PHẦN THAN ĐÈO NAI - CỌC SÁU - TKV
+            CÔNG TY CỔ PHẦN THAN MAO KHÊ - TKV
           </div>
         </div>
 

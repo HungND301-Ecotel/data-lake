@@ -26,15 +26,15 @@ const Header = () => {
               PHẦN MỀM QUẢN LÝ KHO DỮ LIỆU
             </div>
             <div className="text-base font-bold">
-             CÔNG TY CỔ PHẦN THAN ĐÈO NAI - CỌC SÁU - TKV
+             CÔNG TY CỔ PHẦN THAN MAO KHÊ - TKV
             </div>
 
             <div className="flex justify-center gap-6 text-sm mt-1">
               <span className="flex items-center gap-1">
-                <PhoneOutlined /> (84)02033 863739
+                <PhoneOutlined /> (020)33871240 
               </span>
               <span className="flex items-center gap-1">
-                <MailOutlined /> (84)033.863942
+                <MailOutlined /> (020)33871375
               </span>
             </div>
           </div>
