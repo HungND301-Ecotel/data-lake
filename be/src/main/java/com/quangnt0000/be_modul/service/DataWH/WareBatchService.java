@@ -94,7 +94,7 @@ public class WareBatchService {
                                 colIndex = 0;
                             }
                             Cell cellRow = row.getCell(colIndex);
-                            value = (cellRow != null) ? parseCell(cellRow, mapping.getFieldValue()) : mapping.getFieldValue();
+                            value = (cellRow != null) ? parseCell(cellRow, mapping.getFieldValue()) : null;
                             break;
 
                         case "CELL":
@@ -105,7 +105,7 @@ public class WareBatchService {
                                 Row targetRow = sheet.getRow(targetRowNum);
                                 if (targetRow != null) {
                                     Cell targetCell = targetRow.getCell(targetColNum);
-                                    value = (targetCell != null) ? parseCell(targetCell, mapping.getFieldValue()) : mapping.getFieldValue();
+                                    value = (targetCell != null) ? parseCell(targetCell, mapping.getFieldValue()) : null;
                                 } else {
                                     value = mapping.getFieldValue();
                                 }
