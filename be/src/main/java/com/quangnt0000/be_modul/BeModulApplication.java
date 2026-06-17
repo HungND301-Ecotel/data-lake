@@ -4,6 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import io.github.cdimascio.dotenv.Dotenv;
+import java.util.TimeZone;
 
 
 @SpringBootApplication
@@ -11,6 +12,9 @@ import io.github.cdimascio.dotenv.Dotenv;
 public class BeModulApplication {
 
 	public static void main(String[] args) {
+		System.setProperty("user.timezone", "Asia/Ho_Chi_Minh");
+		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
+
 		Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
 		dotenv.entries().forEach(e ->
 				System.setProperty(e.getKey(), e.getValue())
