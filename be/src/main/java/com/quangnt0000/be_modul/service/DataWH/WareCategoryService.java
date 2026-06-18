@@ -34,6 +34,7 @@ public class WareCategoryService {
                 .name(request.getName())
                 .description(request.getDescription())
                 .department(department)
+                .reportType(request.getReportType())
                 .build();
         wareCategory = wareCategoryRepository.save(wareCategory);
         wareCategory.setCode("WH" + wareCategory.getId().toString());
