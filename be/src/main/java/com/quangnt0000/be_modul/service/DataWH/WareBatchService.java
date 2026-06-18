@@ -838,7 +838,8 @@ public class WareBatchService {
                     // Batch info
                     .batchId(batch.getId())
                     .batchCode(batch.getCode())
-                    .batchName(batch.getName())
+                    .tableCode(batch.getWareTemplate() != null ? batch.getWareTemplate().getTableCode() : null)
+                    .reportName(batch.getWareTemplate() != null ? batch.getWareTemplate().getTableName() : null)
                     .batchDescription(batch.getDescription())
                     .createdAt(batch.getCreatedAt())
                     // Thời gian báo cáo

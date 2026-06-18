@@ -21,7 +21,8 @@ public class WareBatchJdbc {
                     SELECT 
                         wb.id AS id,
                         wb.code AS code,
-                        wb.name AS name,
+                        wt.table_code AS tableCode,
+                        wt.table_name AS reportName,
                         wb.description AS description,
                         wb.s3_file_key AS s3_file_key,
                         wb.created_at AS created_at,
