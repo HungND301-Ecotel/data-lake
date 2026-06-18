@@ -2,18 +2,29 @@ package com.quangnt0000.be_modul.repository.DataWH;
 
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchResponse;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchSearch;
+import com.quangnt0000.be_modul.dto.WareCategory.WareCategoryResponse;
+import com.quangnt0000.be_modul.dto.dashboard.DashboardRequest;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
 public class WareBatchJdbc {
     private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     public List<WareBatchResponse> search(WareBatchSearch request) {
         StringBuilder sql = new StringBuilder(
@@ -21,7 +32,8 @@ public class WareBatchJdbc {
                     SELECT 
                         wb.id AS id,
                         wb.code AS code,
-                        wb.name AS name,
+                        wt.table_code AS tableCode,
+                        wt.table_name AS reportName,
                         wb.description AS description,
                         wb.s3_file_key AS s3_file_key,
                         wb.created_at AS created_at,
@@ -132,5 +144,61 @@ public class WareBatchJdbc {
         }
 
         return jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray());
+    }
+
+    
+    public List<WareBatchResponse> getWareBatches(DashboardRequest request) {
+        StringBuilder sql = new StringBuilder(
+                """
+                    SELECT 
+                        wb.id AS id,
+                        wb.code AS code,
+                        wt.table_code AS tableCode,
+                        wt.table_name AS reportName,
+                        wb.description AS description,
+                        wb.s3_file_key AS s3_file_key,
+                        wb.created_at AS created_at,
+                        wb.updated_at AS updated_at,
+                        wb.status AS wareBatchStatus,
+                        wb.report_year AS report_year,
+                        wb.report_month AS report_month,
+                        wb.report_day AS report_day
+                    FROM ware_batch wb
+                    LEFT JOIN ware_template wt ON wb.ware_template_id = wt.id
+                    LEFT JOIN ware_category wc ON wt.ware_category_id = wc.id
+                    LEFT JOIN department d ON wc.department_id = d.id
+                    WHERE wb.deleted = false
+                """
+        );
+        List<Object> params = new ArrayList<>();
+        if (request.getDepartmentId() != null) {
+            sql.append(" and d.id = ? ");
+            params.add(request.getDepartmentId());
+        }
+
+        if (request.getReportType() != null) {
+            sql.append(" and wc.report_type = ? ");
+            params.add(request.getReportType());
+        }
+
+        if (request.getReportYear() != null) {
+            sql.append(" and wb.report_year = ? ");
+            params.add(request.getReportYear());
+        }
+
+        if (request.getReportMonth() != null) {
+            sql.append(" and wb.report_month = ? ");
+            params.add(request.getReportMonth());
+        }
+
+        if (request.getReportDay() != null) {
+            sql.append(" and wb.report_day = ? ");
+            params.add(request.getReportDay());
+        }
+        System.out.println("SQL: " + sql);
+        return jdbcTemplate.query(sql.toString(),
+                params.toArray(),
+                new BeanPropertyRowMapper<>(WareBatchResponse.class)
+        );
     }
 }
