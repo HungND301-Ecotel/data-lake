@@ -1,5 +1,6 @@
 package com.quangnt0000.be_modul.modal.DataWH;
 
+import com.quangnt0000.be_modul.enums.ReportType;
 import com.quangnt0000.be_modul.modal.DataLake.Department;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -33,6 +34,10 @@ public class WareCategory {
 
     @OneToMany(mappedBy = "wareCategory")
     private List<WareTemplate> wareTemplates;
+
+    @Column(name = "reportType", nullable = true)
+    @Enumerated(EnumType.STRING)
+    private ReportType reportType;
 
     @ManyToOne
     @JoinColumn(name = "departmentId")
