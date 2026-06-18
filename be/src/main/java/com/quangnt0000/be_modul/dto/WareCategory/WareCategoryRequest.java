@@ -1,5 +1,7 @@
 package com.quangnt0000.be_modul.dto.WareCategory;
 
+import com.quangnt0000.be_modul.enums.ReportType;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,5 +16,6 @@ public class WareCategoryRequest {
     private String code;
     private String name;
     private String description;
+    private ReportType reportType;
     private String departmentId;
 }
