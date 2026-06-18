@@ -2,7 +2,7 @@ import { Upload } from "lucide-react";
 import { useState, useRef } from "react";
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
-const COMPANY_NAME = "CÔNG TY CỔ PHẦN THAN ĐÈO NAI CỌC SÁU - VINACOMIN";
+const COMPANY_NAME = "CÔNG TY THAN ĐÈO NAI CỌC SÁU - VINACOMIN";
 const COMPANY_DEPT = "PHÒNG KẾ HOẠCH - VẬT TƯ";
 const BIEU_MAU = "BIỂU MẪU SỐ 01/VT";
 
