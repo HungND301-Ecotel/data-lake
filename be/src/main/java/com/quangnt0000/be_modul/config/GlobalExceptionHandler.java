@@ -1,14 +1,19 @@
 package com.quangnt0000.be_modul.config;
 
+import com.quangnt0000.be_modul.common.BaseResponse;
+import com.quangnt0000.be_modul.exception.ApplicationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -44,6 +49,24 @@ public class GlobalExceptionHandler {
 
         body.put("message", message);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<BaseResponse<Object>> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+        var listErrors = e.getBindingResult().getFieldErrors();
+        List<String> message = new ArrayList<>();
+
+        for (var error : listErrors) {
+            message.add(error.getField() + ": " + error.getDefaultMessage());
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new BaseResponse<>(null, String.join(", ", message)));
+    }
+
+    @ExceptionHandler(ApplicationException.class)
+    public ResponseEntity<BaseResponse<Object>> handleApplicationException(ApplicationException e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new BaseResponse<>(null, e.getMessage()));
     }
 }
 
