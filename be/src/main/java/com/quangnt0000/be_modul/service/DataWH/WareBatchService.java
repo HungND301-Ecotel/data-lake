@@ -10,8 +10,11 @@ import com.quangnt0000.be_modul.dto.WareBatch.WareBatchRejectRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchResponse;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchSearch;
+import com.quangnt0000.be_modul.dto.WareCategory.WareCategoryResponse;
+import com.quangnt0000.be_modul.dto.dashboard.DashboardRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.MyApprovalBatchResponse;
 import com.quangnt0000.be_modul.enums.WareBatchEnum;
+import com.quangnt0000.be_modul.enums.ReportType;
 import com.quangnt0000.be_modul.modal.DataLake.User;
 import com.quangnt0000.be_modul.modal.DataWH.WareBatch;
 import com.quangnt0000.be_modul.modal.DataWH.WareBatchAction;
@@ -563,7 +566,6 @@ public class WareBatchService {
                     "Batch chưa hoàn tất phê duyệt, không thể push dữ liệu"
             );
         }
-
         List<WareDataRow> wareDataRows = wareDataRowService.getByBatchId(request.getId());
 
         List<WareMapping> filters = wareBatch.getWareTemplate().getWareMappings().stream()
@@ -585,7 +587,6 @@ public class WareBatchService {
                 filter.put(key, value);
             }
         }
-
         WareTemplate wareTemplate = wareBatch.getWareTemplate();
         PushRequest body = PushRequest.builder()
                 .table(wareTemplate.getTableCode())
@@ -605,6 +606,7 @@ public class WareBatchService {
                 .changedBy(UUID.randomUUID().toString())
                 .dataUploadId(UUID.randomUUID().toString())
                 .build();
+ 
         try {
             ResponseEntity<?> response = wareApiService.push(body, wareBatch, request).block();
             if (response != null && response.getStatusCode().is2xxSuccessful()) {
@@ -612,40 +614,9 @@ public class WareBatchService {
                 wareBatchRepository.save(wareBatch);
             }
             return response;
-        }catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
-    }
-
-    // Sau khi duyệt báo cáo nội bộ từng bước, không gọi API push lên server tổng
-    public ResponseEntity<?> approveInternal(WareBatchPush request) {
-        WareBatch wareBatch = wareBatchRepository.findById(request.getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "batch not found"));
-        if (wareBatch.getStatus() == WareBatchEnum.Tu_Choi_Phe_Duyet) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Batch đã bị từ chối, không thể push dữ liệu");
-        }
-
-        if (wareBatch.getStatus() == WareBatchEnum.Cho_Phe_Duyet) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Batch chưa hoàn tất phê duyệt, không thể push dữ liệu");
-        }
-
-        batchActionRepository.save(
-                WareBatchAction.builder()
-                        .action("APPROVE_INTERNAL")
-                        .actionName("Duyệt nội bộ")
-                        .wareBatch(wareBatch)
-                        .tableName(wareBatch.getWareTemplate().getTableName())
-                        .updated(0)
-                        .inserted(0)
-                        .build()
-        );
-        wareBatch.setStatus(WareBatchEnum.Da_Phe_Duyet);
-        wareBatchRepository.save(wareBatch);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     public ResponseEntity<?> update(WareBatchRequest request) {
@@ -900,7 +871,8 @@ public class WareBatchService {
                     // Batch info
                     .batchId(batch.getId())
                     .batchCode(batch.getCode())
-                    .batchName(batch.getName())
+                    .tableCode(batch.getWareTemplate() != null ? batch.getWareTemplate().getTableCode() : null)
+                    .reportName(batch.getWareTemplate() != null ? batch.getWareTemplate().getTableName() : null)
                     .batchDescription(batch.getDescription())
                     .createdAt(batch.getCreatedAt())
                     // Thời gian báo cáo
@@ -954,5 +926,11 @@ public class WareBatchService {
 
         // Lưu tất cả approvals
         batchApprovalRepository.saveAll(batchApprovals);
+    }
+
+    
+    public ResponseEntity<?> getWareBatches(DashboardRequest request) {
+        List<WareBatchResponse> wareCategoryResponses = wareBatchJdbc.getWareBatches(request);
+        return ResponseEntity.ok(wareCategoryResponses);
     }
 }

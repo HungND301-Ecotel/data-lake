@@ -21,9 +21,10 @@ public class MyApprovalBatchResponse {
     // Batch info
     private Integer batchId;
     private String batchCode;
-    private String batchName;
     private String batchDescription;
     private LocalDateTime createdAt;
+    private String tableCode;
+    private String reportName;
 
     // Thời gian báo cáo
     private Integer reportYear;
