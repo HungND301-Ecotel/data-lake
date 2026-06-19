@@ -24,17 +24,18 @@ public class WebClientConfig {
     @Bean
     @Qualifier("vinacominWebClient")
     public WebClient webClient() {
-        String baseUrl = "https://dev-apidatabi.vinacomin.vn/";
+        String baseUrl = "https://apidatabi.vinacomin.vn";
         int connectionTimeout = 5000;
         int readTimeout = 10000;
 
         HttpClient httpClient = HttpClient.create()
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectionTimeout)
                 .responseTimeout(Duration.ofMillis(readTimeout))
-                .doOnConnected(conn ->
-                    conn.addHandlerLast("readTimeoutHandler", new ReadTimeoutHandler(readTimeout, TimeUnit.MILLISECONDS))
-                        .addHandlerLast("writeTimeoutHandler", new WriteTimeoutHandler(readTimeout, TimeUnit.MILLISECONDS))
-                );
+                .doOnConnected(conn -> conn
+                        .addHandlerLast("readTimeoutHandler",
+                                new ReadTimeoutHandler(readTimeout, TimeUnit.MILLISECONDS))
+                        .addHandlerLast("writeTimeoutHandler",
+                                new WriteTimeoutHandler(readTimeout, TimeUnit.MILLISECONDS)));
 
         return WebClient.builder()
                 .baseUrl(baseUrl)
