@@ -40,3 +40,11 @@ datalake:
 account:
   username: ${USERNAME_VINA}
   password: ${PASSWORD_VINA}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+    health:
+      show-details: never

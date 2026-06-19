@@ -11,6 +11,7 @@ import com.quangnt0000.be_modul.service.Common.CommonService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
 
@@ -104,15 +105,9 @@ public class TargetService {
         targetRepository.saveAll(targets);
     }
 
-    // GET ALL
-    public List<TargetResponse> getAllTargets() {
-        List<Target> targets = targetRepository.findAllByDeletedFalse();
-        return targetMapper.toResponseList(targets);
-    }
-
-    // GET BY DEPARTMENT ID
-    public List<TargetResponse> getTargetsByDepartmentId(String departmentId) {
-        List<Target> targets = targetRepository.findByDepartmentIdAndDeletedFalse(departmentId);
+    // GET TARGETS (optional filter by department, month)
+    public List<TargetResponse> getTargets(String departmentId, YearMonth month) {
+        List<Target> targets = targetRepository.findAllByFilters(departmentId, month);
         return targetMapper.toResponseList(targets);
     }
 

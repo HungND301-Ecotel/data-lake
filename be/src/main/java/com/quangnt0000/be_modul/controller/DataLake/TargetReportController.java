@@ -18,21 +18,21 @@ public class TargetReportController {
 
     private final TargetReportService targetReportService;
 
-    @PostMapping
+    @PostMapping("/bulk")
     public List<TargetReportResponse> createBulk(
             @RequestBody List<TargetReportRequest> requests
     ) {
         return targetReportService.createBulk(requests);
     }
 
-    @PutMapping
+    @PutMapping("/bulk")
     public List<TargetReportResponse> updateBulk(
             @RequestBody List<TargetReportRequest> requests
     ) {
         return targetReportService.updateBulk(requests);
     }
 
-    @DeleteMapping
+    @DeleteMapping("/bulk")
     public void deleteBulk(
             @RequestBody List<String> ids
     ) {
@@ -40,21 +40,41 @@ public class TargetReportController {
     }
 
     @GetMapping
-    public List<DepartmentTargetResponse> getAll(
+    public List<DepartmentTargetResponse> getDepartmentTargets(
+            @RequestParam(required = false) String departmentId,
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate date
     ) {
-        return targetReportService.getAll(date);
+        return targetReportService.getDepartmentTargets(departmentId, date);
     }
 
-    @GetMapping("/department/{departmentId}")
-    public DepartmentTargetResponse getByDepartment(
-            @PathVariable String departmentId,
+    // CREATE
+    @PostMapping
+    public TargetReportResponse create(@RequestBody TargetReportRequest request) {
+        return targetReportService.create(request);
+    }
+
+    // UPDATE
+    @PutMapping
+    public TargetReportResponse update(@RequestBody TargetReportRequest request) {
+        return targetReportService.update(request);
+    }
+
+    // DELETE
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable String id) {
+        targetReportService.delete(id);
+    }
+
+    // GET (filter optional theo department, date) - trả list phẳng
+    @GetMapping("/list")
+    public List<TargetReportResponse> getTargetReports(
+            @RequestParam(required = false) String departmentId,
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate date
     ) {
-        return targetReportService.getByDepartment(departmentId, date);
+        return targetReportService.getTargetReports(departmentId, date);
     }
 }

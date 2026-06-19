@@ -4,10 +4,12 @@ import com.quangnt0000.be_modul.dto.Target.TargetRequest;
 import com.quangnt0000.be_modul.dto.Target.TargetResponse;
 import com.quangnt0000.be_modul.service.DataLake.TargetService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.YearMonth;
 import java.util.List;
 
 @RestController
@@ -71,18 +73,9 @@ public class TargetController {
 
     // GET ALL
     @GetMapping
-    public ResponseEntity<List<TargetResponse>> getAllTargets() {
-
-        return ResponseEntity.ok(targetService.getAllTargets());
-    }
-
-    // GET BY DEPARTMENT ID
-    @GetMapping("/department/{departmentId}")
-    public ResponseEntity<List<TargetResponse>> getTargetsByDepartmentId(
-            @PathVariable String departmentId) {
-
-        return ResponseEntity.ok(
-                targetService.getTargetsByDepartmentId(departmentId)
-        );
+    public List<TargetResponse> getTargets(
+            @RequestParam(required = false) String departmentId,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM") YearMonth month) {
+        return targetService.getTargets(departmentId, month);
     }
 }

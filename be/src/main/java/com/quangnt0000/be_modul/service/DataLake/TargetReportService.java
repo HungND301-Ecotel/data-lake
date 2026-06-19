@@ -87,40 +87,90 @@ public class TargetReportService {
     }
 
     // GET ALL
-    public List<DepartmentTargetResponse> getAll(LocalDate date) {
+    public List<DepartmentTargetResponse> getDepartmentTargets(String departmentId, LocalDate date) {
         List<Department> departments = departmentRepository.findByDeletedFalse();
+        Map<String, Department> deptById = departments.stream()
+                .collect(Collectors.toMap(Department::getId, Function.identity()));
         Map<String, List<Department>> deptChildrenMap = buildDeptChildrenMap(departments);
 
-        Map<String, Department> deptById = departments.stream()
-                .collect(Collectors.toMap(Department::getId, Function.identity()));
-        List<Department> rootDepartments = departments.stream()
-                .filter(d -> d.getParentId() == null || !deptById.containsKey(d.getParentId()))
-                .toList();
+        List<Department> targetDepartments;
+        Set<String> scopeIds;
 
-        Set<String> allDeptIds = departments.stream().map(Department::getId).collect(Collectors.toSet());
-        ReportContext context = buildReportContext(date, allDeptIds);
-
-        return rootDepartments.stream()
-                .map(root -> buildDepartmentResponse(root, date, deptChildrenMap, context))
-                .toList();
-    }
-
-    public DepartmentTargetResponse getByDepartment(String departmentId, LocalDate date) {
-        List<Department> departments = departmentRepository.findByDeletedFalse();
-        Map<String, Department> deptById = departments.stream()
-                .collect(Collectors.toMap(Department::getId, Function.identity()));
-
-        Department department = deptById.get(departmentId);
-        if (department == null) {
-            throw new EntityNotFoundException("Không tìm thấy department: " + departmentId);
+        if (departmentId != null) {
+            Department department = deptById.get(departmentId);
+            if (department == null) {
+                throw new EntityNotFoundException("Không tìm thấy department: " + departmentId);
+            }
+            targetDepartments = List.of(department);
+            scopeIds = collectDescendantIds(departmentId, deptChildrenMap);
+        } else {
+            targetDepartments = departments.stream()
+                    .filter(d -> d.getParentId() == null || !deptById.containsKey(d.getParentId()))
+                    .toList();
+            scopeIds = departments.stream().map(Department::getId).collect(Collectors.toSet());
         }
-
-        Map<String, List<Department>> deptChildrenMap = buildDeptChildrenMap(departments);
-        Set<String> scopeIds = collectDescendantIds(departmentId, deptChildrenMap);
 
         ReportContext context = buildReportContext(date, scopeIds);
 
-        return buildDepartmentResponse(department, date, deptChildrenMap, context);
+        return targetDepartments.stream()
+                .map(dept -> buildDepartmentResponse(dept, date, deptChildrenMap, context))
+                .toList();
+    }
+
+    // CREATE
+    public TargetReportResponse create(TargetReportRequest request) {
+        Target target = targetRepository.findByIdAndDeletedFalse(request.getTargetId())
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy target: " + request.getTargetId()));
+
+        TargetReport targetReport = targetReportMapper.toEntity(request);
+        targetReport.setTarget(target);
+
+        return targetReportMapper.toResponse(targetReportRepository.save(targetReport));
+    }
+
+    // UPDATE
+    public TargetReportResponse update(TargetReportRequest request) {
+        TargetReport targetReport = targetReportRepository.findByIdAndDeletedFalse(request.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy target report: " + request.getId()));
+
+        Target target = targetRepository.findByIdAndDeletedFalse(request.getTargetId())
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy target: " + request.getTargetId()));
+
+        targetReportMapper.updateEntityFromRequest(request, targetReport);
+        targetReport.setTarget(target);
+
+        return targetReportMapper.toResponse(targetReportRepository.save(targetReport));
+    }
+
+    // DELETE
+    public void delete(String id) {
+        TargetReport targetReport = targetReportRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy target report: " + id));
+        targetReport.setDeleted(true);
+        targetReportRepository.save(targetReport);
+    }
+
+    // GET (filter optional theo department, date) - trả về list phẳng (target tree), tự sinh dữ liệu mặc định nếu chưa có report
+    public List<TargetReportResponse> getTargetReports(String departmentId, LocalDate date) {
+        Set<String> scopeIds;
+
+        if (departmentId != null) {
+            List<Department> departments = departmentRepository.findByDeletedFalse();
+            Map<String, List<Department>> deptChildrenMap = buildDeptChildrenMap(departments);
+            scopeIds = collectDescendantIds(departmentId, deptChildrenMap);
+        } else {
+            scopeIds = departmentRepository.findByDeletedFalse().stream()
+                    .map(Department::getId)
+                    .collect(Collectors.toSet());
+        }
+
+        ReportContext context = buildReportContext(date, scopeIds);
+
+        List<Target> targets = context.targetsByDept().values().stream()
+                .flatMap(List::stream)
+                .toList();
+
+        return buildTargetTree(targets, date, context);
     }
 
     // ====== helpers chung ======
