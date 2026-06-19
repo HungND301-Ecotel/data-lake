@@ -18,13 +18,13 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 public class WebClientConfig {
 
-    @Value("${datalake.base-url:http://1.53.45.49:1313}")
+    @Value("${datalake.base-url:http://172.16.211.14:8989}")
     private String dataLakeBaseUrl;
 
     @Bean
     @Qualifier("vinacominWebClient")
     public WebClient webClient() {
-        String baseUrl = "https://dev-apidatabi.vinacomin.vn/";
+        String baseUrl = "https://Apidatabi.vinacomin.vn/";
         int connectionTimeout = 5000;
         int readTimeout = 10000;
 
