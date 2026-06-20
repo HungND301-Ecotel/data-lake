@@ -12,6 +12,7 @@ import {
   Select,
   Upload,
   Card,
+  Divider,
 } from "antd";
 import {
   SearchOutlined,
@@ -23,6 +24,7 @@ import {
   UserOutlined,
   EditOutlined,
   TeamOutlined,
+  LockOutlined,
 } from "@ant-design/icons";
 import { employeeApi } from "../api/employeeApi";
 import { departmentApi } from "../../department/api/departmentApi";
@@ -30,6 +32,7 @@ import type { EmployeeResponse, EmployeeRequest } from "../types/employee";
 import type { UserRequest, UserResponse } from "../types/user";
 import type { DepartmentResponse } from "../../department/types/department";
 import { userApi } from "../../auth/api/userApi";
+import { useAuthStore } from "../../../stores/authStore";
 
 const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
 
@@ -56,6 +59,8 @@ const EmployeePage = () => {
 
   const [messageApi, contextHolderMessage] = message.useMessage();
   const [modal, contextHolderModal] = Modal.useModal();
+
+  const userRole = useAuthStore((s) => s.role);
 
   const loadEmployees = async (
     keyword = searchText,
@@ -152,6 +157,10 @@ const EmployeePage = () => {
         messageApi.success("Tạo tài khoản thành công");
       } else {
         await userApi.updateUser(request);
+        // Nếu admin nhập mật khẩu mới thì gọi reset
+        if (values.newPassword && values.newPassword.trim() !== "") {
+          await userApi.resetPasswordByAdmin(selectedUser.id, values.newPassword);
+        }
         messageApi.success("Cập nhật tài khoản thành công");
       }
       setUserDetailModal(false);
@@ -241,25 +250,31 @@ const EmployeePage = () => {
         _role ? (
           <Tag color="blue" className="px-3 py-1 cursor-pointer">
             {_role}{" "}
-            <EyeOutlined
-              style={{ marginLeft: 8 }}
-              onClick={() => handleShowUserDetail(record.id)}
-            />
+            {userRole === "ADMIN" && (
+              <EyeOutlined
+                style={{ marginLeft: 8 }}
+                onClick={() => handleShowUserDetail(record.id)}
+              />
+            )}
           </Tag>
         ) : (
-          <Button
-            icon={<UserAddOutlined />}
-            size="small"
-            className="bg-purple-500 hover:bg-purple-600 text-white border-0"
-            onClick={() => {
-              setSelectedEmployee(record);
-              setSelectedUser(null);
-              formUserDetail.resetFields();
-              setUserDetailModal(true);
-            }}
-          >
-            Tạo tài khoản
-          </Button>
+          userRole === "ADMIN" ? (
+            <Button
+              icon={<UserAddOutlined />}
+              size="small"
+              className="bg-purple-500 hover:bg-purple-600 text-white border-0"
+              onClick={() => {
+                setSelectedEmployee(record);
+                setSelectedUser(null);
+                formUserDetail.resetFields();
+                setUserDetailModal(true);
+              }}
+            >
+              Tạo tài khoản
+            </Button>
+          ) : (
+            <span className="text-gray-400 text-sm">—</span>
+          )
         ),
     },
     {
@@ -832,6 +847,63 @@ const EmployeePage = () => {
                 <Select.Option value={false}>Khóa</Select.Option>
               </Select>
             </Form.Item>
+          )}
+
+          {selectedUser && (
+            <>
+              <Divider orientation="left" style={{ color: "#6b7280", fontSize: 13 }}>
+                Đặt lại mật khẩu (tùy chọn)
+              </Divider>
+              <Form.Item
+                name="newPassword"
+                label={
+                  <span className="font-medium text-gray-700">
+                    Mật khẩu mới
+                  </span>
+                }
+                rules={[
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      if (!value || value === "") return Promise.resolve();
+                      if (value.length < 6) return Promise.reject("Mật khẩu phải từ 6 ký tự");
+                      return Promise.resolve();
+                    },
+                  }),
+                ]}
+              >
+                <Input.Password
+                  prefix={<LockOutlined className="text-gray-400" />}
+                  placeholder="Để trống nếu không muốn đổi mật khẩu"
+                  size="large"
+                  className="rounded-lg"
+                />
+              </Form.Item>
+              <Form.Item
+                name="confirmPassword"
+                label={
+                  <span className="font-medium text-gray-700">
+                    Xác nhận mật khẩu mới
+                  </span>
+                }
+                rules={[
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      const newPwd = getFieldValue("newPassword");
+                      if (!newPwd || newPwd === "") return Promise.resolve();
+                      if (value !== newPwd) return Promise.reject("Mật khẩu xác nhận không khớp");
+                      return Promise.resolve();
+                    },
+                  }),
+                ]}
+              >
+                <Input.Password
+                  prefix={<LockOutlined className="text-gray-400" />}
+                  placeholder="Nhập lại mật khẩu mới"
+                  size="large"
+                  className="rounded-lg"
+                />
+              </Form.Item>
+            </>
           )}
         </Form>
       </Modal>

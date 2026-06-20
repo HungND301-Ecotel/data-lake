@@ -2,6 +2,7 @@ package com.quangnt0000.be_modul.service.DataLake;
 
 import com.quangnt0000.be_modul.dto.User.ChangePasswordRequest;
 import com.quangnt0000.be_modul.dto.User.LoginResponse;
+import com.quangnt0000.be_modul.dto.User.ResetPasswordRequest;
 import com.quangnt0000.be_modul.dto.User.UserLogin;
 import com.quangnt0000.be_modul.dto.User.UserRequest;
 import com.quangnt0000.be_modul.dto.User.UserResponse;
@@ -125,5 +126,13 @@ public class UserService {
         userRepository.save(user);
 
         return ResponseEntity.ok("Đổi mật khẩu thành công");
+    }
+
+    public ResponseEntity<?> resetPasswordByAdmin(String userId, ResetPasswordRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        return ResponseEntity.ok("Đặt lại mật khẩu thành công");
     }
 }

@@ -37,4 +37,11 @@ export const userApi = {
   ): Promise<void> => {
     await axiosClient.put("/user/change-password", request);
   },
-};
+
+  resetPasswordByAdmin: async (
+    userId: string,
+    newPassword: string
+  ): Promise<void> => {
+    await axiosClient.put(`/user/${userId}/reset-password`, { newPassword });
+  },
+};
