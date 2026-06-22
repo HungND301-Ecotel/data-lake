@@ -173,6 +173,16 @@ public class TargetReportService {
         return buildTargetTree(targets, date, context);
     }
 
+    // GET TARGET REPORT IN MONTH
+    public List<LocalDate> getPastDatesWithReportInMonth(YearMonth month, String departmentId) {
+        return targetReportRepository.findDistinctPastDatesInMonth(
+                month.atDay(1),
+                month.atEndOfMonth(),
+                LocalDate.now(),
+                departmentId
+        );
+    }
+
     // ====== helpers chung ======
 
     private Map<String, List<Department>> buildDeptChildrenMap(List<Department> departments) {
@@ -300,9 +310,14 @@ public class TargetReportService {
             return targetReportMapper.toResponse(exact);
         }
 
-        TargetReportResponse defaultResponse = targetReportMapper.toResponseBase(target);
-        applyDefaultValues(defaultResponse, target, date, context.lastPastReportByTargetId().get(target.getId()));
-        return defaultResponse;
+        TargetReport newReport = new TargetReport();
+        newReport.setTarget(target);
+        newReport.setDate(date);
+        TargetReport saved = targetReportRepository.save(newReport);
+
+        TargetReportResponse savedResponse = targetReportMapper.toResponse(saved);
+        applyDefaultValues(savedResponse, target, date, context.lastPastReportByTargetId().get(target.getId()));
+        return savedResponse;
     }
 
     private void applyDefaultValues(TargetReportResponse response, Target target, LocalDate date, TargetReport lastPastReport) {

@@ -9,6 +9,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 
 @RestController
@@ -76,5 +77,16 @@ public class TargetReportController {
             LocalDate date
     ) {
         return targetReportService.getTargetReports(departmentId, date);
+    }
+
+    // GET IN MONTH
+    @GetMapping("/date-in-month")
+    public List<LocalDate> getTargetReports(
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            YearMonth date,
+            @RequestParam(required = false) String departmentId
+    ) {
+        return targetReportService.getPastDatesWithReportInMonth(date, departmentId);
     }
 }
