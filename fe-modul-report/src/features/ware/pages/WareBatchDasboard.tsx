@@ -17,7 +17,6 @@ const DashboardWare = () => {
     insert_total: 0,
     update_total: 0,
   });
-
   const formatVNDate = (iso: string) => {
     const normalized = iso.endsWith("Z") || iso.includes("+") ? iso : iso + "Z";
     const d = new Date(normalized);
@@ -390,7 +389,7 @@ const DashboardWare = () => {
           <Card
             title={
               <div className="flex items-center">
-                <div className="w-1 h-6 bg-blue-500 rounded mr-3"></div>
+                <div className="w-1 h-6 bg-green-500 rounded mr-3"></div>
                 <span className="text-lg font-semibold text-gray-800">
                   Thống kê upload theo thời gian
                 </span>

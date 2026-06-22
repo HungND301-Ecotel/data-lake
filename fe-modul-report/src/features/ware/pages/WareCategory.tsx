@@ -403,7 +403,9 @@ const WareCategoryPage = () => {
 
           <Form.Item
             name="description"
-            label={<span className="font-medium text-gray-700">Mô tả</span>}
+            label={
+              <span className="font-medium text-gray-700">Mô tả</span>
+            }
           >
             <Input.TextArea
               placeholder="Nhập mô tả chi tiết về danh mục..."

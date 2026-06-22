@@ -37,4 +37,9 @@ export const userApi = {
   ): Promise<void> => {
     await axiosClient.put("/user/change-password", request);
   },
+
+  logout: async (): Promise<string> => {
+    const res = await axiosClient.post("/user/logout");
+    return res.data;
+  },
 };

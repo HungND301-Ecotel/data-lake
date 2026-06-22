@@ -57,7 +57,7 @@ export default function ServerFormModal({ open, server, loading, onClose, onSave
         </Form.Item>
 
         <Form.Item name="host" label="Host / IP" rules={[{ required: true, message: "Vui lòng nhập host" }]}>
-          <Input placeholder="VD: 192.168.1.100 hoặc localhost\SQLEXPRESS" />
+          <Input placeholder="VD: 192.168.1.100 hoặc 118.70.151.69\SQLEXPRESS" />
         </Form.Item>
 
         <div className="flex gap-4">
