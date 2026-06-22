@@ -281,14 +281,14 @@ export const ApproveBatch: React.FC = () => {
       setBatches(updatedBatches);
       setLoading(false);
 
-      // const shouldAutoPush = await checkAutoApprove(selectedBatches);
-      // if (!shouldAutoPush) {
-      //   // Không tự push, chỉ duyệt thôi
-      //   messageApi.success(`Đã duyệt thành công ${selectedBatches.length} batch`);
-      //   setSelectedRowKeys([]);
-      //   fetchBatches();
-      //   return;
-      // }
+      const shouldAutoPush = await checkAutoApprove(selectedBatches);
+      if (!shouldAutoPush) {
+        // Không tự push, chỉ duyệt thôi
+        messageApi.success(`Đã duyệt thành công ${selectedBatches.length} batch`);
+        setSelectedRowKeys([]);
+        fetchBatches();
+        return;
+      }
 
       // Bước 3: Lọc batch vừa duyệt xong hoàn toàn và chưa được push
       const justApprovedIds = selectedBatches.map((b) => b.batchId);
