@@ -381,7 +381,7 @@ const WareTemplate = () => {
                     </div>
                     <Tag
                       color="white"
-                      className="text-blue-700! font-medium! px-3 py-1"
+                      className="text-green-700! font-medium! px-3 py-1"
                     >
                       {grp.templates.length} template
                     </Tag>
@@ -410,11 +410,11 @@ const WareTemplate = () => {
       <Modal
         title={
           <div className="flex items-center gap-3 pb-3 border-b">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-green-100">
               {editing ? (
-                <EditOutlined className="text-blue-600 text-lg" />
+                <EditOutlined className="text-green-600 text-lg" />
               ) : (
-                <PlusOutlined className="text-blue-600 text-lg" />
+                <PlusOutlined className="text-green-600 text-lg" />
               )}
             </div>
             <div className="text-lg font-semibold text-gray-800">
@@ -433,7 +433,7 @@ const WareTemplate = () => {
         width={700}
         okButtonProps={{
           className:
-            "bg-[#1976D2]! hover:bg-blue-700! text-white! border-0 h-10 px-6 text-base font-medium",
+            "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
           size: "large",
         }}
         cancelButtonProps={{
@@ -502,7 +502,9 @@ const WareTemplate = () => {
 
             <Form.Item
               name="tableCode"
-              label={<span className="font-medium text-gray-700">Mã bảng</span>}
+              label={
+                <span className="font-medium text-gray-700">Mã bảng</span>
+              }
               labelCol={{ span: 24 }}
               wrapperCol={{ span: 24 }}
             >
@@ -637,7 +639,7 @@ const WareTemplate = () => {
               type="primary"
               onClick={handleGoToConfig}
               size="large"
-              className="flex-1 bg-[#1976D2]! hover:bg-blue-700! h-10 font-medium"
+              className="flex-1 bg-green-600! hover:bg-green-700! h-10 font-medium"
             >
               Đi tới cấu hình
             </Button>

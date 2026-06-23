@@ -6,12 +6,12 @@ const axiosClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true,
+  withCredentials: false,
 });
 
 axiosClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
-  if (token) {
+  if (token && !config.url?.includes("/user/login")) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;

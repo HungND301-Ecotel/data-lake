@@ -677,7 +677,7 @@ export const WareBatchDetail: React.FC = () => {
               {batchDetail?.name || "-"}
             </p>
           </div>
-          <div className="bg-linear-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
+          <div className="bg-linear-to-br from-green-50 to-green-100 p-4 rounded-lg">
             <p className="text-gray-600 text-sm font-medium mb-1">Trạng thái</p>
             <div className="mt-2">
               {batchDetail?.status && getStatusBadge(batchDetail.status)}
@@ -936,7 +936,7 @@ export const WareBatchDetail: React.FC = () => {
               block
               size="large"
               icon={<CloudUploadOutlined />}
-              className="bg-[#1976D2]! hover:bg-blue-700! h-11 font-medium rounded-lg"
+              className="bg-green-600! hover:bg-green-700! h-11 font-medium rounded-lg"
             >
               Upload dữ liệu
             </Button>
@@ -1005,6 +1005,11 @@ export const WareBatchDetail: React.FC = () => {
         .ant-table-cell {
           padding: 12px !important;
         }
+        .ant-table-header .ant-table-cell {
+          background: linear-gradient(to right, #f3f4f6, #e5e7eb);
+          font-weight: 600;
+          color: #374151;
+        }
         .ant-table-row {
           transition: all 0.2s ease;
         }
@@ -1014,6 +1019,10 @@ export const WareBatchDetail: React.FC = () => {
         .ant-input:focus,
         .ant-input-affix-wrapper:focus,
         .ant-input-affix-wrapper-focused {
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+        .ant-input-password:focus-within {
           border-color: #3b82f6;
           box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
         }

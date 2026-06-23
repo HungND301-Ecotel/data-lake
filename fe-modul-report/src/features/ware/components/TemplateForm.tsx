@@ -552,8 +552,8 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
         <Card className="shadow-sm border-0 rounded-xl">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100">
-                <TeamOutlined className="text-blue-600 text-lg" />
+              <div className="w-10 h-10 rounded-full flex items-center justify-center bg-green-100">
+                <TeamOutlined className="text-green-600 text-lg" />
               </div>
               <h1 className="text-xl font-bold text-gray-800 m-0">
                 Cấu hình người duyệt
@@ -690,7 +690,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
         width={800}
         okButtonProps={{
           className:
-            "bg-[#1976D2]! hover:bg-blue-700! text-white! border-0 h-10 px-6 text-base font-medium",
+            "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
           size: "large",
         }}
         cancelButtonProps={{
@@ -700,7 +700,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
       >
         <div className="py-4">
           <label className="block mb-4 font-semibold text-gray-800 text-base items-center gap-2">
-            <TeamOutlined className="text-blue-600" />
+            <TeamOutlined className="text-green-600" />
             Danh sách người duyệt
           </label>
 
@@ -714,8 +714,8 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                   <div
                     key={idx}
                     className={`p-4 transition-all ${isEditing
-                      ? "border-2 border-blue-500 bg-blue-50 shadow-md"
-                      : "border border-gray-200 bg-white hover:shadow-md"
+                        ? "border-2 border-green-500 bg-green-50 shadow-md"
+                        : "border border-gray-200 bg-white hover:shadow-md"
                       }`}
                   >
                     {isEditing ? (
@@ -759,7 +759,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                               <div
                                 key={emp.id}
                                 onClick={() => handleSelectNewApprover(emp.id)}
-                                className={`p-3 cursor-pointer border-b border-gray-100 hover:bg-blue-50 transition-colors ${emp.id === approverId ? "bg-blue-50" : ""
+                                className={`p-3 cursor-pointer border-b border-gray-100 hover:bg-blue-50 transition-colors ${emp.id === approverId ? "bg-green-50" : ""
                                   }`}
                               >
                                 <div className="flex items-center gap-3">
@@ -892,7 +892,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                 block
                 size="large"
                 icon={<PlusOutlined />}
-                className="bg-[#1976D2]! hover:bg-blue-700! h-11 font-medium rounded-lg"
+                className="bg-green-600! hover:bg-green-700! h-11 font-medium rounded-lg"
               >
                 Thêm người duyệt
               </Button>

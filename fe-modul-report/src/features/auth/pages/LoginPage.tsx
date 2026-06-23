@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Alert, message } from "antd";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Phone, Mail } from "lucide-react";
+import { Phone, Mail, Eye, EyeOff } from 'lucide-react';
 
 import type { LoginResponse } from "../../employee/types/user";
 import { useAuthStore } from "../../../stores/authStore";
@@ -17,6 +17,13 @@ const LoginPage = () => {
   const [loginError, setLoginError] = useState<string | null>(null);
   const navigate = useNavigate();
   const setRole = useAuthStore((s) => s.setRole);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/");
+    }
+  }, [navigate]);
 
   const handleLogin = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -68,7 +75,7 @@ const LoginPage = () => {
               KHO DỮ LIỆU TẬP TRUNG
             </div>
             <div className="text-base sm:text-xl font-bold text-center">
-              CÔNG TY KHO VẬN ĐÁ BẠC - TKV
+              CÔNG TY THAN CAO SƠN - TKV
             </div>
             <div className="flex flex-col sm:flex-row items-center sm:items-end sm:justify-center gap-2 sm:gap-4 text-white text-sm sm:text-xl sm:text-center font-medium">
               <div className="flex items-center gap-2">

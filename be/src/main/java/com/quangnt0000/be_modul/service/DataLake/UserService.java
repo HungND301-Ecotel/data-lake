@@ -126,4 +126,9 @@ public class UserService {
 
         return ResponseEntity.ok("Đổi mật khẩu thành công");
     }
+
+    public ResponseEntity<?> logout() {
+        SecurityContextHolder.clearContext();
+        return ResponseEntity.ok("Đăng xuất thành công");
+    }
 }

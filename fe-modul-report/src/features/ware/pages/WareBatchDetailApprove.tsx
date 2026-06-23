@@ -894,7 +894,8 @@ export const WareBatchDetailApprove: React.FC = () => {
               size="large"
               icon={<CheckOutlined />}
               onClick={handleApprove}
-              className="bg-[#0891b2]! hover:bg-cyan-7000! h-10 px-6"
+              loading={approvalLoading}
+              className="bg-green-600! hover:bg-green-700! h-10 px-6"
             >
               Duyệt
             </Button>
@@ -967,7 +968,7 @@ export const WareBatchDetailApprove: React.FC = () => {
               {batchDetail?.name || "-"}
             </p>
           </div>
-          <div className="bg-linear-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
+          <div className="bg-linear-to-br from-green-50 to-green-100 p-4 rounded-lg">
             <p className="text-gray-600 text-sm font-medium mb-1">Trạng thái</p>
             <div className="mt-2">
               {batchDetail?.status && getStatusBadge(batchDetail.status)}
@@ -1293,12 +1294,33 @@ export const WareBatchDetailApprove: React.FC = () => {
       </Modal>
 
       <style>{`
-        .bg-linear-to-br { background: linear-gradient(to bottom right, #f9fafb, #f3f4f6); }
-        .ant-table-cell { padding: 12px !important; }
-        .ant-table-header .ant-table-cell { background: linear-gradient(to right, #f3f4f6, #e5e7eb); font-weight: 600; color: #374151; }
-        .ant-table-row { transition: all 0.2s ease; }
-        .ant-table-row:hover { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
-        .ant-input:focus, .ant-input-affix-wrapper:focus, .ant-input-affix-wrapper-focused { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1); }
+        .bg-linear-to-br {
+          background: linear-gradient(to bottom right, #f9fafb, #f3f4f6);
+        }
+        .ant-table-cell {
+          padding: 12px !important;
+        }
+        .ant-table-header .ant-table-cell {
+          background: linear-gradient(to right, #f3f4f6, #e5e7eb);
+          font-weight: 600;
+          color: #374151;
+        }
+        .ant-table-row {
+          transition: all 0.2s ease;
+        }
+        .ant-table-row:hover {
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        .ant-input:focus,
+        .ant-input-affix-wrapper:focus,
+        .ant-input-affix-wrapper-focused {
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+        .ant-input-password:focus-within {
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
       `}</style>
     </div>
   );
