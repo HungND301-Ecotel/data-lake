@@ -166,9 +166,13 @@ public class WareBatchService {
 
             // Upload file excel goc len S3 de luu tru doi soat sau khi da doc du lieu
             if (request.getFile() != null && !request.getFile().isEmpty()) {
-                String s3Key = s3Service.uploadFile("warehouse-batch*" + batch.getId(), request.getFile()).getKey();
-                batch.setS3FileKey(s3Key);
-                wareBatchRepository.save(batch);
+                try {
+                    String s3Key = s3Service.uploadFile("warehouse-batch*" + batch.getId(), request.getFile()).getKey();
+                    batch.setS3FileKey(s3Key);
+                    wareBatchRepository.save(batch);
+                } catch (Exception e) {
+                    System.err.println("Failed to upload file to S3: " + e.getMessage());
+                }
             }
 
             // Khởi tạo approval workflow - tạo snapshot từ WareApprovalConfig
