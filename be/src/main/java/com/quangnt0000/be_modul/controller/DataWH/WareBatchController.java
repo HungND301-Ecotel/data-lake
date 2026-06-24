@@ -72,10 +72,4 @@ public class WareBatchController {
     public ResponseEntity<?> getMyApprovalBatches(@RequestParam(required = false) String departmentId) {
         return wareBatchService.getMyApprovalBatches(departmentId);
     }
-
-    
-    @GetMapping("/dashboard")
-    public ResponseEntity<?> getDashboard(@RequestBody DashboardRequest request) {
-        return wareBatchService.getWareBatches(request);
-    }
 }
