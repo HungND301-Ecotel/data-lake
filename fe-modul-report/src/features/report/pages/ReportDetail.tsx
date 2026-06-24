@@ -170,7 +170,8 @@ const ReportDetail: React.FC = () => {
 
           <div className="flex gap-2">
             <button
-              className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700"
+              className="flex items-center gap-1 px-3 py-1.5 text-white rounded"
+              style={{ backgroundColor: 'var(--primary)' }}
               onClick={() => setEditMode(!editMode)}
             >
               <FaEye /> {editMode ? "Thoát chỉnh sửa" : "Chỉnh sửa"}
@@ -178,7 +179,8 @@ const ReportDetail: React.FC = () => {
 
             {!isUserView && (
               <button
-                className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700"
+                className="flex items-center gap-1 px-3 py-1.5 text-white rounded"
+                style={{ backgroundColor: 'var(--primary)' }}
                 onClick={handleSave}
               >
                 <FaSave /> Lưu
@@ -186,14 +188,16 @@ const ReportDetail: React.FC = () => {
             )}
 
             <button
-              className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700"
+              className="flex items-center gap-1 px-3 py-1.5 text-white rounded"
+              style={{ backgroundColor: 'var(--primary)' }}
               onClick={handleExportPdf}
             >
               <FaFilePdf /> Xem PDF
             </button>
 
             <button
-              className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700"
+              className="flex items-center gap-1 px-3 py-1.5 text-white rounded"
+              style={{ backgroundColor: 'var(--primary)' }}
               onClick={handleExportExcel}
             >
               <FaFileExcel /> Xem EXCEL
@@ -210,7 +214,8 @@ const ReportDetail: React.FC = () => {
             <div className="flex gap-2">
               {/* ADD TEXT */}
               <button
-                className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                className="px-3 py-1 text-white rounded"
+                style={{ backgroundColor: 'var(--primary)' }}
                 onClick={() => {
                   const newItem: ReportItem = {
                     id: "new-" + v4(),
@@ -233,7 +238,8 @@ const ReportDetail: React.FC = () => {
 
               {/* ADD TABLE */}
               <button
-                className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                className="px-3 py-1 text-white rounded"
+                style={{ backgroundColor: 'var(--primary)' }}
                 onClick={() => {
                   const newItem: ReportItem = {
                     id: "new-" + v4(),
@@ -254,7 +260,8 @@ const ReportDetail: React.FC = () => {
 
               {/* ADD DATA */}
               <button
-                className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                className="px-3 py-1 text-white rounded"
+                style={{ backgroundColor: 'var(--primary)' }}
                 onClick={() => {
                   const newItem: ReportItem = {
                     id: "new-" + v4(),
@@ -395,7 +402,8 @@ const ReportDetail: React.FC = () => {
                             </span>
                             <button
                               onClick={() => deleteItem(idx)}
-                              className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700"
+                              className="flex items-center gap-1 px-3 py-1.5 text-white rounded"
+                              style={{ backgroundColor: 'var(--primary)' }}
                             >
                               <FaTrash /> Xoá
                             </button>

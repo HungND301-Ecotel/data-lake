@@ -168,7 +168,7 @@ const UserPushConfigPage = () => {
                             size="large"
                             icon={<PlusOutlined />}
                             onClick={() => handleOpenModal(false)}
-                            className="bg-[#0891b2]! hover:bg-cyan-7000! border-0 shadow-md"
+                            className="bg-green-600! hover:bg-green-700! border-0 shadow-md"
                             style={{ borderRadius: "8px" }}
                         >
                             Thêm tài khoản
@@ -296,7 +296,7 @@ const UserPushConfigPage = () => {
                 onOk={handleSave}
                 okButtonProps={{
                     className:
-                        "bg-[#0891b2]! hover:bg-cyan-7000! text-white! border-0 h-10 px-6 text-base font-medium",
+                        "bg-green-600! hover:bg-green-700! text-white! border-0 h-10 px-6 text-base font-medium",
                     size: "large",
                 }}
                 cancelButtonProps={{

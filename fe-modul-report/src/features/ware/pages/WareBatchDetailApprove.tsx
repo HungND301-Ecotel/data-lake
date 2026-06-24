@@ -895,7 +895,8 @@ export const WareBatchDetailApprove: React.FC = () => {
               icon={<CheckOutlined />}
               onClick={handleApprove}
               loading={approvalLoading}
-              className="bg-green-600! hover:bg-green-700! h-10 px-6"
+              className="text-white! h-10 px-6"
+              style={{ backgroundColor: 'var(--primary)' }}
             >
               Duyệt
             </Button>

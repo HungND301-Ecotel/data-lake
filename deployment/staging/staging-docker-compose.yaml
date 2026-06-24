@@ -1,9 +1,19 @@
+# ============================================================
+# STAGING DOCKER COMPOSE - TENANT AWARE
+# ============================================================
+# Dùng với file .env của từng tenant:
+#   docker compose --env-file tenants/deonaicocsau/.env -f staging-docker-compose.yaml up -d
+#
+# Hoặc qua script tự động:
+#   ./deployment/scripts/deploy.sh deonaicocsau staging
+# ============================================================
+
 services:
-  report_reverse_proxy_service:
-    image: ${REGISTRY}/report_reverse_proxy_img:${VERSION}
+  reverse_proxy_service:
+    image: ${REGISTRY}/${TENANT}_reverse_proxy_img:${VERSION}
     ports:
-      # HOST_PORT:CONTAINER_PORT
-      - "6363:8888"
+      # HOST_PORT:CONTAINER_PORT - Port được định nghĩa trong file .env của tenant
+      - "${PROXY_PORT}:8888"
     stdin_open: true
     environment:
       - TZ=Asia/Ho_Chi_Minh
@@ -11,36 +21,33 @@ services:
       - backnet
       - frontnet
     depends_on:
-      - report_backend_service
-      - report_frontend_service
+      - backend_service
+      - frontend_service
 
-  report_backend_service:
+  backend_service:
     env_file:
       - .env_backend
-    image: ${REGISTRY}/report_backend_img:${VERSION}
+    image: ${REGISTRY}/${TENANT}_backend_img:${VERSION}
     depends_on:
       - postgres
     ports:
-      - "8484:8080"
+      - "${BACKEND_PORT}:8080"
     networks:
       - backnet
     restart: unless-stopped
 
-  report_frontend_service:
-    image: ${REGISTRY}/report_frontend_img:${VERSION}
-    # target: development
+  frontend_service:
+    image: ${REGISTRY}/${TENANT}_frontend_img:${VERSION}
     stdin_open: true
     environment:
       - TZ=Asia/Ho_Chi_Minh
     volumes:
-      # For development only, to synced src code to container
       - /usr/src/app/node_modules
-    # restart: always
     networks:
       - frontnet
 
   postgres:
-    container_name: pg_report_2211
+    container_name: pg_${TENANT}_report
     image: postgres:16
     environment:
       - POSTGRES_USER=admin
@@ -48,39 +55,39 @@ services:
       - POSTGRES_DB=report
       - PGDATA=/var/lib/postgresql/data
     volumes:
-      - report_postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5434:5432"
+      - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
     networks:
       - backnet
 
   pgadmin:
-    container_name: pgadmin_report_2211
+    container_name: pgadmin_${TENANT}_report
     image: dpage/pgadmin4:8.6
     environment:
       - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL:-pgadmin@pgadmin.org}
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD:-admin}
       - PGADMIN_CONFIG_SERVER_MODE=False
     volumes:
-      - report_pgadmin_data:/var/lib/pgadmin
+      - pgadmin_data:/var/lib/pgadmin
     ports:
-      - "5051:80"
+      - "${PGADMIN_PORT}:80"
+    networks:
+      - backnet
     restart: unless-stopped
 
 volumes:
-  report_postgres_data: # ✅ Cho postgres
+  postgres_data:
     driver: local
     driver_opts:
       type: none
-      device: /mnt/hdd/report_postgres_data
+      device: ${POSTGRES_VOLUME_PATH}
       o: bind
 
-  report_pgadmin_data: # ✅ Cho pgadmin (thêm mới)
+  pgadmin_data:
     driver: local
     driver_opts:
       type: none
-      device: /mnt/hdd/report_pgadmin_data
+      device: ${PGADMIN_VOLUME_PATH}
       o: bind
 
 networks:

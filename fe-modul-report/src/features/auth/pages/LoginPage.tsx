@@ -6,8 +6,28 @@ import { Phone, Mail, Eye, EyeOff } from 'lucide-react';
 import type { LoginResponse } from "../../employee/types/user";
 import { useAuthStore } from "../../../stores/authStore";
 import { userApi } from "../api/userApi";
+import { tenantConfig } from "../../../config/tenant";
+
+// ── Asset map: Vite cần static import để bundle ảnh đúng cách ──
+// Khi thêm logo/banner mới: đặt file vào src/file/ rồi thêm vào đây
 import logoUb from "../../../file/logo-ub.jpg";
-import Banner from "../../../file/Banner.jpg";
+import logoDeonaicocsau from "../../../file/logo-company.png";
+import bannerUb from "../../../file/Banner.jpg";
+import bannerDeonaicocsau from "../../../file/background.png";
+
+const LOGO_MAP: Record<string, string> = {
+  "logo-ub.jpg": logoUb,
+  "logo-company.png": logoDeonaicocsau,
+};
+
+const BANNER_MAP: Record<string, string> = {
+  "Banner.jpg": bannerUb,
+  "background.png": bannerDeonaicocsau,
+};
+
+// Lấy asset đúng theo tenant config
+const logoSrc = LOGO_MAP[tenantConfig.logoFile] ?? logoDeonaicocsau;
+const bannerSrc = BANNER_MAP[tenantConfig.bannerFile] ?? bannerDeonaicocsau;
 
 
 const LoginPage = () => {
@@ -68,34 +88,44 @@ const LoginPage = () => {
 
   return (
     <div className="relative flex flex-col min-h-screen overflow-hidden">
-      {/* Header */}
-      <header className="h-auto border-b bg-[#1a8649] backdrop-blur flex items-center justify-center px-6 relative z-20">
+      {/* Header - màu & thông tin theo tenant */}
+      <header
+        className="h-auto border-b backdrop-blur flex items-center justify-center px-6 relative z-20"
+        style={{
+          backgroundColor: tenantConfig.primaryColor,
+          borderColor: tenantConfig.primaryDark,
+        }}
+      >
         <div className="flex items-center gap-3 text-primary-foreground py-4">
           <span className="flex flex-col gap-1 text-white">
             <div className="text-base sm:text-5xl font-bold text-center">
               KHO DỮ LIỆU TẬP TRUNG
             </div>
             <div className="text-base sm:text-xl font-bold text-center">
-              CÔNG TY THAN UÔNG BÍ - TKV
+              {tenantConfig.companyName}
             </div>
             <div className="flex flex-col sm:flex-row items-center sm:items-end sm:justify-center gap-2 sm:gap-4 text-white text-sm sm:text-xl sm:text-center font-medium">
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-white" />
-                <span>Hotline: 02033.854491</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-white" />
-                <span>Email: ctythanub@gmail.com</span>
-              </div>
+              {tenantConfig.hotline && (
+                <div className="flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-white" />
+                  <span>Hotline: {tenantConfig.hotline}</span>
+                </div>
+              )}
+              {tenantConfig.email && (
+                <div className="flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-white" />
+                  <span>Email: {tenantConfig.email}</span>
+                </div>
+              )}
             </div>
           </span>
         </div>
       </header>
 
-      {/* Background Image */}
+      {/* Background Image - banner theo tenant */}
       <div className="absolute inset-0 z-0">
         <img
-          src={Banner}
+          src={bannerSrc}
           alt="HR Background"
           className="object-cover w-full h-full"
         />
@@ -106,17 +136,20 @@ const LoginPage = () => {
       <div className="relative z-10 flex items-center justify-center flex-1 w-full px-6 py-8">
         {/* Card chứa form */}
         <div className="w-full max-w-md bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8">
-          {/* Logo - thay thế bằng text hoặc thêm logo của bạn */}
+          {/* Logo - theo tenant */}
           <div className="mb-5 sm:mb-1 flex justify-center">
             <img
-              src={logoUb}
+              src={logoSrc}
               className="h-14 w-20 rounded-full cursor-pointer"
             />
           </div>
 
           {/* Title */}
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-green-600 dark:text-blue-400">
+            <h2
+              className="text-2xl font-bold dark:text-blue-400"
+              style={{ color: tenantConfig.primaryColor }}
+            >
               Đăng nhập
             </h2>
           </div>
@@ -144,7 +177,7 @@ const LoginPage = () => {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   disabled={loading}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                 />
               </div>
 
@@ -162,7 +195,7 @@ const LoginPage = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={loading}
-                    className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                    className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                   />
                   <span
                     onClick={() => setShowPassword(!showPassword)}
@@ -182,7 +215,12 @@ const LoginPage = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-green-500 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="w-full text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  style={{
+                    backgroundColor: tenantConfig.primaryColor,
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = tenantConfig.primaryDark)}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = tenantConfig.primaryColor)}
                 >
                   {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
                 </button>
@@ -202,7 +240,7 @@ const LoginPage = () => {
           {/* Footer */}
           <div className="mt-6 text-center">
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              © 2024 CÔNG TY THAN UÔNG BÍ - TKV. All rights reserved.
+              {tenantConfig.copyright}
             </p>
           </div>
         </div>

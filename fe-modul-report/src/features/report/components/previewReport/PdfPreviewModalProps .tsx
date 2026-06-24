@@ -173,7 +173,8 @@ const PdfPreviewModal: React.FC<PdfPreviewModalProps> = ({
           />
 
           <button
-            className="mt-auto px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-1"
+            className="mt-auto px-3 py-2 text-white rounded flex items-center gap-1"
+            style={{ backgroundColor: 'var(--primary)' }}
             onClick={handleSave}
           >
             <FaSave /> Lưu PDF

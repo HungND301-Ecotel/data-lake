@@ -356,7 +356,9 @@ const WareCategoryPage = () => {
         }
         width={800}
         okButtonProps={{
-          className: "bg-green-600! hover:bg-green-700! text-white border-0 h-10 px-6 text-base font-medium",
+          className:
+            "text-white border-0 h-10 px-6 text-base font-medium",
+          style: { backgroundColor: 'var(--primary)' },
           size: "large",
         }}
         cancelButtonProps={{

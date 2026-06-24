@@ -1,49 +1,87 @@
 # Reference:
 # 1. https://github.com/actions/starter-workflows/blob/main/deployments/azure-webapps-node.yml
-name: Deploy for staging version
+#
+# ============================================================
+# STAGING DEPLOY WORKFLOW - TENANT AWARE
+# ============================================================
+# Trigger khi push lên nhánh `develop`.
+# Biến TENANT phải được set trong GitHub Secrets hoặc Variables.
+# Mỗi tenant có bộ secrets riêng với prefix: {TENANT_UPPER}_*
+#
+# Cách thêm tenant mới:
+#   1. Tạo file deployment/tenants/{tenant}/.env
+#   2. Thêm bộ secrets GitHub: {TENANT_UPPER}_HOST, _USER, _SSH_KEY, _PORT, _VITE_API
+#   3. Chạy workflow với input tenant={tenant}
+# ============================================================
+
+name: Deploy Staging
 
 on:
   push:
     branches:
-      - develop # Deploy when code is pushed to 'develop'
+      - develop # Deploy khi push lên nhánh develop
+  workflow_dispatch:
+    inputs:
+      tenant:
+        description: "Tenant to deploy (e.g. deonaicocsau, uongbi)"
+        required: true
+        default: "deonaicocsau"
 
 env:
-  WEBAPP_NAME: data-lake # set this to your application's name
-  WEBAPP_PACKAGE_PATH: "." # set this to the path to your web app project, defaults to the repository root
-  NODE_VERSION: "20.x" # set this to the node version to use
-
-# permissions:
-#   contents: read
+  WEBAPP_NAME: data-lake
+  NODE_VERSION: "20.x"
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
+    # Ma trận: deploy song song cho nhiều tenant nếu cần
+    # Hoặc dùng workflow_dispatch.inputs.tenant để deploy 1 tenant cụ thể
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Show Working Directory
-        run: pwd
-
-      - name: Create an .env file in frontend for building image
+      - name: Determine tenant
+        id: tenant
         run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "name=${{ github.event.inputs.tenant }}" >> $GITHUB_OUTPUT
+          else
+            # Mặc định khi push vào develop → deploy deonaicocsau
+            # Sửa giá trị này thành tenant mặc định của nhánh develop
+            echo "name=deonaicocsau" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set TENANT_UPPER for secrets lookup
+        id: tenant_upper
+        run: echo "name=$(echo '${{ steps.tenant.outputs.name }}' | tr '[:lower:]' '[:upper:]')" >> $GITHUB_OUTPUT
+
+      # ── Build .env cho frontend theo tenant ──────────────────
+      - name: Create frontend .env from tenant config
+        run: |
+          TENANT="${{ steps.tenant.outputs.name }}"
           echo "VITE_API=${{ secrets.VITE_API }}" > ./fe-modul-report/.env
+          echo "VITE_TENANT=${TENANT}" >> ./fe-modul-report/.env
+          echo "VITE_PRIMARY_COLOR=$(grep VITE_PRIMARY_COLOR fe-modul-report/tenants/${TENANT}.env | cut -d= -f2)" >> ./fe-modul-report/.env
+          echo "VITE_APP_TITLE=$(grep VITE_APP_TITLE fe-modul-report/tenants/${TENANT}.env | cut -d= -f2)" >> ./fe-modul-report/.env
 
       - name: List Files
         run: ls -laR
 
-      - name: Run Makefiles with Secrets to build anh push docker images to dockerhub
+      # ── Build & push Docker images với TENANT arg ─────────────
+      - name: Build and push Docker images
         env:
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+          TENANT: ${{ steps.tenant.outputs.name }}
         run: |
-          make staging
-          ls -al .env
-          cat .env
-          cp .env deployment/staging/
+          make staging TENANT=${TENANT}
+          # Copy .env và tenant config vào thư mục deployment để SCP lên server
+          cp ./deployment/tenants/${TENANT}/.env ./deployment/staging/.env_tenant
+          ls -al deployment/staging/
 
-      - name: Ensure target directory exists
+      # ── SSH vào server: tạo thư mục deploy ───────────────────
+      - name: Ensure target directory exists on server
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.STAGING_HOST }}
@@ -53,7 +91,8 @@ jobs:
           script: |
             mkdir -p /home/${{ secrets.STAGING_USER }}/data-lake/deployment/staging
 
-      - name: Transfer docker-compose file to VPS for deployment
+      # ── SCP: copy docker-compose + .env lên server ───────────
+      - name: Transfer deployment files to server
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.STAGING_HOST }}
@@ -62,9 +101,10 @@ jobs:
           port: ${{ secrets.STAGING_PORT }}
           source: deployment/staging/*
           target: "/home/${{ secrets.STAGING_USER }}/data-lake/deployment/staging"
-          strip_components: 2 # Removes "deployment/staging/" folder path!
+          strip_components: 2
 
-      - name: Clean up containers and stuff via SSH
+      # ── SSH: down containers cũ ───────────────────────────────
+      - name: Clean up old containers
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.STAGING_HOST }}
@@ -72,15 +112,13 @@ jobs:
           key: ${{ secrets.STAGING_SSH_KEY }}
           port: ${{ secrets.STAGING_PORT }}
           script: |
-            # Change to staging deployment directory
-            cd /home/${{ secrets.STAGING_USER }}/data-lake/deployment/staging 
-            # Debug info
-            pwd
-            ls -al
+            cd /home/${{ secrets.STAGING_USER }}/data-lake/deployment/staging
+            pwd && ls -al
             docker image prune -f
-            docker compose -f staging-docker-compose.yaml down # always down first
+            docker compose -f staging-docker-compose.yaml down
             docker ps
 
+      # ── SSH: deploy lên ──────────────────────────────────────
       - name: Deploy to Staging via SSH
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -89,10 +127,7 @@ jobs:
           key: ${{ secrets.STAGING_SSH_KEY }}
           port: ${{ secrets.STAGING_PORT }}
           script: |
-            ### Change to staging deployment directory
-            cd /home/${{ secrets.STAGING_USER }}/data-lake/deployment/staging 
-            ### Clean up unused images
-            docker image prune -f # clean up unused images
-            ### Provide permissions and start the application
+            cd /home/${{ secrets.STAGING_USER }}/data-lake/deployment/staging
+            docker image prune -f
             chmod +x start-app.sh
             ./start-app.sh

@@ -1,22 +1,27 @@
 ###### Build Docker Images and push to DockerHub Repository ######
-### Rerferences:
+### References:
 # 1. Compose build specs: https://docs.docker.com/compose/compose-file/build/
-# Run the commands:
-# a. Build: $ docker compose -f docker-compose-build.yaml build --parallel
-# b. Push:  $ docker compose -f docker-compose-build.yaml push
+# Run the commands (TENANT is required):
+# a. Build: TENANT=uongbi docker compose -f docker-compose-build.yaml build --parallel
+# b. Push:  TENANT=uongbi docker compose -f docker-compose-build.yaml push
+# Available tenants: uongbi, deonaicocsau, (thêm tenant mới → tạo file tenants/{tenant}.env)
 #####
 services:
-  report_reverse_proxy_service:
+  reverse_proxy_service:
     build:
       context: ./reverse_proxy
-    image: ${REGISTRY}/report_reverse_proxy_img:${VERSION}
+    image: ${REGISTRY}/${TENANT}_reverse_proxy_img:${VERSION}
 
-  report_backend_service:
+  backend_service:
     build:
       context: ./be
-    image: ${REGISTRY}/report_backend_img:${VERSION}
+      args:
+        - SPRING_PROFILE=${SPRING_PROFILE:-prod}
+    image: ${REGISTRY}/${TENANT}_backend_img:${VERSION}
 
-  report_frontend_service:
+  frontend_service:
     build:
       context: ./fe-modul-report
-    image: ${REGISTRY}/report_frontend_img:${VERSION}
+      args:
+        - TENANT=${TENANT}
+    image: ${REGISTRY}/${TENANT}_frontend_img:${VERSION}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { tenantConfig } from "../../config/tenant";
 import {
   UserOutlined,
   DownOutlined,
@@ -519,7 +520,13 @@ export default function NavBar() {
 
   return (
     <>
-      <nav className="top-0 z-50 bg-[#1a8649] flex items-center px-8 py-3 gap-2 shadow-lg border-b border-[#0a5232]">
+      <nav
+        className="top-0 z-50 flex items-center px-8 py-3 gap-2 shadow-lg"
+        style={{
+          backgroundColor: tenantConfig.primaryColor,
+          borderBottom: `1px solid ${tenantConfig.primaryDark}`,
+        }}
+      >
         {/* Back Button */}
         <Button
           type="text"
