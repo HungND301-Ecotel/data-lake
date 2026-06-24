@@ -1,23 +1,30 @@
-### Build Front-End
-### E.g.: $ docker build -t ecotel_frontend_img:latest .
-# $ docker run -d -p 3000:80 ecotel_frontend_img:latest
+### Build Front-End with Tenant Config
+### Usage:
+###   docker build --build-arg TENANT=uongbi -t frontend_img:latest .
+###   docker build --build-arg TENANT=deonaicocsau -t frontend_img:latest .
+### Available tenants: xem fe-modul-report/tenants/
 
-## Create an image based on the official Node image from dockerhub
+## Build stage
 FROM node:20 AS development
 
 WORKDIR /usr/src/app
 
-# copy đúng file lock
+# Nhận tenant từ build arg (mặc định là default nếu không truyền)
+ARG TENANT=default
+
 COPY package.json package-lock.json ./
 
-# ❗ FIX: dùng npm ci + clean đúng cách
+# Clean install dependencies
 RUN rm -rf node_modules \
  && npm ci --include=optional
 
-# copy source sau khi install
+# Copy toàn bộ source
 COPY . .
 
-# build
+# Copy tenant env file thành .env để Vite đọc khi build
+RUN cp tenants/${TENANT}.env .env
+
+# Build production bundle với config của tenant
 RUN npm run build
 
 
