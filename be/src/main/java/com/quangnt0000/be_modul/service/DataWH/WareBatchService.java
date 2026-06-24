@@ -94,7 +94,7 @@ public class WareBatchService {
                                 colIndex = 0;
                             }
                             Cell cellRow = row.getCell(colIndex);
-                            value = (cellRow != null) ? parseCell(cellRow, mapping.getFieldValue()) : mapping.getFieldValue();
+                            value = (cellRow != null) ? parseCell(cellRow, mapping.getFieldValue()) : null;
                             break;
 
                         case "CELL":
@@ -105,7 +105,7 @@ public class WareBatchService {
                                 Row targetRow = sheet.getRow(targetRowNum);
                                 if (targetRow != null) {
                                     Cell targetCell = targetRow.getCell(targetColNum);
-                                    value = (targetCell != null) ? parseCell(targetCell, mapping.getFieldValue()) : mapping.getFieldValue();
+                                    value = (targetCell != null) ? parseCell(targetCell, mapping.getFieldValue()) : null;
                                 } else {
                                     value = mapping.getFieldValue();
                                 }
@@ -129,6 +129,15 @@ public class WareBatchService {
                 rows.add(data);
             }
 
+            List<Map<String, Object>> validRows = rows.stream()
+                    .filter(row -> !isDataRowEmpty(row))
+                    .toList();
+
+            if (validRows.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("File báo cáo không có dữ liệu. Vui lòng kiểm tra và upload lại file.");
+            }
+
             // Lưu WareBatch
             WareBatch batch = wareBatchRepository.save(WareBatch.builder()
                     .code("new")
@@ -146,7 +155,7 @@ public class WareBatchService {
 
             // Lưu các WareDataRow
             List<WareDataRow> wareDataRows = new ArrayList<>();
-            for (Map<String, Object> dataRow : rows) {
+            for (Map<String, Object> dataRow : validRows) {
                 wareDataRows.add(WareDataRow.builder()
                         .data(dataRow)
                         .wareBatch(batch)
@@ -157,9 +166,13 @@ public class WareBatchService {
 
             // Upload file excel goc len S3 de luu tru doi soat sau khi da doc du lieu
             if (request.getFile() != null && !request.getFile().isEmpty()) {
-                String s3Key = s3Service.uploadFile("warehouse-batch*" + batch.getId(), request.getFile()).getKey();
-                batch.setS3FileKey(s3Key);
-                wareBatchRepository.save(batch);
+                try {
+                    String s3Key = s3Service.uploadFile("warehouse-batch*" + batch.getId(), request.getFile()).getKey();
+                    batch.setS3FileKey(s3Key);
+                    wareBatchRepository.save(batch);
+                } catch (Exception e) {
+                    System.err.println("Failed to upload file to S3: " + e.getMessage());
+                }
             }
 
             // Khởi tạo approval workflow - tạo snapshot từ WareApprovalConfig
@@ -230,6 +243,27 @@ public class WareBatchService {
                 );
             }
         }
+        return true;
+    }
+
+    private boolean isDataRowEmpty(Map<String, Object> rowData) {
+        if (rowData == null || rowData.isEmpty()) {
+            return true;
+        }
+
+        for (Object value : rowData.values()) {
+            if (value == null) {
+                continue;
+            }
+            if (value instanceof String strValue) {
+                if (!strValue.trim().isEmpty()) {
+                    return false;
+                }
+                continue;
+            }
+            return false;
+        }
+
         return true;
     }
 
@@ -838,8 +872,7 @@ public class WareBatchService {
                     // Batch info
                     .batchId(batch.getId())
                     .batchCode(batch.getCode())
-                    .tableCode(batch.getWareTemplate() != null ? batch.getWareTemplate().getTableCode() : null)
-                    .reportName(batch.getWareTemplate() != null ? batch.getWareTemplate().getTableName() : null)
+                    .batchName(batch.getName())
                     .batchDescription(batch.getDescription())
                     .createdAt(batch.getCreatedAt())
                     // Thời gian báo cáo

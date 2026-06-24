@@ -20,6 +20,7 @@ public class MyApprovalBatchResponse {
     
     // Batch info
     private Integer batchId;
+    private String batchName;
     private String batchCode;
     private String tableCode;
     private String reportName;
