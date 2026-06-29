@@ -1,8 +1,18 @@
 @import "tailwindcss";
 
+@theme {
+  --font-mono: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+body, button, input, select, textarea {
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
 /* Chat typing indicator animation */
 @keyframes typing-dot {
-  0%, 60%, 100% {
+  0%,
+  60%,
+  100% {
     transform: translateY(0);
   }
   30% {
@@ -48,10 +58,18 @@
   line-height: 1.3;
 }
 
-.markdown-content h1 { font-size: 1.5em; }
-.markdown-content h2 { font-size: 1.3em; }
-.markdown-content h3 { font-size: 1.15em; }
-.markdown-content h4 { font-size: 1em; }
+.markdown-content h1 {
+  font-size: 1.5em;
+}
+.markdown-content h2 {
+  font-size: 1.3em;
+}
+.markdown-content h3 {
+  font-size: 1.15em;
+}
+.markdown-content h4 {
+  font-size: 1em;
+}
 
 .markdown-content ul,
 .markdown-content ol {
@@ -68,7 +86,7 @@
   padding: 0.15em 0.4em;
   border-radius: 4px;
   font-size: 0.9em;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: inherit;
 }
 
 .markdown-content pre {
@@ -138,4 +156,65 @@
 
 .markdown-content em {
   font-style: italic;
+}
+
+/* Custom styles for PlanModal Calendar and tables */
+.plan-calendar-container .ant-picker-calendar-date {
+  margin: 0 !important;
+  padding: 0 !important;
+  height: auto !important;
+}
+
+.plan-calendar-container .ant-picker-cell {
+  padding: 2px !important;
+}
+
+.plan-calendar-container .ant-picker-cell-inner {
+  height: 100% !important;
+  width: 100% !important;
+  min-height: 48px !important;
+}
+
+@media (min-width: 1024px) {
+  .plan-calendar-container .ant-picker-cell-inner {
+    min-height: 70px !important;
+  }
+}
+
+.plan-calendar-container .ant-picker-calendar-date-content {
+  height: auto !important;
+  margin: 0 !important;
+}
+
+.plan-calendar-container .ant-picker-cell-selected .ant-picker-cell-inner {
+  background: transparent !important;
+}
+
+/* Scrollbar customization for data lists */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Modal action form tweaks */
+.plan-modal-action-dialog .ant-modal-content {
+  border-radius: 12px !important;
+  padding: 24px !important;
+}
+
+.plan-modal-action-dialog .ant-modal-header {
+  margin-bottom: 16px !important;
 }
