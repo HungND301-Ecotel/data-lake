@@ -9,6 +9,10 @@ export interface TargetRequest {
   parentId?: string | null;
 }
 
+export interface UpdateTargetRequest extends TargetRequest {
+  id: string;
+}
+
 export interface TargetResponse {
   id: string;
   name: string;
@@ -20,3 +24,8 @@ export interface TargetResponse {
   departmentName?: string;
   parentId?: string | null;
 }
+
+export interface UpdateTargetRequest extends TargetRequest {
+  id: string;
+}
+

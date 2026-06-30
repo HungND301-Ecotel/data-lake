@@ -1,4 +1,4 @@
-﻿import {
+import {
   Upload,
   TrendingUp,
   Layers,
@@ -7,7 +7,7 @@
   RefreshCw,
   CheckCircle2,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const PLAN_TYPE_MAP: Record<string, string> = {
   "ke-hoach-san-xuat": "Kế hoạch sản xuất",
@@ -34,6 +34,25 @@ export function PlanModal({
   onAddBatch,
 }: PlanModalProps) {
   const [step, setStep] = useState(1);
+  const isMountedRef = useRef(true);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleClose = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    onClose();
+  };
   const [dept, setDept] = useState("");
   const [planType, setPlanType] = useState("");
   const [period, setPeriod] = useState("Tháng 4/2026");
@@ -86,7 +105,8 @@ export function PlanModal({
 
   const handleSubmit = () => {
     setSubmitting(true);
-    setTimeout(() => {
+    timeoutRef.current = setTimeout(() => {
+      if (!isMountedRef.current) return;
       setSubmitting(false);
       setSubmitted(true);
       onAddBatch({
@@ -120,7 +140,7 @@ export function PlanModal({
           </div>
           <button
             className="bg-transparent border-0 text-slate-400 text-lg cursor-pointer transition-all hover:text-slate-950"
-            onClick={onClose}
+            onClick={handleClose}
           >
             ✕
           </button>
@@ -450,7 +470,7 @@ export function PlanModal({
           {submitted && (
             <button
               className="bg-teal-700 text-white border-0 rounded-lg py-2 px-4 font-semibold text-xs cursor-pointer flex items-center gap-2 transition-all hover:bg-teal-800"
-              onClick={onClose}
+              onClick={handleClose}
             >
               Đóng cửa sổ
             </button>

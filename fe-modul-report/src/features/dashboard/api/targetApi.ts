@@ -1,5 +1,5 @@
 import axiosClient from "../../../services/axiosClient";
-import type { TargetRequest, TargetResponse } from "../types/target";
+import type { TargetRequest, TargetResponse, UpdateTargetRequest } from "../types/target";
 
 export const targetApi = {
   getTargets: async (departmentId: string, month: string): Promise<TargetResponse[]> => {
@@ -14,7 +14,7 @@ export const targetApi = {
     return res.data;
   },
 
-  updateTarget: async (request: TargetRequest): Promise<TargetResponse> => {
+  updateTarget: async (request: UpdateTargetRequest): Promise<TargetResponse> => {
     const res = await axiosClient.put("/targets", request);
     return res.data;
   },

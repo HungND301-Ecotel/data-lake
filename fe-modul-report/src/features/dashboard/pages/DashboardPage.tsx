@@ -17,7 +17,7 @@ import { wareBatchApi } from "../../ware/api/wareBathApi";
 import type { DepartmentResponse } from "../../department/types/department";
 import { Column, Line } from "@ant-design/charts";
 import { UniverPreviewModal } from "../components/Modal/UniverPreviewModal";
-import { PlanModal } from "../components/ProductionPlanning";
+import { PlanModal } from "../components/Modal/PlanModal";
 import { SetupModal } from "../components/Modal/SetupModal";
 import { BatchSyncModal } from "../components/Modal/BatchSyncModal";
 import { whBatchApi } from "../api/whBatchApi";
@@ -26,15 +26,7 @@ import { ProductionPivotSection } from "../components/PivotTable/ProductionPivot
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const COMPANY_NAME = "CÔNG TY CỔ PHẦN THAN ĐÈO NAI CỌC SÁU - VINACOMIN";
 
-const DEPTS = [
-  "Tất cả",
-  "PX Than Nguyên Khai",
-  "PX Than Sạch",
-  "PX Cơ điện",
-  "Phòng Kế hoạch - Vật tư",
-  "Phòng Kế toán",
-  "Phòng Nhân sự",
-];
+
 const PRODUCTION_TABLE = [
   {
     chiTieu: "Than NK sản xuất",
@@ -172,7 +164,7 @@ export default function DashboardPage() {
   const [syncing, setSyncing] = useState(false);
   const [showSetupModal, setShowSetupModal] = useState(false);
 
-  const [departments, setDepartments] = useState<string[]>(DEPTS);
+  const [departments, setDepartments] = useState<string[]>(["Tất cả"]);
   const [realDepts, setRealDepts] = useState<DepartmentResponse[]>([]);
 
   const [_batches, setBatches] = useState([
@@ -1663,6 +1655,7 @@ export default function DashboardPage() {
         <PlanModal
           onClose={() => setShowPlanModal(false)}
           onAddBatch={handleAddBatch}
+          departments={departments}
         />
       )}
       {showSetupModal && (

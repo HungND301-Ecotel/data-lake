@@ -19,7 +19,7 @@ export interface WhBatchDashboardResponse {
 
 export interface WhBatchDashboardSearch {
   departmentId?: string | null;
-  reportType?: "Noi_Bo" | "Tap_Doan" | string;
+  reportType?: "Noi_Bo" | "Tap_Doan";
   reportYear?: number;
   reportMonth?: number;
   reportDay?: number;
