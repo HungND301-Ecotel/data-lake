@@ -310,14 +310,9 @@ public class TargetReportService {
             return targetReportMapper.toResponse(exact);
         }
 
-        TargetReport newReport = new TargetReport();
-        newReport.setTarget(target);
-        newReport.setDate(date);
-        TargetReport saved = targetReportRepository.save(newReport);
-
-        TargetReportResponse savedResponse = targetReportMapper.toResponse(saved);
-        applyDefaultValues(savedResponse, target, date, context.lastPastReportByTargetId().get(target.getId()));
-        return savedResponse;
+        TargetReportResponse defaultResponse = targetReportMapper.toResponseBase(target);
+        applyDefaultValues(defaultResponse, target, date, context.lastPastReportByTargetId().get(target.getId()));
+        return defaultResponse;
     }
 
     private void applyDefaultValues(TargetReportResponse response, Target target, LocalDate date, TargetReport lastPastReport) {
