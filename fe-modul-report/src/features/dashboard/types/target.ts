@@ -24,8 +24,3 @@ export interface TargetResponse {
   departmentName?: string;
   parentId?: string | null;
 }
-
-export interface UpdateTargetRequest extends TargetRequest {
-  id: string;
-}
-

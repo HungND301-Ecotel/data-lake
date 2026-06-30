@@ -285,6 +285,11 @@ export function TargetMonthCalendar({
 
   // ── Save ──────────────────────────────────────────────────────
   const handleConfirmSave = useCallback(async () => {
+    if (Object.keys(dailyData).length === 0) {
+      message.warning("Chưa có dữ liệu để lưu!");
+      return;
+    }
+
     const dateStr = selectedDate.format("YYYY-MM-DD");
     const reqs: TargetReportRequest[] = Object.entries(dailyData).map(
       ([targetId, entry]) => {
@@ -302,18 +307,17 @@ export function TargetMonthCalendar({
         };
       },
     );
+    const isFirstCreate = reqs.some((r) => !r.id);
 
     setSaving(true);
     try {
-      await targetReportApi.updateBulk(reqs);
+      if (isFirstCreate) {
+        await targetReportApi.createBulk(reqs);
+      } else {
+        await targetReportApi.updateBulk(reqs);
+      }
 
-      const monthStr = selectedPeriod.startOf("month").format("YYYY-MM-DD");
-      const dates = await targetReportApi.getDatesInMonth(
-        selectedWorkshop,
-        monthStr,
-      );
-      setSavedDates(new Set(dates));
-
+      setSavedDates((prev) => new Set([...prev, dateStr]));
       setIsEditingDay(false);
       message.success("Lưu dữ liệu ngày thành công!");
     } catch (err) {
@@ -322,8 +326,7 @@ export function TargetMonthCalendar({
     } finally {
       setSaving(false);
     }
-  }, [dailyData, selectedDate, selectedPeriod, selectedWorkshop]);
-
+  }, [dailyData, selectedDate]);
   // ── Cancel ────────────────────────────────────────────────────
   const handleCancel = useCallback(() => {
     setIsEditingDay(false);
