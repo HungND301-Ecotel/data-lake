@@ -36,8 +36,9 @@ import type {
   WareTemplateRequest,
 } from "../types/wareTemplate";
 import type { WareCategoryResponse } from "../types/wareCategory";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import { useTenant } from "../../../config/tenant";
 
 const { Panel } = Collapse;
 const { Option } = Select;
@@ -55,6 +56,7 @@ type DecodedToken = {
 };
 
 const WareTemplate = () => {
+  const { tenant } = useTenant();
   const [groups, setGroups] = useState<WareTemplateGroup[]>([]);
   const [searchText, setSearchText] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -381,7 +383,8 @@ const WareTemplate = () => {
                     </div>
                     <Tag
                       color="white"
-                      className="text-green-700! font-medium! px-3 py-1"
+                      className="font-medium! px-3 py-1"
+                      style={{ color: tenant.primaryColor }}
                     >
                       {grp.templates.length} template
                     </Tag>
@@ -674,7 +677,7 @@ const WareTemplate = () => {
         }
         
         .modern-collapse .ant-collapse-header {
-          background: linear-gradient(135deg, #1a8649 0%, #15703d 100%) !important;
+          background: var(--primary-color) !important;
           padding: 20px 24px !important;
           border-radius: 12px !important;
           align-items: center !important;

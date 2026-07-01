@@ -6,7 +6,7 @@ import { Phone, Mail, Eye, EyeOff } from 'lucide-react';
 import type { LoginResponse } from "../../employee/types/user";
 import { useAuthStore } from "../../../stores/authStore";
 import { userApi } from "../api/userApi";
-import { tenantConfig } from "../../../config/tenant";
+import { useTenant } from "../../../config/tenant";
 
 // ── Asset map: Vite cần static import để bundle ảnh đúng cách ──
 // Khi thêm logo/banner mới: đặt file vào src/file/ rồi thêm vào đây
@@ -25,12 +25,9 @@ const BANNER_MAP: Record<string, string> = {
   "background.png": bannerDeonaicocsau,
 };
 
-// Lấy asset đúng theo tenant config
-const logoSrc = LOGO_MAP[tenantConfig.logoFile] ?? logoDeonaicocsau;
-const bannerSrc = BANNER_MAP[tenantConfig.bannerFile] ?? bannerDeonaicocsau;
-
 
 const LoginPage = () => {
+  const { tenant } = useTenant();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
@@ -38,6 +35,9 @@ const LoginPage = () => {
   const [loginError, setLoginError] = useState<string | null>(null);
   const navigate = useNavigate();
   const setRole = useAuthStore((s) => s.setRole);
+
+  const logoSrc = LOGO_MAP[tenant.logoFile] ?? logoDeonaicocsau;
+  const bannerSrc = BANNER_MAP[tenant.bannerFile] ?? bannerDeonaicocsau;
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -92,8 +92,8 @@ const LoginPage = () => {
       <header
         className="h-auto border-b backdrop-blur flex items-center justify-center px-6 relative z-20"
         style={{
-          backgroundColor: tenantConfig.primaryColor,
-          borderColor: tenantConfig.primaryDark,
+          backgroundColor: tenant.primaryColor,
+          borderColor: tenant.navColor,
         }}
       >
         <div className="flex items-center gap-3 text-primary-foreground py-4">
@@ -102,19 +102,19 @@ const LoginPage = () => {
               KHO DỮ LIỆU TẬP TRUNG
             </div>
             <div className="text-base sm:text-xl font-bold text-center">
-              {tenantConfig.companyName}
+              {tenant.companyName}
             </div>
             <div className="flex flex-col sm:flex-row items-center sm:items-end sm:justify-center gap-2 sm:gap-4 text-white text-sm sm:text-xl sm:text-center font-medium">
-              {tenantConfig.hotline && (
+              {tenant.phone && (
                 <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4 text-white" />
-                  <span>Hotline: {tenantConfig.hotline}</span>
+                  <span>Hotline: {tenant.phone}</span>
                 </div>
               )}
-              {tenantConfig.email && (
+              {tenant.email && (
                 <div className="flex items-center gap-2">
                   <Mail className="w-4 h-4 text-white" />
-                  <span>Email: {tenantConfig.email}</span>
+                  <span>Email: {tenant.email}</span>
                 </div>
               )}
             </div>
@@ -148,7 +148,7 @@ const LoginPage = () => {
           <div className="text-center mb-6">
             <h2
               className="text-2xl font-bold dark:text-blue-400"
-              style={{ color: tenantConfig.primaryColor }}
+              style={{ color: tenant.primaryColor }}
             >
               Đăng nhập
             </h2>
@@ -217,10 +217,10 @@ const LoginPage = () => {
                   disabled={loading}
                   className="w-full text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                   style={{
-                    backgroundColor: tenantConfig.primaryColor,
+                    backgroundColor: tenant.primaryColor,
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = tenantConfig.primaryDark)}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = tenantConfig.primaryColor)}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = tenant.navColor)}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = tenant.primaryColor)}
                 >
                   {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
                 </button>
@@ -240,7 +240,7 @@ const LoginPage = () => {
           {/* Footer */}
           <div className="mt-6 text-center">
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              {tenantConfig.copyright}
+              {tenant.copyright}
             </p>
           </div>
         </div>

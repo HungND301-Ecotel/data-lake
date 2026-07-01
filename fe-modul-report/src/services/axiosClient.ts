@@ -1,8 +1,9 @@
 import axios from "axios";
 import type { ApiError } from "./erorr";
 import { message } from "antd";
+import { getTenantConfig } from "../config/tenant";
+
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API,
   headers: {
     "Content-Type": "application/json",
   },
@@ -10,6 +11,7 @@ const axiosClient = axios.create({
 });
 
 axiosClient.interceptors.request.use((config) => {
+  config.baseURL = getTenantConfig().apiUrl;
   const token = localStorage.getItem("token");
   if (token && !config.url?.includes("/user/login")) {
     config.headers.Authorization = `Bearer ${token}`;

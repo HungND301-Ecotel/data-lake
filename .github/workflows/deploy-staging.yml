@@ -1,31 +1,42 @@
-# Reference:
-# 1. https://github.com/actions/starter-workflows/blob/main/deployments/azure-webapps-node.yml
+# ============================================================
+# STAGING DEPLOY WORKFLOW - MULTI-TENANT
+# ============================================================
+# Cách dùng:
+#   1. Push code lên nhánh develop
+#   2. Vào GitHub Actions → "Deploy Staging" → "Run workflow"
+#   3. Chọn tenant cần deploy → Run
+#   4. Có thể chạy lại bất kỳ lúc nào từ Actions UI để chọn tenant khác
 #
-# ============================================================
-# STAGING DEPLOY WORKFLOW - TENANT AWARE
-# ============================================================
-# Trigger khi push lên nhánh `develop`.
-# Biến TENANT phải được set trong GitHub Secrets hoặc Variables.
-# Mỗi tenant có bộ secrets riêng với prefix: {TENANT_UPPER}_*
+# Secrets cần thiết cho mỗi tenant (thay {TENANT} bằng tên viết hoa):
+#   {TENANT}_HOST         - IP/hostname VPS của tenant
+#   {TENANT}_USER         - SSH username
+#   {TENANT}_SSH_KEY      - SSH private key
+#   {TENANT}_PORT         - SSH port (thường 22)
+#   {TENANT}_VITE_API     - URL backend API (vd: http://1.2.3.4:3611/api)
+#
+# Secrets dùng chung:
+#   DOCKER_HUB_USERNAME
+#   DOCKER_HUB_ACCESS_TOKEN
 #
 # Cách thêm tenant mới:
-#   1. Tạo file deployment/tenants/{tenant}/.env
-#   2. Thêm bộ secrets GitHub: {TENANT_UPPER}_HOST, _USER, _SSH_KEY, _PORT, _VITE_API
-#   3. Chạy workflow với input tenant={tenant}
+#   1. Tạo fe-modul-report/tenants/{tenant}.env
+#   2. Tạo deployment/tenants/{tenant}/.env
+#   3. Thêm secrets GitHub: {TENANT_UPPER}_HOST/USER/SSH_KEY/PORT/VITE_API
+#   4. Thêm option vào danh sách bên dưới
 # ============================================================
 
 name: Deploy Staging
 
 on:
-  push:
-    branches:
-      - develop # Deploy khi push lên nhánh develop
   workflow_dispatch:
     inputs:
       tenant:
-        description: "Tenant to deploy (e.g. deonaicocsau, uongbi)"
+        description: "Chọn tenant để deploy lên staging"
         required: true
-        default: "deonaicocsau"
+        type: choice
+        options:
+          - deonaicocsau
+          - uongbi
 
 env:
   WEBAPP_NAME: data-lake
@@ -35,99 +46,69 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
-    # Ma trận: deploy song song cho nhiều tenant nếu cần
-    # Hoặc dùng workflow_dispatch.inputs.tenant để deploy 1 tenant cụ thể
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Determine tenant
-        id: tenant
+      - name: Set TENANT_UPPER (dùng để lookup secrets)
+        id: tu
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "name=${{ github.event.inputs.tenant }}" >> $GITHUB_OUTPUT
-          else
-            # Mặc định khi push vào develop → deploy deonaicocsau
-            # Sửa giá trị này thành tenant mặc định của nhánh develop
-            echo "name=deonaicocsau" >> $GITHUB_OUTPUT
-          fi
+          echo "name=$(echo '${{ github.event.inputs.tenant }}' | tr '[:lower:]' '[:upper:]')" >> $GITHUB_OUTPUT
 
-      - name: Set TENANT_UPPER for secrets lookup
-        id: tenant_upper
-        run: echo "name=$(echo '${{ steps.tenant.outputs.name }}' | tr '[:lower:]' '[:upper:]')" >> $GITHUB_OUTPUT
-
-      # ── Build .env cho frontend theo tenant ──────────────────
+      # ── Build .env cho FE theo tenant ────────────────────────
       - name: Create frontend .env from tenant config
         run: |
-          TENANT="${{ steps.tenant.outputs.name }}"
-          echo "VITE_API=${{ secrets.VITE_API }}" > ./fe-modul-report/.env
-          echo "VITE_TENANT=${TENANT}" >> ./fe-modul-report/.env
-          echo "VITE_PRIMARY_COLOR=$(grep VITE_PRIMARY_COLOR fe-modul-report/tenants/${TENANT}.env | cut -d= -f2)" >> ./fe-modul-report/.env
-          echo "VITE_APP_TITLE=$(grep VITE_APP_TITLE fe-modul-report/tenants/${TENANT}.env | cut -d= -f2)" >> ./fe-modul-report/.env
+          TENANT="${{ github.event.inputs.tenant }}"
+          TENANT_UPPER="${{ steps.tu.outputs.name }}"
+          # Copy toàn bộ branding config (màu, logo, tên công ty...)
+          cp fe-modul-report/tenants/${TENANT}.env ./fe-modul-report/.env
+          # Override VITE_API bằng per-tenant secret (IP thật, không commit)
+          echo "VITE_API=${{ secrets[format('{0}_VITE_API', steps.tu.outputs.name)] }}" >> ./fe-modul-report/.env
+          echo "=== FE .env sẽ dùng để build ==="
+          grep -v "^#" ./fe-modul-report/.env | grep -v "^$"
 
-      - name: List Files
-        run: ls -laR
-
-      # ── Build & push Docker images với TENANT arg ─────────────
+      # ── Build & push Docker images ────────────────────────────
       - name: Build and push Docker images
         env:
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-          TENANT: ${{ steps.tenant.outputs.name }}
+          TENANT: ${{ github.event.inputs.tenant }}
         run: |
           make staging TENANT=${TENANT}
-          # Copy .env và tenant config vào thư mục deployment để SCP lên server
+          # Copy infra config (ports, volumes) vào thư mục staging để SCP lên server
           cp ./deployment/tenants/${TENANT}/.env ./deployment/staging/.env_tenant
-          ls -al deployment/staging/
 
-      # ── SSH vào server: tạo thư mục deploy ───────────────────
-      - name: Ensure target directory exists on server
+      # ── Tạo thư mục trên server ───────────────────────────────
+      - name: Ensure deploy directory exists on server
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USER }}
-          key: ${{ secrets.STAGING_SSH_KEY }}
-          port: ${{ secrets.STAGING_PORT }}
-          script: |
-            mkdir -p /home/${{ secrets.STAGING_USER }}/data-lake/deployment/staging
+          host: ${{ secrets[format('{0}_HOST', steps.tu.outputs.name)] }}
+          username: ${{ secrets[format('{0}_USER', steps.tu.outputs.name)] }}
+          key: ${{ secrets[format('{0}_SSH_KEY', steps.tu.outputs.name)] }}
+          port: ${{ secrets[format('{0}_PORT', steps.tu.outputs.name)] }}
+          script: mkdir -p ~/data-lake/deployment/staging
 
-      # ── SCP: copy docker-compose + .env lên server ───────────
+      # ── SCP: copy docker-compose + .env_tenant lên server ────
       - name: Transfer deployment files to server
         uses: appleboy/scp-action@v0.1.4
         with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USER }}
-          key: ${{ secrets.STAGING_SSH_KEY }}
-          port: ${{ secrets.STAGING_PORT }}
-          source: deployment/staging/*
-          target: "/home/${{ secrets.STAGING_USER }}/data-lake/deployment/staging"
+          host: ${{ secrets[format('{0}_HOST', steps.tu.outputs.name)] }}
+          username: ${{ secrets[format('{0}_USER', steps.tu.outputs.name)] }}
+          key: ${{ secrets[format('{0}_SSH_KEY', steps.tu.outputs.name)] }}
+          port: ${{ secrets[format('{0}_PORT', steps.tu.outputs.name)] }}
+          source: "deployment/staging/*"
+          target: "~/data-lake/deployment/staging"
           strip_components: 2
 
-      # ── SSH: down containers cũ ───────────────────────────────
-      - name: Clean up old containers
+      # ── SSH: deploy ───────────────────────────────────────────
+      - name: Deploy to staging server
         uses: appleboy/ssh-action@v0.1.7
         with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USER }}
-          key: ${{ secrets.STAGING_SSH_KEY }}
-          port: ${{ secrets.STAGING_PORT }}
+          host: ${{ secrets[format('{0}_HOST', steps.tu.outputs.name)] }}
+          username: ${{ secrets[format('{0}_USER', steps.tu.outputs.name)] }}
+          key: ${{ secrets[format('{0}_SSH_KEY', steps.tu.outputs.name)] }}
+          port: ${{ secrets[format('{0}_PORT', steps.tu.outputs.name)] }}
           script: |
-            cd /home/${{ secrets.STAGING_USER }}/data-lake/deployment/staging
-            pwd && ls -al
-            docker image prune -f
-            docker compose -f staging-docker-compose.yaml down
-            docker ps
-
-      # ── SSH: deploy lên ──────────────────────────────────────
-      - name: Deploy to Staging via SSH
-        uses: appleboy/ssh-action@v0.1.7
-        with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USER }}
-          key: ${{ secrets.STAGING_SSH_KEY }}
-          port: ${{ secrets.STAGING_PORT }}
-          script: |
-            cd /home/${{ secrets.STAGING_USER }}/data-lake/deployment/staging
-            docker image prune -f
+            cd ~/data-lake/deployment/staging
             chmod +x start-app.sh
             ./start-app.sh

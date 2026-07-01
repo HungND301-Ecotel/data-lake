@@ -1,6 +1,7 @@
 import { Card, Typography, Tag } from "antd";
 import { CodeOutlined } from "@ant-design/icons";
 import { useSyncStatus } from "../hooks/useSyncStatus";
+import { useTenant } from "../../../config/tenant";
 import { useHealthCheck } from "../../datalake/hooks/useHealthCheck";
 import SyncStatusPanel from "../components/SyncStatusPanel";
 import SyncConfigForm from "../components/SyncConfigForm";
@@ -9,6 +10,7 @@ import SystemStatusCard from "../../datalake/components/SystemStatusCard";
 const { Text } = Typography;
 
 const SyncSettingsPage: React.FC = () => {
+  const { tenant } = useTenant();
   const { status, loading, start, stop, trigger, updateConfig } =
     useSyncStatus();
   const { healthStatus, readyStatus, loading: healthLoading } =
@@ -75,7 +77,7 @@ const SyncSettingsPage: React.FC = () => {
         </div>
         <div className="mt-4 flex gap-4">
           <a
-            href={`${import.meta.env.VITE_DATALAKE_API || "http://118.70.151.69:1313"}/docs`}
+            href={`${tenant.apiTarget}/docs`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-500 hover:text-blue-600"
@@ -83,7 +85,7 @@ const SyncSettingsPage: React.FC = () => {
             Swagger UI →
           </a>
           <a
-            href={`${import.meta.env.VITE_DATALAKE_API || "http://118.70.151.69:1313"}/redoc`}
+            href={`${tenant.apiTarget}/redoc`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-500 hover:text-blue-600"

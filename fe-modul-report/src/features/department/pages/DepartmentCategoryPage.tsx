@@ -209,8 +209,7 @@ const DepartmentCategoryPage = () => {
             icon={<PlusOutlined />}
             onClick={handleAddNew}
             className="text-white border-0 shadow-md"
-            style={{ backgroundColor: 'var(--primary)' }}
-            style={{ borderRadius: "8px", minWidth: "140px" }}
+            style={{ backgroundColor: 'var(--primary)', borderRadius: "8px", minWidth: "140px" }}
           >
             Thêm mới
           </Button>

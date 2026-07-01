@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:mongduong": "node -e \"require('fs').copyFileSync('public/config.mongduong.json', 'public/config.json')\" && vite",
+    "dev:uongbi": "node -e \"require('fs').copyFileSync('public/config.uongbi.json', 'public/config.json')\" && vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"

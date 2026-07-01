@@ -1,19 +1,39 @@
-# Reference:
-# 1. https://github.com/actions/starter-workflows/blob/main/deployments/azure-webapps-node.yml
-name: Deploy for release version
+# ============================================================
+# RELEASE DEPLOY WORKFLOW - MULTI-TENANT
+# ============================================================
+# Cách dùng:
+#   1. Merge code vào nhánh main
+#   2. Vào GitHub Actions → "Deploy Release" → "Run workflow"
+#   3. Chọn tenant cần release → Run
+#
+# Secrets cần thiết cho mỗi tenant (thay {TENANT} bằng tên viết hoa):
+#   {TENANT}_HOST         - IP/hostname VPS production
+#   {TENANT}_USER         - SSH username
+#   {TENANT}_SSH_KEY      - SSH private key
+#   {TENANT}_PORT         - SSH port
+#   {TENANT}_VITE_API     - URL backend API production
+#
+# Secrets dùng chung:
+#   DOCKER_HUB_USERNAME
+#   DOCKER_HUB_ACCESS_TOKEN
+# ============================================================
+
+name: Deploy Release
 
 on:
-  push:
-    branches:
-      - main # Deploy when code is pushed to 'develop'
+  workflow_dispatch:
+    inputs:
+      tenant:
+        description: "Chọn tenant để release lên production"
+        required: true
+        type: choice
+        options:
+          - deonaicocsau
+          - uongbi
 
 env:
-  WEBAPP_NAME: data-lake # set this to your application's name
-  WEBAPP_PACKAGE_PATH: "." # set this to the path to your web app project, defaults to the repository root
-  NODE_VERSION: "20.x" # set this to the node version to use
-
-# permissions:
-#   contents: read
+  WEBAPP_NAME: data-lake
+  NODE_VERSION: "20.x"
 
 jobs:
   deploy:
@@ -23,76 +43,64 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Show Working Directory
-        run: pwd
-
-      - name: Create an .env file in frontend for building image
+      - name: Set TENANT_UPPER (dùng để lookup secrets)
+        id: tu
         run: |
-          echo "VITE_APIL=${{ secrets.VITE_API }}" > ./fe-modul-report/.env
+          echo "name=$(echo '${{ github.event.inputs.tenant }}' | tr '[:lower:]' '[:upper:]')" >> $GITHUB_OUTPUT
 
-      - name: List Files
-        run: ls -laR
+      # ── Build .env cho FE theo tenant ────────────────────────
+      - name: Create frontend .env from tenant config
+        run: |
+          TENANT="${{ github.event.inputs.tenant }}"
+          # Copy toàn bộ branding config (màu, logo, tên công ty...)
+          cp fe-modul-report/tenants/${TENANT}.env ./fe-modul-report/.env
+          # Override VITE_API bằng per-tenant secret production
+          echo "VITE_API=${{ secrets[format('{0}_VITE_API', steps.tu.outputs.name)] }}" >> ./fe-modul-report/.env
+          echo "=== FE .env sẽ dùng để build ==="
+          grep -v "^#" ./fe-modul-report/.env | grep -v "^$"
 
-      - name: Run Makefiles with Secrets to build anh push docker images to dockerhub
+      # ── Build & push Docker images ────────────────────────────
+      - name: Build and push Docker images
         env:
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+          TENANT: ${{ github.event.inputs.tenant }}
         run: |
-          make release
-          ls -al .env
-          cat .env
-          cp .env deployment/release/
+          make release TENANT=${TENANT}
+          # Copy infra config vào thư mục release để SCP lên server
+          cp ./deployment/tenants/${TENANT}/.env ./deployment/release/.env_tenant
 
-      - name: Ensure target directory exists
+      # ── Tạo thư mục trên server ───────────────────────────────
+      - name: Ensure deploy directory exists on server
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{ secrets.RELEASE_HOST }}
-          username: ${{ secrets.RELEASE_USER }}
-          key: ${{ secrets.RELEASE_SSH_KEY }}
-          port: ${{ secrets.RELEASE_PORT }}
-          script: |
-            mkdir -p /home/${{ secrets.RELEASE_USER }}/data-lake/deployment/release
+          host: ${{ secrets[format('{0}_HOST', steps.tu.outputs.name)] }}
+          username: ${{ secrets[format('{0}_USER', steps.tu.outputs.name)] }}
+          key: ${{ secrets[format('{0}_SSH_KEY', steps.tu.outputs.name)] }}
+          port: ${{ secrets[format('{0}_PORT', steps.tu.outputs.name)] }}
+          script: mkdir -p ~/data-lake/deployment/release
 
-      - name: Transfer docker-compose file to VPS for deployment
+      # ── SCP: copy docker-compose + .env_tenant lên server ────
+      - name: Transfer deployment files to server
         uses: appleboy/scp-action@v0.1.4
         with:
-          host: ${{ secrets.RELEASE_HOST }}
-          username: ${{ secrets.RELEASE_USER }}
-          key: ${{ secrets.RELEASE_SSH_KEY }}
-          port: ${{ secrets.RELEASE_PORT }}
-          source: deployment/release/*
-          target: "/home/${{ secrets.RELEASE_USER }}/data-lake/deployment/release"
-          strip_components: 2 # Removes "deployment/release/" folder path!
+          host: ${{ secrets[format('{0}_HOST', steps.tu.outputs.name)] }}
+          username: ${{ secrets[format('{0}_USER', steps.tu.outputs.name)] }}
+          key: ${{ secrets[format('{0}_SSH_KEY', steps.tu.outputs.name)] }}
+          port: ${{ secrets[format('{0}_PORT', steps.tu.outputs.name)] }}
+          source: "deployment/release/*"
+          target: "~/data-lake/deployment/release"
+          strip_components: 2
 
-      - name: Clean up containers and stuff via SSH
+      # ── SSH: deploy ───────────────────────────────────────────
+      - name: Deploy to production server
         uses: appleboy/ssh-action@v0.1.7
         with:
-          host: ${{ secrets.RELEASE_HOST }}
-          username: ${{ secrets.RELEASE_USER }}
-          key: ${{ secrets.RELEASE_SSH_KEY }}
-          port: ${{ secrets.RELEASE_PORT }}
+          host: ${{ secrets[format('{0}_HOST', steps.tu.outputs.name)] }}
+          username: ${{ secrets[format('{0}_USER', steps.tu.outputs.name)] }}
+          key: ${{ secrets[format('{0}_SSH_KEY', steps.tu.outputs.name)] }}
+          port: ${{ secrets[format('{0}_PORT', steps.tu.outputs.name)] }}
           script: |
-            # Change to release deployment directory
-            cd /home/${{ secrets.RELEASE_USER }}/data-lake/deployment/release 
-            # Debug info
-            pwd
-            ls -al
-            docker image prune -f
-            docker compose -f release-docker-compose.yaml down # always down first
-            docker ps
-
-      - name: Deploy to release via SSH
-        uses: appleboy/ssh-action@v0.1.7
-        with:
-          host: ${{ secrets.RELEASE_HOST }}
-          username: ${{ secrets.RELEASE_USER }}
-          key: ${{ secrets.RELEASE_SSH_KEY }}
-          port: ${{ secrets.RELEASE_PORT }}
-          script: |
-            ### Change to release deployment directory
-            cd /home/${{ secrets.RELEASE_USER }}/data-lake/deployment/release 
-            ### Clean up unused images
-            docker image prune -f # clean up unused images
-            ### Provide permissions and start the application
+            cd ~/data-lake/deployment/release
             chmod +x start-app.sh
             ./start-app.sh

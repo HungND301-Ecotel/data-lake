@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { tenantConfig } from "../../config/tenant";
+import { useTenant } from "../../config/tenant";
 import {
   UserOutlined,
   DownOutlined,
@@ -236,6 +236,7 @@ const QuickInputPanel = ({
 // NavBar
 // ─────────────────────────────────────────────
 export default function NavBar() {
+  const { tenant } = useTenant();
   const [userName, setUserName] = useState<string>("");
   const [quickOpen, setQuickOpen] = useState(false);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
@@ -523,8 +524,8 @@ export default function NavBar() {
       <nav
         className="top-0 z-50 flex items-center px-8 py-3 gap-2 shadow-lg"
         style={{
-          backgroundColor: tenantConfig.primaryColor,
-          borderBottom: `1px solid ${tenantConfig.primaryDark}`,
+          backgroundColor: tenant.primaryColor,
+          borderBottom: `1px solid ${tenant.navColor}`,
         }}
       >
         {/* Back Button */}

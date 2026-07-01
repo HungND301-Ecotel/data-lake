@@ -2,12 +2,18 @@ import axios from "axios";
 import type { ApiError } from "./erorr";
 import { message } from "antd";
 
+import { getTenantConfig } from "../config/tenant";
+
 const axiosDataLakeClient = axios.create({
-  baseURL: "http://118.70.151.69:1313",
   headers: {
     "Content-Type": "application/json",
   },
   timeout: 30000000000,
+});
+
+axiosDataLakeClient.interceptors.request.use((config) => {
+  config.baseURL = getTenantConfig().apiTarget;
+  return config;
 });
 
 axiosDataLakeClient.interceptors.response.use(

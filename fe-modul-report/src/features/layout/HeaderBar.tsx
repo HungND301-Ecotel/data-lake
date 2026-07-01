@@ -3,7 +3,7 @@ import {
   MailOutlined,
   PhoneOutlined,
 } from "@ant-design/icons";
-import { tenantConfig } from "../../config/tenant";
+import { useTenant } from "../../config/tenant";
 import logoUb from "../../file/logo-ub.jpg";
 import logoDeonaicocsau from "../../file/logo-company.png";
 
@@ -12,18 +12,20 @@ const LOGO_MAP: Record<string, string> = {
   "logo-ub.jpg": logoUb,
   "logo-company.png": logoDeonaicocsau,
 };
-const logoSrc = LOGO_MAP[tenantConfig.logoFile] ?? logoDeonaicocsau;
 
 const Header = () => {
   const navigate = useNavigate();
+  const { tenant } = useTenant();
+
+  const logoSrc = LOGO_MAP[tenant.logoFile] ?? logoDeonaicocsau;
 
   return (
     <header className="w-full">
       <div
         className="border-b transition-all duration-300 overflow-hidden"
         style={{
-          backgroundColor: tenantConfig.primaryColor,
-          borderColor: tenantConfig.primaryDark,
+          backgroundColor: tenant.primaryColor,
+          borderColor: tenant.navColor,
         }}
       >
         <div
@@ -40,18 +42,18 @@ const Header = () => {
               PHẦN MỀM QUẢN LÝ KHO DỮ LIỆU
             </div>
             <div className="text-base font-bold">
-              {tenantConfig.companyName}
+              {tenant.companyName}
             </div>
 
             <div className="flex justify-center gap-6 text-sm mt-1">
-              {tenantConfig.hotline && (
+              {tenant.phone && (
                 <span className="flex items-center gap-1">
-                  <PhoneOutlined /> {tenantConfig.hotline}
+                  <PhoneOutlined /> {tenant.phone}
                 </span>
               )}
-              {tenantConfig.email && (
+              {tenant.email && (
                 <span className="flex items-center gap-1">
-                  <MailOutlined /> {tenantConfig.email}
+                  <MailOutlined /> {tenant.email}
                 </span>
               )}
             </div>
