@@ -152,7 +152,7 @@ public class WareBatchService {
                     .reportYear(request.getReportYear())
                     .reportMonth(request.getReportMonth())
                     .reportDay(request.getReportDay())
-                    .status(WareBatchEnum.Cho_Phe_Duyet)
+                    .status(request.getRequiresApproval() != null && request.getRequiresApproval() ? WareBatchEnum.Cho_Phe_Duyet : WareBatchEnum.Da_Phe_Duyet)
                     .build());
 
             batch.setCode("BATCH" + batch.getId());
@@ -170,9 +170,13 @@ public class WareBatchService {
 
             // Upload file excel goc len S3 de luu tru doi soat sau khi da doc du lieu
             if (request.getFile() != null && !request.getFile().isEmpty()) {
-                String s3Key = s3Service.uploadFile("warehouse-batch*" + batch.getId(), request.getFile()).getKey();
-                batch.setS3FileKey(s3Key);
-                wareBatchRepository.save(batch);
+                try {
+                    String s3Key = s3Service.uploadFile("warehouse-batch*" + batch.getId(), request.getFile()).getKey();
+                    batch.setS3FileKey(s3Key);
+                    wareBatchRepository.save(batch);
+                } catch (Exception e) {
+                    System.err.println("Failed to upload file to S3: " + e.getMessage());
+                }
             }
 
             // Khởi tạo approval workflow - tạo snapshot từ WareApprovalConfig
@@ -919,7 +923,7 @@ public class WareBatchService {
                     .wareBatch(wareBatch)
                     .approver(config.getApprover())
                     .approvalOrder(config.getApprovalOrder())
-                    .status(WareBatchEnum.Cho_Phe_Duyet)  // Trạng thái ban đầu
+                    .status(wareBatch.getStatus() == WareBatchEnum.Da_Phe_Duyet ? WareBatchEnum.Da_Phe_Duyet : WareBatchEnum.Cho_Phe_Duyet)  // Trạng thái ban đầu
                     .build();
             batchApprovals.add(batchApproval);
         }
