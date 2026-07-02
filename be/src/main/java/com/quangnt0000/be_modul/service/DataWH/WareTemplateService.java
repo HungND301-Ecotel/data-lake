@@ -28,6 +28,7 @@ public class WareTemplateService {
     private final WareCategoryRepository wareCategoryRepository;
     private final WareApprovalConfigRepository wareApprovalConfigRepository;
     private final S3Service s3Service;
+    private final WareMappingSyncService wareMappingSyncService;
 
     @Transactional
     public ResponseEntity<?> add(WareTemplateRequest request) {
@@ -51,6 +52,7 @@ public class WareTemplateService {
                 .build();
         wareTemplate = wareTemplateRepository.save(wareTemplate);
         wareTemplate.setCode("W-TMP" + wareTemplate.getId());
+
         return ResponseEntity.ok(wareTemplate.getId());
     }
 
@@ -106,6 +108,7 @@ public class WareTemplateService {
         return ResponseEntity.ok(wareTemplateResponse);
     }
 
+    @Transactional
     public ResponseEntity<?> update(WareTemplateRequest request) {
         WareTemplate wareTemplate = wareTemplateRepository.findById(request.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "template not found"));
@@ -114,12 +117,27 @@ public class WareTemplateService {
         wareTemplate.setTableName(request.getTableName());
         wareTemplate.setTableCode(request.getTableCode());
         wareTemplate.setStartRow(request.getStartRow());
+        
         if (request.getExcelFile() != null && !request.getExcelFile().isEmpty()) {
             String excelFileKey = s3Service.uploadFile("warehouse-template", request.getExcelFile()).getKey();
             wareTemplate.setExcelFileKey(excelFileKey);
         }
         wareTemplate = wareTemplateRepository.save(wareTemplate);
+
         return ResponseEntity.ok(wareTemplate.getId());
+    }
+
+    @Transactional
+    public void syncMapping(Integer templateId, String connectionId) {
+        WareTemplate template = wareTemplateRepository.findById(templateId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "template not found"));
+        if (connectionId == null || connectionId.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Connection ID is required");
+        }
+        if (template.getTableCode() == null || template.getTableCode().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Template has no Table Code configured");
+        }
+        wareMappingSyncService.syncMappings(template, connectionId);
     }
 
     public ResponseEntity<?> getTableOption(String keyword) {
