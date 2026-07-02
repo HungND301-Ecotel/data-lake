@@ -16,6 +16,7 @@ import type { ColumnsType } from "antd/es/table";
 import type { WareMappingResponse, WareMappingRequest } from "../types/wareMapping";
 import { wareMappingApi } from "../api/wareMappingApi";
 import { wareTemplateApi } from "../api/wareTemplateApi";
+<<<<<<< HEAD
 import axiosClient from "../../../services/axiosClient";
 import { useExcelMapping } from "../../../features/excel-mapping/hooks/useExcelMapping";
 import { useAuthStore } from "../../../stores/authStore";
@@ -24,6 +25,11 @@ import { useAuthStore } from "../../../stores/authStore";
 import { serverApi } from "../../server/api/serverApi";
 
 >>>>>>> 65c089d (feat: Thêm quản lý kết nối các server khác)
+=======
+import { useExcelMapping } from "../../../features/excel-mapping/hooks/useExcelMapping";
+import { useAuthStore } from "../../../stores/authStore";
+import axiosClient from "../../../services/axiosClient";
+>>>>>>> 4292a47 (Đồng bộ mapping)
 
 // ---- Field type union (phải khớp với WareMappingRequest) ----
 type FieldType = "CELL" | "ROW" | "TEXT";
@@ -99,6 +105,7 @@ export const MappingTable: React.FC<{ templateId: number; onSyncSuccess?: () => 
   const [connections, setConnections] = useState<any[]>([]);
   const [connectionModalOpen, setConnectionModalOpen] = useState(false);
   const [selectedConnectionId, setSelectedConnectionId] = useState<string | null>(null);
+<<<<<<< HEAD
   const [pushModalOpen, setPushModalOpen] = useState(false);
   const [pushingDb, setPushingDb] = useState(false);
 
@@ -106,6 +113,13 @@ export const MappingTable: React.FC<{ templateId: number; onSyncSuccess?: () => 
     try {
       const res = await serverApi.getAll();
       setConnections(res.data || []);
+=======
+
+  const fetchConnections = async () => {
+    try {
+      const res = await axiosClient.get("/sync_connection_configs");
+      setConnections(res.data?.data || []);
+>>>>>>> 4292a47 (Đồng bộ mapping)
     } catch (err) {
       console.error("Lấy danh sách kết nối thất bại", err);
     }
@@ -131,9 +145,12 @@ export const MappingTable: React.FC<{ templateId: number; onSyncSuccess?: () => 
       messageApi.success("Đồng bộ dữ liệu cột từ database bên thứ 3 thành công!");
       setConnectionModalOpen(false);
       fetchData();
+<<<<<<< HEAD
       if (onSyncSuccess) {
         onSyncSuccess();
       }
+=======
+>>>>>>> 4292a47 (Đồng bộ mapping)
     } catch (err: any) {
       console.error(err);
       messageApi.error(
@@ -143,6 +160,7 @@ export const MappingTable: React.FC<{ templateId: number; onSyncSuccess?: () => 
       setSyncingDb(false);
     }
   };
+<<<<<<< HEAD
 
   const handleOpenPushModal = () => {
     setSelectedConnectionId(null);
@@ -168,6 +186,8 @@ export const MappingTable: React.FC<{ templateId: number; onSyncSuccess?: () => 
       setPushingDb(false);
     }
   };
+=======
+>>>>>>> 4292a47 (Đồng bộ mapping)
 
   // ---- Fetch ----
   const fetchData = async () => {
@@ -812,6 +832,7 @@ export const MappingTable: React.FC<{ templateId: number; onSyncSuccess?: () => 
         </div>
       </Modal>
 
+<<<<<<< HEAD
       {/* DB Push Connection Selection Modal */}
       <Modal
         title={
@@ -858,6 +879,8 @@ export const MappingTable: React.FC<{ templateId: number; onSyncSuccess?: () => 
         </div>
       </Modal>
 
+=======
+>>>>>>> 4292a47 (Đồng bộ mapping)
       <Card className="shadow-sm border-0 rounded-xl">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
@@ -890,6 +913,7 @@ export const MappingTable: React.FC<{ templateId: number; onSyncSuccess?: () => 
                 Đồng bộ từ Database
               </Button>
               <Button
+<<<<<<< HEAD
                 size="large"
                 icon={<UploadOutlined />}
                 onClick={handleOpenPushModal}
@@ -899,6 +923,8 @@ export const MappingTable: React.FC<{ templateId: number; onSyncSuccess?: () => 
                 Đẩy cấu hình lên DB trung tâm
               </Button>
               <Button
+=======
+>>>>>>> 4292a47 (Đồng bộ mapping)
                 type="primary"
                 size="large"
                 icon={<PlusOutlined />}

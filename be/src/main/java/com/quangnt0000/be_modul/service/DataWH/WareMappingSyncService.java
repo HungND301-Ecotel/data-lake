@@ -430,6 +430,7 @@ public class WareMappingSyncService {
         }
     }
 
+
     private static class RemoteMappingInfo {
         private final String cellAddress;
         private final String fieldName;

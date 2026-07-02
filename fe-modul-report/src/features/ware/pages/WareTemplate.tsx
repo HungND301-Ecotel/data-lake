@@ -69,7 +69,6 @@ const WareTemplate = () => {
   const [selectedRecord, setSelectedRecord] =
     useState<WareTemplateResponse | null>(null);
   const [excelFileList, setExcelFileList] = useState<UploadFile[]>([]);
-
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
