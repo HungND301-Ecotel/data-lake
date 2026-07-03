@@ -263,10 +263,10 @@ export default function DashboardPage() {
       const month = parsedDate.month() + 1;
       const day = parsedDate.date();
 
-      // Fetch Section B (TKV/Corporation reports)
+      // Fetch danh sách WareBatch từ BE (GET /wh-batch/dashboard)
       const resTkv = await whBatchApi.getDashboard({
         departmentId: sectionADeptId === "all" ? undefined : sectionADeptId,
-        reportType: "Tap_Doan",
+        reportType: "Noi_Bo",
         reportYear: year,
         reportMonth: month,
         reportDay: day,
@@ -279,6 +279,7 @@ export default function DashboardPage() {
       setLoadingReports(false);
     }
   };
+
 
   useEffect(() => {
     fetchDashboardReports().then(() =>
