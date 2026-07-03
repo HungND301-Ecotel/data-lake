@@ -2,7 +2,6 @@ import axios from "axios";
 import type { ApiError } from "./erorr";
 import { message } from "antd";
 
-import { getTenantConfig } from "../config/tenant";
 
 const axiosDataLakeClient = axios.create({
   headers: {
