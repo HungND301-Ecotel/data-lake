@@ -12,7 +12,16 @@
 #   {TENANT}_USER         - SSH username
 #   {TENANT}_SSH_KEY      - SSH private key
 #   {TENANT}_PORT         - SSH port (thường 22)
-#   {TENANT}_VITE_API     - URL backend API (vd: http://1.2.3.4:3611/api)
+#
+# Secrets cho server118 (test - port 1144 đã được mở):
+#   SERVER118_HOST        - IP của server 118
+#   SERVER118_USER        - SSH username
+#   SERVER118_SSH_KEY     - SSH private key
+#   SERVER118_PORT        - SSH port (thường 22)
+#
+# ⚠️ VITE_API KHÔNG còn dùng nữa.
+# FE dùng relative path /api → Nginx reverse proxy forward sang BE.
+# Không cần secret {TENANT}_VITE_API.
 #
 # Secrets dùng chung:
 #   DOCKER_HUB_USERNAME
@@ -37,6 +46,7 @@ on:
         options:
           - deonaicocsau
           - uongbi
+          - serverTest
 
 env:
   WEBAPP_NAME: data-lake
@@ -59,11 +69,11 @@ jobs:
       - name: Create frontend .env from tenant config
         run: |
           TENANT="${{ github.event.inputs.tenant }}"
-          TENANT_UPPER="${{ steps.tu.outputs.name }}"
           # Copy toàn bộ branding config (màu, logo, tên công ty...)
           cp fe-modul-report/tenants/${TENANT}.env ./fe-modul-report/.env
-          # Override VITE_API bằng per-tenant secret (IP thật, không commit)
-          echo "VITE_API=${{ secrets[format('{0}_VITE_API', steps.tu.outputs.name)] }}" >> ./fe-modul-report/.env
+          # ⚠️ KHÔNG inject VITE_API nữa.
+          # axiosClient dùng relative path /api → Nginx reverse proxy forward sang BE.
+          # BE port không bị lộ ra ngoài internet.
           echo "=== FE .env sẽ dùng để build ==="
           grep -v "^#" ./fe-modul-report/.env | grep -v "^$"
 
@@ -86,7 +96,7 @@ jobs:
           username: ${{ secrets[format('{0}_USER', steps.tu.outputs.name)] }}
           key: ${{ secrets[format('{0}_SSH_KEY', steps.tu.outputs.name)] }}
           port: ${{ secrets[format('{0}_PORT', steps.tu.outputs.name)] }}
-          script: mkdir -p ~/data-lake/deployment/staging
+          script: mkdir -p ~/data-lake/${{ github.event.inputs.tenant }}/deployment/staging
 
       # ── SCP: copy docker-compose + .env_tenant lên server ────
       - name: Transfer deployment files to server
@@ -97,7 +107,7 @@ jobs:
           key: ${{ secrets[format('{0}_SSH_KEY', steps.tu.outputs.name)] }}
           port: ${{ secrets[format('{0}_PORT', steps.tu.outputs.name)] }}
           source: "deployment/staging/*"
-          target: "~/data-lake/deployment/staging"
+          target: "~/data-lake/${{ github.event.inputs.tenant }}/deployment/staging"
           strip_components: 2
 
       # ── SSH: deploy ───────────────────────────────────────────
@@ -109,6 +119,6 @@ jobs:
           key: ${{ secrets[format('{0}_SSH_KEY', steps.tu.outputs.name)] }}
           port: ${{ secrets[format('{0}_PORT', steps.tu.outputs.name)] }}
           script: |
-            cd ~/data-lake/deployment/staging
+            cd ~/data-lake/${{ github.event.inputs.tenant }}/deployment/staging
             chmod +x start-app.sh
             ./start-app.sh

@@ -11,7 +11,10 @@
 #   {TENANT}_USER         - SSH username
 #   {TENANT}_SSH_KEY      - SSH private key
 #   {TENANT}_PORT         - SSH port
-#   {TENANT}_VITE_API     - URL backend API production
+#
+# ⚠️ VITE_API KHÔNG còn dùng nữa.
+# FE dùng relative path /api → Nginx reverse proxy forward sang BE.
+# Không cần secret {TENANT}_VITE_API.
 #
 # Secrets dùng chung:
 #   DOCKER_HUB_USERNAME
@@ -54,8 +57,9 @@ jobs:
           TENANT="${{ github.event.inputs.tenant }}"
           # Copy toàn bộ branding config (màu, logo, tên công ty...)
           cp fe-modul-report/tenants/${TENANT}.env ./fe-modul-report/.env
-          # Override VITE_API bằng per-tenant secret production
-          echo "VITE_API=${{ secrets[format('{0}_VITE_API', steps.tu.outputs.name)] }}" >> ./fe-modul-report/.env
+          # ⚠️ KHÔNG inject VITE_API nữa.
+          # axiosClient dùng relative path /api → Nginx reverse proxy forward sang BE.
+          # BE port không bị lộ ra ngoài internet.
           echo "=== FE .env sẽ dùng để build ==="
           grep -v "^#" ./fe-modul-report/.env | grep -v "^$"
 
@@ -78,7 +82,7 @@ jobs:
           username: ${{ secrets[format('{0}_USER', steps.tu.outputs.name)] }}
           key: ${{ secrets[format('{0}_SSH_KEY', steps.tu.outputs.name)] }}
           port: ${{ secrets[format('{0}_PORT', steps.tu.outputs.name)] }}
-          script: mkdir -p ~/data-lake/deployment/release
+          script: mkdir -p ~/data-lake/${{ github.event.inputs.tenant }}/deployment/release
 
       # ── SCP: copy docker-compose + .env_tenant lên server ────
       - name: Transfer deployment files to server
@@ -89,7 +93,7 @@ jobs:
           key: ${{ secrets[format('{0}_SSH_KEY', steps.tu.outputs.name)] }}
           port: ${{ secrets[format('{0}_PORT', steps.tu.outputs.name)] }}
           source: "deployment/release/*"
-          target: "~/data-lake/deployment/release"
+          target: "~/data-lake/${{ github.event.inputs.tenant }}/deployment/release"
           strip_components: 2
 
       # ── SSH: deploy ───────────────────────────────────────────
@@ -101,6 +105,6 @@ jobs:
           key: ${{ secrets[format('{0}_SSH_KEY', steps.tu.outputs.name)] }}
           port: ${{ secrets[format('{0}_PORT', steps.tu.outputs.name)] }}
           script: |
-            cd ~/data-lake/deployment/release
+            cd ~/data-lake/${{ github.event.inputs.tenant }}/deployment/release
             chmod +x start-app.sh
             ./start-app.sh

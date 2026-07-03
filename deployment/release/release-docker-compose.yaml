@@ -30,8 +30,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    ports:
-      - "${BACKEND_PORT}:8080"
+    # ⚠️ KHÔNG expose port BE ra ngoài internet.
+    # BE chỉ truy cập được qua Nginx reverse proxy trong backnet.
+    # FE → Nginx:/api/ → backend_service:8080 (Docker DNS nội bộ)
     networks:
       - backnet
     restart: unless-stopped

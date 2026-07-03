@@ -11,7 +11,10 @@ const axiosClient = axios.create({
 });
 
 axiosClient.interceptors.request.use((config) => {
-  config.baseURL = getTenantConfig().apiUrl;
+  // Dùng relative path để Nginx Reverse Proxy tự forward sang BE.
+  // - Production/Staging: Nginx proxy /api/ → backend_service:8080
+  // - Dev local: Vite proxy /api → localhost:8080 (xem vite.config.ts)
+  config.baseURL = "/api";
   const token = localStorage.getItem("token");
   if (token && !config.url?.includes("/user/login")) {
     config.headers.Authorization = `Bearer ${token}`;

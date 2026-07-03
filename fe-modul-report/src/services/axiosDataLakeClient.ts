@@ -12,7 +12,10 @@ const axiosDataLakeClient = axios.create({
 });
 
 axiosDataLakeClient.interceptors.request.use((config) => {
-  config.baseURL = getTenantConfig().apiTarget;
+  // Dùng relative path để Nginx Reverse Proxy tự forward sang DataLake service.
+  // - Production/Staging: Nginx proxy /datalake-api/ → datalake_service:1313
+  // - Dev local: Vite proxy /datalake-api → localhost:1313 (xem vite.config.ts)
+  config.baseURL = "/datalake-api";
   return config;
 });
 
