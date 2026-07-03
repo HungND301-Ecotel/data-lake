@@ -134,6 +134,7 @@ export const FieldComponent: React.FC<Props> = ({ fields = [], onUpdate }) => {
                         <tr
                           ref={dragProvided.innerRef}
                           {...dragProvided.draggableProps}
+                          style={dragProvided.draggableProps.style as React.CSSProperties}
                           className="border-b border-gray-300 hover:bg-gray-50"
                         >
                           <td
