@@ -45,7 +45,7 @@ staging:
 		exit 1; \
 	fi
 	@echo "🚀 Building staging image for tenant: $(TENANT)"
-	@echo "REGISTRY=${REGISTRY}\nVERSION=${STAGING_VERSION}-${TAG_VERSION}-${commit_id}\nTENANT=$(TENANT)" > .env
+	@echo "REGISTRY=${REGISTRY}\nVERSION=${STAGING_VERSION}-${TAG_VERSION}-${commit_id}\nTENANT=$(TENANT)\nTENANT_LOWER=$(shell echo $(TENANT) | tr '[:upper:]' '[:lower:]')" > .env
 	@echo "Docker compose build..."
 	docker compose -f docker-compose-build.yaml build \
 		--parallel \
@@ -64,7 +64,7 @@ release:
 		exit 1; \
 	fi
 	@echo "🚀 Building release image for tenant: $(TENANT)"
-	@echo "REGISTRY=${REGISTRY}\nVERSION=${RELEASE_VERSION}-${TAG_VERSION}-${commit_id}\nTENANT=$(TENANT)" > .env
+	@echo "REGISTRY=${REGISTRY}\nVERSION=${RELEASE_VERSION}-${TAG_VERSION}-${commit_id}\nTENANT=$(TENANT)\nTENANT_LOWER=$(shell echo $(TENANT) | tr '[:upper:]' '[:lower:]')" > .env
 	@echo "Docker compose build..."
 	docker compose -f docker-compose-build.yaml build \
 		--parallel \

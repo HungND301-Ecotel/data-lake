@@ -10,18 +10,18 @@ services:
   reverse_proxy_service:
     build:
       context: ./reverse_proxy
-    image: ${REGISTRY}/${TENANT}_reverse_proxy_img:${VERSION}
+    image: ${REGISTRY}/${TENANT_LOWER}_reverse_proxy_img:${VERSION}
 
   backend_service:
     build:
       context: ./be
       args:
         - SPRING_PROFILE=${SPRING_PROFILE:-prod}
-    image: ${REGISTRY}/${TENANT}_backend_img:${VERSION}
+    image: ${REGISTRY}/${TENANT_LOWER}_backend_img:${VERSION}
 
   frontend_service:
     build:
       context: ./fe-modul-report
       args:
         - TENANT=${TENANT}
-    image: ${REGISTRY}/${TENANT}_frontend_img:${VERSION}
+    image: ${REGISTRY}/${TENANT_LOWER}_frontend_img:${VERSION}
