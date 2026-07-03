@@ -231,11 +231,39 @@ export function usePivotEngine({
     },
     [sortKey, sortDirection],
   );
+  const exportCsv = useCallback(() => {
+    const lines: string[] = [];
 
+    // Header
+    lines.push([
+      "Row",
+      ...pivotResult.columnKeys,
+    ].join(","));
+
+    // Data
+    for (const rowKey of pivotResult.rowKeys) {
+      const row: string[] = [rowKey];
+
+      for (const colKey of pivotResult.columnKeys) {
+        const firstValueField = valueFields[0];
+
+        const cell =
+          pivotResult.matrix[rowKey]?.[colKey]?.[firstValueField.key];
+
+        row.push(cell ? String(cell.value) : "");
+      }
+
+      lines.push(row.join(","));
+    }
+
+    return lines.join("\n");
+  }, [pivotResult, valueFields]);
+  
   return {
     ...pivotResult,
     sortKey,
     sortDirection,
+    exportCsv,
     toggleSort,
   };
 }
