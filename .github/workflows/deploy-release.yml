@@ -70,9 +70,26 @@ jobs:
           DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
           TENANT: ${{ github.event.inputs.tenant }}
         run: |
-          make release TENANT=${TENANT}
-          # Copy infra config vào thư mục release để SCP lên server
+          # 1. Trích xuất REGISTRY từ .env của tenant để truyền vào Makefile build
+          REGISTRY_VAL=$(grep "^REGISTRY=" ./deployment/tenants/${TENANT}/.env | cut -d'=' -f2)
+          make release TENANT=${TENANT} REGISTRY=${REGISTRY_VAL}
+          
+          # 2. Sao chép cấu hình tenant làm file .env_tenant cho deploy
           cp ./deployment/tenants/${TENANT}/.env ./deployment/release/.env_tenant
+          
+          # 3. Đọc các biến VERSION, REGISTRY, TENANT_LOWER vừa được gen ra trong file .env gốc
+          RELEASE_VERSION_VAL=$(grep "^VERSION=" .env | cut -d'=' -f2)
+          TENANT_LOWER_VAL=$(grep "^TENANT_LOWER=" .env | cut -d'=' -f2)
+          
+          # 4. Ghi đè cấu hình chính xác vào file .env_tenant để deploy trên server
+          sed -i "s|^VERSION=.*|VERSION=${RELEASE_VERSION_VAL}|" ./deployment/release/.env_tenant
+          sed -i "s|^REGISTRY=.*|REGISTRY=${REGISTRY_VAL}|" ./deployment/release/.env_tenant
+          if ! grep -q "^TENANT_LOWER=" ./deployment/release/.env_tenant; then
+            echo "TENANT_LOWER=${TENANT_LOWER_VAL}" >> ./deployment/release/.env_tenant
+          fi
+          
+          echo "=== .env_tenant file content ==="
+          cat ./deployment/release/.env_tenant
 
       # ── Tạo thư mục trên server ───────────────────────────────
       - name: Ensure deploy directory exists on server
