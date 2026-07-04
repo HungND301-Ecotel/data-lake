@@ -70,8 +70,8 @@ jobs:
           DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
           TENANT: ${{ github.event.inputs.tenant }}
         run: |
-          # 1. Trích xuất REGISTRY từ .env của tenant để truyền vào Makefile build
-          REGISTRY_VAL=$(grep "^REGISTRY=" ./deployment/tenants/${TENANT}/.env | cut -d'=' -f2)
+          # 1. Sử dụng DOCKER_HUB_USERNAME làm REGISTRY để build và push
+          REGISTRY_VAL="${{ secrets.DOCKER_HUB_USERNAME }}"
           make release TENANT=${TENANT} REGISTRY=${REGISTRY_VAL}
           
           # 2. Sao chép cấu hình tenant làm file .env_tenant cho deploy
