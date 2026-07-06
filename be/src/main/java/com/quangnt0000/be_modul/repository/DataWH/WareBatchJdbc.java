@@ -32,6 +32,7 @@ public class WareBatchJdbc {
                     SELECT 
                         wb.id AS id,
                         wb.code AS code,
+                        wb.name AS name,
                         wt.table_code AS tableCode,
                         wt.table_name AS reportName,
                         wb.description AS description,
@@ -153,6 +154,7 @@ public class WareBatchJdbc {
                     SELECT 
                         wb.id AS id,
                         wb.code AS code,
+                        wb.name AS name,
                         wt.table_code AS tableCode,
                         wt.table_name AS reportName,
                         wb.description AS description,
@@ -195,7 +197,6 @@ public class WareBatchJdbc {
             sql.append(" and wb.report_day = ? ");
             params.add(request.getReportDay());
         }
-        System.out.println("SQL: " + sql);
         return jdbcTemplate.query(sql.toString(),
                 params.toArray(),
                 new BeanPropertyRowMapper<>(WareBatchResponse.class)
