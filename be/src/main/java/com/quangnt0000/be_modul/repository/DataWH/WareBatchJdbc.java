@@ -197,7 +197,6 @@ public class WareBatchJdbc {
             sql.append(" and wb.report_day = ? ");
             params.add(request.getReportDay());
         }
-        System.out.println("SQL: " + sql);
         return jdbcTemplate.query(sql.toString(),
                 params.toArray(),
                 new BeanPropertyRowMapper<>(WareBatchResponse.class)
