@@ -51,7 +51,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tenant: [servertest]
+        tenant: [servertest, servertest2]
 
     steps:
       - name: Checkout repository
