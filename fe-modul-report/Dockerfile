@@ -22,7 +22,7 @@ RUN rm -rf node_modules \
 COPY . .
 
 # Copy tenant env file thành .env để Vite đọc khi build
-RUN cp tenants/${TENANT}.env .env
+RUN cp tenants/${TENANT}.env .env && cp tenants/${TENANT}.env .env.production
 
 # Build production bundle với config của tenant
 RUN npm run build
