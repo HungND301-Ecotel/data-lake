@@ -16,7 +16,7 @@ COPY package.json package-lock.json ./
 
 # Clean install dependencies
 RUN rm -rf node_modules \
- && npm ci --include=optional
+    && npm ci --include=optional
 
 # Copy toàn bộ source
 COPY . .
@@ -31,7 +31,7 @@ RUN npm run build
 # ===== NGINX STAGE =====
 FROM nginx:alpine
 
-COPY .nginx/nginx.conf /etc/nginx/conf.d/default.conf
+COPY .nginx/nginx_docker.conf /etc/nginx/conf.d/default.conf
 
 WORKDIR /usr/share/nginx/html
 
