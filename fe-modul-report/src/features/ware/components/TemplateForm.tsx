@@ -11,6 +11,7 @@ import {
   Space,
   Radio,
   Upload,
+  Select,
 } from "antd";
 import type {
   WareTemplateRequest,
