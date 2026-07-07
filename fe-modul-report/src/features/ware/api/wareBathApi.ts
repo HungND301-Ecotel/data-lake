@@ -93,4 +93,11 @@ export const wareBatchApi = {
     });
     return res.data;
   },
+
+  exportBatchExcel: async (id: number): Promise<Blob> => {
+    const res = await axiosClient.get(`/wh-batch/${id}/export`, {
+      responseType: "blob",
+    });
+    return res.data;
+  },
 };

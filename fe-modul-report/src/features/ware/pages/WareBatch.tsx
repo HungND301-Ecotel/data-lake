@@ -195,16 +195,9 @@ export const WareBatch: React.FC<WareBatchProps> = ({ templateIdProp }) => {
   };
 
   const handleDownloadDataFile = async (record: WareBatchResponse) => {
-    if (!record.s3FileKey) {
-      messageApi.warning("Batch này chưa có file dữ liệu");
-      return;
-    }
-
     setDownloadingFileId(record.id!);
     try {
-      const arrayBuffer = await wareBatchApi.getFileBlob(record.s3FileKey);
-      // Convert ArrayBuffer to Blob
-      const blob = new Blob([arrayBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const blob = await wareBatchApi.exportBatchExcel(record.id!);
       const objectUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = objectUrl;

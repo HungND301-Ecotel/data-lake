@@ -164,16 +164,9 @@ public class WareBatchService {
 
             wareDataRowRepository.saveAll(wareDataRows);
 
-            // Upload file excel goc len S3 de luu tru doi soat sau khi da doc du lieu
-            if (request.getFile() != null && !request.getFile().isEmpty()) {
-                try {
-                    String s3Key = s3Service.uploadFile("warehouse-batch*" + batch.getId(), request.getFile()).getKey();
-                    batch.setS3FileKey(s3Key);
-                    wareBatchRepository.save(batch);
-                } catch (Exception e) {
-                    System.err.println("Failed to upload file to S3: " + e.getMessage());
-                }
-            }
+            // File Excel gốc KHÔNG được lưu lên S3.
+            // Thay vào đó, dùng endpoint GET /wh-batch/{id}/export
+            // để generate lại Excel từ WareDataRow đã lưu trong DB.
 
             // Khởi tạo approval workflow - tạo snapshot từ WareApprovalConfig
             initializeApprovalWorkflow(batch);

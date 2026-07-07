@@ -7,6 +7,7 @@ import com.quangnt0000.be_modul.dto.WareBatch.WareBatchRejectRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchSearch;
 import com.quangnt0000.be_modul.dto.dashboard.DashboardRequest;
+import com.quangnt0000.be_modul.service.DataWH.WareBatchExcelService;
 import com.quangnt0000.be_modul.service.DataWH.WareBatchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class WareBatchController {
     private final WareBatchService wareBatchService;
+    private final WareBatchExcelService wareBatchExcelService;
 
     @PostMapping
     public ResponseEntity<?> addWareBatch(@ModelAttribute WareBatchRequest request) {
@@ -71,5 +73,15 @@ public class WareBatchController {
     @GetMapping("/my-approvals")
     public ResponseEntity<?> getMyApprovalBatches(@RequestParam(required = false) String departmentId) {
         return wareBatchService.getMyApprovalBatches(departmentId);
+    }
+
+    /**
+     * Xuất file Excel từ dữ liệu đã lưu (WareDataRow + WareMapping).
+     * Không cần đọc file gốc từ S3.
+     * GET /wh-batch/{id}/export
+     */
+    @GetMapping("/{ware-batch-id}/export")
+    public ResponseEntity<byte[]> exportExcel(@PathVariable("ware-batch-id") Integer wareBatchId) {
+        return wareBatchExcelService.exportExcel(wareBatchId);
     }
 }
