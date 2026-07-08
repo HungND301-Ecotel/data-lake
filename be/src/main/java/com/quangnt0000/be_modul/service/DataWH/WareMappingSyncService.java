@@ -87,8 +87,8 @@ public class WareMappingSyncService {
             try (Connection conn = DriverManager.getConnection(jdbcUrl, config.getUsername(), config.getPassword())) {
                 // 1. Query remote template info
                 String templateQuery = dbType == DatabaseType.POSTGRESQL 
-                        ? "SELECT id, name, description, start_row, table_name FROM public.ware_template WHERE table_code = ? AND deleted = false"
-                        : "SELECT id, name, description, start_row, table_name FROM ware_template WHERE table_code = ? AND deleted = false";
+                        ? "SELECT id, name, description, start_row, table_name, excel_file_key FROM public.ware_template WHERE table_code = ? AND deleted = false"
+                        : "SELECT id, name, description, start_row, table_name, excel_file_key FROM ware_template WHERE table_code = ? AND deleted = false";
 
                 Integer remoteTemplateId = null;
                 try (PreparedStatement ps = conn.prepareStatement(templateQuery)) {
@@ -102,6 +102,7 @@ public class WareMappingSyncService {
                             template.setDescription(rs.getString("description"));
                             template.setStartRow(rs.getObject("start_row") != null ? rs.getInt("start_row") : template.getStartRow());
                             template.setTableName(rs.getString("table_name"));
+                            template.setExcelFileKey(rs.getString("excel_file_key"));
                             wareTemplateRepository.save(template);
                             
                             log.info("Found remote template in 3rd party DB with remote ID: {} and updated local template metadata.", remoteTemplateId);

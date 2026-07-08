@@ -41,6 +41,7 @@ import { useAuthStore } from "../../../stores/authStore";
 
 interface TemplateFormProps {
   templateId: number;
+  reloadTrigger?: number;
 }
 
 interface ApprovalConfig {
@@ -55,7 +56,7 @@ interface ApprovalConfig {
 
 const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
 
-export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
+export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId, reloadTrigger }) => {
   const [template, setTemplate] = useState<WareTemplateResponse | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [request, setRequest] = useState<WareTemplateRequest | null>(null);
@@ -122,7 +123,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
   useEffect(() => {
     fetchTemplate();
     fetchApprovalConfigs();
-  }, [templateId]);
+  }, [templateId, reloadTrigger]);
 
   useEffect(() => {
     if (isApprovalModalVisible && allEmployees.length === 0) {

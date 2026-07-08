@@ -76,7 +76,7 @@ function buildRequestsFromAiResponse(
 }
 
 // ---- Component ----
-export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) => {
+export const MappingTable: React.FC<{ templateId: number; onSyncSuccess?: () => void }> = ({ templateId, onSyncSuccess }) => {
   const [data, setData] = useState<WareMappingResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [messageApi, contextHolderMessage] = message.useMessage();
@@ -123,6 +123,9 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
       messageApi.success("Đồng bộ dữ liệu cột từ database bên thứ 3 thành công!");
       setConnectionModalOpen(false);
       fetchData();
+      if (onSyncSuccess) {
+        onSyncSuccess();
+      }
     } catch (err: any) {
       console.error(err);
       messageApi.error(
