@@ -42,6 +42,23 @@ public class WareTemplateController {
         return wareTemplateService.update(request);
     }
 
+    @PostMapping("/{template-id}/sync-mapping")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> syncMapping(
+            @PathVariable ("template-id") Integer templateId,
+            @RequestParam("connectionId") String connectionId) {
+        wareTemplateService.syncMapping(templateId, connectionId);
+        return ResponseEntity.ok("Template mappings synchronized successfully");
+    }
+
+    @PostMapping("/{template-id}/push-mapping")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> pushMapping(
+            @PathVariable ("template-id") Integer templateId,
+            @RequestParam("connectionId") String connectionId) {
+        wareTemplateService.pushMapping(templateId, connectionId);
+        return ResponseEntity.ok("Template mappings pushed successfully");
+    }
     @GetMapping("/{template-id}/export-excel")
     public ResponseEntity<?> exportExcel(@PathVariable ("template-id") Integer templateId) {
         return wareTemplateService.exportExcel(templateId);

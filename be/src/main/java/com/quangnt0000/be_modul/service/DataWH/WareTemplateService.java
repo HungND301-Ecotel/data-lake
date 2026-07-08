@@ -141,4 +141,17 @@ public class WareTemplateService {
 
         return s3Service.getFileV3(wareTemplate.getExcelFileKey());
     }
+
+    @Transactional
+    public void pushMapping(Integer templateId, String connectionId) {
+        WareTemplate template = wareTemplateRepository.findById(templateId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "template not found"));
+        if (connectionId == null || connectionId.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Connection ID is required");
+        }
+        if (template.getTableCode() == null || template.getTableCode().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Template has no Table Code configured");
+        }
+        wareMappingSyncService.pushMappings(template, connectionId);
+    }
 }

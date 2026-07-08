@@ -10,10 +10,13 @@ import {
   DatabaseOutlined,
   RobotOutlined,
   FileExcelOutlined,
+  UploadOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import type { WareMappingResponse, WareMappingRequest } from "../types/wareMapping";
 import { wareMappingApi } from "../api/wareMappingApi";
+import { wareTemplateApi } from "../api/wareTemplateApi";
+import axiosClient from "../../../services/axiosClient";
 import { useExcelMapping } from "../../../features/excel-mapping/hooks/useExcelMapping";
 import { useAuthStore } from "../../../stores/authStore";
 
@@ -74,7 +77,7 @@ function buildRequestsFromAiResponse(
 }
 
 // ---- Component ----
-export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) => {
+export const MappingTable: React.FC<{ templateId: number; onSyncSuccess?: () => void }> = ({ templateId, onSyncSuccess }) => {
   const [data, setData] = useState<WareMappingResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [messageApi, contextHolderMessage] = message.useMessage();
@@ -87,6 +90,79 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
   const [aiModalOpen, setAiModalOpen] = useState(false);
   const { result: aiResult, loading: aiLoading, error: aiError, analyze, clear: clearAi } = useExcelMapping();
   const [pendingRows, setPendingRows] = useState<WareMappingRequest[]>([]);
+  const [syncingDb, setSyncingDb] = useState(false);
+  const [connections, setConnections] = useState<any[]>([]);
+  const [connectionModalOpen, setConnectionModalOpen] = useState(false);
+  const [selectedConnectionId, setSelectedConnectionId] = useState<string | null>(null);
+  const [pushModalOpen, setPushModalOpen] = useState(false);
+  const [pushingDb, setPushingDb] = useState(false);
+
+  const fetchConnections = async () => {
+    try {
+      const res = await axiosClient.get("/sync_connection_configs");
+      setConnections(res.data?.data || []);
+    } catch (err) {
+      console.error("Lấy danh sách kết nối thất bại", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchConnections();
+  }, []);
+
+  const handleOpenSyncModal = () => {
+    setSelectedConnectionId(null);
+    setConnectionModalOpen(true);
+  };
+
+  const handleConfirmSync = async () => {
+    if (!selectedConnectionId) {
+      messageApi.warning("Vui lòng chọn cổng kết nối để đồng bộ!");
+      return;
+    }
+    setSyncingDb(true);
+    try {
+      await wareTemplateApi.syncTemplateMapping(templateId, selectedConnectionId);
+      messageApi.success("Đồng bộ dữ liệu cột từ database bên thứ 3 thành công!");
+      setConnectionModalOpen(false);
+      fetchData();
+      if (onSyncSuccess) {
+        onSyncSuccess();
+      }
+    } catch (err: any) {
+      console.error(err);
+      messageApi.error(
+        err?.response?.data?.message || "Đồng bộ thất bại. Vui lòng kiểm tra lại cấu hình kết nối DB."
+      );
+    } finally {
+      setSyncingDb(false);
+    }
+  };
+
+  const handleOpenPushModal = () => {
+    setSelectedConnectionId(null);
+    setPushModalOpen(true);
+  };
+
+  const handleConfirmPush = async () => {
+    if (!selectedConnectionId) {
+      messageApi.warning("Vui lòng chọn cổng kết nối để đẩy cấu hình!");
+      return;
+    }
+    setPushingDb(true);
+    try {
+      await wareTemplateApi.pushTemplateMapping(templateId, selectedConnectionId);
+      messageApi.success("Đẩy cấu hình và mapping lên DB trung tâm thành công!");
+      setPushModalOpen(false);
+    } catch (err: any) {
+      console.error(err);
+      messageApi.error(
+        err?.response?.data?.message || "Đẩy cấu hình thất bại. Vui lòng kiểm tra lại kết nối DB."
+      );
+    } finally {
+      setPushingDb(false);
+    }
+  };
 
   // ---- Fetch ----
   const fetchData = async () => {
@@ -685,6 +761,98 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
         </p>
       </Modal>
 
+      {/* DB Connection Selection Modal */}
+      <Modal
+        title={
+          <span className="flex items-center gap-2">
+            <DatabaseOutlined className="text-blue-500" />
+            Đồng bộ cột dữ liệu từ DB bên thứ 3
+          </span>
+        }
+        open={connectionModalOpen}
+        onOk={handleConfirmSync}
+        onCancel={() => setConnectionModalOpen(false)}
+        okText="Đồng bộ"
+        cancelText="Hủy"
+        width={480}
+        confirmLoading={syncingDb}
+        okButtonProps={{
+          className: "bg-[#1976D2]! hover:bg-blue-700! text-white! border-0 h-10 px-5",
+        }}
+        cancelButtonProps={{
+          className: "h-10 px-5",
+        }}
+      >
+        <div className="py-4">
+          <p className="text-gray-500 mb-4">
+            Vui lòng chọn kết nối cơ sở dữ liệu để tải danh sách cột và tự động tạo mapping tương ứng.
+          </p>
+          <label className="block font-medium text-gray-700 mb-2">
+            Cổng kết nối cơ sở dữ liệu
+          </label>
+          <Select
+            placeholder="Chọn kết nối cơ sở dữ liệu"
+            size="large"
+            className="w-full rounded-lg"
+            onChange={(value) => setSelectedConnectionId(value)}
+            value={selectedConnectionId}
+            allowClear
+          >
+            {connections.map((c) => (
+              <Select.Option key={c.id} value={c.id}>
+                {c.databaseName} ({c.host}:{c.port})
+              </Select.Option>
+            ))}
+          </Select>
+        </div>
+      </Modal>
+
+      {/* DB Push Connection Selection Modal */}
+      <Modal
+        title={
+          <span className="flex items-center gap-2">
+            <UploadOutlined className="text-amber-500" />
+            Đẩy cấu hình dữ liệu lên DB trung tâm
+          </span>
+        }
+        open={pushModalOpen}
+        onOk={handleConfirmPush}
+        onCancel={() => setPushModalOpen(false)}
+        okText="Đẩy lên"
+        cancelText="Hủy"
+        width={480}
+        confirmLoading={pushingDb}
+        okButtonProps={{
+          className: "bg-[#d97706]! hover:bg-[#b45309]! text-white! border-0 h-10 px-5",
+        }}
+        cancelButtonProps={{
+          className: "h-10 px-5",
+        }}
+      >
+        <div className="py-4">
+          <p className="text-gray-500 mb-4">
+            Vui lòng chọn kết nối cơ sở dữ liệu để đẩy cấu hình template và các cột mapping cục bộ lên trung tâm.
+          </p>
+          <label className="block font-medium text-gray-700 mb-2">
+            Cổng kết nối cơ sở dữ liệu
+          </label>
+          <Select
+            placeholder="Chọn kết nối cơ sở dữ liệu"
+            size="large"
+            className="w-full rounded-lg"
+            onChange={(value) => setSelectedConnectionId(value)}
+            value={selectedConnectionId}
+            allowClear
+          >
+            {connections.map((c) => (
+              <Select.Option key={c.id} value={c.id}>
+                {c.databaseName} ({c.host}:{c.port})
+              </Select.Option>
+            ))}
+          </Select>
+        </div>
+      </Modal>
+
       <Card className="shadow-sm border-0 rounded-xl">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
@@ -707,6 +875,24 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
                   Cấu hình AI
                 </Button>
               </Tooltip>
+              <Button
+                size="large"
+                icon={<DatabaseOutlined />}
+                onClick={handleOpenSyncModal}
+                loading={syncingDb}
+                className="bg-[#1976D2]! hover:bg-blue-700! text-white! border-0 h-10 px-5"
+              >
+                Đồng bộ từ Database
+              </Button>
+              <Button
+                size="large"
+                icon={<UploadOutlined />}
+                onClick={handleOpenPushModal}
+                loading={pushingDb}
+                className="bg-[#d97706]! hover:bg-[#b45309]! text-white! border-0 h-10 px-5"
+              >
+                Đẩy cấu hình lên DB trung tâm
+              </Button>
               <Button
                 type="primary"
                 size="large"

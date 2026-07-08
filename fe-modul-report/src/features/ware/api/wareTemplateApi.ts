@@ -81,4 +81,17 @@ export const wareTemplateApi = {
     return res.data;
   },
 
+  syncTemplateMapping: async (id: number, connectionId: string): Promise<string> => {
+    const res = await axiosClient.post(`/wh-template/${id}/sync-mapping`, null, {
+      params: { connectionId },
+    });
+    return res.data;
+  },
+
+  pushTemplateMapping: async (id: number, connectionId: string): Promise<string> => {
+    const res = await axiosClient.post(`/wh-template/${id}/push-mapping`, null, {
+      params: { connectionId },
+    });
+    return res.data;
+  },
 };
