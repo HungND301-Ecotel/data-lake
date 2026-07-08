@@ -22,4 +22,6 @@ public class UserPush {
     private String username;
     @Column(nullable = false)
     private String password;
+    @Column(name = "bukrs")
+    private String bukrs;
 }

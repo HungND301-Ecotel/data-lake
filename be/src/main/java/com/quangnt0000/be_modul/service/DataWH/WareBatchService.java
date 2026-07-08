@@ -19,6 +19,7 @@ import com.quangnt0000.be_modul.modal.DataWH.WareDataRow;
 import com.quangnt0000.be_modul.modal.DataWH.WareMapping;
 import com.quangnt0000.be_modul.modal.DataWH.WareTemplate;
 import com.quangnt0000.be_modul.modal.DataWH.WareTemplateApprovalConfig;
+import com.quangnt0000.be_modul.modal.DataWH.UserPush;
 import com.quangnt0000.be_modul.repository.DataLake.EmployeeRepository;
 import com.quangnt0000.be_modul.repository.DataLake.UserRepository;
 import com.quangnt0000.be_modul.repository.DataWH.*;
@@ -51,6 +52,7 @@ public class WareBatchService {
     private final WareBatchApprovalRepository batchApprovalRepository;
     private final WareBatchActionRepository batchActionRepository;
     private final S3Service s3Service;
+    private final UserPushRepository userPushRepository;
     
     // FormulaEvaluator để xử lý công thức Excel
     private FormulaEvaluator formulaEvaluator;
@@ -70,6 +72,20 @@ public class WareBatchService {
             formulaEvaluator = workbook.getCreationHelper().createFormulaEvaluator();
             Sheet sheet = workbook.getSheetAt(0);
 
+            // Lấy cấu hình tài khoản TKV để xác định bukrs
+            List<UserPush> userPushes = userPushRepository.findAll();
+            String configBukrs = (userPushes != null && !userPushes.isEmpty()) ? userPushes.get(0).getBukrs() : null;
+            boolean configHasBukrs = configBukrs != null && !configBukrs.trim().isEmpty();
+
+            // Tìm mapping cột BUKRS trong template
+            boolean templateHasBukrsMapping = wareMappings.stream()
+                    .anyMatch(m -> m.getFieldName().equalsIgnoreCase("BUKRS"));
+            String exactBukrsKey = wareMappings.stream()
+                    .filter(m -> m.getFieldName().equalsIgnoreCase("BUKRS"))
+                    .map(WareMapping::getFieldName)
+                    .findFirst()
+                    .orElse("BUKRS");
+
             List<Map<String, Object>> rows = new ArrayList<>();
 
             for (int i = wareTemplate.getStartRow() - 1; i <= sheet.getLastRowNum(); i++) {
@@ -81,6 +97,7 @@ public class WareBatchService {
                 }
 
                 Map<String, Object> data = new HashMap<>();
+                String excelBukrs = null;
 
                 for (WareMapping mapping : wareMappings) {
                     Object value;
@@ -122,8 +139,31 @@ public class WareBatchService {
                             value = mapping.getFieldValue();
                     }
 
+                    if (mapping.getFieldName().equalsIgnoreCase("BUKRS")) {
+                        if (value != null && !value.toString().trim().isEmpty()) {
+                            excelBukrs = value.toString().trim();
+                        }
+                    }
 
                     data.put(mapping.getFieldName(), value);
+                }
+
+                // Áp dụng quy tắc ưu tiên BUKRS
+                String resolvedBukrs = null;
+                if (configHasBukrs) {
+                    resolvedBukrs = configBukrs;
+                } else if (excelBukrs != null) {
+                    resolvedBukrs = excelBukrs;
+                }
+
+                if (resolvedBukrs != null) {
+                    data.put(exactBukrsKey, resolvedBukrs);
+                    data.put("BUKRS", resolvedBukrs);
+                } else if (templateHasBukrsMapping) {
+                    throw new ResponseStatusException(
+                            HttpStatus.BAD_REQUEST,
+                            "Thiếu mã công ty (BUKRS). Vui lòng cấu hình BUKRS trong tài khoản TKV hoặc nhập trực tiếp trong tệp Excel."
+                    );
                 }
 
                 rows.add(data);

@@ -18,6 +18,7 @@ import {
     UserOutlined,
     WarningOutlined,
     DeleteOutlined,
+    ShopOutlined,
 } from "@ant-design/icons";
 import { userPushApi } from "../api/accountConfigApi";
 import type { UserPushRequest, UserPushResponse } from "../types/accountConfig";
@@ -101,6 +102,7 @@ const UserPushConfigPage = () => {
             form.setFieldsValue({
                 username: userPushConfig.username,
                 password: userPushConfig.password || "",
+                bukrs: userPushConfig.bukrs || "",
             });
             setSavePassword(!!userPushConfig.password);
         } else {
@@ -115,12 +117,14 @@ const UserPushConfigPage = () => {
             await form.validateFields();
 
             const username = form.getFieldValue("username");
+            const bukrs = form.getFieldValue("bukrs");
 
             const request: UserPushRequest = {
                 username,
                 password: savePassword
                     ? form.getFieldValue("password") || ""
                     : "",
+                bukrs,
             };
 
             console.log("FINAL REQUEST:", request);
@@ -204,6 +208,19 @@ const UserPushConfigPage = () => {
                                 >
                                     <Tag color="blue" className="px-3 py-1 text-base">
                                         {userPushConfig.username}
+                                    </Tag>
+                                </Descriptions.Item>
+
+                                <Descriptions.Item
+                                    label={
+                                        <span className="flex items-center gap-2">
+                                            <ShopOutlined className="text-blue-500" />
+                                            Công ty (BUKRS)
+                                        </span>
+                                    }
+                                >
+                                    <Tag color="purple" className="px-3 py-1 text-base">
+                                        {userPushConfig.bukrs || "Chưa cấu hình"}
                                     </Tag>
                                 </Descriptions.Item>
 
@@ -317,6 +334,23 @@ const UserPushConfigPage = () => {
                         <Input
                             prefix={<UserOutlined className="text-gray-400" />}
                             placeholder="Nhập tên đăng nhập"
+                            size="large"
+                            className="rounded-lg"
+                        />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="bukrs"
+                        label={
+                            <span className="font-medium text-gray-700">
+                                Công ty (BUKRS) <span className="text-red-500">*</span>
+                            </span>
+                        }
+                        rules={[{ required: true, message: "Vui lòng nhập mã công ty (BUKRS)" }]}
+                    >
+                        <Input
+                            prefix={<ShopOutlined className="text-gray-400" />}
+                            placeholder="Nhập mã công ty (BUKRS)"
                             size="large"
                             className="rounded-lg"
                         />

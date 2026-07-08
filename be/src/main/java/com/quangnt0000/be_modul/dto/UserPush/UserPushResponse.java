@@ -13,4 +13,5 @@ public class UserPushResponse {
     private String id;
     private String username;
     private String password;
+    private String bukrs;
 }

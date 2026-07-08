@@ -28,6 +28,7 @@ public class UserPushService {
         UserPush userPush = UserPush.builder()
                 .username(request.getUsername())
                 .password(request.getPassword())
+                .bukrs(request.getBukrs())
                 .build();
 
         UserPush saved = userPushRepository.save(userPush);
@@ -36,6 +37,7 @@ public class UserPushService {
                 .id(saved.getId())
                 .username(saved.getUsername())
                 .password(saved.getPassword())
+                .bukrs(saved.getBukrs())
                 .build();
     }
 
@@ -45,6 +47,7 @@ public class UserPushService {
                         .id(user.getId())
                         .username(user.getUsername())
                         .password(user.getPassword())
+                        .bukrs(user.getBukrs())
                         .build())
                 .collect(Collectors.toList());
     }
@@ -57,6 +60,7 @@ public class UserPushService {
                 .id(userPush.getId())
                 .username(userPush.getUsername())
                 .password(userPush.getPassword())
+                .bukrs(userPush.getBukrs())
                 .build();
     }
 
@@ -68,6 +72,7 @@ public class UserPushService {
                 .id(userPush.getId())
                 .username(userPush.getUsername())
                 .password(userPush.getPassword())
+                .bukrs(userPush.getBukrs())
                 .build();
     }
 
@@ -82,6 +87,7 @@ public class UserPushService {
         }
 
         userPush.setUsername(request.getUsername());
+        userPush.setBukrs(request.getBukrs());
         if (request.getPassword() != null && !request.getPassword().isEmpty()) {
             userPush.setPassword(request.getPassword());
         }
@@ -91,7 +97,8 @@ public class UserPushService {
         return UserPushResponse.builder()
                 .id(updated.getId())
                 .username(updated.getUsername())
-                .password(userPush.getPassword())
+                .password(updated.getPassword())
+                .bukrs(updated.getBukrs())
                 .build();
     }
 

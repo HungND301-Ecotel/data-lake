@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class UserPushRequest {
     private String username;
     private String password;
+    private String bukrs;
 }
