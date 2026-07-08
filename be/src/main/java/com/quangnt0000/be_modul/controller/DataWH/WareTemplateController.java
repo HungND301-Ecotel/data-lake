@@ -51,6 +51,15 @@ public class WareTemplateController {
         return ResponseEntity.ok("Template mappings synchronized successfully");
     }
 
+    @PostMapping("/{template-id}/push-mapping")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> pushMapping(
+            @PathVariable ("template-id") Integer templateId,
+            @RequestParam("connectionId") String connectionId) {
+        wareTemplateService.pushMapping(templateId, connectionId);
+        return ResponseEntity.ok("Template mappings pushed successfully");
+    }
+
     @GetMapping("/{template-id}/export-excel")
     public ResponseEntity<?> exportExcel(@PathVariable ("template-id") Integer templateId) {
         return wareTemplateService.exportExcel(templateId);
