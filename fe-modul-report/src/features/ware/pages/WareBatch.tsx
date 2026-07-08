@@ -39,6 +39,8 @@ import {
 } from "@ant-design/icons";
 import { Select } from "antd";
 import { wareTemplateApi } from "../api/wareTemplateApi";
+import { wareMappingApi } from "../api/wareMappingApi";
+import * as XLSX from "xlsx";
 
 const { Search } = Input;
 const quarterMonthMap: Record<string, number[]> = {
@@ -125,6 +127,100 @@ export const WareBatch: React.FC<WareBatchProps> = ({ templateIdProp }) => {
   useEffect(() => {
     fetchBatches();
   }, [page, searchKeyword, resolvedTemplateId]);
+
+  const parseExcelForMetadata = async (file: File) => {
+    try {
+      if (!resolvedTemplateId) return;
+
+      const mappings = await wareMappingApi.searchWareMapping({
+        wareTemplateId: resolvedTemplateId,
+      });
+
+      const arrayBuffer = await file.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: "array" });
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      if (!worksheet) return;
+
+      const template = await wareTemplateApi.getWareTemplateById(resolvedTemplateId);
+      const startRow = template.startRow ?? 2;
+
+      const getCellValue = (cellAddr: string) => {
+        const parts = cellAddr.split("-");
+        if (parts.length === 2) {
+          const r = parseInt(parts[0].trim(), 10) - 1;
+          const c = parseInt(parts[1].trim(), 10) - 1;
+          const cellRef = XLSX.utils.encode_cell({ r, c });
+          const cell = worksheet[cellRef];
+          return cell ? cell.v : null;
+        }
+        return null;
+      };
+
+      let parsedYear: number | null = null;
+      let parsedMonth: number | null = null;
+      let parsedDay: number | null = null;
+      let parsedQuarter: string | null = null;
+
+      for (const m of mappings) {
+        if (!m.fieldName || !m.cellAddress) continue;
+        const fieldName = m.fieldName.toUpperCase();
+        let value: any = null;
+
+        if (m.fieldType === "CELL") {
+          value = getCellValue(m.cellAddress);
+        } else if (m.fieldType === "ROW") {
+          try {
+            const colIndex = parseInt(m.cellAddress.trim(), 10) - 1;
+            const r = startRow - 1;
+            const cellRef = XLSX.utils.encode_cell({ r, c: colIndex });
+            const cell = worksheet[cellRef];
+            value = cell ? cell.v : null;
+          } catch (err) {
+            console.error(err);
+          }
+        }
+
+        if (value !== null && value !== undefined && value !== "") {
+          const cleanNumber = (v: any) => {
+            const numStr = String(v).replace(/[^0-9]/g, "");
+            return numStr ? parseInt(numStr, 10) : null;
+          };
+
+          if (["YEAR", "NAM"].includes(fieldName)) {
+            parsedYear = cleanNumber(value);
+          } else if (["PERIOD", "MONTH", "THANG"].includes(fieldName)) {
+            parsedMonth = cleanNumber(value);
+          } else if (["DAY", "NGAY"].includes(fieldName)) {
+            parsedDay = cleanNumber(value);
+          } else if (["QUARTER", "QUY"].includes(fieldName)) {
+            parsedQuarter = String(value).trim();
+          }
+        }
+      }
+
+      const updates: any = {};
+      if (parsedYear) updates.reportYear = parsedYear;
+      if (parsedMonth) updates.reportMonth = parsedMonth;
+      if (parsedDay) updates.reportDay = parsedDay;
+      if (parsedQuarter) updates.reportQuarter = parsedQuarter;
+
+      if (parsedMonth && !parsedQuarter) {
+        const m = Number(parsedMonth);
+        if (m >= 1 && m <= 3) updates.reportQuarter = "Q1";
+        else if (m >= 4 && m <= 6) updates.reportQuarter = "Q2";
+        else if (m >= 7 && m <= 9) updates.reportQuarter = "Q3";
+        else if (m >= 10 && m <= 12) updates.reportQuarter = "Q4";
+      }
+
+      if (Object.keys(updates).length > 0) {
+        form.setFieldsValue(updates);
+        messageApi.success("Đã tự động điền ngày/tháng/năm/quý từ tệp tin!");
+      }
+    } catch (error) {
+      console.error("Lỗi khi đọc file excel:", error);
+    }
+  };
 
   const handleOpenModal = () => {
     form.setFieldsValue({ name: templateName });
@@ -610,7 +706,12 @@ export const WareBatch: React.FC<WareBatchProps> = ({ templateIdProp }) => {
             <Upload
               beforeUpload={() => false}
               fileList={fileList}
-              onChange={({ fileList }) => setFileList(fileList)}
+              onChange={({ fileList }) => {
+                setFileList(fileList);
+                if (fileList.length > 0 && fileList[0]?.originFileObj) {
+                  parseExcelForMetadata(fileList[0].originFileObj);
+                }
+              }}
               maxCount={1}
               accept=".xlsx,.xls,.csv"
             >
