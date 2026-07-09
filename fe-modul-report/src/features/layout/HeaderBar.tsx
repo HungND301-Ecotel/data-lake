@@ -27,7 +27,7 @@ const Header = () => {
               PHẦN MỀM QUẢN LÝ KHO DỮ LIỆU
             </div>
             <div className="text-base font-bold">
-              CÔNG TY KHO VẬN ĐÁ BẠC - TKV
+              CÔNG TY KHO VẬN ĐÁ BẠC - VINACOMIN
             </div>
 
             <div className="flex justify-center gap-6 text-sm mt-1">
