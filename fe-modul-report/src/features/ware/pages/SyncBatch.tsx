@@ -275,6 +275,7 @@ export const SyncBatch: React.FC = () => {
           });
           successCount++;
         } catch (error) {
+          console.error(`Sync batch ${batchId} failed:`, error);
           failCount++;
         }
       }

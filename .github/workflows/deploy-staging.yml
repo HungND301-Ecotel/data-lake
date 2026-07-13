@@ -63,21 +63,21 @@ jobs:
           # 1. Sử dụng DOCKER_HUB_USERNAME làm REGISTRY để build và push
           REGISTRY_VAL="${{ secrets.DOCKER_HUB_USERNAME }}"
           make staging TENANT=${TENANT} REGISTRY=${REGISTRY_VAL}
-          
+
           # 2. Sao chép cấu hình tenant làm file .env_tenant cho deploy
           cp ./deployment/tenants/${TENANT}/.env ./deployment/staging/.env_tenant
-          
+
           # 3. Đọc các biến VERSION, REGISTRY, TENANT_LOWER vừa được gen ra trong file .env gốc
           STAGING_VERSION_VAL=$(grep "^VERSION=" .env | cut -d'=' -f2)
           TENANT_LOWER_VAL=$(grep "^TENANT_LOWER=" .env | cut -d'=' -f2)
-          
+
           # 4. Ghi đè cấu hình chính xác vào file .env_tenant để deploy trên server
           sed -i "s|^VERSION=.*|VERSION=${STAGING_VERSION_VAL}|" ./deployment/staging/.env_tenant
           sed -i "s|^REGISTRY=.*|REGISTRY=${REGISTRY_VAL}|" ./deployment/staging/.env_tenant
           if ! grep -q "^TENANT_LOWER=" ./deployment/staging/.env_tenant; then
             echo "TENANT_LOWER=${TENANT_LOWER_VAL}" >> ./deployment/staging/.env_tenant
           fi
-          
+
           echo "=== .env_tenant file content ==="
           cat ./deployment/staging/.env_tenant
 
