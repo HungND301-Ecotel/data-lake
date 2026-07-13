@@ -320,7 +320,8 @@ export const ApproveBatch: React.FC = () => {
             password: userPushConfig.password,
           });
           successCount++;
-        } catch {
+        } catch (error) {
+          console.error(`Sync batch ${batchId} failed:`, error);
           failCount++;
         }
       }
