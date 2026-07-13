@@ -8,24 +8,6 @@ import { useAuthStore } from "../../../stores/authStore";
 import { userApi } from "../api/userApi";
 import { useTenant } from "../../../config/tenant";
 
-// ── Asset map: Vite cần static import để bundle ảnh đúng cách ──
-// Khi thêm logo/banner mới: đặt file vào src/file/ rồi thêm vào đây
-import logoUb from "../../../file/logo-ub.jpg";
-import logoDeonaicocsau from "../../../file/logo-company.png";
-import bannerUb from "../../../file/Banner.jpg";
-import bannerDeonaicocsau from "../../../file/background.png";
-
-const LOGO_MAP: Record<string, string> = {
-  "logo-ub.jpg": logoUb,
-  "logo-company.png": logoDeonaicocsau,
-};
-
-const BANNER_MAP: Record<string, string> = {
-  "Banner.jpg": bannerUb,
-  "background.png": bannerDeonaicocsau,
-};
-
-
 const LoginPage = () => {
   const { tenant } = useTenant();
   const [loading, setLoading] = useState(false);
@@ -36,8 +18,12 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const setRole = useAuthStore((s) => s.setRole);
 
-  const logoSrc = LOGO_MAP[tenant.logoFile] ?? logoDeonaicocsau;
-  const bannerSrc = BANNER_MAP[tenant.bannerFile] ?? bannerDeonaicocsau;
+  const logoSrc = tenant.logoFile
+    ? (tenant.logoFile.startsWith('/') ? tenant.logoFile : `/${tenant.logoFile}`)
+    : "/logo-company.png";
+  const bannerSrc = tenant.bannerFile
+    ? (tenant.bannerFile.startsWith('/') ? tenant.bannerFile : `/${tenant.bannerFile}`)
+    : "/background.png";
 
   useEffect(() => {
     const token = localStorage.getItem("token");

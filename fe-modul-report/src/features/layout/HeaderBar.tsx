@@ -4,20 +4,13 @@ import {
   PhoneOutlined,
 } from "@ant-design/icons";
 import { useTenant } from "../../config/tenant";
-import logoUb from "../../file/logo-ub.jpg";
-import logoDeonaicocsau from "../../file/logo-company.png";
-
-// Asset map - khi thêm logo mới: thêm import và entry vào đây
-const LOGO_MAP: Record<string, string> = {
-  "logo-ub.jpg": logoUb,
-  "logo-company.png": logoDeonaicocsau,
-};
-
 const Header = () => {
   const navigate = useNavigate();
   const { tenant } = useTenant();
 
-  const logoSrc = LOGO_MAP[tenant.logoFile] ?? logoDeonaicocsau;
+  const logoSrc = tenant.logoFile
+    ? (tenant.logoFile.startsWith('/') ? tenant.logoFile : `/${tenant.logoFile}`)
+    : "/logo-company.png";
 
   return (
     <header className="w-full">

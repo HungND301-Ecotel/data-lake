@@ -1,24 +1,3 @@
-# ============================================================
-# STAGING DEPLOY WORKFLOW - MULTI-TENANT
-# ============================================================
-# Cách dùng:
-#   1. Push code lên nhánh develop
-#   2. Vào GitHub Actions → "Deploy Staging" → "Run workflow"
-#   3. Chọn tenant cần deploy → Run
-#   4. Có thể chạy lại bất kỳ lúc nào từ Actions UI để chọn tenant khác
-#
-# Secrets cần thiết cho mỗi tenant (thay {TENANT} bằng tên viết hoa):
-#   {TENANT}_HOST         - IP/hostname VPS của tenant
-#   {TENANT}_USER         - SSH username
-#   {TENANT}_SSH_KEY      - SSH private key
-#   {TENANT}_PORT         - SSH port (thường 22)
-#
-# Secrets cho server118 (test - port 1144 đã được mở):
-#   SERVER118_HOST        - IP của server 118
-#   SERVER118_USER        - SSH username
-#   SERVER118_SSH_KEY     - SSH private key
-#   SERVER118_PORT        - SSH port (thường 22)
-#
 # ⚠️ VITE_API KHÔNG còn dùng nữa.
 # FE dùng relative path /api → Nginx reverse proxy forward sang BE.
 # Không cần secret {TENANT}_VITE_API.
@@ -51,7 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tenant: [servertest, servertest2]
+        tenant: [maokhe]
 
     steps:
       - name: Checkout repository
