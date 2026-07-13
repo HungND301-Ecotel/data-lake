@@ -321,7 +321,7 @@ export const ApproveBatch: React.FC = () => {
           });
           successCount++;
         } catch (error) {
-          console.error(`Sync batch ${batchId} failed:`, error);
+          console.error(`Sync batch ${batch.batchId} failed:`, error);
           failCount++;
         }
       }
