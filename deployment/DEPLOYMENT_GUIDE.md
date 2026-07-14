@@ -85,6 +85,10 @@ SSH vào VPS của tenant mới và chạy các lệnh chuẩn bị:
    DB_PASSWORD=admin
    ```
 
+> [!NOTE]
+> **HỖ TRỢ TƯƠNG THÍCH NGƯỢC (BACKWARD COMPATIBILITY):**
+> Trong file `docker-compose`, dịch vụ database `postgres` đã được cấu hình thêm alias `aliases: - ${TENANT}_postgres` (ví dụ: `maokhe_postgres`). Do đó, các bên cũ chuyển sang hệ thống mới **không cần thay đổi** biến kết nối CSDL cũ trong file `.env_backend` trên VPS (vẫn chạy tốt với cả `jdbc:postgresql://postgres:...` và `jdbc:postgresql://{tenant_name}_postgres:...`).
+
 #### **Bước 4: Cấu hình thêm Tenant vào CI/CD Workflow**
 Mở file [.github/workflows/deploy-staging.yml](file:///d:/Ecotel/Datalake/data-lake/.github/workflows/deploy-staging.yml) và thêm tên tenant mới vào danh sách `matrix.tenant`:
 ```yaml

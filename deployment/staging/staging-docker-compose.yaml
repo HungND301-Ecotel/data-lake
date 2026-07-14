@@ -59,7 +59,9 @@ services:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
     networks:
-      - backnet
+      backnet:
+        aliases:
+          - ${TENANT}_postgres
 
   pgadmin:
     container_name: pgadmin_${TENANT}_report

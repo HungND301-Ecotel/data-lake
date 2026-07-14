@@ -67,7 +67,9 @@ services:
       - "5432:5432"
     restart: unless-stopped
     networks:
-      - backnet
+      backnet:
+        aliases:
+          - ${TENANT}_postgres
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U admin"]
       interval: 10s
