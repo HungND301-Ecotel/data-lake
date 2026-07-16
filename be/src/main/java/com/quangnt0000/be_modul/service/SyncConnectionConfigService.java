@@ -22,14 +22,16 @@ public class SyncConnectionConfigService {
     private final ModelMapper modelMapper;
 
     public List<SyncConnectionConfigResponse> getAll() {
-        List<SyncConnectionConfig> syncConnectionConfigs = configRepository.findAll();
+        List<SyncConnectionConfig> syncConnectionConfigs = configRepository.findAll().stream()
+                .filter(config -> config.getIsDeleted() == null || config.getIsDeleted() != 1)
+                .toList();
         return modelMapper.map(syncConnectionConfigs, new TypeToken<List<SyncConnectionConfigResponse>>() {
         }.getType());
     }
 
 
     public SyncConnectionConfigResponse create(SyncConnectionConfigRequest request) {
-        boolean existed = configRepository.existsByHostAndPortAndDatabaseName(
+        boolean existed = configRepository.existsActiveConnection(
                 request.getHost(),
                 request.getPort(),
                 request.getDatabaseName()
@@ -51,10 +53,11 @@ public class SyncConnectionConfigService {
       SyncConnectionConfig syncConnectionConfig = configRepository.findById(id)
               .orElseThrow(()-> new ApplicationException("Không tồn tại Connection"));
 
-        boolean existed = configRepository.existsByHostAndPortAndDatabaseName(
+        boolean existed = configRepository.existsActiveConnectionExcludingId(
                 request.getHost(),
                 request.getPort(),
-                request.getDatabaseName()
+                request.getDatabaseName(),
+                id
         );
 
         if (existed) {
@@ -74,9 +77,7 @@ public class SyncConnectionConfigService {
         SyncConnectionConfig syncConnectionConfig = configRepository.findById(id)
                 .orElseThrow(()-> new ApplicationException("Không tồn tại Connection"));
 
-
-        syncConnectionConfig.setIsDeleted(1);
-        return modelMapper.map(configRepository.save(syncConnectionConfig), SyncConnectionConfigResponse.class);
+        configRepository.delete(syncConnectionConfig);
+        return modelMapper.map(syncConnectionConfig, SyncConnectionConfigResponse.class);
     }
 }
-

@@ -18,7 +18,7 @@ name: Deploy Staging
 on:
   push:
     branches:
-      - dev/main
+      - dev
 
 env:
   WEBAPP_NAME: data-lake
