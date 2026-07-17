@@ -1,52 +1,24 @@
-import axiosDataLakeClient from "../../../services/axiosDataLakeClient";
-import type {
-  ServerConfig,
-  ServerCreateRequest,
-  ServerUpdateRequest,
-  ServerListResponse,
-  TestConnectionResult,
-  ServerDeleteResponse,
-  SetDefaultResponse,
-} from "../types/server";
+import axiosClient from "../../../services/axiosClient";
+import type { SyncConnectionConfig, SyncConnectionConfigRequest } from "../types/server";
 
 export const serverApi = {
-  getAll: async (): Promise<ServerListResponse> => {
-    const res = await axiosDataLakeClient.get("/api/v1/servers");
+  getAll: async (): Promise<{ data: SyncConnectionConfig[]; message: string }> => {
+    const res = await axiosClient.get("/sync_connection_configs");
     return res.data;
   },
 
-  getById: async (serverId: string): Promise<ServerConfig> => {
-    const res = await axiosDataLakeClient.get(`/api/v1/servers/${serverId}`);
+  create: async (data: SyncConnectionConfigRequest): Promise<{ data: SyncConnectionConfig; message: string }> => {
+    const res = await axiosClient.post("/sync_connection_configs", data);
     return res.data;
   },
 
-  create: async (data: ServerCreateRequest): Promise<ServerConfig> => {
-    const res = await axiosDataLakeClient.post("/api/v1/servers", data);
+  update: async (id: string, data: SyncConnectionConfigRequest): Promise<{ data: SyncConnectionConfig; message: string }> => {
+    const res = await axiosClient.put(`/sync_connection_configs/${id}`, data);
     return res.data;
   },
 
-  update: async (serverId: string, data: ServerUpdateRequest): Promise<ServerConfig> => {
-    const res = await axiosDataLakeClient.put(`/api/v1/servers/${serverId}`, data);
-    return res.data;
-  },
-
-  delete: async (serverId: string): Promise<ServerDeleteResponse> => {
-    const res = await axiosDataLakeClient.delete(`/api/v1/servers/${serverId}`);
-    return res.data;
-  },
-
-  testConnection: async (serverId: string): Promise<TestConnectionResult> => {
-    const res = await axiosDataLakeClient.post(`/api/v1/servers/${serverId}/test`);
-    return res.data;
-  },
-
-  setDefault: async (serverId: string): Promise<SetDefaultResponse> => {
-    const res = await axiosDataLakeClient.post(`/api/v1/servers/${serverId}/set-default`);
-    return res.data;
-  },
-
-  getDatabases: async (serverId: string): Promise<string[]> => {
-    const res = await axiosDataLakeClient.get(`/api/v1/servers/${serverId}/databases`);
+  deleteById: async (id: string): Promise<{ data: SyncConnectionConfig; message: string }> => {
+    const res = await axiosClient.delete(`/sync_connection_configs/${id}`);
     return res.data;
   },
 };
