@@ -19,6 +19,7 @@ import {
   RightOutlined,
   LoadingOutlined,
   SettingOutlined,
+  DatabaseOutlined,
 } from "@ant-design/icons";
 import { Button, Dropdown, Menu, Spin } from "antd";
 import { employeeApi } from "../employee/api/employeeApi";
@@ -238,7 +239,8 @@ export default function NavBar() {
   const [quickOpen, setQuickOpen] = useState(false);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
   const navigate = useNavigate();
-  const { role: storeRole, setRole } = useAuthStore();
+  const { role: storeRole, setRole, clearRole } = useAuthStore();
+  const isAdmin = storeRole === "ADMIN";
 
   const getRoleFromToken = (): string | null => {
     try {
@@ -323,6 +325,17 @@ export default function NavBar() {
           onClick: () => navigate("/account-config"),
           className: "py-3 px-4 hover:bg-[#f0f9f4]!",
         },
+        ...(isAdmin
+          ? [
+              {
+                key: "sync-connections",
+                icon: <DatabaseOutlined className="text-lg" />,
+                label: <span className="text-base font-medium">Quản lý kết nối DB</span>,
+                onClick: () => navigate("/servers"),
+                className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+              },
+            ]
+          : []),
       ]}
       className="rounded-xl! shadow-2xl! min-w-[260px] py-2"
     />

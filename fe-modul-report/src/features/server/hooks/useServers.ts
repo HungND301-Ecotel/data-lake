@@ -1,20 +1,14 @@
 import { useState, useCallback, useEffect } from "react";
 import { serverApi } from "../api/serverApi";
-import type {
-  ServerConfig,
-  ServerCreateRequest,
-  ServerUpdateRequest,
-  TestConnectionResult,
-} from "../types/server";
+import type { SyncConnectionConfig, SyncConnectionConfigRequest } from "../types/server";
 
 interface ActionResult {
   success: boolean;
   error?: string;
-  data?: unknown;
 }
 
 export function useServers() {
-  const [servers, setServers] = useState<ServerConfig[]>([]);
+  const [servers, setServers] = useState<SyncConnectionConfig[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,10 +17,10 @@ export function useServers() {
     setError(null);
     try {
       const res = await serverApi.getAll();
-      setServers(res.servers);
+      setServers(res.data || []);
     } catch (err: unknown) {
-      const e = err as { response?: { data?: { detail?: string } }; message?: string };
-      setError(e.response?.data?.detail || e.message || "Lỗi tải danh sách server");
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      setError(e.response?.data?.message || e.message || "Lỗi tải danh sách kết nối");
     } finally {
       setLoading(false);
     }
@@ -36,62 +30,50 @@ export function useServers() {
     fetchServers();
   }, [fetchServers]);
 
-  const createServer = useCallback(async (data: ServerCreateRequest): Promise<ActionResult> => {
-    try {
-      await serverApi.create(data);
-      await fetchServers();
-      return { success: true };
-    } catch (err: unknown) {
-      const e = err as { response?: { data?: { detail?: string } }; message?: string };
-      const msg = e.response?.data?.detail || e.message || "Lỗi tạo server";
-      return { success: false, error: msg };
-    }
-  }, [fetchServers]);
+  const createServer = useCallback(
+    async (data: SyncConnectionConfigRequest): Promise<ActionResult> => {
+      try {
+        await serverApi.create(data);
+        await fetchServers();
+        return { success: true };
+      } catch (err: unknown) {
+        const e = err as { response?: { data?: { message?: string } }; message?: string };
+        const msg = e.response?.data?.message || e.message || "Lỗi tạo kết nối";
+        return { success: false, error: msg };
+      }
+    },
+    [fetchServers]
+  );
 
-  const updateServer = useCallback(async (serverId: string, data: ServerUpdateRequest): Promise<ActionResult> => {
-    try {
-      await serverApi.update(serverId, data);
-      await fetchServers();
-      return { success: true };
-    } catch (err: unknown) {
-      const e = err as { response?: { data?: { detail?: string } }; message?: string };
-      const msg = e.response?.data?.detail || e.message || "Lỗi cập nhật server";
-      return { success: false, error: msg };
-    }
-  }, [fetchServers]);
+  const updateServer = useCallback(
+    async (id: string, data: SyncConnectionConfigRequest): Promise<ActionResult> => {
+      try {
+        await serverApi.update(id, data);
+        await fetchServers();
+        return { success: true };
+      } catch (err: unknown) {
+        const e = err as { response?: { data?: { message?: string } }; message?: string };
+        const msg = e.response?.data?.message || e.message || "Lỗi cập nhật kết nối";
+        return { success: false, error: msg };
+      }
+    },
+    [fetchServers]
+  );
 
-  const deleteServer = useCallback(async (serverId: string): Promise<ActionResult> => {
-    try {
-      await serverApi.delete(serverId);
-      await fetchServers();
-      return { success: true };
-    } catch (err: unknown) {
-      const e = err as { response?: { data?: { detail?: string } }; message?: string };
-      const msg = e.response?.data?.detail || e.message || "Lỗi xoá server";
-      return { success: false, error: msg };
-    }
-  }, [fetchServers]);
-
-  const testConnection = useCallback(async (serverId: string): Promise<TestConnectionResult> => {
-    const res = await serverApi.testConnection(serverId);
-    return res;
-  }, []);
-
-  const setDefault = useCallback(async (serverId: string): Promise<ActionResult> => {
-    try {
-      await serverApi.setDefault(serverId);
-      await fetchServers();
-      return { success: true };
-    } catch (err: unknown) {
-      const e = err as { response?: { data?: { detail?: string } }; message?: string };
-      const msg = e.response?.data?.detail || e.message || "Lỗi đặt server mặc định";
-      return { success: false, error: msg };
-    }
-  }, [fetchServers]);
-
-  const getDatabases = useCallback(async (serverId: string): Promise<string[]> => {
-    return await serverApi.getDatabases(serverId);
-  }, []);
+  const deleteServer = useCallback(
+    async (id: string): Promise<ActionResult> => {
+      try {
+        await serverApi.deleteById(id);
+        await fetchServers();
+        return { success: true };
+      } catch (err: unknown) {
+        const e = err as { response?: { data?: { message?: string } }; message?: string };
+        const msg = e.response?.data?.message || e.message || "Lỗi xoá kết nối";
+        return { success: false, error: msg };
+      }
+    },
+    [fetchServers]
+  );
 
   return {
     servers,
@@ -101,8 +83,5 @@ export function useServers() {
     createServer,
     updateServer,
     deleteServer,
-    testConnection,
-    setDefault,
-    getDatabases,
   };
 }

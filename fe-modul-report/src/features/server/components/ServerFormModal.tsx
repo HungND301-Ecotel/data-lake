@@ -1,13 +1,20 @@
 import { Modal, Form, Input, InputNumber, Switch, Select } from "antd";
 import { useEffect } from "react";
-import type { ServerConfig, ServerCreateRequest, ServerUpdateRequest } from "../types/server";
+import type { SyncConnectionConfig, SyncConnectionConfigRequest, DatabaseType } from "../types/server";
+
+const DATABASE_TYPE_OPTIONS: { value: DatabaseType; label: string }[] = [
+  { value: "SQLSERVER", label: "SQL Server" },
+  { value: "POSTGRESQL", label: "PostgreSQL" },
+  { value: "MYSQL", label: "MySQL" },
+  { value: "ORACLE", label: "Oracle" },
+];
 
 interface Props {
   open: boolean;
-  server: ServerConfig | null;
+  server: SyncConnectionConfig | null;
   loading: boolean;
   onClose: () => void;
-  onSave: (data: ServerCreateRequest | ServerUpdateRequest) => void;
+  onSave: (data: SyncConnectionConfigRequest) => void;
 }
 
 export default function ServerFormModal({ open, server, loading, onClose, onSave }: Props) {
@@ -17,13 +24,13 @@ export default function ServerFormModal({ open, server, loading, onClose, onSave
   useEffect(() => {
     if (open && server) {
       form.setFieldsValue({
-        name: server.name,
         host: server.host,
+        databaseName: server.databaseName,
         port: server.port,
         username: server.username,
-        driver: server.driver,
-        trust_cert: server.trust_cert,
-        windows_auth: server.windows_auth,
+        databaseType: server.databaseType,
+        timeoutSeconds: server.timeoutSeconds,
+        active: server.active ?? true,
       });
     } else if (open) {
       form.resetFields();
@@ -33,7 +40,7 @@ export default function ServerFormModal({ open, server, loading, onClose, onSave
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
-      onSave(values);
+      onSave(values as SyncConnectionConfigRequest);
     } catch {
       // validation failed
     }
@@ -41,7 +48,7 @@ export default function ServerFormModal({ open, server, loading, onClose, onSave
 
   return (
     <Modal
-      title={isEdit ? "Sửa Server" : "Thêm Server"}
+      title={isEdit ? "Sửa kết nối Database" : "Thêm kết nối Database"}
       open={open}
       onOk={handleOk}
       onCancel={onClose}
@@ -51,48 +58,75 @@ export default function ServerFormModal({ open, server, loading, onClose, onSave
       width={520}
       destroyOnClose
     >
-      <Form form={form} layout="vertical" className="mt-4" initialValues={{ port: 1433, username: "sa", driver: "{ODBC Driver 18 for SQL Server}", trust_cert: true, windows_auth: false }}>
-        <Form.Item name="name" label="Tên Server" rules={[{ required: true, message: "Vui lòng nhập tên server" }]}>
-          <Input placeholder="VD: Production Server" />
-        </Form.Item>
-
-        <Form.Item name="host" label="Host / IP" rules={[{ required: true, message: "Vui lòng nhập host" }]}>
-          <Input placeholder="VD: 192.168.1.100 hoặc localhost\SQLEXPRESS" />
-        </Form.Item>
-
+      <Form
+        form={form}
+        layout="vertical"
+        className="mt-4"
+        initialValues={{ port: 1433, databaseType: "SQLSERVER", active: true }}
+      >
         <div className="flex gap-4">
-          <Form.Item name="port" label="Port" className="flex-1">
-            <InputNumber min={1} max={65535} className="w-full" />
+          <Form.Item
+            name="host"
+            label="Host / IP"
+            className="flex-1"
+            rules={[{ required: true, message: "Vui lòng nhập host" }]}
+          >
+            <Input placeholder="VD: 192.168.1.100 hoặc 118.70.151.69" />
           </Form.Item>
 
-          <Form.Item name="username" label="Username" className="flex-1">
-            <Input placeholder="sa" />
+          <Form.Item
+            name="port"
+            label="Port"
+            className="w-28"
+            rules={[{ required: true, message: "Nhập port" }]}
+          >
+            <InputNumber min={1} max={65535} className="w-full" />
           </Form.Item>
         </div>
 
         <Form.Item
-          name="password"
-          label="Password"
-          rules={isEdit ? [] : [{ required: true, message: "Vui lòng nhập password" }]}
+          name="databaseName"
+          label="Tên Database"
+          rules={[{ required: true, message: "Vui lòng nhập tên database" }]}
         >
-          <Input.Password placeholder={isEdit ? "Bỏ trống nếu không thay đổi" : "Nhập password"} />
+          <Input placeholder="VD: EFS_2022, vinacomin_db" />
         </Form.Item>
 
-        <Form.Item name="driver" label="ODBC Driver">
-          <Select
-            options={[
-              { value: "{ODBC Driver 18 for SQL Server}", label: "ODBC Driver 18" },
-              { value: "{ODBC Driver 17 for SQL Server}", label: "ODBC Driver 17" },
-            ]}
-          />
+        <div className="flex gap-4">
+          <Form.Item
+            name="username"
+            label="Username"
+            className="flex-1"
+            rules={[{ required: true, message: "Vui lòng nhập username" }]}
+          >
+            <Input placeholder="VD: sa, admin" />
+          </Form.Item>
+
+          <Form.Item
+            name="password"
+            label="Password"
+            className="flex-1"
+            rules={isEdit ? [] : [{ required: true, message: "Vui lòng nhập password" }]}
+          >
+            <Input.Password placeholder={isEdit ? "Bỏ trống nếu không thay đổi" : "Nhập password"} />
+          </Form.Item>
+        </div>
+
+        <Form.Item
+          name="databaseType"
+          label="Loại Database"
+          rules={[{ required: true, message: "Vui lòng chọn loại DB" }]}
+        >
+          <Select options={DATABASE_TYPE_OPTIONS} />
         </Form.Item>
 
         <div className="flex gap-8">
-          <Form.Item name="trust_cert" label="Trust Certificate" valuePropName="checked">
-            <Switch />
+          <Form.Item name="timeoutSeconds" label="Timeout (giây)">
+            <InputNumber min={1} max={86400} placeholder="VD: 30" className="w-full" />
+
           </Form.Item>
 
-          <Form.Item name="windows_auth" label="Windows Auth" valuePropName="checked">
+          <Form.Item name="active" label="Kích hoạt" valuePropName="checked">
             <Switch />
           </Form.Item>
         </div>

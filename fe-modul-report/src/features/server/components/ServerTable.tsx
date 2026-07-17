@@ -1,35 +1,46 @@
-import { Table, Tag, Button, Popconfirm, Space, Tooltip } from "antd";
-import { EditOutlined, DeleteOutlined, StarOutlined, StarFilled } from "@ant-design/icons";
-import type { ServerConfig, TestConnectionResult } from "../types/server";
-import TestConnectionButton from "./TestConnectionButton";
+import { Table, Tag, Button, Popconfirm, Space } from "antd";
+import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import type { SyncConnectionConfig } from "../types/server";
+
+const DB_TYPE_LABEL: Record<string, string> = {
+  SQLSERVER: "SQL Server",
+  POSTGRESQL: "PostgreSQL",
+  MYSQL: "MySQL",
+  ORACLE: "Oracle",
+};
 
 interface Props {
-  servers: ServerConfig[];
+  servers: SyncConnectionConfig[];
   loading: boolean;
-  onEdit: (server: ServerConfig) => void;
-  onDelete: (serverId: string) => void;
-  onSetDefault: (serverId: string) => void;
-  onTest: (serverId: string) => Promise<TestConnectionResult>;
+  onEdit: (server: SyncConnectionConfig) => void;
+  onDelete: (id: string) => void;
 }
 
-export default function ServerTable({ servers, loading, onEdit, onDelete, onSetDefault, onTest }: Props) {
+export default function ServerTable({ servers, loading, onEdit, onDelete }: Props) {
   const columns = [
     {
-      title: "Tên",
-      dataIndex: "name",
-      key: "name",
-      render: (name: string, record: ServerConfig) => (
-        <span className="font-medium">
-          {name}
-          {record.is_default && <Tag color="green" className="ml-2">Mặc định</Tag>}
+      title: "Host : Port",
+      key: "host",
+      render: (_: unknown, record: SyncConnectionConfig) => (
+        <span className="font-mono text-sm">
+          {record.host}:{record.port}
         </span>
       ),
     },
     {
-      title: "Host",
-      key: "host",
-      render: (_: unknown, record: ServerConfig) => (
-        <span className="font-mono text-sm">{record.host}:{record.port}</span>
+      title: "Database",
+      dataIndex: "databaseName",
+      key: "databaseName",
+      render: (name: string) => <span className="font-medium">{name}</span>,
+    },
+    {
+      title: "Loại DB",
+      dataIndex: "databaseType",
+      key: "databaseType",
+      render: (type: string) => (
+        <Tag>
+          {DB_TYPE_LABEL[type] ?? type}
+        </Tag>
       ),
     },
     {
@@ -38,48 +49,38 @@ export default function ServerTable({ servers, loading, onEdit, onDelete, onSetD
       key: "username",
     },
     {
-      title: "Driver",
-      dataIndex: "driver",
-      key: "driver",
-      render: (driver: string) => (
-        <Tag>{driver.replace(/[{}]/g, "")}</Tag>
-      ),
-    },
-    {
-      title: "Auth",
-      key: "auth",
-      render: (_: unknown, record: ServerConfig) => (
-        <Tag color={record.windows_auth ? "blue" : "default"}>
-          {record.windows_auth ? "Windows" : "SQL"}
+      title: "Trạng thái",
+      dataIndex: "active",
+      key: "active",
+      render: (active: boolean) => (
+        <Tag color={active === false ? "red" : "success"}>
+          {active === false ? "Tắt" : "Hoạt động"}
         </Tag>
       ),
     },
     {
       title: "Hành động",
       key: "actions",
-      width: 280,
-      render: (_: unknown, record: ServerConfig) => (
+      width: 140,
+      render: (_: unknown, record: SyncConnectionConfig) => (
         <Space size="small">
-          <TestConnectionButton serverId={record.id} onTest={onTest} />
-          {!record.is_default && (
-            <Tooltip title="Đặt làm mặc định">
-              <Button size="small" icon={<StarOutlined />} onClick={() => onSetDefault(record.id)} />
-            </Tooltip>
-          )}
-          {record.is_default && (
-            <Tooltip title="Server mặc định">
-              <Button size="small" icon={<StarFilled className="text-yellow-500" />} disabled />
-            </Tooltip>
-          )}
-          <Button size="small" icon={<EditOutlined />} onClick={() => onEdit(record)}>Sửa</Button>
+          <Button
+            size="small"
+            icon={<EditOutlined />}
+            onClick={() => onEdit(record)}
+          >
+            Sửa
+          </Button>
           <Popconfirm
-            title="Xoá server này?"
+            title="Xoá kết nối này?"
             description="Hành động không thể hoàn tác"
             onConfirm={() => onDelete(record.id)}
             okText="Xoá"
             cancelText="Huỷ"
           >
-            <Button size="small" danger icon={<DeleteOutlined />}>Xoá</Button>
+            <Button size="small" danger icon={<DeleteOutlined />}>
+              Xoá
+            </Button>
           </Popconfirm>
         </Space>
       ),
@@ -94,7 +95,7 @@ export default function ServerTable({ servers, loading, onEdit, onDelete, onSetD
       loading={loading}
       pagination={false}
       size="middle"
-      scroll={{ x: 800 }}
+      scroll={{ x: 700 }}
     />
   );
 }

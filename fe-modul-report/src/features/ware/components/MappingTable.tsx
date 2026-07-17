@@ -19,6 +19,11 @@ import { wareTemplateApi } from "../api/wareTemplateApi";
 import axiosClient from "../../../services/axiosClient";
 import { useExcelMapping } from "../../../features/excel-mapping/hooks/useExcelMapping";
 import { useAuthStore } from "../../../stores/authStore";
+<<<<<<< HEAD
+=======
+import { serverApi } from "../../server/api/serverApi";
+
+>>>>>>> 65c089d (feat: Thêm quản lý kết nối các server khác)
 
 // ---- Field type union (phải khớp với WareMappingRequest) ----
 type FieldType = "CELL" | "ROW" | "TEXT";
@@ -99,8 +104,8 @@ export const MappingTable: React.FC<{ templateId: number; onSyncSuccess?: () => 
 
   const fetchConnections = async () => {
     try {
-      const res = await axiosClient.get("/sync_connection_configs");
-      setConnections(res.data?.data || []);
+      const res = await serverApi.getAll();
+      setConnections(res.data || []);
     } catch (err) {
       console.error("Lấy danh sách kết nối thất bại", err);
     }
