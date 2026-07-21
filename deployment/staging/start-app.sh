@@ -12,8 +12,12 @@ if [ ! -f "$ENV_FILE" ]; then
   exit 1
 fi
 
-docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" down
-docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" pull
-nohup docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" up -d > deploy.log 2>&1 &
+TENANT=$(grep "^TENANT=" "$ENV_FILE" | cut -d= -f2)
+PROJECT_NAME="${TENANT:-tenant}_staging"
+echo "🚀 Deploying tenant: ${TENANT} (staging)"
+
+docker compose -p "$PROJECT_NAME" --env-file "$ENV_FILE" -f "$COMPOSE_FILE" down
+docker compose -p "$PROJECT_NAME" --env-file "$ENV_FILE" -f "$COMPOSE_FILE" pull
+nohup docker compose -p "$PROJECT_NAME" --env-file "$ENV_FILE" -f "$COMPOSE_FILE" up -d > deploy.log 2>&1 &
 docker image prune -f
-docker images
+docker images | grep "$TENANT"

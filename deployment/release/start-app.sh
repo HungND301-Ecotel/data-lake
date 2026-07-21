@@ -15,11 +15,12 @@ if [ ! -f "$ENV_FILE" ]; then
 fi
 
 TENANT=$(grep "^TENANT=" "$ENV_FILE" | cut -d= -f2)
+PROJECT_NAME="${TENANT:-tenant}_release"
 echo "🚀 Deploying tenant: ${TENANT} (release)"
 
-docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" down
-docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" pull
-nohup docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" up -d > deploy.log 2>&1 &
+docker compose -p "$PROJECT_NAME" --env-file "$ENV_FILE" -f "$COMPOSE_FILE" down
+docker compose -p "$PROJECT_NAME" --env-file "$ENV_FILE" -f "$COMPOSE_FILE" pull
+nohup docker compose -p "$PROJECT_NAME" --env-file "$ENV_FILE" -f "$COMPOSE_FILE" up -d > deploy.log 2>&1 &
 docker image prune -f
 docker images | grep "$TENANT"
 echo "✅ Deploy ${TENANT} (release) hoàn tất!"

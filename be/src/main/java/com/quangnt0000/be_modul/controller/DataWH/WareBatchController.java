@@ -6,9 +6,11 @@ import com.quangnt0000.be_modul.dto.WareBatch.WareBatchPush;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchRejectRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchSearch;
+import com.quangnt0000.be_modul.dto.WareBatch.WebBatchSubmitRequest;
 import com.quangnt0000.be_modul.dto.dashboard.DashboardRequest;
 import com.quangnt0000.be_modul.service.DataWH.WareBatchExcelService;
 import com.quangnt0000.be_modul.service.DataWH.WareBatchService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +27,11 @@ public class WareBatchController {
         return wareBatchService.addWareBatch(request);
     }
 
+    @PostMapping("/web-submit")
+    public ResponseEntity<?> addWebBatch(@Valid @RequestBody WebBatchSubmitRequest request) {
+        return wareBatchService.addWebBatch(request);
+    }
+
     @GetMapping("/all")
     public ResponseEntity<?> get(@RequestBody WareBatchSearch request) {
         return wareBatchService.get(request);
@@ -38,6 +45,11 @@ public class WareBatchController {
     @GetMapping("/{ware-batch-id}")
     public ResponseEntity<?> getDetail(@PathVariable("ware-batch-id") Integer wareBatchId) {
         return wareBatchService.getWareBatchDetail(wareBatchId);
+    }
+
+    @GetMapping("/{ware-batch-id}/web-data")
+    public ResponseEntity<?> getWebBatchData(@PathVariable("ware-batch-id") Integer wareBatchId) {
+        return wareBatchService.getWebBatchData(wareBatchId);
     }
 
     @PostMapping("/push")

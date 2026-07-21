@@ -18,7 +18,7 @@ name: Deploy Staging
 on:
   push:
     branches:
-      - dev
+      - dev/main
 
 env:
   WEBAPP_NAME: data-lake
@@ -30,9 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # tenant: [maokhe]
         tenant: [deonaicocsau]
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

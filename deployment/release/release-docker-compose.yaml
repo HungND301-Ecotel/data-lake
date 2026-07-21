@@ -7,6 +7,8 @@
 # Hoặc qua start-app.sh (script tự động đọc .env_tenant)
 # ============================================================
 
+name: ${TENANT}_release
+
 services:
   reverse_proxy_service:
     image: ${REGISTRY}/${TENANT}_reverse_proxy_img:${VERSION}

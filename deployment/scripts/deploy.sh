@@ -50,15 +50,15 @@ if [ -f "$TENANT_ENV_FILE" ]; then
 fi
 
 echo "[1/3] Dừng containers cũ..."
-docker compose --env-file "$TENANT_ENV_FILE" \
+docker compose -p "${TENANT}_${ENVIRONMENT}" --env-file "$TENANT_ENV_FILE" \
   -f "$COMPOSE_FILE" down
 
 echo "[2/3] Pull images mới..."
-docker compose --env-file "$TENANT_ENV_FILE" \
+docker compose -p "${TENANT}_${ENVIRONMENT}" --env-file "$TENANT_ENV_FILE" \
   -f "$COMPOSE_FILE" pull
 
 echo "[3/3] Khởi động containers..."
-docker compose --env-file "$TENANT_ENV_FILE" \
+docker compose -p "${TENANT}_${ENVIRONMENT}" --env-file "$TENANT_ENV_FILE" \
   -f "$COMPOSE_FILE" up -d
 
 docker image prune -f

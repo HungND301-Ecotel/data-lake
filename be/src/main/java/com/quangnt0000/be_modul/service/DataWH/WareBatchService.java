@@ -11,6 +11,10 @@ import com.quangnt0000.be_modul.dto.WareBatch.WareBatchRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchResponse;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchSearch;
 import com.quangnt0000.be_modul.dto.WareBatch.MyApprovalBatchResponse;
+import com.quangnt0000.be_modul.dto.WareBatch.WebBatchSubmitRequest;
+import com.quangnt0000.be_modul.dto.WareBatch.WebDataRowDto;
+import com.quangnt0000.be_modul.dto.ValidationErrorResponse;
+import com.quangnt0000.be_modul.dto.CellErrorDetail;
 import com.quangnt0000.be_modul.enums.WareBatchEnum;
 import com.quangnt0000.be_modul.modal.DataLake.User;
 import com.quangnt0000.be_modul.modal.DataWH.WareBatch;
@@ -87,14 +91,19 @@ public class WareBatchService {
                     .orElse("BUKRS");
 
             List<Map<String, Object>> rows = new ArrayList<>();
+            int consecutiveEmptyRows = 0;
+            final int MAX_EMPTY_ROWS = 20;
 
             for (int i = wareTemplate.getStartRow() - 1; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
-                if (row == null) break;
-
-                if (isRowEmpty(row, wareMappings)) {
-                    break;
+                if (row == null || isRowEmpty(row, wareMappings)) {
+                    consecutiveEmptyRows++;
+                    if (consecutiveEmptyRows >= MAX_EMPTY_ROWS) {
+                        break;
+                    }
+                    continue;
                 }
+                consecutiveEmptyRows = 0;
 
                 Map<String, Object> data = new HashMap<>();
                 String excelBukrs = null;
@@ -173,49 +182,179 @@ public class WareBatchService {
                     .filter(row -> !isDataRowEmpty(row))
                     .toList();
 
-            if (validRows.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("File báo cáo không có dữ liệu. Vui lòng kiểm tra và upload lại file.");
-            }
+            return saveBatchData(wareTemplate, user, request.getName(), request.getDescription(),
+                    request.getReportYear(), request.getReportMonth(), request.getReportDay(), validRows);
 
-            // Lưu WareBatch
-            WareBatch batch = wareBatchRepository.save(WareBatch.builder()
-                    .code("new")
-                    .name(request.getName())
-                    .description(request.getDescription())
-                    .employee(user.getEmployee())
-                    .wareTemplate(wareTemplate)
-                    .reportYear(request.getReportYear())
-                    .reportMonth(request.getReportMonth())
-                    .reportDay(request.getReportDay())
-                    .status(WareBatchEnum.Cho_Phe_Duyet)
-                    .build());
-
-            batch.setCode("BATCH" + batch.getId());
-
-            // Lưu các WareDataRow
-            List<WareDataRow> wareDataRows = new ArrayList<>();
-            for (Map<String, Object> dataRow : validRows) {
-                wareDataRows.add(WareDataRow.builder()
-                        .data(dataRow)
-                        .wareBatch(batch)
-                        .build());
-            }
-
-            wareDataRowRepository.saveAll(wareDataRows);
-
-            // File Excel gốc KHÔNG được lưu lên S3.
-            // Thay vào đó, dùng endpoint GET /wh-batch/{id}/export
-            // để generate lại Excel từ WareDataRow đã lưu trong DB.
-
-            // Khởi tạo approval workflow - tạo snapshot từ WareApprovalConfig
-            initializeApprovalWorkflow(batch);
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(batch.getId());
-
+        } catch (ResponseStatusException e) {
+            throw e;
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
+    }
+
+    @Transactional
+    public ResponseEntity<?> addWebBatch(WebBatchSubmitRequest request) {
+        WareTemplate wareTemplate = wareTemplateRepository.findById(request.getWareTemplateId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "template not found"));
+        String employeeId = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findById(employeeId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "user not found"));
+        List<WareMapping> wareMappings = wareTemplate.getWareMappings();
+
+        List<UserPush> userPushes = userPushRepository.findAll();
+        String configBukrs = (userPushes != null && !userPushes.isEmpty()) ? userPushes.get(0).getBukrs() : null;
+        boolean configHasBukrs = configBukrs != null && !configBukrs.trim().isEmpty();
+
+        boolean templateHasBukrsMapping = wareMappings.stream()
+                .anyMatch(m -> m.getFieldName().equalsIgnoreCase("BUKRS"));
+        String exactBukrsKey = wareMappings.stream()
+                .filter(m -> m.getFieldName().equalsIgnoreCase("BUKRS"))
+                .map(WareMapping::getFieldName)
+                .findFirst()
+                .orElse("BUKRS");
+
+        Map<String, Object> cellData = request.getCellData() != null ? request.getCellData() : Collections.emptyMap();
+        List<Map<String, Object>> rows = new ArrayList<>();
+
+        if (request.getRows() != null && !request.getRows().isEmpty()) {
+            for (WebDataRowDto rowDto : request.getRows()) {
+                Map<String, Object> rowValues = rowDto.getValues();
+                if (rowValues == null) continue;
+
+                Map<String, Object> data = new HashMap<>(cellData);
+                data.putAll(rowValues);
+
+                String webBukrs = null;
+                Object bukrsVal = data.get("BUKRS");
+                if (bukrsVal != null && !bukrsVal.toString().trim().isEmpty()) {
+                    webBukrs = bukrsVal.toString().trim();
+                }
+
+                String resolvedBukrs = null;
+                if (configHasBukrs) {
+                    resolvedBukrs = configBukrs;
+                } else if (webBukrs != null) {
+                    resolvedBukrs = webBukrs;
+                }
+
+                if (resolvedBukrs != null) {
+                    data.put(exactBukrsKey, resolvedBukrs);
+                    data.put("BUKRS", resolvedBukrs);
+                } else if (templateHasBukrsMapping) {
+                    throw new ResponseStatusException(
+                            HttpStatus.BAD_REQUEST,
+                            "Thiếu mã công ty (BUKRS). Vui lòng cấu hình BUKRS trong tài khoản TKV hoặc nhập trực tiếp trên Web Excel."
+                    );
+                }
+
+                rows.add(data);
+            }
+        } else if (!cellData.isEmpty()) {
+            Map<String, Object> data = new HashMap<>(cellData);
+            String webBukrs = null;
+            Object bukrsVal = data.get("BUKRS");
+            if (bukrsVal != null && !bukrsVal.toString().trim().isEmpty()) {
+                webBukrs = bukrsVal.toString().trim();
+            }
+
+            String resolvedBukrs = null;
+            if (configHasBukrs) {
+                resolvedBukrs = configBukrs;
+            } else if (webBukrs != null) {
+                resolvedBukrs = webBukrs;
+            }
+
+            if (resolvedBukrs != null) {
+                data.put(exactBukrsKey, resolvedBukrs);
+                data.put("BUKRS", resolvedBukrs);
+            } else if (templateHasBukrsMapping) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Thiếu mã công ty (BUKRS). Vui lòng cấu hình BUKRS trong tài khoản TKV hoặc nhập trực tiếp trên Web Excel."
+                );
+            }
+            rows.add(data);
+        }
+
+        List<Map<String, Object>> validRows = rows.stream()
+                .filter(row -> !isDataRowEmpty(row))
+                .toList();
+
+        return saveBatchData(wareTemplate, user, request.getName(), request.getDescription(),
+                request.getReportYear(), request.getReportMonth(), request.getReportDay(), validRows);
+    }
+
+    private ResponseEntity<?> saveBatchData(
+            WareTemplate wareTemplate,
+            User user,
+            String name,
+            String description,
+            Integer reportYear,
+            Integer reportMonth,
+            Integer reportDay,
+            List<Map<String, Object>> validRows
+    ) {
+        if (validRows.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Báo cáo không có dữ liệu. Vui lòng kiểm tra lại.");
+        }
+
+        WareBatch batch = wareBatchRepository.save(WareBatch.builder()
+                .code("new")
+                .name(name)
+                .description(description)
+                .employee(user.getEmployee())
+                .wareTemplate(wareTemplate)
+                .reportYear(reportYear)
+                .reportMonth(reportMonth)
+                .reportDay(reportDay)
+                .status(WareBatchEnum.Cho_Phe_Duyet)
+                .build());
+
+        batch.setCode("BATCH" + batch.getId());
+
+        List<WareDataRow> wareDataRows = new ArrayList<>();
+        for (Map<String, Object> dataRow : validRows) {
+            wareDataRows.add(WareDataRow.builder()
+                    .data(dataRow)
+                    .wareBatch(batch)
+                    .build());
+        }
+
+        wareDataRowRepository.saveAll(wareDataRows);
+
+        initializeApprovalWorkflow(batch);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(batch.getId());
+    }
+
+    public ResponseEntity<?> getWebBatchData(Integer wareBatchId) {
+        WareBatch wareBatch = wareBatchRepository.findById(wareBatchId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Batch không tồn tại"));
+
+        if (Boolean.TRUE.equals(wareBatch.getDeleted())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Batch đã bị xóa");
+        }
+
+        List<WareDataRow> rows = wareDataRowRepository.findByWareBatch_Id(wareBatchId);
+        List<Map<String, Object>> rowDataList = rows.stream()
+                .map(WareDataRow::getData)
+                .toList();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("batchId", wareBatch.getId());
+        response.put("batchCode", wareBatch.getCode());
+        response.put("batchName", wareBatch.getName());
+        response.put("description", wareBatch.getDescription());
+        response.put("templateId", wareBatch.getWareTemplate().getId());
+        response.put("templateName", wareBatch.getWareTemplate().getName());
+        response.put("reportYear", wareBatch.getReportYear());
+        response.put("reportMonth", wareBatch.getReportMonth());
+        response.put("reportDay", wareBatch.getReportDay());
+        response.put("status", wareBatch.getStatus());
+        response.put("rows", rowDataList);
+
+        return ResponseEntity.ok(response);
     }
 
 //    private boolean isRowEmpty(Row row, List<WareMapping> mappings) {

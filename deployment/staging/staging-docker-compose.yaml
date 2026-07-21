@@ -8,6 +8,8 @@
 #   ./deployment/scripts/deploy.sh deonaicocsau staging
 # ============================================================
 
+name: ${TENANT}_staging
+
 services:
   reverse_proxy_service:
     image: ${REGISTRY}/${TENANT}_reverse_proxy_img:${VERSION}
