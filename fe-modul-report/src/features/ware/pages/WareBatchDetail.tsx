@@ -421,7 +421,8 @@ export const WareBatchDetail: React.FC = () => {
 
   const formatVNDate = (iso?: string) => {
     if (!iso) return "-";
-    return new Date(iso + "Z").toLocaleString("vi-VN", {
+    const normalized = iso.endsWith("Z") || iso.includes("+") ? iso : iso + "+07:00";
+    return new Date(normalized).toLocaleString("vi-VN", {
       timeZone: "Asia/Ho_Chi_Minh",
       day: "2-digit",
       month: "2-digit",
