@@ -23,7 +23,7 @@ import { wareTemplateApi } from "../../../ware/api/wareTemplateApi";
 import type { WareTemplateResponse } from "../../../ware/types/wareTemplate";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
-  @ts-nocheck
+  //@ts-nocheck
 export interface ExcelFormTabProps {
   /** fileKey of the template Excel stored in MinIO/S3 */
   fileKey?: string;
