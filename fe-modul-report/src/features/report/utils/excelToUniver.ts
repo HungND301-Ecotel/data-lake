@@ -798,6 +798,9 @@ export function extractWebBatchSubmitPayload(
   templateName?: string,
   templateMappings?: any[],
   templateInfo?: { startRow?: number; name?: string },
+  fallbackYear?: number,
+  fallbackMonth?: number,
+  fallbackDay?: number,
 ): WebBatchSubmitPayload {
   const sheetId = snapshot.sheetOrder?.[0];
   const sheet = sheetId ? snapshot.sheets?.[sheetId] : null;
@@ -808,9 +811,9 @@ export function extractWebBatchSubmitPayload(
   const cellData: Record<string, any> = {};
   const rows: WebDataRowDto[] = [];
 
-  let reportYear = new Date().getFullYear();
-  let reportMonth = new Date().getMonth() + 1;
-  let reportDay = new Date().getDate();
+  let reportYear = fallbackYear;
+  let reportMonth = fallbackMonth;
+  let reportDay = fallbackDay;
 
   // Determine active key mappings and cell mappings from templateMappings
   let activeKeyMappings = keyMappings;
@@ -844,27 +847,64 @@ export function extractWebBatchSubmitPayload(
           if (rawV !== null) {
             let parsedV: any = rawV;
             const fTypeUpper = String(m.fieldValue || "").toUpperCase();
+            const fNameUpper = m.fieldName.toUpperCase();
             if (
               fTypeUpper === "INTEGER" ||
               fTypeUpper === "NUMBER" ||
               fTypeUpper === "DOUBLE" ||
-              m.fieldName.toUpperCase() === "YEAR" ||
-              m.fieldName.toUpperCase() === "PERIOD"
+              ["YEAR", "NAM", "PERIOD", "MONTH", "THANG", "QUY", "QUARTER", "DAY", "NGAY"].includes(fNameUpper)
             ) {
               const numV = Number(rawV);
               if (!isNaN(numV)) parsedV = numV;
             }
             cellData[m.fieldName] = parsedV;
 
-            if (m.fieldName.toUpperCase() === "YEAR") {
+            if (["YEAR", "NAM"].includes(fNameUpper)) {
               const y = Number(rawV);
               if (!isNaN(y)) reportYear = y;
-            } else if (
-              m.fieldName.toUpperCase() === "PERIOD" ||
-              m.fieldName.toUpperCase() === "MONTH"
-            ) {
-              const monthVal = Number(rawV);
-              if (!isNaN(monthVal)) reportMonth = monthVal;
+            } else if (["PERIOD", "MONTH", "THANG", "QUY", "QUARTER"].includes(fNameUpper)) {
+              const strVal = String(rawV).trim().toUpperCase();
+              
+              // Check the label cell to the left to detect if this field is a Quarter
+              let isLabelQuarter = false;
+              if (cIdx > 0) {
+                const labelCell = cellDataMap[rIdx]?.[cIdx - 1];
+                const labelVal = getCellValue(labelCell);
+                if (labelVal) {
+                  const labelStr = String(labelVal).toLowerCase();
+                  if (labelStr.includes("quý") || labelStr.includes("quarter")) {
+                    isLabelQuarter = true;
+                  }
+                }
+              }
+
+              const isQuarterValue = isLabelQuarter ||
+                                     ["QUY", "QUARTER"].includes(fNameUpper) ||
+                                     /^Q[1-4]$/.test(strVal) || 
+                                     /QUÝ|QUY/.test(strVal) || 
+                                     /^(I|II|III|IV)$/.test(strVal);
+
+              if (isQuarterValue) {
+                let qNum = parseInt(strVal.replace(/\D/g, ""), 10);
+                if (isNaN(qNum)) {
+                  if (strVal.includes("I") && !strVal.includes("V")) {
+                    if (strVal.includes("III")) qNum = 3;
+                    else if (strVal.includes("II")) qNum = 2;
+                    else qNum = 1;
+                  } else if (strVal.includes("IV")) {
+                    qNum = 4;
+                  }
+                }
+                if (qNum >= 1 && qNum <= 4) {
+                  reportMonth = qNum * 3; // Q1 -> month 3, etc.
+                }
+              } else {
+                const monthVal = Number(rawV);
+                if (!isNaN(monthVal)) reportMonth = monthVal;
+              }
+            } else if (["DAY", "NGAY"].includes(fNameUpper)) {
+              const d = Number(rawV);
+              if (!isNaN(d)) reportDay = d;
             }
           }
         }
@@ -888,8 +928,8 @@ export function extractWebBatchSubmitPayload(
     computedStartRow = maxCellRow + 1;
   }
 
-  // Fallback scan for BUKRS / YEAR / PERIOD if not extracted by CELL mappings
-  if (!cellData["BUKRS"] || !cellData["YEAR"] || !cellData["PERIOD"]) {
+  // Fallback scan for BUKRS / YEAR / PERIOD / DAY / QUARTER if not extracted by CELL mappings
+  if (!cellData["BUKRS"] || !cellData["YEAR"] || !cellData["PERIOD"] || !cellData["DAY"]) {
     for (let r = 0; r < computedStartRow; r++) {
       const rowObj = cellDataMap[r];
       if (!rowObj) continue;
@@ -901,12 +941,14 @@ export function extractWebBatchSubmitPayload(
         const valV = getCellValue(cell);
         if (valV === null) return;
 
-        const valStr = String(valV).trim();
+        // Clean cell text by trimming and removing trailing colon
+        const valStr = String(valV).trim().replace(/:$/, "").trim();
+        const valLower = valStr.toLowerCase();
         const valUpper = valStr.toUpperCase();
 
         if (
           !cellData["BUKRS"] &&
-          (valUpper === "BUKRS" || valStr.toLowerCase() === "mã công ty")
+          (valUpper === "BUKRS" || valLower === "mã công ty" || valLower === "ma cong ty")
         ) {
           const nextCell = rowObj[c + 1] || cellDataMap[r + 1]?.[c];
           const nextVal = getCellValue(nextCell);
@@ -915,7 +957,7 @@ export function extractWebBatchSubmitPayload(
           }
         } else if (
           !cellData["YEAR"] &&
-          (valUpper === "YEAR" || valStr.toLowerCase() === "năm")
+          (valUpper === "YEAR" || valLower === "năm" || valLower === "nam")
         ) {
           const nextCell = rowObj[c + 1] || cellDataMap[r + 1]?.[c];
           const nextVal = getCellValue(nextCell);
@@ -929,8 +971,11 @@ export function extractWebBatchSubmitPayload(
         } else if (
           !cellData["PERIOD"] &&
           (valUpper === "PERIOD" ||
-            valStr.toLowerCase() === "tháng" ||
-            valStr.toLowerCase() === "kỳ")
+            valUpper === "MONTH" ||
+            valLower === "tháng" ||
+            valLower === "thang" ||
+            valLower === "kỳ" ||
+            valLower === "ky")
         ) {
           const nextCell = rowObj[c + 1] || cellDataMap[r + 1]?.[c];
           const nextVal = getCellValue(nextCell);
@@ -939,6 +984,42 @@ export function extractWebBatchSubmitPayload(
             if (!isNaN(m)) {
               cellData["PERIOD"] = m;
               reportMonth = m;
+            }
+          }
+        } else if (
+          !cellData["DAY"] &&
+          (valUpper === "DAY" || valLower === "ngày" || valLower === "ngay")
+        ) {
+          const nextCell = rowObj[c + 1] || cellDataMap[r + 1]?.[c];
+          const nextVal = getCellValue(nextCell);
+          if (nextVal !== null) {
+            const d = Number(nextVal);
+            if (!isNaN(d)) {
+              cellData["DAY"] = d;
+              reportDay = d;
+            }
+          }
+        } else if (
+          !cellData["QUARTER"] &&
+          (valUpper === "QUARTER" || valLower === "quý" || valLower === "quy")
+        ) {
+          const nextCell = rowObj[c + 1] || cellDataMap[r + 1]?.[c];
+          const nextVal = getCellValue(nextCell);
+          if (nextVal !== null) {
+            const qStr = String(nextVal).trim().toUpperCase();
+            cellData["QUARTER"] = qStr;
+            let qNum = parseInt(qStr.replace(/\D/g, ""), 10);
+            if (isNaN(qNum)) {
+              if (qStr.includes("I") && !qStr.includes("V")) {
+                if (qStr.includes("III")) qNum = 3;
+                else if (qStr.includes("II")) qNum = 2;
+                else qNum = 1;
+              } else if (qStr.includes("IV")) {
+                qNum = 4;
+              }
+            }
+            if (qNum >= 1 && qNum <= 4) {
+              reportMonth = qNum * 3; // Q1 -> month 3, Q2 -> month 6, Q3 -> month 9, Q4 -> month 12
             }
           }
         }

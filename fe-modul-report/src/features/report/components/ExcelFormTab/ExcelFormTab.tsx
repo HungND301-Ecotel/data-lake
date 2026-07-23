@@ -184,16 +184,20 @@ const ExcelFormTab: React.FC<ExcelFormTabProps> = ({
     try {
       setSubmitting(true);
 
-      // Force blur on currently active cell editor DOM element so UniversJS commits active typing into cell model
-      if (document.activeElement instanceof HTMLElement) {
-        document.activeElement.blur();
-      }
-
-      // Small delay for UniversJS event loop to commit active cell edit into workbook model
-      await new Promise((resolve) => setTimeout(resolve, 60));
-
       const univerAPI = univerRef.current;
       const workbook = univerAPI.getActiveWorkbook();
+
+      // Programmatically end and commit the current cell edit in UniversJS
+      if (workbook && typeof workbook.endEditingAsync === "function") {
+        await workbook.endEditingAsync(true);
+      } else {
+        // Fallback: Force blur on currently active cell editor DOM element
+        if (document.activeElement instanceof HTMLElement) {
+          document.activeElement.blur();
+        }
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+
       const snapshot = workbook.save(); // returns IWorkbookData
 
       // Extract simple rows and full WebBatchSubmitPayload using templateMappings & templateInfo
@@ -267,6 +271,8 @@ const ExcelFormTab: React.FC<ExcelFormTabProps> = ({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       {contextHolder}
+
+
 
       {/* ── Action bar ── */}
       <div
