@@ -100,4 +100,41 @@ export const wareBatchApi = {
     });
     return res.data;
   },
+
+  saveWebSubmitPayload: async (
+    payload: any
+  ): Promise<any> => {
+    const res = await axiosClient.post(`/wh-batch/web-submit`, payload);
+    return res.data;
+  },
+
+  saveDataRows: async (
+    wareTemplateId: number,
+    rows: Record<string, any>[]
+  ): Promise<any> => {
+    let reportYear: number | undefined = undefined;
+    let reportMonth: number | undefined = undefined;
+
+    const firstRowWithMeta = rows.find((r) => r.YEAR || r.PERIOD);
+    if (firstRowWithMeta) {
+      if (firstRowWithMeta.YEAR) reportYear = Number(firstRowWithMeta.YEAR);
+      if (firstRowWithMeta.PERIOD) reportMonth = Number(firstRowWithMeta.PERIOD);
+    }
+
+    const payload = {
+      wareTemplateId,
+      name: `Báo cáo Web Excel - ${new Date().toLocaleDateString("vi-VN")}`,
+      description: "Dữ liệu nhập từ UniversJS Web Excel",
+      reportYear: reportYear ?? new Date().getFullYear(),
+      reportMonth: reportMonth ?? new Date().getMonth() + 1,
+      cellData: {},
+      rows: rows.map((values, index) => ({
+        rowIndex: index + 1,
+        values,
+      })),
+    };
+
+    const res = await axiosClient.post(`/wh-batch/web-submit`, payload);
+    return res.data;
+  },
 };

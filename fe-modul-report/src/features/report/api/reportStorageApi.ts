@@ -30,5 +30,21 @@ export const reportStorageApi = {
     return res.data;
   },
 
+  /**
+   * Gửi dữ liệu nhập tay (từ form Excel UniversJS) lên BE để lưu.
+   * Body: { reportCategoryId, reportTemplateId, rows: Array<Record<string, any>> }
+   */
+  saveDataRows: async (
+    reportCategoryId: string,
+    reportTemplateId: string,
+    rows: Record<string, any>[]
+  ): Promise<string> => {
+    const res = await axiosClient.post("/report-storage/data-rows", {
+      reportCategoryId,
+      reportTemplateId,
+      rows,
+    });
+    return res.data;
+  },
 
 };

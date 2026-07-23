@@ -11,7 +11,9 @@ import {
   Tooltip,
   Card,
   Tag,
+  Tabs,
 } from "antd";
+import ExcelFormTab from "../../report/components/ExcelFormTab/ExcelFormTab";
 import type { UploadFile } from "antd/es/upload/interface";
 import type { ColumnsType } from "antd/es/table";
 import type {
@@ -36,6 +38,7 @@ import {
   AppstoreOutlined,
   RightOutlined,
   DownloadOutlined,
+  FileExcelOutlined,
 } from "@ant-design/icons";
 import { Select } from "antd";
 import { wareTemplateApi } from "../api/wareTemplateApi";
@@ -88,6 +91,7 @@ export const WareBatch: React.FC<WareBatchProps> = ({ templateIdProp }) => {
   const [templateName, setTemplateName] = useState<string>("");
   const [downloadingTemplateId, setDownloadingTemplateId] = useState<number | null>(null);
   const [downloadingFileId, setDownloadingFileId] = useState<number | null>(null);
+  const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
 
   const fetchTemplateName = async () => {
     if (resolvedTemplateId) {
@@ -480,6 +484,15 @@ export const WareBatch: React.FC<WareBatchProps> = ({ templateIdProp }) => {
           >
             Thêm dữ liệu
           </Button>
+          <Button
+            type="primary"
+            size="large"
+            icon={<FileExcelOutlined />}
+            onClick={() => setIsExcelModalOpen(true)}
+            className="bg-emerald-600! hover:bg-emerald-700! h-10 px-6"
+          >
+            Nhập theo form Excel
+          </Button>
         </div>
       </Card>
 
@@ -580,14 +593,15 @@ export const WareBatch: React.FC<WareBatchProps> = ({ templateIdProp }) => {
         )}
       </Card>
 
+      {/* ── Modal 1: Upload File Excel ── */}
       <Modal
         title={
           <div className="flex items-center gap-3 pb-3 border-b">
-            <div className="w-10 h-10 flex items-center justify-center bg-green-100">
+            <div className="w-10 h-10 flex items-center justify-center bg-green-100 rounded-lg">
               <PlusOutlined className="text-green-600 text-lg" />
             </div>
             <div className="text-lg font-semibold text-gray-800">
-              Thêm Batch
+              Thêm Batch {templateName ? `— ${templateName}` : ""}
             </div>
           </div>
         }
@@ -721,6 +735,55 @@ export const WareBatch: React.FC<WareBatchProps> = ({ templateIdProp }) => {
             </Upload>
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* ── Modal 2: Nhập theo form Excel (UniversJS) ── */}
+      <Modal
+        title={
+          <div className="flex items-center gap-3 pb-3 border-b">
+            <div className="w-10 h-10 flex items-center justify-center bg-emerald-100 rounded-lg">
+              <FileExcelOutlined className="text-emerald-600 text-lg" />
+            </div>
+            <div className="text-lg font-semibold text-gray-800">
+              Nhập theo form Excel {templateName ? `— ${templateName}` : ""}
+            </div>
+          </div>
+        }
+        open={isExcelModalOpen}
+        onCancel={() => setIsExcelModalOpen(false)}
+        width="96vw"
+        style={{ top: 10, maxWidth: "98vw" }}
+        styles={{
+          body: {
+            padding: "8px 12px 16px",
+            height: "calc(90vh - 40px)",
+            overflow: "hidden",
+          },
+        }}
+        footer={null}
+      >
+        {resolvedTemplateId ? (
+          <ExcelFormTab
+            key={resolvedTemplateId}
+            fetchBlob={() => wareTemplateApi.exportTemplateExcel(resolvedTemplateId)}
+            reportTemplateId={resolvedTemplateId}
+            onSubmitRows={async (rows, payload) => {
+              if (payload) {
+                await wareBatchApi.saveWebSubmitPayload(payload);
+              } else {
+                await wareBatchApi.saveDataRows(resolvedTemplateId, rows);
+              }
+            }}
+            onSuccess={() => {
+              setIsExcelModalOpen(false);
+              fetchBatches();
+            }}
+          />
+        ) : (
+          <div className="p-8 text-center text-gray-400">
+            Không tìm thấy template ID
+          </div>
+        )}
       </Modal>
 
       <style>{`
