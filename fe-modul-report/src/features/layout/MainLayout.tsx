@@ -6,7 +6,7 @@ const MainLayout = () => {
   return (
     <div className="min-h-screen relative">
       <Header />
-      <div className="sticky top-0 w-full z-10">
+      <div className="sticky top-0 w-full z-50">
         <NavBar />
       </div>
 
