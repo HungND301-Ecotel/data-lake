@@ -9,6 +9,8 @@ export interface SyncConnectionConfig {
   timeoutSeconds?: number;
   active?: boolean;
   databaseType: DatabaseType;
+  name?: string;
+  is_default?: boolean;
 }
 
 export interface SyncConnectionConfigRequest {
@@ -20,4 +22,10 @@ export interface SyncConnectionConfigRequest {
   timeoutSeconds?: number;
   active?: boolean;
   databaseType: DatabaseType;
+}
+
+export interface TestConnectionResult {
+  success: boolean;
+  message: string;
+  databases: string[];
 }

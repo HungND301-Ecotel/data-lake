@@ -11,7 +11,6 @@ import {
   Tooltip,
   Card,
   Tag,
-  Tabs,
 } from "antd";
 import ExcelFormTab from "../../report/components/ExcelFormTab/ExcelFormTab";
 import type { UploadFile } from "antd/es/upload/interface";

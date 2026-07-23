@@ -173,7 +173,7 @@ const AiChatPage: React.FC = () => {
                 }}
                 options={servers.map((s) => ({
                   value: s.id,
-                  label: `${s.name} (${s.host})`,
+                  label: `${s.databaseName || s.name || ""} (${s.host})`,
                 }))}
               />
               <Select

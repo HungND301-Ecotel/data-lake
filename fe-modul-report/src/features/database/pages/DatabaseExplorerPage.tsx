@@ -67,7 +67,7 @@ export default function DatabaseExplorerPage() {
                 onChange={handleServerChange}
                 options={servers.map((s) => ({
                   value: s.id,
-                  label: `${s.name} (${s.host})`,
+                  label: `${s.databaseName || s.name || ""} (${s.host})`,
                 }))}
                 defaultValue={servers.find((s) => s.is_default)?.id}
               />

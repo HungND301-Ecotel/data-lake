@@ -76,60 +76,7 @@ const flattenTargetReports = (depts: DepartmentTargetResponse[]) => {
     : PRODUCTION_TABLE_FALLBACK;
 };
 
-const WORKER_TABLE = [
-  {
-    nhanluc: "Phó QĐ trực ca",
-    o: 1,
-    f: 0,
-    tt: "",
-    tLo: 29,
-    dien: 15,
-    co: 7,
-    bch: 3,
-    tLoVang: 3,
-    cdienVang: 0,
-    hl: "amber",
-  },
-  {
-    nhanluc: "Thợ lò",
-    o: 32,
-    f: 1,
-    tt: "",
-    tLo: 29,
-    dien: "",
-    co: "",
-    bch: "",
-    tLoVang: 3,
-    cdienVang: "",
-    hl: "blue",
-  },
-  {
-    nhanluc: "Cơ điện",
-    o: 15,
-    f: "",
-    tt: "",
-    tLo: "",
-    dien: 15,
-    co: "",
-    bch: "",
-    tLoVang: "",
-    cdienVang: 0,
-    hl: "green",
-  },
-  {
-    nhanluc: "BCH, Phục vụ",
-    o: "",
-    f: "F:1",
-    tt: "",
-    tLo: "",
-    dien: "",
-    co: 7,
-    bch: "",
-    tLoVang: "",
-    cdienVang: "",
-    hl: "",
-  },
-];
+
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 const fmtNum = (n: any) =>
@@ -199,7 +146,7 @@ export default function DashboardPage() {
   const [syncing, setSyncing] = useState(false);
   const [showSetupModal, setShowSetupModal] = useState(false);
 
-  const [departments, setDepartments] = useState<string[]>(["Tất cả"]);
+
   const [realDepts, setRealDepts] = useState<DepartmentResponse[]>([]);
 
   const [_batches, setBatches] = useState([
@@ -255,7 +202,6 @@ export default function DashboardPage() {
       .then((res) => {
         if (res && res.content) {
           setRealDepts(res.content);
-          setDepartments(["Tất cả", ...res.content.map((d) => d.name)]);
           setTotalDepartmentsCount(res.totalElements ?? res.content.length);
         }
       })

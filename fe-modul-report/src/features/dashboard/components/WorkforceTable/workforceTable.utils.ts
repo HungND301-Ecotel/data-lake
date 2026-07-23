@@ -22,7 +22,7 @@ export interface FlatWorkforceRow extends Omit<
 
 export function sumRowNumbers(
   row: WorkforceRow,
-): Omit<WorkforceCaRow, "shiftName"> {
+): Omit<WorkforceCaRow, "shiftName"> & { tongNhanLuc: number } {
   const result = {
     tongNhanLuc: 0,
     diLamTong: 0,

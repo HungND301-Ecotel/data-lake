@@ -38,7 +38,7 @@ interface Props {
   selectedDate?: string;
 }
 
-export function ProductionPivotSection({ targetData, selectedDate }: Props) {
+export function ProductionPivotSection({ selectedDate }: Props) {
   const [selectedChiTieu, setSelectedChiTieu] =
     useState<string>("Than NK sản xuất");
 
