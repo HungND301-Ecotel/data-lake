@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TrendingUp, X } from "lucide-react";
+import { TrendingUp, Activity, X } from "lucide-react";
 import dayjs, { Dayjs } from "dayjs";
 import { Tabs } from "antd";
 import { InitPlan } from "./InitPlan";
@@ -8,12 +8,15 @@ import { TargetSummary } from "./TargetSummary";
 
 interface PlanModalProps {
   onClose: () => void;
+  mode?: "plan" | "operation";
   onAddBatch?: (newBatch: any) => void;
 }
 
-export function PlanModal({ onClose }: PlanModalProps) {
+export function PlanModal({ onClose, mode = "plan" }: PlanModalProps) {
   const [selectedWorkshop, setSelectedWorkshop] = useState("");
   const [selectedPeriod, setSelectedPeriod] = useState<Dayjs>(dayjs());
+
+  const isOperation = mode === "operation";
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4 md:p-6">
@@ -21,15 +24,23 @@ export function PlanModal({ onClose }: PlanModalProps) {
         {/* Header */}
         <div className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center shrink-0 relative">
           <div className="flex items-center gap-3 z-10">
-            <div className="w-10 h-10 rounded-xl bg-[#1a8649]/10 text-[#1a8649] flex items-center justify-center">
-              <TrendingUp size={22} />
+            <div
+              className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                isOperation
+                  ? "bg-blue-50 text-blue-600"
+                  : "bg-[#1a8649]/10 text-[#1a8649]"
+              }`}
+            >
+              {isOperation ? <Activity size={22} /> : <TrendingUp size={22} />}
             </div>
             <div>
               <h1 className="text-base font-bold text-slate-800 tracking-tight leading-none uppercase">
-                LẬP KẾ HOẠCH SẢN XUẤT
+                {isOperation ? "ĐIỀU HÀNH SẢN XUẤT" : "LẬP KẾ HOẠCH SẢN XUẤT"}
               </h1>
               <span className="text-xs text-slate-500 font-medium mt-1 inline-block">
-                Hệ thống Quản lý Sản xuất & Theo dõi Phân xưởng
+                {isOperation
+                  ? "Nhật trình dữ liệu sản xuất ngày & Báo cáo tổng quan"
+                  : "Tạo chỉ tiêu và lập kế hoạch sản xuất các phân xưởng"}
               </span>
             </div>
           </div>
@@ -72,60 +83,53 @@ export function PlanModal({ onClose }: PlanModalProps) {
             }
             /* Custom active color */
             .custom-planning-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
-              color: #1a8649 !important;
+              color: ${isOperation ? "#0284c7" : "#1a8649"} !important;
               font-weight: 700;
             }
             .custom-planning-tabs .ant-tabs-tab:hover {
-              color: #15703d !important;
+              color: ${isOperation ? "#0369a1" : "#15703d"} !important;
             }
             .custom-planning-tabs .ant-tabs-ink-bar {
-              background: #1a8649 !important;
+              background: ${isOperation ? "#0284c7" : "#1a8649"} !important;
               height: 3px !important;
             }
           `}</style>
-          <Tabs
-            defaultActiveKey="1"
-            className="custom-planning-tabs"
-            items={[
-              {
-                key: "1",
-                label: (
-                  <span className="text-xs font-semibold px-2">
-                    Tạo chỉ tiêu
-                  </span>
-                ),
-                children: (
-                  <InitPlan
-                    selectedWorkshop={selectedWorkshop}
-                    selectedPeriod={selectedPeriod}
-                    onWorkshopChange={setSelectedWorkshop}
-                    onPeriodChange={setSelectedPeriod}
-                  />
-                ),
-              },
-              {
-                key: "2",
-                label: (
-                  <span className="text-xs font-semibold px-2">
-                    Điền dữ liệu theo ngày
-                  </span>
-                ),
-                children: (
-                  <TargetMonthCalendar
-                    selectedWorkshop={selectedWorkshop}
-                    selectedPeriod={selectedPeriod}
-                  />
-                ),
-              },
-              {
-                key: "3",
-                label: (
-                  <span className="text-xs font-semibold px-2">Tổng quan</span>
-                ),
-                children: <TargetSummary selectedPeriod={selectedPeriod} />,
-              },
-            ]}
-          />
+          {isOperation ? (
+            <Tabs
+              defaultActiveKey="1"
+              className="custom-planning-tabs"
+              items={[
+                {
+                  key: "1",
+                  label: (
+                    <span className="text-xs font-semibold px-2">
+                      Điền dữ liệu theo ngày
+                    </span>
+                  ),
+                  children: (
+                    <TargetMonthCalendar
+                      selectedWorkshop={selectedWorkshop}
+                      selectedPeriod={selectedPeriod}
+                    />
+                  ),
+                },
+                {
+                  key: "2",
+                  label: (
+                    <span className="text-xs font-semibold px-2">Tổng quan</span>
+                  ),
+                  children: <TargetSummary selectedPeriod={selectedPeriod} />,
+                },
+              ]}
+            />
+          ) : (
+            <InitPlan
+              selectedWorkshop={selectedWorkshop}
+              selectedPeriod={selectedPeriod}
+              onWorkshopChange={setSelectedWorkshop}
+              onPeriodChange={setSelectedPeriod}
+            />
+          )}
         </div>
 
         {/* Footer */}

@@ -240,15 +240,48 @@ export default function PivotGrid({
     return rows;
   };
 
+  // Build column grouped structure (for multi-level column headers)
+  const colGroupsInfo = React.useMemo(() => {
+    const groups: { parent: string; children: { fullKey: string; leaf: string }[] }[] = [];
+    let currentGroup: { parent: string; children: { fullKey: string; leaf: string }[] } | null = null;
+    let hasMultiLevel = false;
+
+    for (const ck of columnKeys) {
+      const idx = ck.indexOf(SEP);
+      if (idx !== -1) {
+        hasMultiLevel = true;
+        const parent = ck.slice(0, idx);
+        const leaf = ck.slice(idx + SEP.length);
+
+        if (!currentGroup || currentGroup.parent !== parent) {
+          currentGroup = { parent, children: [] };
+          groups.push(currentGroup);
+        }
+        currentGroup.children.push({ fullKey: ck, leaf });
+      } else {
+        if (!currentGroup || currentGroup.parent !== "") {
+          currentGroup = { parent: "", children: [] };
+          groups.push(currentGroup);
+        }
+        currentGroup.children.push({ fullKey: ck, leaf: ck });
+      }
+    }
+
+    return { groups, hasMultiLevel };
+  }, [columnKeys]);
+
+  const totalHeaderRows =
+    (colGroupsInfo.hasMultiLevel ? 1 : 0) + (isMultiValue ? 1 : 0) + 1;
+
   return (
     <div className="overflow-auto" style={{ maxHeight }}>
       <table className="w-full border-collapse text-left min-w-max">
         <thead className="sticky top-0 z-10 select-none">
-          {/* Row 1: Column group headers */}
+          {/* Row 1: Top level headers (Parent Column Groups or Column Keys) */}
           <tr className="bg-slate-50 border-b border-slate-200">
             <th
               className="px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider border-r border-slate-200 bg-slate-50 sticky left-0 z-20 min-w-[220px]"
-              rowSpan={isMultiValue ? 2 : 1}
+              rowSpan={totalHeaderRows}
             >
               <div
                 className={`flex items-center gap-1 ${onSort ? "cursor-pointer hover:text-slate-800" : ""}`}
@@ -265,25 +298,53 @@ export default function PivotGrid({
               </div>
             </th>
 
-            {columnKeys.map((ck) => (
-              <th
-                key={ck}
-                colSpan={valueFields.length}
-                className="px-3 py-2.5 text-[11px] font-semibold text-slate-600 uppercase tracking-wider text-center border-x border-slate-100 bg-slate-50"
-              >
-                {ck}
-              </th>
-            ))}
+            {colGroupsInfo.hasMultiLevel
+              ? colGroupsInfo.groups.map((group) => (
+                  <th
+                    key={`parent-${group.parent}`}
+                    colSpan={group.children.length * valueFields.length}
+                    className="px-3 py-2 text-[11px] font-bold text-slate-700 uppercase tracking-wider text-center border-x border-slate-200 bg-slate-100/90"
+                  >
+                    {group.parent}
+                  </th>
+                ))
+              : columnKeys.map((ck) => (
+                  <th
+                    key={ck}
+                    colSpan={valueFields.length}
+                    className="px-3 py-2.5 text-[11px] font-semibold text-slate-600 uppercase tracking-wider text-center border-x border-slate-100 bg-slate-50"
+                  >
+                    {ck}
+                  </th>
+                ))}
 
             <th
               colSpan={valueFields.length}
+              rowSpan={colGroupsInfo.hasMultiLevel && !isMultiValue ? 2 : 1}
               className="px-3 py-2.5 text-[11px] font-semibold text-slate-700 uppercase tracking-wider text-center bg-slate-100 border-l border-slate-200"
             >
               {aggMeta.header}
             </th>
           </tr>
 
-          {/* Row 2: Value sub-headers (multi-value only) */}
+          {/* Row 2: Level 2 Column Headers (if multi-level) */}
+          {colGroupsInfo.hasMultiLevel && (
+            <tr className="bg-slate-50/90 border-b border-slate-200">
+              {colGroupsInfo.groups.map((group) =>
+                group.children.map((child) => (
+                  <th
+                    key={child.fullKey}
+                    colSpan={valueFields.length}
+                    className="px-3 py-2 text-[11px] font-semibold text-slate-600 uppercase tracking-wider text-center border-r border-slate-100 bg-slate-50/60"
+                  >
+                    {child.leaf}
+                  </th>
+                )),
+              )}
+            </tr>
+          )}
+
+          {/* Value sub-headers (multi-value only) */}
           {isMultiValue && (
             <tr className="bg-slate-50/80 border-b border-slate-200">
               {columnKeys.map((ck) =>

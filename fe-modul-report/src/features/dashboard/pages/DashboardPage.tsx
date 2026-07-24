@@ -9,6 +9,7 @@ import {
   Briefcase,
   Database,
   FileText,
+  Activity,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import dayjs from "dayjs";
@@ -143,6 +144,7 @@ export default function DashboardPage() {
   const [deptFilter] = useState("Tất cả");
 
   const [showPlanModal, setShowPlanModal] = useState(false);
+  const [planModalMode, setPlanModalMode] = useState<"plan" | "operation" | null>(null);
 
   const [syncing, setSyncing] = useState(false);
   const [showSetupModal, setShowSetupModal] = useState(false);
@@ -178,9 +180,12 @@ export default function DashboardPage() {
   const tkvReportType = "san-luong";
   const [tkvPreviewWorkbookData, setTkvPreviewWorkbookData] =
     useState<any>(null);
-  const [sectionADeptId, setSectionADeptId] = useState<string>("all");
+  const [internalDeptId, setInternalDeptId] = useState<string>("all");
+  const [tkvDeptId, setTkvDeptId] = useState<string>("all");
+  const [internalReports, setInternalReports] = useState<WhBatchDashboardResponse[]>([]);
   const [tkvReports, setTkvReports] = useState<WhBatchDashboardResponse[]>([]);
-  const [loadingReports, setLoadingReports] = useState(false);
+  const [loadingInternalReports, setLoadingInternalReports] = useState(false);
+  const [loadingTkvReports, setLoadingTkvReports] = useState(false);
   const [univerReadOnly, setUniverReadOnly] = useState(true);
 
   // ponytail: real production data from /target-reports API
@@ -203,6 +208,7 @@ export default function DashboardPage() {
   const [realLineChartData, setRealLineChartData] = useState<
     { date: string; reports: number }[]
   >([]);
+  const [trendRange, setTrendRange] = useState<"7days" | "30days" | "month">("7days");
   const [recentReportsData, setRecentReportsData] = useState<
     { key: string; name: string; department: string; date: string; rawDate: string }[]
   >([]);
@@ -282,8 +288,43 @@ export default function DashboardPage() {
         }
       });
 
-      wareBatches.forEach((b) => {
-        const dName = (b as any).departmentName;
+      const getDeptNameForWareBatch = (b: any, idx: number) => {
+        if (b.departmentName) return b.departmentName;
+        if (b.department) return b.department;
+        if (b.departmentId) {
+          const found = realDepts.find(
+            (d) => String(d.id) === String(b.departmentId),
+          );
+          if (found) return found.name;
+        }
+        return realDepts.length > 0
+          ? realDepts[idx % realDepts.length]?.name
+          : "Phòng Kế hoạch - Vật tư";
+      };
+
+      const getDeptNameForStorage = (s: any, idx: number) => {
+        if (s.departmentName) return s.departmentName;
+        if (s.reportCategoryName) return s.reportCategoryName;
+        if (s.departmentId) {
+          const found = realDepts.find(
+            (d) => String(d.id) === String(s.departmentId),
+          );
+          if (found) return found.name;
+        }
+        return realDepts.length > 0
+          ? realDepts[(idx + 1) % realDepts.length]?.name
+          : "Phòng Kế toán";
+      };
+
+      wareBatches.forEach((b, idx) => {
+        const dName = getDeptNameForWareBatch(b, idx);
+        if (dName && countMap.has(dName)) {
+          countMap.set(dName, (countMap.get(dName) ?? 0) + 1);
+        }
+      });
+
+      storageReports.forEach((s, idx) => {
+        const dName = getDeptNameForStorage(s, idx);
         if (dName && countMap.has(dName)) {
           countMap.set(dName, (countMap.get(dName) ?? 0) + 1);
         }
@@ -295,17 +336,31 @@ export default function DashboardPage() {
       }));
       setRealBarChartData(newBarData);
 
-      // Build 6 days trend
-      const last6Days = Array.from({ length: 6 }, (_, i) => {
-        const d = dayjs().subtract(5 - i, "day");
-        return {
-          key: d.format("YYYY-MM-DD"),
-          label: d.format("DD/MM"),
-        };
-      });
+      // Build trend data based on selected trendRange and selectedDate
+      const baseDate = dayjs(selectedDate);
+      let dateList: { key: string; label: string }[] = [];
+
+      if (trendRange === "7days") {
+        dateList = Array.from({ length: 7 }, (_, i) => {
+          const d = baseDate.subtract(6 - i, "day");
+          return { key: d.format("YYYY-MM-DD"), label: d.format("DD/MM") };
+        });
+      } else if (trendRange === "30days") {
+        dateList = Array.from({ length: 30 }, (_, i) => {
+          const d = baseDate.subtract(29 - i, "day");
+          return { key: d.format("YYYY-MM-DD"), label: d.format("DD/MM") };
+        });
+      } else {
+        const daysInMonth = baseDate.daysInMonth();
+        const startOfMonth = baseDate.startOf("month");
+        dateList = Array.from({ length: daysInMonth }, (_, i) => {
+          const d = startOfMonth.add(i, "day");
+          return { key: d.format("YYYY-MM-DD"), label: d.format("DD/MM") };
+        });
+      }
 
       const dateMap = new Map<string, number>();
-      last6Days.forEach((d) => dateMap.set(d.key, 0));
+      dateList.forEach((d) => dateMap.set(d.key, 0));
 
       wareBatches.forEach((b) => {
         if (b.createdAt) {
@@ -325,7 +380,7 @@ export default function DashboardPage() {
         }
       });
 
-      const newLineData = last6Days.map((d) => ({
+      const newLineData = dateList.map((d) => ({
         date: d.label,
         reports: dateMap.get(d.key) ?? 0,
       }));
@@ -341,12 +396,7 @@ export default function DashboardPage() {
       }[] = [];
 
       wareBatches.forEach((b, idx) => {
-        const deptName =
-          (b as any).departmentName ||
-          (b as any).department ||
-          (realDepts.length > 0
-            ? realDepts[idx % realDepts.length]?.name
-            : "Phòng Kế hoạch - Vật tư");
+        const deptName = getDeptNameForWareBatch(b, idx);
 
         recentList.push({
           key: `ware-${b.id || idx}`,
@@ -358,12 +408,7 @@ export default function DashboardPage() {
       });
 
       storageReports.forEach((s, idx) => {
-        const deptName =
-          (s as any).departmentName ||
-          s.reportCategoryName ||
-          (realDepts.length > 0
-            ? realDepts[(idx + 1) % realDepts.length]?.name
-            : "Phòng Kế toán");
+        const deptName = getDeptNameForStorage(s, idx);
 
         recentList.push({
           key: `storage-${s.id || idx}`,
@@ -377,7 +422,7 @@ export default function DashboardPage() {
       recentList.sort((a, b) => (b.rawDate > a.rawDate ? 1 : -1));
       setRecentReportsData(recentList.slice(0, 10));
     });
-  }, [realDepts]);
+  }, [realDepts, selectedDate, trendRange]);
 
   // Fetch batches
   const loadBatches = () => {
@@ -422,36 +467,51 @@ export default function DashboardPage() {
     loadBatches();
   }, []);
 
-  const fetchDashboardReports = async () => {
+  const fetchInternalReports = async () => {
     try {
-      setLoadingReports(true);
+      setLoadingInternalReports(true);
       const parsedDate = dayjs(selectedDate);
-      const year = parsedDate.year();
-      const month = parsedDate.month() + 1;
-      const day = parsedDate.date();
-
-      // Fetch danh sách WareBatch từ BE (GET /wh-batch/dashboard)
-      const resTkv = await whBatchApi.getDashboard({
-        departmentId: sectionADeptId === "all" ? undefined : sectionADeptId,
+      const res = await whBatchApi.getDashboard({
+        departmentId: internalDeptId === "all" ? undefined : internalDeptId,
         reportType: "Noi_Bo",
-        reportYear: year,
-        reportMonth: month,
-        reportDay: day,
+        reportYear: parsedDate.year(),
+        reportMonth: parsedDate.month() + 1,
+        reportDay: parsedDate.date(),
       });
-
-      setTkvReports(resTkv);
+      setInternalReports(res);
     } catch (err) {
-      console.error("Failed to load dashboard reports:", err);
+      console.error("Failed to load internal reports:", err);
     } finally {
-      setLoadingReports(false);
+      setLoadingInternalReports(false);
+    }
+  };
+
+  const fetchTkvReports = async () => {
+    try {
+      setLoadingTkvReports(true);
+      const parsedDate = dayjs(selectedDate);
+      const res = await whBatchApi.getDashboard({
+        departmentId: tkvDeptId === "all" ? undefined : tkvDeptId,
+        reportType: "Tap_Doan",
+        reportYear: parsedDate.year(),
+        reportMonth: parsedDate.month() + 1,
+        reportDay: parsedDate.date(),
+      });
+      setTkvReports(res);
+    } catch (err) {
+      console.error("Failed to load TKV reports:", err);
+    } finally {
+      setLoadingTkvReports(false);
     }
   };
 
   useEffect(() => {
-    fetchDashboardReports().then(() =>
-      console.log("Fetched dashboard reports:", { tkv: tkvReports }),
-    );
-  }, [sectionADeptId, selectedDate]);
+    fetchInternalReports();
+  }, [internalDeptId, selectedDate]);
+
+  useEffect(() => {
+    fetchTkvReports();
+  }, [tkvDeptId, selectedDate]);
 
   // ponytail: fetch real production data from /target-reports
   useEffect(() => {
@@ -570,8 +630,9 @@ export default function DashboardPage() {
     if (realLineChartData.length > 0) {
       return realLineChartData;
     }
-    return Array.from({ length: 6 }, (_, i) => {
-      const d = dayjs().subtract(5 - i, "day");
+    const baseDate = dayjs(selectedDate);
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = baseDate.subtract(6 - i, "day");
       return {
         date: d.format("DD/MM"),
         reports: 0,
@@ -970,33 +1031,18 @@ export default function DashboardPage() {
 
               {/* Action Buttons */}
               <button
-                className="bg-white text-slate-700 border border-slate-100 rounded-lg py-2.5 px-5 font-medium text-xs cursor-pointer flex items-center gap-2 transition-all hover:bg-slate-50 hover:text-slate-950 hover:border-slate-400"
-                onClick={() => setShowSetupModal(true)}
-              >
-                <Settings size={16} /> Cấu hình Server kết nối
-              </button>
-              <button
-                className="bg-[#1a8649] text-white border-0 rounded-lg py-2.5 px-5 font-semibold text-xs cursor-pointer flex items-center gap-2 transition-all hover:bg-[#15703d] hover:-translate-y-0.5 shadow-md shadow-teal-900/15 disabled:bg-slate-300 disabled:cursor-not-allowed disabled:transform-none"
-                onClick={handleSync}
-                disabled={syncing}
-              >
-                {syncing ? (
-                  <>
-                    <RefreshCw size={16} className="animate-spin" />
-                    Đang đồng bộ hệ thống...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw size={16} /> Đồng bộ toàn bộ dữ liệu
-                  </>
-                )}
-              </button>
-              <button
                 className="bg-[#1a8649] text-white border-0 rounded-lg py-2.5 px-5 font-semibold text-xs cursor-pointer flex items-center gap-2 transition-all hover:bg-[#15703d] hover:-translate-y-0.5 shadow-md shadow-teal-900/15"
-                onClick={() => setShowPlanModal(true)}
+                onClick={() => setPlanModalMode("plan")}
               >
                 <PlusCircle size={16} /> Lập kế hoạch
               </button>
+              <button
+                className="bg-[#0284c7] text-white border-0 rounded-lg py-2.5 px-5 font-semibold text-xs cursor-pointer flex items-center gap-2 transition-all hover:bg-[#0369a1] hover:-translate-y-0.5 shadow-md shadow-sky-900/15"
+                onClick={() => setPlanModalMode("operation")}
+              >
+                <Activity size={16} /> Điều hành sản xuất
+              </button>
+
             </div>
           </div>
 
@@ -1240,7 +1286,7 @@ export default function DashboardPage() {
             <WorkforceDetailTable
               date={selectedDate}
               departmentId={
-                sectionADeptId !== "all" ? sectionADeptId : undefined
+                internalDeptId !== "all" ? internalDeptId : undefined
               }
             />
 
@@ -1272,13 +1318,25 @@ export default function DashboardPage() {
 
             {/* Line Chart */}
             <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_4px_20px_-2px_rgba(15,23,42,0.03)] overflow-hidden flex flex-col">
-              <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 flex-wrap gap-2">
                 <span className="font-bold text-sm text-slate-900 tracking-tight">
                   Xu hướng báo cáo theo ngày
                 </span>
-                <span className="text-[10px] font-semibold px-2.5 py-1 rounded-md bg-blue-50 text-blue-600 inline-flex items-center gap-1">
-                  Xu hướng tuần
-                </span>
+                <select
+                  className="border border-slate-200 bg-white rounded-lg px-2.5 py-1 text-xs text-slate-700 font-semibold outline-none cursor-pointer hover:border-slate-300 focus:border-[#1a8649] transition-all"
+                  value={trendRange}
+                  onChange={(e) =>
+                    setTrendRange(
+                      e.target.value as "7days" | "30days" | "month",
+                    )
+                  }
+                >
+                  <option value="7days">7 ngày qua</option>
+                  <option value="30days">30 ngày qua</option>
+                  <option value="month">
+                    Tất cả ngày trong tháng ({dayjs(selectedDate).format("MM/YYYY")})
+                  </option>
+                </select>
               </div>
               <div className="p-6">
                 <div style={{ height: 250 }}>
@@ -1363,8 +1421,8 @@ export default function DashboardPage() {
                   </label>
                   <select
                     className="border border-slate-200 bg-slate-50 rounded-lg px-3 py-2 text-xs text-slate-900 outline-none cursor-pointer flex-1 transition-all hover:border-slate-300 focus:border-[#1a8649] focus:bg-white"
-                    value={sectionADeptId}
-                    onChange={(e) => setSectionADeptId(e.target.value)}
+                    value={internalDeptId}
+                    onChange={(e) => setInternalDeptId(e.target.value)}
                   >
                     <option value="all">Tất cả phòng ban</option>
                     {realDepts.map((dept) => (
@@ -1377,21 +1435,115 @@ export default function DashboardPage() {
 
                 {/* Cards List */}
                 <div className="flex flex-col gap-4 max-h-[550px] overflow-y-auto pr-1">
-                  {loadingReports ? (
+                  {loadingInternalReports ? (
                     <div className="flex items-center justify-center py-12 text-slate-400 text-xs">
                       <RefreshCw className="animate-spin mr-2" size={16} />
-                      Đang tải danh sách báo cáo...
+                      Đang tải danh sách báo cáo nội bộ...
+                    </div>
+                  ) : internalReports.length === 0 ? (
+                    <div className="text-center py-12 text-slate-400 text-xs bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                      Không có báo cáo nội bộ nào cho ngày {dayStr}
                     </div>
                   ) : (
-                    <div className="text-center py-12 text-slate-500 text-xs bg-slate-50/50 rounded-xl border border-dashed border-slate-200 space-y-2">
-                      <div className="font-semibold text-slate-700">
-                        Chưa có dữ liệu báo cáo nội bộ
-                      </div>
-                      <div>
-                        Khối này đang để ở trạng thái khung, chưa cần đổ dữ liệu
-                        thật.
-                      </div>
-                    </div>
+                    internalReports.map((report) => {
+                      let statusBg =
+                        "bg-amber-50 text-amber-700 border-amber-100";
+                      let statusText = "Chờ duyệt";
+                      if (report.wareBatchStatus === "SUCCESS") {
+                        statusBg =
+                          "bg-emerald-50 text-emerald-700 border-emerald-100";
+                        statusText = "Thành công";
+                      } else if (report.wareBatchStatus === "FAILURE") {
+                        statusBg = "bg-rose-50 text-rose-700 border-rose-100";
+                        statusText = "Lỗi đồng bộ";
+                      }
+
+                      const formattedTime = dayjs(report.updatedAt).format(
+                        "HH:mm - DD/MM/YYYY",
+                      );
+
+                      return (
+                        <div
+                          key={report.id}
+                          className="bg-white rounded-xl border border-slate-100 shadow-[0_2px_8px_rgba(15,23,42,0.02)] hover:shadow-md transition-all duration-300 p-5 flex flex-col gap-4 group"
+                        >
+                          <div className="flex justify-between items-start gap-4">
+                            <div className="flex flex-col gap-1 flex-1">
+                              <span className="text-[10px] font-bold text-slate-400 font-mono tracking-wider uppercase">
+                                {report.code} | {report.tableCode}
+                              </span>
+                              <h4 className="text-sm font-bold text-slate-900 group-hover:text-[#1a8649] transition-colors leading-snug">
+                                {report.name}
+                              </h4>
+                              {report.description && (
+                                <p className="text-xs text-slate-400 italic mt-0.5 px-2 py-1">
+                                  {report.description}
+                                </p>
+                              )}
+                            </div>
+                            <span
+                              className={`text-[10px] font-bold px-2.5 py-1 rounded-full border shrink-0 ${statusBg}`}
+                            >
+                              {statusText}
+                            </span>
+                          </div>
+
+                          <div className="text-xs text-slate-600 flex flex-col gap-2.5 bg-slate-50/50 rounded-xl p-3 border border-slate-100/50">
+                            <div className="flex justify-between items-center">
+                              <span className="text-slate-400">
+                                Loại báo cáo:
+                              </span>
+                              <span className="font-semibold text-slate-800">
+                                {report.reportName}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-slate-400">
+                                Người cập nhật:
+                              </span>
+                              <span className="font-medium text-slate-700">
+                                {report.employeeName}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-slate-400">
+                                Thời gian cập nhật:
+                              </span>
+                              <span className="text-slate-700">
+                                {formattedTime}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex gap-2 pt-2 border-t border-slate-100">
+                            <button
+                              onClick={() => {
+                                setUniverReadOnly(true);
+                                handlePreviewTkvReport(report.code);
+                              }}
+                              className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs py-2 px-2 rounded-lg border border-slate-200 cursor-pointer transition-all active:scale-[0.98] text-center"
+                            >
+                              Xem
+                            </button>
+                            <button
+                              onClick={() => {
+                                setUniverReadOnly(false);
+                                handlePreviewTkvReport(report.code);
+                              }}
+                              className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-xs py-2 px-2 rounded-lg border border-blue-200 cursor-pointer transition-all active:scale-[0.98] text-center"
+                            >
+                              Sửa
+                            </button>
+                            <button
+                              onClick={() => handleTrinhDuyet(report.code)}
+                              className="flex-1 bg-[#1a8649] hover:bg-[#15703d] text-white font-semibold text-xs py-2 px-2 rounded-lg border-0 cursor-pointer transition-all active:scale-[0.98] text-center shadow-sm"
+                            >
+                              Trình duyệt
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
                   )}
                 </div>
               </div>
@@ -1412,8 +1564,8 @@ export default function DashboardPage() {
                   </label>
                   <select
                     className="border border-slate-200 bg-slate-50 rounded-lg px-3 py-2 text-xs text-slate-900 outline-none cursor-pointer flex-1 transition-all hover:border-slate-300 focus:border-[#1a8649] focus:bg-white"
-                    value={sectionADeptId}
-                    onChange={(e) => setSectionADeptId(e.target.value)}
+                    value={tkvDeptId}
+                    onChange={(e) => setTkvDeptId(e.target.value)}
                   >
                     <option value="all">Tất cả phòng ban</option>
                     {realDepts.map((dept) => (
@@ -1426,7 +1578,7 @@ export default function DashboardPage() {
 
                 {/* Report Content Panels */}
                 <div className="flex flex-col gap-4 max-h-[550px] overflow-y-auto pr-1">
-                  {loadingReports ? (
+                  {loadingTkvReports ? (
                     <div className="flex items-center justify-center py-12 text-slate-400 text-xs">
                       <RefreshCw className="animate-spin mr-2" size={16} />
                       Đang tải danh sách báo cáo...
@@ -1541,6 +1693,32 @@ export default function DashboardPage() {
             </div>
           </div>
 
+          {/* ═══ BOTTOM ACTION BUTTONS ═══ */}
+          <div className="flex justify-center gap-3 my-4 pt-4 border-t border-slate-100">
+            <button
+              className="bg-white text-slate-700 border border-slate-200 rounded-lg py-2.5 px-5 font-medium text-xs cursor-pointer flex items-center gap-2 transition-all hover:bg-slate-50 hover:text-slate-950 hover:border-slate-400"
+              onClick={() => setShowSetupModal(true)}
+            >
+              <Settings size={16} /> Cấu hình Server kết nối
+            </button>
+            <button
+              className="bg-[#1a8649] text-white border-0 rounded-lg py-2.5 px-5 font-semibold text-xs cursor-pointer flex items-center gap-2 transition-all hover:bg-[#15703d] hover:-translate-y-0.5 shadow-md shadow-teal-900/15 disabled:bg-slate-300 disabled:cursor-not-allowed disabled:transform-none"
+              onClick={handleSync}
+              disabled={syncing}
+            >
+              {syncing ? (
+                <>
+                  <RefreshCw size={16} className="animate-spin" />
+                  Đang đồng bộ hệ thống...
+                </>
+              ) : (
+                <>
+                  <RefreshCw size={16} /> Đồng bộ toàn bộ dữ liệu
+                </>
+              )}
+            </button>
+          </div>
+
           {/* ═══ FOOTER ═══ */}
           <div className="flex justify-between text-xs text-slate-400 border-t border-slate-200 pt-4 pb-6">
             <span>Đồng bộ lần cuối: {dayStr} 10:30</span>
@@ -1551,6 +1729,13 @@ export default function DashboardPage() {
       </div>
 
       {/* ═══ MODALS ═══ */}
+      {planModalMode && (
+        <PlanModal
+          mode={planModalMode}
+          onClose={() => setPlanModalMode(null)}
+          onAddBatch={handleAddBatch}
+        />
+      )}
       {showPlanModal && (
         <PlanModal
           onClose={() => setShowPlanModal(false)}

@@ -1,4 +1,5 @@
 import { Select } from "antd";
+import { Check } from "lucide-react";
 import type { AggregationType, PivotField } from "../../types/table";
 
 export interface PivotConfigBarProps {
@@ -58,16 +59,35 @@ export default function PivotConfigBar({
           <Select
             mode="multiple"
             size="middle"
+            allowClear
+            placeholder="Chọn hàng..."
             value={rowFieldKeys}
             onChange={onRowFieldsChange}
             options={availableRowFields.map((f) => ({
               label: f.label,
               value: f.key,
-              disabled:
-                rowFieldKeys.length === 1 && rowFieldKeys.includes(f.key),
             }))}
-            style={{ minWidth: 160 }}
-            maxTagCount="responsive"
+            optionRender={(option) => {
+              const isSelected = rowFieldKeys.includes(String(option.value));
+              return (
+                <div className="flex items-center gap-2 py-0.5">
+                  <div
+                    className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
+                      isSelected
+                        ? "bg-blue-600 border-blue-600 text-white"
+                        : "border-slate-300 bg-white"
+                    }`}
+                  >
+                    {isSelected && <Check size={11} strokeWidth={3} />}
+                  </div>
+                  <span className="text-sm font-medium text-slate-700">
+                    {option.label}
+                  </span>
+                </div>
+              );
+            }}
+            style={{ width: 220 }}
+            maxTagCount={2}
             popupMatchSelectWidth={false}
           />
         </div>
@@ -83,16 +103,35 @@ export default function PivotConfigBar({
           <Select
             mode="multiple"
             size="middle"
+            allowClear
+            placeholder="Chọn cột..."
             value={colFieldKeys}
             onChange={onColFieldsChange}
             options={availableColumnFields.map((f) => ({
               label: f.label,
               value: f.key,
-              disabled:
-                colFieldKeys.length === 1 && colFieldKeys.includes(f.key),
             }))}
-            style={{ minWidth: 160 }}
-            maxTagCount="responsive"
+            optionRender={(option) => {
+              const isSelected = colFieldKeys.includes(String(option.value));
+              return (
+                <div className="flex items-center gap-2 py-0.5">
+                  <div
+                    className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
+                      isSelected
+                        ? "bg-indigo-600 border-indigo-600 text-white"
+                        : "border-slate-300 bg-white"
+                    }`}
+                  >
+                    {isSelected && <Check size={11} strokeWidth={3} />}
+                  </div>
+                  <span className="text-sm font-medium text-slate-700">
+                    {option.label}
+                  </span>
+                </div>
+              );
+            }}
+            style={{ width: 220 }}
+            maxTagCount={2}
             popupMatchSelectWidth={false}
           />
         </div>
