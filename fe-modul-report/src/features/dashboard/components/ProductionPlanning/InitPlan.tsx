@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Button,
   DatePicker,
@@ -12,7 +12,7 @@ import {
   message,
 } from "antd";
 import type { Dayjs } from "dayjs";
-import { Edit, MapPin, Plus, PlusCircle, Trash2 } from "lucide-react";
+import { Edit, MapPin, Plus, PlusCircle, Trash2, Check, X } from "lucide-react";
 import { targetApi } from "../../api/targetApi";
 import { departmentApi } from "../../../department/api/departmentApi";
 import type { TargetResponse } from "../../types/target";
@@ -156,29 +156,17 @@ export function InitPlan({
         })),
     [depts],
   );
+  interface NewTargetForm {
+    parentId: string | null;
+    name: string;
+    code: string;
+    unit: string;
+    value: number;
+  }
 
-  const addTarget = useCallback(
-    (parentId: string | null): string => {
-      const newId = `new-${Date.now()}`;
-      setTargets((prev) => [
-        ...prev,
-        {
-          id: newId,
-          name: "",
-          code: "",
-          unit: "",
-          value: 0,
-          month: monthStr,
-          departmentId: selectedWorkshop,
-          parentId,
-        },
-      ]);
-      return newId;
-    },
-    [monthStr, selectedWorkshop],
-  );
+  const [newTarget, setNewTarget] = useState<NewTargetForm | null>(null);
 
-  const updateTarget = useCallback(
+  const updateTargetState = useCallback(
     (id: string, patch: Partial<TargetResponse>) => {
       setTargets((prev) =>
         prev.map((t) => (t.id === id ? { ...t, ...patch } : t)),
@@ -187,47 +175,63 @@ export function InitPlan({
     [],
   );
 
-  const saveTarget = useCallback(
-    async (id: string) => {
-      const target = targets.find((t) => t.id === id);
-      if (!target) return;
-      const payload = {
-        name: target.name,
-        code: target.code,
-        unit: target.unit,
-        value: target.value,
+  const handleAddRoot = () => {
+    setEditingId(null);
+    setNewTarget({
+      parentId: null,
+      name: "",
+      code: "",
+      unit: "",
+      value: 0,
+    });
+  };
+
+  const handleAddChild = (parentId: string) => {
+    setEditingId(null);
+    setNewTarget({
+      parentId,
+      name: "",
+      code: "",
+      unit: "",
+      value: 0,
+    });
+  };
+
+  const saveNewTarget = async () => {
+    if (!newTarget) return;
+    if (!newTarget.name?.trim()) {
+      message.error("Vui lòng nhập tên chỉ tiêu");
+      return;
+    }
+    try {
+      const res = await targetApi.createTarget({
+        name: newTarget.name,
+        code: newTarget.code,
+        unit: newTarget.unit,
+        value: newTarget.value,
         month: monthStr,
         departmentId: selectedWorkshop,
-        parentId: target.parentId ?? null,
-      };
-      const res = await targetApi.updateTarget({ ...payload, id });
-      setTargets((prev) => prev.map((t) => (t.id === id ? res : t)));
-    },
-    [targets, monthStr, selectedWorkshop],
-  );
-
-  const deleteTarget = useCallback(async (id: string) => {
-    await targetApi.deleteTarget(id);
-    setTargets((prev) => prev.filter((t) => t.id !== id));
-  }, []);
-
-  const handleAddInline = (parentId: string | null) => {
-    const newId = addTarget(parentId);
-    setEditingId(newId);
-    setOriginalNodeValues(null);
+        parentId: newTarget.parentId,
+      });
+      setTargets((prev) => [...prev, res]);
+      setNewTarget(null);
+      message.success("Thêm chỉ tiêu thành công!");
+    } catch (err) {
+      console.error(err);
+      message.error("Thêm chỉ tiêu thất bại!");
+    }
   };
 
   const startEdit = (node: TargetResponse) => {
+    setNewTarget(null);
     setEditingId(node.id);
     setOriginalNodeValues({ ...node });
   };
 
   const cancelEdit = (node: TargetResponse) => {
     setEditingId(null);
-    if (node.id.startsWith("new-")) {
-      deleteTarget(node.id);
-    } else if (originalNodeValues) {
-      updateTarget(node.id, originalNodeValues);
+    if (originalNodeValues) {
+      updateTargetState(node.id, originalNodeValues);
     }
     setOriginalNodeValues(null);
   };
@@ -238,7 +242,17 @@ export function InitPlan({
       return;
     }
     try {
-      await saveTarget(node.id);
+      const res = await targetApi.updateTarget({
+        id: node.id,
+        name: node.name,
+        code: node.code,
+        unit: node.unit,
+        value: node.value,
+        month: monthStr,
+        departmentId: selectedWorkshop,
+        parentId: node.parentId ?? null,
+      });
+      setTargets((prev) => prev.map((t) => (t.id === node.id ? res : t)));
       setEditingId(null);
       setOriginalNodeValues(null);
       message.success("Lưu chỉ tiêu thành công!");
@@ -251,13 +265,105 @@ export function InitPlan({
   const confirmDelete = async () => {
     if (!deleteTargetId) return;
     try {
-      await deleteTarget(deleteTargetId);
+      await targetApi.deleteTarget(deleteTargetId);
+      setTargets((prev) => prev.filter((t) => t.id !== deleteTargetId));
       message.success("Xóa chỉ tiêu thành công!");
     } catch (err) {
       console.error(err);
       message.error("Xóa chỉ tiêu thất bại!");
     }
     setDeleteTargetId(null);
+  };
+
+  const renderNewRow = (depth: number) => {
+    if (!newTarget) return null;
+    const isRoot = newTarget.parentId === null;
+    return (
+      <tr
+        key="new-target-row"
+        className="bg-emerald-50/70 border-y border-emerald-200/80 shadow-[inset_0_2px_4px_rgba(16,185,129,0.04)] transition-all"
+      >
+        <td
+          className="p-2.5 flex items-center gap-1.5"
+          style={{ paddingLeft: `${12 + depth * 18}px` }}
+        >
+          <span className="w-6 h-6 flex items-center justify-center text-emerald-700 bg-emerald-100/90 rounded-md shrink-0 shadow-2xs">
+            {isRoot ? (
+              <MapPin size={13} className="text-emerald-700" />
+            ) : (
+              <span className="w-1.5 h-1.5 bg-emerald-600 rounded-full inline-block" />
+            )}
+          </span>
+          <div className="flex flex-col gap-1 w-full max-w-[260px]">
+            <Input
+              size="small"
+              autoFocus
+              value={newTarget.name}
+              placeholder="Tên chỉ tiêu mới..."
+              className="w-full rounded-lg border-emerald-300 hover:border-emerald-400 focus:border-emerald-600 focus:shadow-[0_0_0_2px_rgba(16,185,129,0.2)] bg-white text-xs py-1 px-2.5 font-medium transition-all"
+              onChange={(e) =>
+                setNewTarget((prev) => (prev ? { ...prev, name: e.target.value } : null))
+              }
+            />
+          </div>
+        </td>
+
+        <td className="p-2.5 text-center">
+          <Input
+            size="small"
+            value={newTarget.code}
+            placeholder="Mã IF"
+            className="w-full text-center font-mono rounded-lg border-emerald-300 hover:border-emerald-400 focus:border-emerald-600 focus:shadow-[0_0_0_2px_rgba(16,185,129,0.2)] bg-white text-xs py-1 px-2 transition-all"
+            onChange={(e) =>
+              setNewTarget((prev) => (prev ? { ...prev, code: e.target.value } : null))
+            }
+          />
+        </td>
+
+        <td className="p-2.5 text-center">
+          <Input
+            size="small"
+            value={newTarget.unit}
+            placeholder="ĐVT"
+            className="w-full text-center rounded-lg border-emerald-300 hover:border-emerald-400 focus:border-emerald-600 focus:shadow-[0_0_0_2px_rgba(16,185,129,0.2)] bg-white text-xs py-1 px-2 transition-all"
+            onChange={(e) =>
+              setNewTarget((prev) => (prev ? { ...prev, unit: e.target.value } : null))
+            }
+          />
+        </td>
+
+        <td className="p-2.5 text-right font-mono font-semibold text-slate-800">
+          <InputNumber
+            size="small"
+            value={newTarget.value}
+            min={0}
+            className="w-full text-right font-mono rounded-lg border-emerald-300 hover:border-emerald-400 focus:border-emerald-600 focus:shadow-[0_0_0_2px_rgba(16,185,129,0.2)] bg-white text-xs transition-all"
+            onChange={(val) =>
+              setNewTarget((prev) => (prev ? { ...prev, value: val || 0 } : null))
+            }
+          />
+        </td>
+
+        <td className="p-2.5 text-center">
+          <div className="flex items-center justify-center gap-1.5">
+            <button
+              type="button"
+              onClick={saveNewTarget}
+              className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white border-0 px-3 py-1 rounded-md text-xs font-semibold cursor-pointer shadow-2xs flex items-center gap-1 transition-all"
+            >
+              <Check size={13} strokeWidth={2.5} /> Lưu
+            </button>
+            <button
+              type="button"
+              onClick={() => setNewTarget(null)}
+              className="bg-slate-200 hover:bg-slate-300 active:scale-95 text-slate-700 border-0 px-3 py-1 rounded-md text-xs font-semibold cursor-pointer flex items-center gap-1 transition-all"
+            >
+              <X size={13} strokeWidth={2.5} /> Hủy
+            </button>
+          </div>
+        </td>
+      </tr>
+    );
   };
 
   return (
@@ -305,7 +411,7 @@ export function InitPlan({
           </h3>
           <button
             type="button"
-            onClick={() => handleAddInline(null)}
+            onClick={handleAddRoot}
             disabled={!selectedWorkshop}
             className="w-full bg-[#1a8649] text-white border-0 py-2.5 px-4 rounded-lg font-semibold text-xs cursor-pointer flex items-center justify-center gap-2 hover:bg-[#15703d] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -362,174 +468,188 @@ export function InitPlan({
                     </td>
                   </tr>
                   {displayTargets.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={5}
-                        className="p-8 text-center text-slate-400 font-medium"
-                      >
-                        Chưa có chỉ tiêu nào. Nhấn "Thêm chỉ tiêu gốc" để bắt
-                        đầu.
-                      </td>
-                    </tr>
+                    newTarget && newTarget.parentId === null ? (
+                      renderNewRow(0)
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={5}
+                          className="p-8 text-center text-slate-400 font-medium"
+                        >
+                          Chưa có chỉ tiêu nào. Nhấn "Thêm chỉ tiêu gốc" để bắt
+                          đầu.
+                        </td>
+                      </tr>
+                    )
                   ) : (
-                    displayTargets.map((node) => {
-                      const depth = getNodeDepth(node, targetsMap);
-                      const hasChildren = displayTargets.some(
-                        (n) => n.parentId === node.id,
-                      );
-                      const khTh = node.value ?? 0;
-                      const isEditing = editingId === node.id;
-                      const isRoot = node.parentId == null;
+                    <>
+                      {displayTargets.map((node) => {
+                        const depth = getNodeDepth(node, targetsMap);
+                        const hasChildren = displayTargets.some(
+                          (n) => n.parentId === node.id,
+                        );
+                        const khTh = node.value ?? 0;
+                        const isEditing = editingId === node.id;
+                        const isRoot = node.parentId == null;
 
-                      const rowBg = !isRoot
-                        ? "bg-slate-50/50 hover:bg-slate-100 transition-all border-b border-slate-100"
-                        : "hover:bg-slate-50/60 transition-all border-b border-slate-100";
-                      const fontStyle = !isRoot
-                        ? "font-semibold text-slate-700"
-                        : "font-semibold text-slate-800";
+                        const rowBg = isEditing
+                          ? "bg-blue-50/70 border-y border-blue-200/80 shadow-[inset_0_2px_4px_rgba(59,130,246,0.04)] transition-all"
+                          : !isRoot
+                            ? "bg-slate-50/50 hover:bg-slate-100 transition-all border-b border-slate-100"
+                            : "hover:bg-slate-50/60 transition-all border-b border-slate-100";
+                        const fontStyle = !isRoot
+                          ? "font-semibold text-slate-700"
+                          : "font-semibold text-slate-800";
 
-                      return (
-                        <tr key={node.id} className={rowBg}>
-                          <td
-                            className="p-3 flex items-center gap-1"
-                            style={{ paddingLeft: `${12 + depth * 18}px` }}
-                          >
-                            <span className="w-5 h-5 flex items-center justify-center text-slate-400 select-none">
-                              {isRoot ? (
-                                <MapPin size={15} className="text-slate-600" />
-                              ) : (
-                                <span className="w-1.5 h-1.5 bg-slate-300 rounded-full inline-block" />
-                              )}
-                            </span>
-                            {isEditing ? (
-                              <div className="flex flex-col gap-1 w-full max-w-[260px] my-1">
-                                <Input
-                                  size="small"
-                                  value={node.name}
-                                  placeholder="Tên chỉ tiêu"
-                                  onChange={(e) =>
-                                    updateTarget(node.id, {
-                                      name: e.target.value,
-                                    })
-                                  }
-                                />
-                              </div>
-                            ) : (
-                              <span className={fontStyle}>{node.name}</span>
-                            )}
-                          </td>
+                        const isAddingChildToThisNode =
+                          newTarget && newTarget.parentId === node.id;
 
-                          <td className="p-3 text-center">
-                            {isEditing ? (
-                              <Input
-                                size="small"
-                                className="w-full text-center font-mono"
-                                value={node.code}
-                                placeholder="Mã IF"
-                                onChange={(e) =>
-                                  updateTarget(node.id, {
-                                    code: e.target.value,
-                                  })
-                                }
-                              />
-                            ) : (
-                              <span className="font-mono text-slate-600 font-semibold">
-                                {node.code || "-"}
-                              </span>
-                            )}
-                          </td>
+                        return (
+                          <React.Fragment key={node.id}>
+                            <tr className={rowBg}>
+                              <td
+                                className="p-2.5 flex items-center gap-1.5"
+                                style={{ paddingLeft: `${12 + depth * 18}px` }}
+                              >
+                                <span className="w-5 h-5 flex items-center justify-center text-slate-400 select-none">
+                                  {isRoot ? (
+                                    <MapPin size={15} className="text-slate-600" />
+                                  ) : (
+                                    <span className="w-1.5 h-1.5 bg-slate-300 rounded-full inline-block" />
+                                  )}
+                                </span>
+                                {isEditing ? (
+                                  <div className="flex flex-col gap-1 w-full max-w-[260px]">
+                                    <Input
+                                      size="small"
+                                      value={node.name}
+                                      placeholder="Tên chỉ tiêu"
+                                      className="w-full rounded-lg border-blue-300 hover:border-blue-400 focus:border-blue-600 focus:shadow-[0_0_0_2px_rgba(59,130,246,0.2)] bg-white text-xs py-1 px-2.5 font-medium transition-all"
+                                      onChange={(e) =>
+                                        updateTargetState(node.id, {
+                                          name: e.target.value,
+                                        })
+                                      }
+                                    />
+                                  </div>
+                                ) : (
+                                  <span className={fontStyle}>{node.name}</span>
+                                )}
+                              </td>
 
-                          <td className="p-3 text-center text-slate-500 font-medium">
-                            {isEditing ? (
-                              <Input
-                                size="small"
-                                className="w-full text-center"
-                                value={node.unit}
-                                placeholder="ĐVT"
-                                onChange={(e) =>
-                                  updateTarget(node.id, {
-                                    unit: e.target.value,
-                                  })
-                                }
-                              />
-                            ) : (
-                              node.unit || "-"
-                            )}
-                          </td>
+                              <td className="p-2.5 text-center">
+                                {isEditing ? (
+                                  <Input
+                                    size="small"
+                                    value={node.code}
+                                    placeholder="Mã IF"
+                                    className="w-full text-center font-mono rounded-lg border-blue-300 hover:border-blue-400 focus:border-blue-600 focus:shadow-[0_0_0_2px_rgba(59,130,246,0.2)] bg-white text-xs py-1 px-2 transition-all"
+                                    onChange={(e) =>
+                                      updateTargetState(node.id, {
+                                        code: e.target.value,
+                                      })
+                                    }
+                                  />
+                                ) : (
+                                  <span className="font-mono text-slate-600 font-semibold">
+                                    {node.code || "-"}
+                                  </span>
+                                )}
+                              </td>
 
-                          <td className="p-3 text-right font-mono font-semibold text-slate-800">
-                            {isEditing && !hasChildren ? (
-                              <InputNumber
-                                size="small"
-                                className="w-full text-right font-mono"
-                                value={node.value}
-                                min={0}
-                                onChange={(val) =>
-                                  updateTarget(node.id, { value: val || 0 })
-                                }
-                              />
-                            ) : hasChildren ? (
-                              khTh
-                            ) : (
-                              (node.value ?? 0)
-                            )}
-                          </td>
+                              <td className="p-2.5 text-center text-slate-500 font-medium">
+                                {isEditing ? (
+                                  <Input
+                                    size="small"
+                                    value={node.unit}
+                                    placeholder="ĐVT"
+                                    className="w-full text-center rounded-lg border-blue-300 hover:border-blue-400 focus:border-blue-600 focus:shadow-[0_0_0_2px_rgba(59,130,246,0.2)] bg-white text-xs py-1 px-2 transition-all"
+                                    onChange={(e) =>
+                                      updateTargetState(node.id, {
+                                        unit: e.target.value,
+                                      })
+                                    }
+                                  />
+                                ) : (
+                                  node.unit || "-"
+                                )}
+                              </td>
 
-                          <td className="p-3 text-center">
-                            {isEditing ? (
-                              <Space size="middle">
-                                <Button
-                                  type="link"
-                                  size="small"
-                                  className="text-emerald-600 hover:text-emerald-800 font-bold p-0"
-                                  onClick={() => saveEdit(node)}
-                                >
-                                  Lưu
-                                </Button>
-                                <Button
-                                  type="link"
-                                  size="small"
-                                  className="text-slate-500 hover:text-slate-700 font-bold p-0"
-                                  onClick={() => cancelEdit(node)}
-                                >
-                                  Hủy
-                                </Button>
-                              </Space>
-                            ) : (
-                              <Space size="middle">
-                                <Tooltip title="Thêm chỉ tiêu con">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleAddInline(node.id)}
-                                    className="border-0 bg-transparent text-emerald-600 hover:text-emerald-800 cursor-pointer"
-                                  >
-                                    <Plus size={15} />
-                                  </button>
-                                </Tooltip>
-                                <Tooltip title="Chỉnh sửa">
-                                  <button
-                                    type="button"
-                                    onClick={() => startEdit(node)}
-                                    className="border-0 bg-transparent text-blue-600 hover:text-blue-800 cursor-pointer"
-                                  >
-                                    <Edit size={14} />
-                                  </button>
-                                </Tooltip>
-                                <Tooltip title="Xóa">
-                                  <button
-                                    type="button"
-                                    onClick={() => setDeleteTargetId(node.id)}
-                                    className="border-0 bg-transparent text-red-500 hover:text-red-700 cursor-pointer"
-                                  >
-                                    <Trash2 size={14} />
-                                  </button>
-                                </Tooltip>
-                              </Space>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })
+                              <td className="p-2.5 text-right font-mono font-semibold text-slate-800">
+                                {isEditing && !hasChildren ? (
+                                  <InputNumber
+                                    size="small"
+                                    value={node.value}
+                                    min={0}
+                                    className="w-full text-right font-mono rounded-lg border-blue-300 hover:border-blue-400 focus:border-blue-600 focus:shadow-[0_0_0_2px_rgba(59,130,246,0.2)] bg-white text-xs transition-all"
+                                    onChange={(val) =>
+                                      updateTargetState(node.id, { value: val || 0 })
+                                    }
+                                  />
+                                ) : hasChildren ? (
+                                  khTh
+                                ) : (
+                                  (node.value ?? 0)
+                                )}
+                              </td>
+
+                              <td className="p-2.5 text-center">
+                                {isEditing ? (
+                                  <div className="flex items-center justify-center gap-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => saveEdit(node)}
+                                      className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white border-0 px-3 py-1 rounded-md text-xs font-semibold cursor-pointer shadow-2xs flex items-center gap-1 transition-all"
+                                    >
+                                      <Check size={13} strokeWidth={2.5} /> Lưu
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => cancelEdit(node)}
+                                      className="bg-slate-200 hover:bg-slate-300 active:scale-95 text-slate-700 border-0 px-3 py-1 rounded-md text-xs font-semibold cursor-pointer flex items-center gap-1 transition-all"
+                                    >
+                                      <X size={13} strokeWidth={2.5} /> Hủy
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <Space size="middle">
+                                    <Tooltip title="Thêm chỉ tiêu con">
+                                      <button
+                                        type="button"
+                                        onClick={() => handleAddChild(node.id)}
+                                        className="border-0 bg-transparent text-emerald-600 hover:text-emerald-800 cursor-pointer"
+                                      >
+                                        <Plus size={15} />
+                                      </button>
+                                    </Tooltip>
+                                    <Tooltip title="Chỉnh sửa">
+                                      <button
+                                        type="button"
+                                        onClick={() => startEdit(node)}
+                                        className="border-0 bg-transparent text-blue-600 hover:text-blue-800 cursor-pointer"
+                                      >
+                                        <Edit size={14} />
+                                      </button>
+                                    </Tooltip>
+                                    <Tooltip title="Xóa">
+                                      <button
+                                        type="button"
+                                        onClick={() => setDeleteTargetId(node.id)}
+                                        className="border-0 bg-transparent text-red-500 hover:text-red-700 cursor-pointer"
+                                      >
+                                        <Trash2 size={14} />
+                                      </button>
+                                    </Tooltip>
+                                  </Space>
+                                )}
+                              </td>
+                            </tr>
+                            {isAddingChildToThisNode && renderNewRow(depth + 1)}
+                          </React.Fragment>
+                        );
+                      })}
+                      {newTarget && newTarget.parentId === null && renderNewRow(0)}
+                    </>
                   )}
                 </>
               )}

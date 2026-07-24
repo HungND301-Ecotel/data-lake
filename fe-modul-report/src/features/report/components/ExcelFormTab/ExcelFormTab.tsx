@@ -201,7 +201,7 @@ const ExcelFormTab: React.FC<ExcelFormTabProps> = ({
       const snapshot = workbook.save(); // returns IWorkbookData
 
       // Extract simple rows and full WebBatchSubmitPayload using templateMappings & templateInfo
-      const rows = extractRowsFromSnapshot(snapshot, keyMappings, dataStartRow);
+      const rows = extractRowsFromSnapshot(snapshot, keyMappings, dataStartRow, workbook);
       const payload = extractWebBatchSubmitPayload(
         snapshot,
         keyMappings,
@@ -209,7 +209,11 @@ const ExcelFormTab: React.FC<ExcelFormTabProps> = ({
         Number(reportTemplateId || 0),
         templateInfo?.name,
         templateMappings,
-        templateInfo ?? undefined
+        templateInfo ?? undefined,
+        undefined,
+        undefined,
+        undefined,
+        workbook
       );
 
       if (rows.length === 0 && payload.rows.length === 0) {

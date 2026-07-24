@@ -138,6 +138,7 @@ export function PivotTable({
         columnTotals={engine.columnTotals}
         grandTotal={engine.grandTotal}
         valueFields={activeValueFields}
+        aggregation={localAgg}
         rowFieldCount={activeRowFields.length}
         rowFieldLabel={activeRowFields.map((f) => f.label).join(" / ")}
         columnFieldLabel={activeColFields.map((f) => f.label).join(" / ")}

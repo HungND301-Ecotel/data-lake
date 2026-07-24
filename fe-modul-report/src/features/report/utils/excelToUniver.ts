@@ -549,6 +549,7 @@ export function extractRowsFromSnapshot(
   snapshot: any,
   keyMappings: KeyMapping[],
   dataStartRow: number,
+  workbookFacade?: any
 ): Record<string, any>[] {
   const sheetId = snapshot.sheetOrder?.[0];
   if (!sheetId) return [];
@@ -557,6 +558,7 @@ export function extractRowsFromSnapshot(
   if (!sheet) return [];
 
   const cellData: Record<number, Record<number, any>> = sheet.cellData ?? {};
+  const mergeData: any[] = sheet.mergeData ?? [];
 
   const rows: Record<string, any>[] = [];
 
@@ -572,25 +574,30 @@ export function extractRowsFromSnapshot(
 
     if (keyMappings.length > 0) {
       for (const km of keyMappings) {
-        const cell = rowData[km.colIndex];
-        let value: any = null;
-
-        if (cell) {
-          if (cell.v !== undefined && cell.v !== null && cell.v !== "") {
-            value = cell.v;
-            hasData = true;
-          }
+        let value = getCellValueFromSheet(
+          cellData,
+          mergeData,
+          rowIndex,
+          km.colIndex,
+          workbookFacade
+        );
+        if (value !== null) {
+          hasData = true;
         }
-
         obj[km.key] = value;
       }
     } else {
-      // Fallback: extract all non-empty columns as col_0, col_1...
       Object.keys(rowData).forEach((colIdxStr) => {
         const cIdx = Number(colIdxStr);
-        const cell = rowData[cIdx];
-        if (cell && cell.v !== undefined && cell.v !== null && cell.v !== "") {
-          obj[`col_${cIdx}`] = cell.v;
+        let value = getCellValueFromSheet(
+          cellData,
+          mergeData,
+          rowIndex,
+          cIdx,
+          workbookFacade
+        );
+        if (value !== null) {
+          obj[`col_${cIdx}`] = value;
           hasData = true;
         }
       });
@@ -757,26 +764,72 @@ function getCellValue(cell: any): any {
 
 /**
  * Extract cell value with fallback to merged cell origin (top-left) if part of a merged range.
+ * Optionally queries UniversJS workbookFacade for live recalculated formula results.
  */
 function getCellValueFromSheet(
   cellDataMap: Record<number, Record<number, any>>,
   mergeData: any[],
   r: number,
   c: number,
+  workbookFacade?: any
 ): any {
+  // 1. Try UniversJS Facade API first (for live recalculated formula values)
+  if (workbookFacade) {
+    try {
+      const sheet =
+        typeof workbookFacade.getActiveSheet === "function"
+          ? workbookFacade.getActiveSheet()
+          : workbookFacade;
+      if (sheet && typeof sheet.getRange === "function") {
+        const range = sheet.getRange(r, c);
+        if (range) {
+          const val =
+            typeof range.getValue === "function" ? range.getValue() : undefined;
+          if (val !== undefined && val !== null && val !== "") {
+            return val;
+          }
+        }
+      }
+    } catch (e) {
+      // Fallback to snapshot if facade query fails
+    }
+  }
+
+  // 2. Snapshot cellDataMap fallback
   const cell = cellDataMap[r]?.[c];
   let val = getCellValue(cell);
   if (val !== null) return val;
 
+  // 3. Merged cell origin fallback
   if (mergeData && mergeData.length > 0) {
     const merge = mergeData.find(
       (m: any) =>
         r >= m.startRow &&
         r <= m.endRow &&
         c >= m.startColumn &&
-        c <= m.endColumn,
+        c <= m.endColumn
     );
     if (merge) {
+      if (workbookFacade) {
+        try {
+          const sheet =
+            typeof workbookFacade.getActiveSheet === "function"
+              ? workbookFacade.getActiveSheet()
+              : workbookFacade;
+          if (sheet && typeof sheet.getRange === "function") {
+            const topRange = sheet.getRange(merge.startRow, merge.startColumn);
+            if (topRange) {
+              const topVal =
+                typeof topRange.getValue === "function"
+                  ? topRange.getValue()
+                  : undefined;
+              if (topVal !== undefined && topVal !== null && topVal !== "") {
+                return topVal;
+              }
+            }
+          }
+        } catch (e) {}
+      }
       const topCell = cellDataMap[merge.startRow]?.[merge.startColumn];
       val = getCellValue(topCell);
       if (val !== null) return val;
@@ -801,6 +854,7 @@ export function extractWebBatchSubmitPayload(
   fallbackYear?: number,
   fallbackMonth?: number,
   fallbackDay?: number,
+  workbookFacade?: any
 ): WebBatchSubmitPayload {
   const sheetId = snapshot.sheetOrder?.[0];
   const sheet = sheetId ? snapshot.sheets?.[sheetId] : null;
@@ -823,7 +877,6 @@ export function extractWebBatchSubmitPayload(
     const derivedKeys = parseKeyMappingsFromWareMappings(templateMappings);
     if (derivedKeys.length > 0) {
       activeKeyMappings = derivedKeys;
-      ``;
     }
 
     // 1. Process CELL mappings (e.g. "3-2" -> B3 = BUKRS, "4-2" -> B4 = YEAR, "5-2" -> B5 = PERIOD)
@@ -843,6 +896,7 @@ export function extractWebBatchSubmitPayload(
             mergeData,
             rIdx,
             cIdx,
+            workbookFacade
           );
           if (rawV !== null) {
             let parsedV: any = rawV;
@@ -1046,7 +1100,7 @@ export function extractWebBatchSubmitPayload(
 
     if (activeKeyMappings.length > 0) {
       for (const km of activeKeyMappings) {
-        let val = getCellValueFromSheet(cellDataMap, mergeData, r, km.colIndex);
+        let val = getCellValueFromSheet(cellDataMap, mergeData, r, km.colIndex, workbookFacade);
         if (val !== null) {
           hasData = true;
 
@@ -1070,7 +1124,7 @@ export function extractWebBatchSubmitPayload(
       const rowData = cellDataMap[r] ?? {};
       Object.keys(rowData).forEach((cStr) => {
         const c = Number(cStr);
-        let val = getCellValueFromSheet(cellDataMap, mergeData, r, c);
+        let val = getCellValueFromSheet(cellDataMap, mergeData, r, c, workbookFacade);
         if (val !== null) {
           valuesObj[`col_${c}`] = val;
           hasData = true;

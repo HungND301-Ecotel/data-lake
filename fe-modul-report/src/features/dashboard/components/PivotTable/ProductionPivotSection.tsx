@@ -1,13 +1,12 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { BarChart3 } from "lucide-react";
 import { Column } from "@ant-design/charts";
 import { PivotTable } from "./PivotTable";
 import {
-  PRODUCTION_MOCK,
   AVAILABLE_ROW_FIELDS,
   AVAILABLE_COLUMN_FIELDS,
   AVAILABLE_VALUE_FIELDS,
-} from "./mockData";
+} from "./pivotConfig";
 import type { DepartmentTargetResponse } from "../../types/targetReport";
 import dayjs from "dayjs";
 import { targetReportApi } from "../../api/targetReportApi";
@@ -21,7 +20,6 @@ interface ChartRow {
   chiTieu: string;
 }
 
-// ponytail: same shape as PRODUCTION_MOCK so PivotTable works unchanged
 interface PivotRecord {
   id: string;
   chiTieu: string;
@@ -39,70 +37,95 @@ interface Props {
 }
 
 export function ProductionPivotSection({ selectedDate }: Props) {
-  const [selectedChiTieu, setSelectedChiTieu] =
-    useState<string>("Than NK sản xuất");
-
-  // ponytail: build pivot data from real API — fetch past months' lũy kế
+  const [selectedChiTieu, setSelectedChiTieu] = useState<string>("");
   const [monthlyData, setMonthlyData] = useState<PivotRecord[]>([]);
 
-  // ponytail: on mount or when selectedDate changes, fetch 6 months of data
-  useMemo(() => {
-    if (!selectedDate) return;
-    const base = dayjs(selectedDate);
+  useEffect(() => {
+    let cancelled = false;
+    const base = selectedDate ? dayjs(selectedDate) : dayjs();
     const currentMonth = base.month() + 1; // 1-based
     const year = base.year();
-    // ponytail: fetch months 1..currentMonth in parallel
-    const monthsToFetch = Array.from({ length: Math.min(currentMonth, 6) }, (_, i) => i + 1);
+    const today = dayjs();
+
+    const monthsToFetch = Array.from(
+      { length: Math.min(currentMonth, 12) },
+      (_, i) => i + 1,
+    );
 
     Promise.all(
       monthsToFetch.map(async (m) => {
         const monthStr = `${year}-${String(m).padStart(2, "0")}`;
-        // Get targets (KH) for this month
-        const targets = await targetApi.getTargets("", monthStr);
-        // Get last day of month to get lũy kế
-        const lastDay = dayjs(`${monthStr}-01`).endOf("month").format("YYYY-MM-DD");
-        const reports = await targetReportApi.getAll(lastDay);
+        const targets = await targetApi.getTargets(undefined, monthStr);
+        if (!targets || targets.length === 0) return [];
 
-        // ponytail: flatten reports into a lookup by targetId
-        const reportMap = new Map<string, { performDone: number; luyKe: number }>();
-        for (const dept of reports) {
-          for (const r of dept.targetReportResponseList ?? []) {
-            const existing = reportMap.get(r.targetId);
-            if (existing) {
-              existing.luyKe += r.monthLyCumulative ?? 0;
-            } else {
-              reportMap.set(r.targetId, {
-                performDone: r.performDone ?? 0,
-                luyKe: r.monthLyCumulative ?? 0,
-              });
-            }
-          }
+        let reportDateStr: string;
+        if (m === currentMonth && year === today.year()) {
+          reportDateStr = base.isAfter(today, "day")
+            ? today.format("YYYY-MM-DD")
+            : base.format("YYYY-MM-DD");
+        } else {
+          reportDateStr = dayjs(`${monthStr}-01`).endOf("month").format("YYYY-MM-DD");
         }
 
+        const reports = await targetReportApi.getAll(reportDateStr);
+
+        const reportMap = new Map<string, { performDone: number; luyKe: number }>();
+        const walkReports = (deptList: DepartmentTargetResponse[]) => {
+          deptList.forEach((dept) => {
+            (dept.targetReportResponseList ?? []).forEach((r) => {
+              const existing = reportMap.get(r.targetId);
+              if (existing) {
+                existing.luyKe += r.monthLyCumulative ?? 0;
+                existing.performDone += r.performDone ?? 0;
+              } else {
+                reportMap.set(r.targetId, {
+                  performDone: r.performDone ?? 0,
+                  luyKe: r.monthLyCumulative ?? 0,
+                });
+              }
+            });
+            if (dept.children?.length) walkReports(dept.children);
+          });
+        };
+        walkReports(reports ?? []);
+
         return targets.map((t, idx) => ({
-          id: `real-${m}-${idx}`,
+          id: `${t.id}-${m}-${idx}`,
           chiTieu: t.name,
-          donVi: t.unit,
+          donVi: t.unit || "-",
           thang: `T${m}/${year}`,
           thangNum: m,
-          keHoach: t.value,
+          keHoach: t.value ?? 0,
           thucHien: reportMap.get(t.id)?.luyKe ?? 0,
-          phanXuong: t.departmentName ?? "",
+          phanXuong: t.departmentName || "Bộ phận",
         }));
-      })
+      }),
     )
-      .then((results) => setMonthlyData(results.flat()))
-      .catch((err) => console.error("Failed to load monthly pivot data:", err));
+      .then((results) => {
+        if (!cancelled) {
+          setMonthlyData(results.flat());
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          console.error("Failed to load monthly pivot data:", err);
+          setMonthlyData([]);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [selectedDate]);
 
-  // ponytail: use real data if available, fallback to mock
-  const pivotData = monthlyData.length > 0 ? monthlyData : PRODUCTION_MOCK;
+  const pivotData = monthlyData;
 
   // Transform data for the chart
   const chartData: ChartRow[] = useMemo(() => {
     const rows: ChartRow[] = [];
-    (pivotData as PivotRecord[]).filter((r) => r.chiTieu === selectedChiTieu).forEach(
-      (r) => {
+    pivotData
+      .filter((r) => r.chiTieu === selectedChiTieu)
+      .forEach((r) => {
         rows.push({
           thang: r.thang,
           type: "Kế hoạch",
@@ -115,22 +138,20 @@ export function ProductionPivotSection({ selectedDate }: Props) {
           value: r.thucHien,
           chiTieu: r.chiTieu,
         });
-      },
-    );
+      });
     return rows;
   }, [selectedChiTieu, pivotData]);
 
   // Available chỉ tiêu for chart filter
   const chiTieuList = useMemo(() => {
-    return Array.from(new Set((pivotData as PivotRecord[]).map((r) => r.chiTieu)));
+    return Array.from(new Set(pivotData.map((r) => r.chiTieu)));
   }, [pivotData]);
 
-  // ponytail: auto-select first chiTieu when data changes
-  useMemo(() => {
+  useEffect(() => {
     if (chiTieuList.length > 0 && !chiTieuList.includes(selectedChiTieu)) {
       setSelectedChiTieu(chiTieuList[0]);
     }
-  }, [chiTieuList]);
+  }, [chiTieuList, selectedChiTieu]);
 
   const chartConfig = {
     data: chartData,

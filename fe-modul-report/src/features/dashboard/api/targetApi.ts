@@ -2,10 +2,11 @@ import axiosClient from "../../../services/axiosClient";
 import type { TargetRequest, TargetResponse, UpdateTargetRequest } from "../types/target";
 
 export const targetApi = {
-  getTargets: async (departmentId: string, month: string): Promise<TargetResponse[]> => {
-    const res = await axiosClient.get("/targets", {
-      params: { departmentId, month }
-    });
+  getTargets: async (departmentId?: string, month?: string): Promise<TargetResponse[]> => {
+    const params: Record<string, string> = {};
+    if (departmentId) params.departmentId = departmentId;
+    if (month) params.month = month;
+    const res = await axiosClient.get("/targets", { params });
     return res.data;
   },
 

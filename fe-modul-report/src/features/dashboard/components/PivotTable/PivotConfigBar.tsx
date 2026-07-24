@@ -41,6 +41,7 @@ export default function PivotConfigBar({
   const aggOptions = [
     { label: "Tổng (Sum)", value: "sum" },
     { label: "Trung bình (Avg)", value: "avg" },
+    { label: "Đếm (Count)", value: "count" },
     { label: "Nhỏ nhất (Min)", value: "min" },
     { label: "Lớn nhất (Max)", value: "max" },
   ];

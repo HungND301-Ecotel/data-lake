@@ -1,6 +1,6 @@
 import React from "react";
 import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
-import type { PivotField, PivotCell } from "../../types/table";
+import type { PivotField, PivotCell, AggregationType } from "../../types/table";
 
 export interface PivotGridProps {
   rowKeys: string[];
@@ -10,6 +10,7 @@ export interface PivotGridProps {
   columnTotals: Record<string, Record<string, PivotCell>>;
   grandTotal: Record<string, PivotCell>;
   valueFields: PivotField[];
+  aggregation?: AggregationType;
   /** Number of row fields — used to decide grouped rendering */
   rowFieldCount?: number;
   rowFieldLabel: string;
@@ -32,6 +33,17 @@ export interface PivotGridProps {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const SEP = " / ";
+
+const AGGREGATION_HEADER_MAP: Record<
+  AggregationType,
+  { header: string; grandTotal: string }
+> = {
+  sum: { header: "Tổng", grandTotal: "Tổng cộng" },
+  avg: { header: "Trung bình", grandTotal: "Trung bình" },
+  count: { header: "Đếm", grandTotal: "Tổng đếm" },
+  min: { header: "Nhỏ nhất", grandTotal: "Nhỏ nhất" },
+  max: { header: "Lớn nhất", grandTotal: "Lớn nhất" },
+};
 
 /**
  * Parse a composite rowKey "GroupA / SubItem" into [groupPart, leafPart].
@@ -73,6 +85,7 @@ export default function PivotGrid({
   columnTotals,
   grandTotal,
   valueFields,
+  aggregation = "sum",
   rowFieldCount = 1,
   rowFieldLabel,
   enableDrilldown = true,
@@ -85,6 +98,8 @@ export default function PivotGrid({
 }: PivotGridProps) {
   const isMultiValue = valueFields.length > 1;
   const isGrouped = rowFieldCount > 1;
+  const aggMeta =
+    AGGREGATION_HEADER_MAP[aggregation] ?? AGGREGATION_HEADER_MAP.sum;
 
   // Build grouped structure: Map<groupLabel, rowKey[]>
   const groups = React.useMemo(() => {
@@ -139,7 +154,10 @@ export default function PivotGrid({
 
   const renderRowTotal = (rk: string, vf: PivotField) => {
     const cell = rowTotals[rk]?.[vf.key];
-    const onClick = cellClickHandler(cell, `${rk} — Tổng (${vf.label})`);
+    const onClick = cellClickHandler(
+      cell,
+      `${rk} — ${aggMeta.header} (${vf.label})`,
+    );
     return (
       <td
         key={`row-total-${vf.key}`}
@@ -261,7 +279,7 @@ export default function PivotGrid({
               colSpan={valueFields.length}
               className="px-3 py-2.5 text-[11px] font-semibold text-slate-700 uppercase tracking-wider text-center bg-slate-100 border-l border-slate-200"
             >
-              Tổng
+              {aggMeta.header}
             </th>
           </tr>
 
@@ -306,7 +324,7 @@ export default function PivotGrid({
           {/* Column totals row */}
           <tr className="border-t-2 border-slate-300 bg-slate-50">
             <td className="px-4 py-3 text-sm font-semibold text-slate-800 border-r border-slate-200 sticky left-0 bg-slate-50 z-10 whitespace-nowrap">
-              Tổng cộng
+              {aggMeta.grandTotal}
             </td>
 
             {columnKeys.map((ck) =>
@@ -314,7 +332,7 @@ export default function PivotGrid({
                 const cell = columnTotals[ck]?.[vf.key];
                 const onClick = cellClickHandler(
                   cell,
-                  `Tổng ${ck} (${vf.label})`,
+                  `${aggMeta.header} ${ck} (${vf.label})`,
                 );
                 return (
                   <td
@@ -332,7 +350,10 @@ export default function PivotGrid({
 
             {valueFields.map((vf) => {
               const cell = grandTotal[vf.key];
-              const onClick = cellClickHandler(cell, `Tổng cộng (${vf.label})`);
+              const onClick = cellClickHandler(
+                cell,
+                `${aggMeta.grandTotal} (${vf.label})`,
+              );
               return (
                 <td
                   key={`grand-total-${vf.key}`}

@@ -153,6 +153,7 @@ function IndicatorCard({
               size="small"
               className="w-full"
               format="DD/MM/YYYY"
+              disabledDate={(d) => d.isAfter(dayjs(), "day")}
               value={
                 dayValues.productionDate
                   ? dayjs(dayValues.productionDate)
@@ -354,7 +355,8 @@ export function TargetMonthCalendar({
     (date: Dayjs) => {
       if (
         date.month() === selectedPeriod.month() &&
-        date.year() === selectedPeriod.year()
+        date.year() === selectedPeriod.year() &&
+        !date.isAfter(dayjs(), "day")
       ) {
         setSelectedDate(date);
         setIsEditingDay(true);
@@ -370,9 +372,16 @@ export function TargetMonthCalendar({
         current.year() === selectedPeriod.year();
       if (!isCurrentMonth) return null;
 
+      const isFuture = current.isAfter(dayjs(), "day");
       const dateKey = current.format("YYYY-MM-DD");
       const hasSavedData = savedDates.has(dateKey);
       const isSelected = current.isSame(selectedDate, "day") && isEditingDay;
+
+      if (isFuture) {
+        return (
+          <div className="h-full w-full p-1.5 flex items-start border rounded-lg bg-slate-100/50 border-slate-200/50 opacity-30 cursor-not-allowed min-h-[40px] lg:min-h-[55px]" />
+        );
+      }
 
       return (
         <div
@@ -445,7 +454,8 @@ export function TargetMonthCalendar({
             onSelect={handleDateSelect}
             disabledDate={(d) =>
               d.month() !== selectedPeriod.month() ||
-              d.year() !== selectedPeriod.year()
+              d.year() !== selectedPeriod.year() ||
+              d.isAfter(dayjs(), "day")
             }
           />
         </div>

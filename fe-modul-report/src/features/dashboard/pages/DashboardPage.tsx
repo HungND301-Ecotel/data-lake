@@ -27,6 +27,7 @@ import WorkforceDetailTable from "../components/WorkforceTable/WorkforceDetailTa
 import { targetReportApi } from "../api/targetReportApi";
 import type { DepartmentTargetResponse } from "../types/targetReport";
 import { employeeApi } from "../../employee/api/employeeApi";
+import { reportStorageApi } from "../../report/api/reportStorageApi";
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const COMPANY_NAME = "CÔNG TY CỔ PHẦN THAN ĐÈO NAI CỌC SÁU - VINACOMIN";
 
@@ -195,6 +196,17 @@ export default function DashboardPage() {
   const [totalDepartmentsCount, setTotalDepartmentsCount] = useState<number>(0);
   const [totalUsersCount, setTotalUsersCount] = useState<number>(0);
 
+  // Real chart data states
+  const [realBarChartData, setRealBarChartData] = useState<
+    { department: string; reports: number }[]
+  >([]);
+  const [realLineChartData, setRealLineChartData] = useState<
+    { date: string; reports: number }[]
+  >([]);
+  const [recentReportsData, setRecentReportsData] = useState<
+    { key: string; name: string; department: string; date: string; rawDate: string }[]
+  >([]);
+
   // Fetch departments & system overview metrics
   useEffect(() => {
     departmentApi
@@ -231,6 +243,141 @@ export default function DashboardPage() {
         console.error("Failed to load total users count:", err);
       });
   }, []);
+
+  // Fetch real report counts by department and date trends
+  useEffect(() => {
+    if (!realDepts || realDepts.length === 0) return;
+
+    Promise.all([
+      wareBatchApi.searchWareBatch({ page: 0, limit: 1000 }).catch(() => null),
+      reportStorageApi
+        .searchReportStorage({ page: 0, limit: 1000 })
+        .catch(() => null),
+      Promise.all(
+        realDepts.map(async (dept) => {
+          try {
+            const statusMap = await reportStorageApi.getCountStatusByDepartment(
+              String(dept.id),
+            );
+            const count = Object.values(statusMap || {}).reduce(
+              (a, b) => a + Number(b),
+              0,
+            );
+            return { id: String(dept.id), name: dept.name, count };
+          } catch {
+            return { id: String(dept.id), name: dept.name, count: 0 };
+          }
+        }),
+      ).catch(() => []),
+    ]).then(([wareRes, storageRes, deptCounts]) => {
+      const wareBatches = wareRes?.content ?? [];
+      const storageReports = storageRes?.content ?? [];
+
+      const countMap = new Map<string, number>();
+      realDepts.forEach((d) => countMap.set(d.name, 0));
+
+      (deptCounts as { name: string; count: number }[]).forEach((dc) => {
+        if (dc.name && countMap.has(dc.name)) {
+          countMap.set(dc.name, (countMap.get(dc.name) ?? 0) + dc.count);
+        }
+      });
+
+      wareBatches.forEach((b) => {
+        const dName = (b as any).departmentName;
+        if (dName && countMap.has(dName)) {
+          countMap.set(dName, (countMap.get(dName) ?? 0) + 1);
+        }
+      });
+
+      const newBarData = realDepts.map((d) => ({
+        department: d.name,
+        reports: countMap.get(d.name) ?? 0,
+      }));
+      setRealBarChartData(newBarData);
+
+      // Build 6 days trend
+      const last6Days = Array.from({ length: 6 }, (_, i) => {
+        const d = dayjs().subtract(5 - i, "day");
+        return {
+          key: d.format("YYYY-MM-DD"),
+          label: d.format("DD/MM"),
+        };
+      });
+
+      const dateMap = new Map<string, number>();
+      last6Days.forEach((d) => dateMap.set(d.key, 0));
+
+      wareBatches.forEach((b) => {
+        if (b.createdAt) {
+          const key = dayjs(b.createdAt).format("YYYY-MM-DD");
+          if (dateMap.has(key)) {
+            dateMap.set(key, (dateMap.get(key) ?? 0) + 1);
+          }
+        }
+      });
+
+      storageReports.forEach((r) => {
+        if (r.createdAt) {
+          const key = dayjs(r.createdAt).format("YYYY-MM-DD");
+          if (dateMap.has(key)) {
+            dateMap.set(key, (dateMap.get(key) ?? 0) + 1);
+          }
+        }
+      });
+
+      const newLineData = last6Days.map((d) => ({
+        date: d.label,
+        reports: dateMap.get(d.key) ?? 0,
+      }));
+      setRealLineChartData(newLineData);
+
+      // Build recent reports list
+      const recentList: {
+        key: string;
+        name: string;
+        department: string;
+        date: string;
+        rawDate: string;
+      }[] = [];
+
+      wareBatches.forEach((b, idx) => {
+        const deptName =
+          (b as any).departmentName ||
+          (b as any).department ||
+          (realDepts.length > 0
+            ? realDepts[idx % realDepts.length]?.name
+            : "Phòng Kế hoạch - Vật tư");
+
+        recentList.push({
+          key: `ware-${b.id || idx}`,
+          name: b.name || `Báo cáo #${b.code || b.id}`,
+          department: deptName,
+          date: b.createdAt ? dayjs(b.createdAt).format("YYYY-MM-DD") : "-",
+          rawDate: b.createdAt || "",
+        });
+      });
+
+      storageReports.forEach((s, idx) => {
+        const deptName =
+          (s as any).departmentName ||
+          s.reportCategoryName ||
+          (realDepts.length > 0
+            ? realDepts[(idx + 1) % realDepts.length]?.name
+            : "Phòng Kế toán");
+
+        recentList.push({
+          key: `storage-${s.id || idx}`,
+          name: s.name || `Báo cáo kho #${s.id}`,
+          department: deptName,
+          date: s.createdAt ? dayjs(s.createdAt).format("YYYY-MM-DD") : "-",
+          rawDate: s.createdAt || "",
+        });
+      });
+
+      recentList.sort((a, b) => (b.rawDate > a.rawDate ? 1 : -1));
+      setRecentReportsData(recentList.slice(0, 10));
+    });
+  }, [realDepts]);
 
   // Fetch batches
   const loadBatches = () => {
@@ -408,112 +555,36 @@ export default function DashboardPage() {
   const usersCountVal = totalUsersCount;
 
   const getFilteredBarData = () => {
-    const base = [
-      { department: "Phòng Kế hoạch - Vật tư", reports: 40 },
-      { department: "PX Than Nguyên Khai", reports: 30 },
-      { department: "PX Than Sạch", reports: 50 },
-      { department: "PX Cơ điện", reports: 25 },
-      { department: "Phòng Kế toán", reports: 15 },
-      { department: "Phòng Nhân sự", reports: 20 },
-    ];
-    const scaled = base.map((item, idx) => ({
-      ...item,
-      reports: Math.round(
-        item.reports * (0.8 + seedRandom(seed + idx) * 0.4) * periodMultiplier,
-      ),
-    }));
-    if (deptFilter === "Tất cả") return scaled;
-    return scaled.filter((item) => item.department === deptFilter);
+    let sourceData = realBarChartData;
+    if (sourceData.length === 0 && realDepts.length > 0) {
+      sourceData = realDepts.map((d) => ({
+        department: d.name,
+        reports: 0,
+      }));
+    }
+    if (deptFilter === "Tất cả") return sourceData;
+    return sourceData.filter((item) => item.department === deptFilter);
   };
 
   const getFilteredLineData = () => {
-    return [
-      {
-        date: "25/11",
-        reports: Math.round(
-          5 * periodMultiplier * (0.8 + seedRandom(seed) * 0.4),
-        ),
-      },
-      {
-        date: "26/11",
-        reports: Math.round(
-          8 * periodMultiplier * (0.8 + seedRandom(seed + 1) * 0.4),
-        ),
-      },
-      {
-        date: "27/11",
-        reports: Math.round(
-          6 * periodMultiplier * (0.8 + seedRandom(seed + 2) * 0.4),
-        ),
-      },
-      {
-        date: "28/11",
-        reports: Math.round(
-          10 * periodMultiplier * (0.8 + seedRandom(seed + 3) * 0.4),
-        ),
-      },
-      {
-        date: "29/11",
-        reports: Math.round(
-          7 * periodMultiplier * (0.8 + seedRandom(seed + 4) * 0.4),
-        ),
-      },
-      {
-        date: "30/11",
-        reports: Math.round(
-          12 * periodMultiplier * (0.8 + seedRandom(seed + 5) * 0.4),
-        ),
-      },
-    ];
+    if (realLineChartData.length > 0) {
+      return realLineChartData;
+    }
+    return Array.from({ length: 6 }, (_, i) => {
+      const d = dayjs().subtract(5 - i, "day");
+      return {
+        date: d.format("DD/MM"),
+        reports: 0,
+      };
+    });
   };
 
   const getFilteredRecentReports = () => {
-    const base = [
-      {
-        key: "1",
-        name: "Báo cáo bán hàng tháng 5",
-        type: "Word",
-        department: "Phòng Kế hoạch - Vật tư",
-        date: "2026-05-30",
-      },
-      {
-        key: "2",
-        name: "Báo cáo tồn kho vật tư",
-        type: "Excel",
-        department: "Phòng Kế hoạch - Vật tư",
-        date: "2026-05-29",
-      },
-      {
-        key: "3",
-        name: "Báo cáo tài chính Q1",
-        type: "PDF",
-        department: "Phòng Kế toán",
-        date: "2026-05-28",
-      },
-      {
-        key: "4",
-        name: "Báo cáo lao động tiền lương",
-        type: "Excel",
-        department: "Phòng Nhân sự",
-        date: "2026-05-27",
-      },
-      {
-        key: "5",
-        name: "Nhật ký khai thác ca 1",
-        type: "Excel",
-        department: "PX Than Nguyên Khai",
-        date: "2026-05-26",
-      },
-      {
-        key: "6",
-        name: "Nhật ký khai thác ca 2",
-        type: "Excel",
-        department: "PX Than Sạch",
-        date: "2026-05-25",
-      },
-    ];
-    if (deptFilter === "Tất cả") return base;
-    return base.filter((item) => item.department === deptFilter);
+    if (recentReportsData.length > 0) {
+      if (deptFilter === "Tất cả") return recentReportsData;
+      return recentReportsData.filter((item) => item.department === deptFilter);
+    }
+    return [];
   };
 
   const barConfig = {
@@ -1235,9 +1306,6 @@ export default function DashboardPage() {
                       Tên báo cáo
                     </th>
                     <th className="p-3.5 px-3 text-[10px] font-bold uppercase text-slate-500 tracking-wider">
-                      Loại file
-                    </th>
-                    <th className="p-3.5 px-3 text-[10px] font-bold uppercase text-slate-500 tracking-wider">
                       Phòng ban
                     </th>
                     <th className="p-3.5 px-3 text-[10px] font-bold uppercase text-slate-500 tracking-wider">
@@ -1246,27 +1314,23 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {getFilteredRecentReports().map((row, idx) => {
-                    const badgeClass =
-                      row.type === "Word"
-                        ? "bg-blue-50 text-blue-600"
-                        : row.type === "Excel"
-                          ? "bg-emerald-50 text-emerald-600"
-                          : "bg-red-50 text-red-600";
-                    return (
+                  {getFilteredRecentReports().length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={3}
+                        className="text-center py-6 text-xs text-slate-400 font-medium"
+                      >
+                        Chưa có báo cáo mới nào
+                      </td>
+                    </tr>
+                  ) : (
+                    getFilteredRecentReports().map((row, idx) => (
                       <tr
-                        key={idx}
+                        key={row.key || idx}
                         className="border-b border-slate-100 hover:bg-slate-50/50 transition-all"
                       >
                         <td className="p-4 px-3 text-xs text-slate-900 font-semibold">
                           {row.name}
-                        </td>
-                        <td className="p-4 px-3 text-xs">
-                          <span
-                            className={`text-[10px] font-semibold px-2.5 py-1 rounded-md inline-flex items-center gap-1 ${badgeClass}`}
-                          >
-                            {row.type}
-                          </span>
                         </td>
                         <td className="p-4 px-3 text-xs text-slate-600">
                           {row.department}
@@ -1275,8 +1339,8 @@ export default function DashboardPage() {
                           {row.date}
                         </td>
                       </tr>
-                    );
-                  })}
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

@@ -89,7 +89,11 @@ export function PlanModal({ onClose }: PlanModalProps) {
             items={[
               {
                 key: "1",
-                label: <span className="text-xs font-semibold px-2">Tạo chỉ tiêu</span>,
+                label: (
+                  <span className="text-xs font-semibold px-2">
+                    Tạo chỉ tiêu
+                  </span>
+                ),
                 children: (
                   <InitPlan
                     selectedWorkshop={selectedWorkshop}
@@ -101,7 +105,11 @@ export function PlanModal({ onClose }: PlanModalProps) {
               },
               {
                 key: "2",
-                label: <span className="text-xs font-semibold px-2">Điền dữ liệu theo ngày</span>,
+                label: (
+                  <span className="text-xs font-semibold px-2">
+                    Điền dữ liệu theo ngày
+                  </span>
+                ),
                 children: (
                   <TargetMonthCalendar
                     selectedWorkshop={selectedWorkshop}
@@ -111,10 +119,10 @@ export function PlanModal({ onClose }: PlanModalProps) {
               },
               {
                 key: "3",
-                label: <span className="text-xs font-semibold px-2">Tổng quan</span>,
-                children: (
-                  <TargetSummary selectedPeriod={selectedPeriod} />
+                label: (
+                  <span className="text-xs font-semibold px-2">Tổng quan</span>
                 ),
+                children: <TargetSummary selectedPeriod={selectedPeriod} />,
               },
             ]}
           />
