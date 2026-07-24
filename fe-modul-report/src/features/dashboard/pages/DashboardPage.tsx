@@ -1316,7 +1316,40 @@ export default function DashboardPage() {
                     </th>
                   </tr>
                 </thead>
-             {/* ═══ ROW 3: BÁO CÁO NỘI BỘ + TKV ═══ */}
+                <tbody>
+                  {getFilteredRecentReports().length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={3}
+                        className="text-center py-6 text-xs text-slate-400 font-medium"
+                      >
+                        Chưa có báo cáo mới nào
+                      </td>
+                    </tr>
+                  ) : (
+                    getFilteredRecentReports().map((row, idx) => (
+                      <tr
+                        key={row.key || idx}
+                        className="border-b border-slate-100 hover:bg-slate-50/50 transition-all"
+                      >
+                        <td className="p-4 px-3 text-xs text-slate-900 font-semibold">
+                          {row.name}
+                        </td>
+                        <td className="p-4 px-3 text-xs text-slate-600">
+                          {row.department}
+                        </td>
+                        <td className="p-4 px-3 text-xs text-slate-500">
+                          {row.date}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* ═══ ROW 3: BÁO CÁO NỘI BỘ + TKV ═══ */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <InternalReportsSection
               selectedDate={selectedDate}
@@ -1337,33 +1370,6 @@ export default function DashboardPage() {
               }}
               onTrinhDuyet={handleTrinhDuyet}
             />
-          </div>ext-xs py-2 px-2 rounded-lg border border-slate-200 cursor-pointer transition-all active:scale-[0.98] text-center"
-                            >
-                              Xem
-                            </button>
-                            <button
-                              onClick={() => {
-                                setUniverReadOnly(false);
-                                handlePreviewTkvReport(report.code);
-                              }}
-                              className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-xs py-2 px-2 rounded-lg border border-blue-200 cursor-pointer transition-all active:scale-[0.98] text-center"
-                            >
-                              Sửa
-                            </button>
-                            <button
-                              onClick={() => handleTrinhDuyet(report.code)}
-                              className="flex-1 bg-[#1a8649] hover:bg-[#15703d] text-white font-semibold text-xs py-2 px-2 rounded-lg border-0 cursor-pointer transition-all active:scale-[0.98] text-center shadow-sm"
-                            >
-                              Trình duyệt
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* ═══ BOTTOM ACTION BUTTONS ═══ */}

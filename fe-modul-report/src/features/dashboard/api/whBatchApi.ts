@@ -7,7 +7,7 @@ import type {
 export const whBatchApi = {
   /**
    * Lấy danh sách WareBatch cho dashboard.
-   * Gọi endpoint GET /wh-batch/dashboard với JSON body (Spring @RequestBody).
+   * Gọi endpoint POST /wh-batch/dashboard với JSON body.
    *
    * Body gửi lên:
    * {
@@ -32,8 +32,8 @@ export const whBatchApi = {
     if (params.reportMonth != null) body.reportMonth = params.reportMonth;
     if (params.reportDay != null) body.reportDay = params.reportDay;
 
-    // GET với body: dùng option `data` của axios
-    const res = await axiosClient.get(`/wh-batch/dashboard`, { data: body });
+    // Gọi HTTP POST với body JSON
+    const res = await axiosClient.post(`/wh-batch/dashboard`, body);
 
     // BE trả về mảng trực tiếp List<WareBatchDashboardResponse>
     const data = res.data;
