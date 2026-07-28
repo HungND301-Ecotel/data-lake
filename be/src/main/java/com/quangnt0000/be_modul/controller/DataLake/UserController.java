@@ -1,6 +1,7 @@
 package com.quangnt0000.be_modul.controller.DataLake;
 
 import com.quangnt0000.be_modul.dto.User.ChangePasswordRequest;
+import com.quangnt0000.be_modul.dto.User.ResetPasswordRequest;
 import com.quangnt0000.be_modul.dto.User.UserLogin;
 import com.quangnt0000.be_modul.dto.User.UserRequest;
 import com.quangnt0000.be_modul.service.DataLake.UserService;
@@ -44,9 +45,11 @@ public class UserController {
         return userService.changePassword(request);
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<?> logout(){
-        return userService.logout();
+    @PutMapping("/{user-id}/reset-password")
+    public ResponseEntity<?> resetPasswordByAdmin(
+            @PathVariable("user-id") String userId,
+            @RequestBody ResetPasswordRequest request) {
+        return userService.resetPasswordByAdmin(userId, request);
     }
 
 }

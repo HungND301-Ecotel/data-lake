@@ -38,8 +38,10 @@ export const userApi = {
     await axiosClient.put("/user/change-password", request);
   },
 
-  logout: async (): Promise<string> => {
-    const res = await axiosClient.post("/user/logout");
-    return res.data;
+  resetPasswordByAdmin: async (
+    userId: string,
+    newPassword: string
+  ): Promise<void> => {
+    await axiosClient.put(`/user/${userId}/reset-password`, { newPassword });
   },
-};
+};

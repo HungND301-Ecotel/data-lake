@@ -2,6 +2,7 @@ package com.quangnt0000.be_modul.service.DataLake;
 
 import com.quangnt0000.be_modul.dto.User.ChangePasswordRequest;
 import com.quangnt0000.be_modul.dto.User.LoginResponse;
+import com.quangnt0000.be_modul.dto.User.ResetPasswordRequest;
 import com.quangnt0000.be_modul.dto.User.UserLogin;
 import com.quangnt0000.be_modul.dto.User.UserRequest;
 import com.quangnt0000.be_modul.dto.User.UserResponse;
@@ -57,7 +58,7 @@ public class UserService {
 
     public ResponseEntity<?> login(UserLogin request) {
         User user = userRepository.findByUsernameAndStatusTrue(request.getUsername());
-                if (user != null && passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        if(passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             long expiration = 1000 * 60 * 60 * 24;
             SecretKey key = Keys.hmacShaKeyFor(Base64.getDecoder().decode(secretKey));
             String token = Jwts.builder()
@@ -81,7 +82,7 @@ public class UserService {
             return ResponseEntity.ok(loginResponse);
         }
 
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Sai tài khoản hoặc mật khẩu");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Sai thông tin đăng nhập");
     }
 
     public ResponseEntity<?> getUserByEmployeeId(String employeeId) {
@@ -127,8 +128,11 @@ public class UserService {
         return ResponseEntity.ok("Đổi mật khẩu thành công");
     }
 
-    public ResponseEntity<?> logout() {
-        SecurityContextHolder.clearContext();
-        return ResponseEntity.ok("Đăng xuất thành công");
+    public ResponseEntity<?> resetPasswordByAdmin(String userId, ResetPasswordRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        return ResponseEntity.ok("Đặt lại mật khẩu thành công");
     }
 }
