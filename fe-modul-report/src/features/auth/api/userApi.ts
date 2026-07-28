@@ -1,5 +1,11 @@
 import axiosClient from "../../../services/axiosClient";
-import type { LoginResponse, UserLogin, UserRequest, UserResponse, ChangePasswordRequest } from "../../employee/types/user";
+import type {
+  LoginResponse,
+  UserLogin,
+  UserRequest,
+  UserResponse,
+  ChangePasswordRequest,
+} from "../../employee/types/user";
 
 export const userApi = {
   addUser: async (request: UserRequest): Promise<string> => {
@@ -22,7 +28,9 @@ export const userApi = {
     return res.data;
   },
 
-  getByEmployeeId: async (employeeId: String | null): Promise<UserResponse> => {
+  getByEmployeeId: async (
+    employeeId: String | null
+  ): Promise<UserResponse> => {
     const res = await axiosClient.get(`/user/employee/${employeeId}`);
     return res.data;
   },
@@ -36,5 +44,19 @@ export const userApi = {
     request: ChangePasswordRequest
   ): Promise<void> => {
     await axiosClient.put("/user/change-password", request);
+  },
+
+  resetPasswordByAdmin: async (
+    userId: string,
+    newPassword: string
+  ): Promise<void> => {
+    await axiosClient.put(`/user/${userId}/reset-password`, {
+      newPassword,
+    });
+  },
+
+  logout: async (): Promise<string> => {
+    const res = await axiosClient.post("/user/logout");
+    return res.data;
   },
 };

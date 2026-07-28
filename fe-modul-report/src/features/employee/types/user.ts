@@ -28,3 +28,7 @@ export interface UserRequest {
     oldPassword: string;
     newPassword: string;
   }
+
+  export interface ResetPasswordRequest {
+    newPassword: string;
+  }
