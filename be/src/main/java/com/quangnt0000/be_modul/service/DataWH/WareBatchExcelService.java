@@ -318,7 +318,7 @@ public class WareBatchExcelService {
         font.setFontHeightInPoints((short) 12);
         CellStyle style = wb.createCellStyle();
         style.setFont(font);
-        style.setAlignment(HorizontalAlignment.LEFT);
+        style.setAlignment(HorizontalAlignment.RIGHT);
         style.setVerticalAlignment(VerticalAlignment.CENTER);
         return style;
     }
