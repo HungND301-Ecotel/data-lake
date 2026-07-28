@@ -862,7 +862,7 @@ const EmployeePage = () => {
                   </span>
                 }
                 rules={[
-                  ({ getFieldValue }) => ({
+                  () => ({
                     validator(_, value) {
                       if (!value || value === "") return Promise.resolve();
                       if (value.length < 6) return Promise.reject("Mật khẩu phải từ 6 ký tự");
