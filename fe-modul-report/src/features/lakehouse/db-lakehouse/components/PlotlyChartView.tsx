@@ -16,7 +16,7 @@ export default function PlotlyChartView({ chart, height = 400 }: PlotlyChartView
     <Card size="small">
       <Suspense fallback={<Spin tip="Đang tải biểu đồ..." className="w-full flex justify-center py-8" />}>
         <Plot
-          data={chart.data as Plotly.Data[]}
+          data={chart.data as any[]}
           layout={{
             ...chart.layout,
             autosize: true,

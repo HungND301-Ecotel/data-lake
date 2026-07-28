@@ -30,7 +30,6 @@ import { wareCategoryApi } from "../ware/api/wareCategoryApi";
 import { wareTemplateApi } from "../ware/api/wareTemplateApi";
 import type { DepartmentResponse } from "../department/types/department";
 import { useAuthStore } from "../../stores/authStore";
-import { userApi } from "../auth/api/userApi";
 
 type Cat = { id: number; code: string; name: string };
 type Tmpl = {
@@ -583,18 +582,12 @@ export default function NavBar() {
           icon: <LogoutOutlined className="text-lg" />,
           danger: true,
           label: <span className="text-base font-medium">Đăng xuất</span>,
-          onClick: async () => {
-            try {
-              await userApi.logout();
-            } catch (e) {
-              console.error("Failed to logout on backend:", e);
-            } finally {
-              localStorage.removeItem("token");
-              localStorage.removeItem("refreshToken");
-              clearRole();
-              message.success("Đăng xuất thành công");
-              navigate("/login");
-            }
+          onClick: () => {
+            localStorage.removeItem("token");
+            localStorage.removeItem("refreshToken");
+            clearRole();
+            message.success("Đăng xuất thành công");
+            navigate("/login");
           },
           className: "py-3 px-4 hover:bg-[#fff1f0]!",
         },

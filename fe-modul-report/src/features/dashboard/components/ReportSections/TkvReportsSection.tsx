@@ -172,7 +172,14 @@ export function TkvReportsSection({
                       Sửa
                     </button>
                     <button
-                      onClick={() => onTrinhDuyet(report.code)}
+                      onClick={() => {
+                        onTrinhDuyet(report.code);
+                        setTkvReports((prev) =>
+                          prev.map((r) =>
+                            r.code === report.code ? { ...r, wareBatchStatus: "PENDING" } : r
+                          )
+                        );
+                      }}
                       className="flex-1 bg-[#1a8649] hover:bg-[#15703d] text-white font-semibold text-xs py-2 px-2 rounded-lg border-0 cursor-pointer transition-all active:scale-[0.98] text-center shadow-sm"
                     >
                       Trình duyệt

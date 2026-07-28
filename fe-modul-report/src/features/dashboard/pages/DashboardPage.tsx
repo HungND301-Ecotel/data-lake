@@ -21,8 +21,6 @@ import { UniverPreviewModal } from "../components/Modal/UniverPreviewModal";
 import { PlanModal } from "../components/ProductionPlanning";
 import { SetupModal } from "../components/Modal/SetupModal";
 import { BatchSyncModal } from "../components/Modal/BatchSyncModal";
-import { whBatchApi } from "../api/whBatchApi";
-import type { WhBatchDashboardResponse } from "../types/whBatch";
 import { ProductionPivotSection } from "../components/PivotTable/ProductionPivotSection";
 import WorkforceDetailTable from "../components/WorkforceTable/WorkforceDetailTable";
 import { targetReportApi } from "../api/targetReportApi";
@@ -923,11 +921,6 @@ export default function DashboardPage() {
   const handleTrinhDuyet = (reportId: string) => {
     alert(
       `Đã trình duyệt báo cáo ${reportId} thành công! Trạng thái báo cáo chuyển sang Chờ duyệt.`,
-    );
-    setTkvReports((prev) =>
-      prev.map((r) =>
-        r.code === reportId ? { ...r, wareBatchStatus: "PENDING" } : r,
-      ),
     );
   };
 

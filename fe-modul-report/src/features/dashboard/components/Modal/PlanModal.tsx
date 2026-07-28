@@ -35,7 +35,7 @@ export function PlanModal({
 }: PlanModalProps) {
   const [step, setStep] = useState(1);
   const isMountedRef = useRef(true);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     isMountedRef.current = true;
