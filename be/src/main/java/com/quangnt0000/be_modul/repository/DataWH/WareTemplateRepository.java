@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface WareTemplateRepository extends JpaRepository<WareTemplate, Integer> {
-    List<WareTemplate> findByWareCategory_IdOrderByNameAsc(Integer wareCategoryId);
+    List<WareTemplate> findByWareCategory_IdAndDeletedFalseOrderByNameAsc(Integer wareCategoryId);
 
     Optional<WareTemplate> findByIdAndDeletedFalse(Integer templateId);
 
@@ -29,5 +29,5 @@ public interface WareTemplateRepository extends JpaRepository<WareTemplate, Inte
     """)
     List<TableOption> getTableOption(@Param("keyword") String keyword);
 
-    Optional<WareTemplate> findFirstByTableCodeOrderByCreatedAtDesc(String tableCode);
+    Optional<WareTemplate> findFirstByTableCodeAndDeletedFalseOrderByCreatedAtDesc(String tableCode);
 }

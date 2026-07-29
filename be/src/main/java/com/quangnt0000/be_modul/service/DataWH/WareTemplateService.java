@@ -58,13 +58,14 @@ public class WareTemplateService {
 
         WareTemplate wareTemplate = wareTemplateRepository.findById(templateId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "template not found"));
-        wareTemplateRepository.delete(wareTemplate);
+        wareTemplate.setDeleted(true);
+        wareTemplateRepository.save(wareTemplate);
         return ResponseEntity.ok("Deleted template");
     }
 
 
     public ResponseEntity<?> getAll(WareTemplateSearch request) {
-        List<WareTemplate> wareTemplates = wareTemplateRepository.findByWareCategory_IdOrderByNameAsc(request.getWareCategoryId());
+        List<WareTemplate> wareTemplates = wareTemplateRepository.findByWareCategory_IdAndDeletedFalseOrderByNameAsc(request.getWareCategoryId());
         List<WareTemplateResponse> responses = wareTemplates.stream().map(
                 wareTemplate -> {
                     boolean hasConfig = !wareApprovalConfigRepository
