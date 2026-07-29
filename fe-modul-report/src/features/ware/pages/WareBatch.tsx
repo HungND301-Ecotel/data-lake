@@ -80,6 +80,46 @@ export const WareBatch: React.FC<WareBatchProps> = ({ templateIdProp }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [form] = Form.useForm<WareBatchRequest>();
+
+  const selectedYear = Form.useWatch("reportYear", form);
+  const selectedMonth = Form.useWatch("reportMonth", form);
+
+  const currentYear = new Date().getFullYear();
+  const yearOptions = React.useMemo(() => {
+    return Array.from({ length: 16 }, (_, i) => {
+      const y = currentYear - 10 + i;
+      return { label: String(y), value: y };
+    });
+  }, [currentYear]);
+
+  const monthOptions = React.useMemo(() => {
+    return Array.from({ length: 12 }, (_, i) => ({
+      label: `Tháng ${i + 1}`,
+      value: i + 1,
+    }));
+  }, []);
+
+  const daysInMonth = React.useMemo(() => {
+    if (!selectedYear || !selectedMonth) {
+      return 31;
+    }
+    return new Date(selectedYear, selectedMonth, 0).getDate();
+  }, [selectedYear, selectedMonth]);
+
+  const dayOptions = React.useMemo(() => {
+    return Array.from({ length: daysInMonth }, (_, i) => ({
+      label: `Ngày ${i + 1}`,
+      value: i + 1,
+    }));
+  }, [daysInMonth]);
+
+  useEffect(() => {
+    const currentDay = form.getFieldValue("reportDay");
+    if (currentDay && currentDay > daysInMonth) {
+      form.setFieldValue("reportDay", undefined);
+    }
+  }, [daysInMonth, form]);
+
   const nav = useNavigate();
   const [messageApi, contextHolderMessage] = message.useMessage();
   const [modal, contextHolderModal] = Modal.useModal();
@@ -533,9 +573,16 @@ export const WareBatch: React.FC<WareBatchProps> = ({ templateIdProp }) => {
                   Năm báo cáo <span className="text-red-500">*</span>
                 </span>
               }
-              rules={[{ required: true, message: "Vui lòng nhập năm báo cáo" }]}
+              rules={[{ required: true, message: "Vui lòng chọn năm báo cáo" }]}
             >
-              <Input placeholder="VD: 2024" size="large" type="number" className="rounded-lg" />
+              <Select
+                placeholder="Chọn năm"
+                size="large"
+                className="rounded-lg"
+                options={yearOptions}
+                showSearch
+                optionFilterProp="label"
+              />
             </Form.Item>
             <Form.Item
               name="reportMonth"
@@ -565,7 +612,15 @@ export const WareBatch: React.FC<WareBatchProps> = ({ templateIdProp }) => {
                 }),
               ]}
             >
-              <Input placeholder="VD: 1-12" size="large" type="number" min={1} max={12} className="rounded-lg" />
+              <Select
+                placeholder="Chọn tháng (tùy chọn)"
+                allowClear
+                size="large"
+                className="rounded-lg"
+                options={monthOptions}
+                showSearch
+                optionFilterProp="label"
+              />
             </Form.Item>
             <Form.Item
               name="reportQuarter"
@@ -596,7 +651,15 @@ export const WareBatch: React.FC<WareBatchProps> = ({ templateIdProp }) => {
               name="reportDay"
               label={<span className="font-medium text-gray-800">Ngày báo cáo</span>}
             >
-              <Input placeholder="VD: 1-31" size="large" type="number" min={1} max={31} className="rounded-lg" />
+              <Select
+                placeholder="Chọn ngày (tùy chọn)"
+                allowClear
+                size="large"
+                className="rounded-lg"
+                options={dayOptions}
+                showSearch
+                optionFilterProp="label"
+              />
             </Form.Item>
           </div>
 

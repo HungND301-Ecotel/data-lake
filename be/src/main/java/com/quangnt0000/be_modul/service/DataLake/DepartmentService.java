@@ -24,6 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +32,21 @@ public class DepartmentService {
     private final DepartmentRepository departmentRepository;
     private final UserRepository userRepository;
     public ResponseEntity<?> saveDepartment(DepartmentRequest request) {
+        // Check for duplicate code
+        Optional<Department> existingOpt = departmentRepository.findByCode(request.getCode());
+        if (existingOpt.isPresent()) {
+            Department existing = existingOpt.get();
+            if (request.getId() == null || !existing.getId().equals(request.getId())) {
+                if (!existing.getDeleted()) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mã phòng ban đã tồn tại");
+                } else {
+                    // Rename the code of the soft-deleted department to free up the unique constraint
+                    existing.setCode(existing.getCode() + "_deleted_" + System.currentTimeMillis());
+                    departmentRepository.save(existing);
+                }
+            }
+        }
+
         Department department;
 
         if (request.getId() != null) {
@@ -53,6 +69,7 @@ public class DepartmentService {
         Department department = departmentRepository.findById(departmentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Department not found"));
         department.setDeleted(true);
+        department.setCode(department.getCode() + "_deleted_" + System.currentTimeMillis());
         departmentRepository.save(department);
         return ResponseEntity.ok("Success");
     }
