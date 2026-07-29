@@ -87,6 +87,11 @@ public class WareBatchController {
         return wareBatchService.getMyApprovalBatches(departmentId);
     }
 
+    @PostMapping("/dashboard")
+    public ResponseEntity<?> getDashboard(@RequestBody DashboardRequest request) {
+        return wareBatchService.getWareBatches(request);
+    }
+
     /**
      * Xuất file Excel từ dữ liệu đã lưu (WareDataRow + WareMapping).
      * Không cần đọc file gốc từ S3.

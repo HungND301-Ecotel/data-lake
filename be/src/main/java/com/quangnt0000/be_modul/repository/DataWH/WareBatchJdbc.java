@@ -161,11 +161,14 @@ public class WareBatchJdbc {
                         wb.s3_file_key AS s3_file_key,
                         wb.created_at AS created_at,
                         wb.updated_at AS updated_at,
+                        e.name AS employee_name,
                         wb.status AS wareBatchStatus,
                         wb.report_year AS report_year,
                         wb.report_month AS report_month,
-                        wb.report_day AS report_day
+                        wb.report_day AS report_day,
+                        wc.report_type AS reportType
                     FROM ware_batch wb
+                    LEFT JOIN employee e ON wb.employee_id = e.id
                     LEFT JOIN ware_template wt ON wb.ware_template_id = wt.id
                     LEFT JOIN ware_category wc ON wt.ware_category_id = wc.id
                     LEFT JOIN department d ON wc.department_id = d.id
@@ -197,7 +200,6 @@ public class WareBatchJdbc {
             sql.append(" and wb.report_day = ? ");
             params.add(request.getReportDay());
         }
-        System.out.println("SQL: " + sql);
         return jdbcTemplate.query(sql.toString(),
                 params.toArray(),
                 new BeanPropertyRowMapper<>(WareBatchResponse.class)

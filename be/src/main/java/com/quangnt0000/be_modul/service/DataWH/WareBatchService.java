@@ -13,6 +13,7 @@ import com.quangnt0000.be_modul.dto.WareBatch.WareBatchSearch;
 import com.quangnt0000.be_modul.dto.WareBatch.MyApprovalBatchResponse;
 import com.quangnt0000.be_modul.dto.WareBatch.WebBatchSubmitRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WebDataRowDto;
+import com.quangnt0000.be_modul.dto.dashboard.DashboardRequest;
 import com.quangnt0000.be_modul.dto.ValidationErrorResponse;
 import com.quangnt0000.be_modul.dto.CellErrorDetail;
 import com.quangnt0000.be_modul.enums.WareBatchEnum;
@@ -1098,5 +1099,10 @@ public class WareBatchService {
 
         // Lưu tất cả approvals
         batchApprovalRepository.saveAll(batchApprovals);
+    }
+
+    public ResponseEntity<?> getWareBatches(DashboardRequest request) {
+        List<WareBatchResponse> wareCategoryResponses = wareBatchJdbc.getWareBatches(request);
+        return ResponseEntity.ok(wareCategoryResponses);
     }
 }
