@@ -23,9 +23,10 @@ interface FlatRow {
 
 interface Props {
   selectedPeriod: Dayjs;
+  onPeriodChange?: (val: Dayjs) => void;
 }
 
-export function TargetSummary({ selectedPeriod }: Props) {
+export function TargetSummary({ selectedPeriod, onPeriodChange }: Props) {
   const [selectedDate, setSelectedDate] = useState<Dayjs>(() => {
     const today = dayjs();
     if (today.format("YYYY-MM") === selectedPeriod.format("YYYY-MM")) {
@@ -187,7 +188,12 @@ export function TargetSummary({ selectedPeriod }: Props) {
               size="small"
               value={selectedDate}
               onChange={(date) => {
-                if (date) setSelectedDate(date);
+                if (date) {
+                  setSelectedDate(date);
+                  if (onPeriodChange && (date.month() !== selectedPeriod.month() || date.year() !== selectedPeriod.year())) {
+                    onPeriodChange(date);
+                  }
+                }
               }}
               format="DD/MM/YYYY"
               allowClear={false}

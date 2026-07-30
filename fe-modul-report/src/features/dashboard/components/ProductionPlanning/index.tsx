@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { TrendingUp, Activity, X } from "lucide-react";
 import dayjs, { Dayjs } from "dayjs";
 import { Tabs } from "antd";
 import { InitPlan } from "./InitPlan";
 import { TargetMonthCalendar } from "./TargetMonthCalendar";
 import { TargetSummary } from "./TargetSummary";
+import { departmentApi } from "../../../department/api/departmentApi";
+import type { DepartmentResponse } from "../../../department/types/department";
 
 interface PlanModalProps {
   onClose: () => void;
@@ -15,6 +17,38 @@ interface PlanModalProps {
 export function PlanModal({ onClose, mode = "plan" }: PlanModalProps) {
   const [selectedWorkshop, setSelectedWorkshop] = useState("");
   const [selectedPeriod, setSelectedPeriod] = useState<Dayjs>(dayjs());
+  const [depts, setDepts] = useState<DepartmentResponse[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    departmentApi
+      .searchDepartment("", 0, 1000)
+      .then((res) => {
+        if (cancelled) return;
+        if (res?.content) {
+          setDepts(res.content);
+          if (!selectedWorkshop && res.content.length > 0) {
+            const first = res.content.find((d) => d.id);
+            if (first?.id) setSelectedWorkshop(first.id);
+          }
+        }
+      })
+      .catch((err) => console.error("Failed to load departments in PlanModal:", err));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const workshopOptions = useMemo(
+    () =>
+      depts
+        .filter((d) => d.id)
+        .map((d) => ({
+          value: d.id as string,
+          label: d.name?.trim() || d.code?.trim() || "Phòng ban",
+        })),
+    [depts],
+  );
 
   const isOperation = mode === "operation";
 
@@ -110,6 +144,9 @@ export function PlanModal({ onClose, mode = "plan" }: PlanModalProps) {
                     <TargetMonthCalendar
                       selectedWorkshop={selectedWorkshop}
                       selectedPeriod={selectedPeriod}
+                      onWorkshopChange={setSelectedWorkshop}
+                      onPeriodChange={setSelectedPeriod}
+                      workshopOptions={workshopOptions}
                     />
                   ),
                 },
@@ -118,7 +155,12 @@ export function PlanModal({ onClose, mode = "plan" }: PlanModalProps) {
                   label: (
                     <span className="text-xs font-semibold px-2">Tổng quan</span>
                   ),
-                  children: <TargetSummary selectedPeriod={selectedPeriod} />,
+                  children: (
+                    <TargetSummary
+                      selectedPeriod={selectedPeriod}
+                      onPeriodChange={setSelectedPeriod}
+                    />
+                  ),
                 },
               ]}
             />
@@ -128,6 +170,7 @@ export function PlanModal({ onClose, mode = "plan" }: PlanModalProps) {
               selectedPeriod={selectedPeriod}
               onWorkshopChange={setSelectedWorkshop}
               onPeriodChange={setSelectedPeriod}
+              workshopOptionsProp={workshopOptions}
             />
           )}
         </div>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Calendar, InputNumber, Tag, Spin, message, DatePicker } from "antd";
+import { Calendar, InputNumber, Tag, Spin, message, DatePicker, Select } from "antd";
 import { CalendarDays } from "lucide-react";
 import dayjs, { Dayjs } from "dayjs";
 import { targetReportApi } from "../../api/targetReportApi";
@@ -191,11 +191,17 @@ function IndicatorCard({
 interface Props {
   selectedWorkshop: string;
   selectedPeriod: Dayjs;
+  onWorkshopChange?: (val: string) => void;
+  onPeriodChange?: (val: Dayjs) => void;
+  workshopOptions?: { value: string; label: string }[];
 }
 
 export function TargetMonthCalendar({
   selectedWorkshop,
   selectedPeriod,
+  onWorkshopChange,
+  onPeriodChange,
+  workshopOptions,
 }: Props) {
   const [targets, setTargets] = useState<TargetResponse[]>([]);
   const [existingReports, setExistingReports] = useState<
@@ -205,12 +211,22 @@ export function TargetMonthCalendar({
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isEditingDay, setIsEditingDay] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Dayjs>(() =>
-    selectedPeriod.startOf("month"),
-  );
+  const [selectedDate, setSelectedDate] = useState<Dayjs>(() => {
+    const today = dayjs();
+    if (today.month() === selectedPeriod.month() && today.year() === selectedPeriod.year()) {
+      return today;
+    }
+    return selectedPeriod.startOf("month");
+  });
   const [savedDates, setSavedDates] = useState<Set<string>>(new Set());
   useEffect(() => {
-    setSelectedDate(selectedPeriod.startOf("month"));
+    const startOfMonth = selectedPeriod.startOf("month");
+    const today = dayjs();
+    if (today.month() === selectedPeriod.month() && today.year() === selectedPeriod.year()) {
+      setSelectedDate(today);
+    } else {
+      setSelectedDate(startOfMonth);
+    }
     setIsEditingDay(false);
     setDailyData({});
   }, [selectedPeriod.format("YYYY-MM")]);
@@ -426,13 +442,51 @@ export function TargetMonthCalendar({
     <div className="flex-1 overflow-y-auto lg:overflow-hidden flex flex-col lg:flex-row gap-6">
       {/* Calendar */}
       <div className="flex-none lg:flex-1 min-h-[380px] lg:min-h-0 bg-white rounded-xl border border-slate-200 p-5 flex flex-col overflow-hidden">
-        <div className="flex justify-between items-center mb-4 pb-2 border-b border-slate-100 shrink-0">
-          <div className="flex items-center gap-2">
-            <CalendarDays size={18} className="text-[#1a8649]" />
-            <h2 className="text-xs font-bold text-slate-700 uppercase">
-              Lịch tháng: {selectedPeriod.format("[Tháng] MM/YYYY")}
-            </h2>
+        <div className="flex justify-between items-center mb-4 pb-2 border-b border-slate-100 shrink-0 flex-wrap gap-3">
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              <CalendarDays size={18} className="text-[#1a8649]" />
+              <h2 className="text-xs font-bold text-slate-700 uppercase">
+                Lịch sản xuất
+              </h2>
+            </div>
+
+            {/* Antd Month Selector */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-slate-600">Chọn Tháng:</span>
+              <DatePicker
+                picker="month"
+                size="small"
+                className="w-36"
+                value={selectedPeriod}
+                onChange={(date) => {
+                  if (date && onPeriodChange) {
+                    onPeriodChange(date);
+                  }
+                }}
+                format="[Tháng] MM/YYYY"
+                allowClear={false}
+              />
+            </div>
+
+            {/* Antd Workshop Selector */}
+            {workshopOptions && workshopOptions.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-slate-600">Phân xưởng:</span>
+                <Select
+                  size="small"
+                  className="w-52"
+                  value={selectedWorkshop || undefined}
+                  onChange={(val) => {
+                    if (onWorkshopChange) onWorkshopChange(val);
+                  }}
+                  options={workshopOptions}
+                  placeholder="Chọn phân xưởng"
+                />
+              </div>
+            )}
           </div>
+
           <div className="flex items-center gap-4 text-[10px] font-semibold">
             {loading && <Spin size="small" />}
             <span className="flex items-center gap-1.5 text-slate-500">

@@ -22,6 +22,7 @@ interface Props {
   selectedPeriod: Dayjs;
   onWorkshopChange: (val: string) => void;
   onPeriodChange: (val: Dayjs) => void;
+  workshopOptionsProp?: { value: string; label: string }[];
 }
 
 const getNodeDepth = (
@@ -85,6 +86,7 @@ export function InitPlan({
   selectedPeriod,
   onWorkshopChange,
   onPeriodChange,
+  workshopOptionsProp,
 }: Props) {
   const [depts, setDepts] = useState<DepartmentResponse[]>([]);
   const [targets, setTargets] = useState<TargetResponse[]>([]);
@@ -97,6 +99,7 @@ export function InitPlan({
   const monthStr = selectedPeriod.format("YYYY-MM");
 
   useEffect(() => {
+    if (workshopOptionsProp && workshopOptionsProp.length > 0) return;
     let cancelled = false;
     departmentApi
       .searchDepartment("", 0, 1000)
@@ -114,7 +117,7 @@ export function InitPlan({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [workshopOptionsProp]);
 
   useEffect(() => {
     if (!selectedWorkshop || !monthStr) return;
@@ -145,16 +148,17 @@ export function InitPlan({
     [displayTargets],
   );
 
-  const workshopOptions = useMemo(
-    () =>
-      depts
-        .filter((d) => d.id)
-        .map((d) => ({
-          value: d.id as string,
-          label: d.name?.trim() || d.code?.trim() || "Phòng ban",
-        })),
-    [depts],
-  );
+  const workshopOptions = useMemo(() => {
+    if (workshopOptionsProp && workshopOptionsProp.length > 0) {
+      return workshopOptionsProp;
+    }
+    return depts
+      .filter((d) => d.id)
+      .map((d) => ({
+        value: d.id as string,
+        label: d.name?.trim() || d.code?.trim() || "Phòng ban",
+      }));
+  }, [depts, workshopOptionsProp]);
   interface NewTargetForm {
     parentId: string | null;
     name: string;
