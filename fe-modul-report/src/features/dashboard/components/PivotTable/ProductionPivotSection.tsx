@@ -7,7 +7,7 @@ import {
   AVAILABLE_COLUMN_FIELDS,
   AVAILABLE_VALUE_FIELDS,
 } from "./pivotConfig";
-import type { DepartmentTargetResponse } from "../../types/targetReport";
+import type { DepartmentTargetResponse, TargetReportResponse } from "../../types/targetReport";
 import dayjs from "dayjs";
 import { targetReportApi } from "../../api/targetReportApi";
 import { targetApi } from "../../api/targetApi";
@@ -70,35 +70,53 @@ export function ProductionPivotSection({ selectedDate }: Props) {
         const reports = await targetReportApi.getAll(reportDateStr);
 
         const reportMap = new Map<string, { performDone: number; luyKe: number }>();
+
+        const processTargetReportNode = (r: TargetReportResponse): { luyKe: number; performDone: number } => {
+          let luyKe = (r.monthLyCumulative != null && r.monthLyCumulative > 0)
+            ? r.monthLyCumulative + (r.performDone ?? 0)
+            : (r.performDone ?? 0);
+          let perform = r.performDone ?? 0;
+
+          if (r.children && r.children.length > 0) {
+            let childLuyKeSum = 0;
+            let childPerformSum = 0;
+            r.children.forEach((c: TargetReportResponse) => {
+              const childRes = processTargetReportNode(c);
+              childLuyKeSum += childRes.luyKe;
+              childPerformSum += childRes.performDone;
+            });
+            if (luyKe === 0) luyKe = childLuyKeSum;
+            if (perform === 0) perform = childPerformSum;
+          }
+
+          reportMap.set(r.targetId, { luyKe, performDone: perform });
+          return { luyKe, performDone: perform };
+        };
+
         const walkReports = (deptList: DepartmentTargetResponse[]) => {
           deptList.forEach((dept) => {
             (dept.targetReportResponseList ?? []).forEach((r) => {
-              const existing = reportMap.get(r.targetId);
-              if (existing) {
-                existing.luyKe += r.monthLyCumulative ?? 0;
-                existing.performDone += r.performDone ?? 0;
-              } else {
-                reportMap.set(r.targetId, {
-                  performDone: r.performDone ?? 0,
-                  luyKe: r.monthLyCumulative ?? 0,
-                });
-              }
+              processTargetReportNode(r);
             });
             if (dept.children?.length) walkReports(dept.children);
           });
         };
         walkReports(reports ?? []);
 
-        return targets.map((t, idx) => ({
-          id: `${t.id}-${m}-${idx}`,
-          chiTieu: t.name,
-          donVi: t.unit || "-",
-          thang: `T${m}/${year}`,
-          thangNum: m,
-          keHoach: t.value ?? 0,
-          thucHien: reportMap.get(t.id)?.luyKe ?? 0,
-          phanXuong: t.departmentName || "Bộ phận",
-        }));
+        return targets.map((t, idx) => {
+          const rep = reportMap.get(t.id);
+          const thucHienVal = (rep?.luyKe && rep.luyKe > 0) ? rep.luyKe : (rep?.performDone ?? 0);
+          return {
+            id: `${t.id}-${m}-${idx}`,
+            chiTieu: t.name,
+            donVi: t.unit || "-",
+            thang: `T${m}/${year}`,
+            thangNum: m,
+            keHoach: t.value ?? 0,
+            thucHien: thucHienVal,
+            phanXuong: t.departmentName || "Bộ phận",
+          };
+        });
       }),
     )
       .then((results) => {

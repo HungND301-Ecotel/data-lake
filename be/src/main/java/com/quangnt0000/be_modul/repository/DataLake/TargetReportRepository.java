@@ -27,7 +27,7 @@ public interface TargetReportRepository extends JpaRepository<TargetReport, Stri
 
     @Query("SELECT DISTINCT tr.date FROM TargetReport tr WHERE tr.deleted = false " +
             "AND tr.date BETWEEN :start AND :end " +
-            "AND tr.date < :today " +
+            "AND tr.date <= :today " +
             "AND (:departmentId IS NULL OR tr.target.department.id = :departmentId) " +
             "ORDER BY tr.date")
     List<LocalDate> findDistinctPastDatesInMonth(@Param("start") LocalDate start,
