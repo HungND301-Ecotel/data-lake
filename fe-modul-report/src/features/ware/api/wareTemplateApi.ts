@@ -88,13 +88,10 @@ export const wareTemplateApi = {
     return res.data;
   },
 
-<<<<<<< HEAD
   pushTemplateMapping: async (id: number, connectionId: string): Promise<string> => {
     const res = await axiosClient.post(`/wh-template/${id}/push-mapping`, null, {
       params: { connectionId },
     });
     return res.data;
   },
-=======
->>>>>>> 4292a47 (Đồng bộ mapping)
 };
