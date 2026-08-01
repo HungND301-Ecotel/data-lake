@@ -55,18 +55,26 @@ const getBatchType = (batch: BatchRecord): "year" | "month" | "day" => {
 };
 
 /**
- * So sánh hai batch có trùng nhau không (cùng loại + cùng khoảng thời gian + cùng tên).
+ * So sánh hai batch có trùng nhau không (cùng báo cáo/bảng + cùng loại chu kỳ + cùng thời gian).
  * Nếu trùng → cần deleteMissing = true (Cập nhật dữ liệu).
  */
 const isDuplicate = (a: BatchRecord, b: BatchRecord): boolean => {
+  // 1. Phải cùng báo cáo / bảng dữ liệu (tableCode hoặc templateId hoặc wareTemplateId hoặc reportName)
+  const tableA = a.tableCode || a.templateId || a.wareTemplateId || a.reportName || "";
+  const tableB = b.tableCode || b.templateId || b.wareTemplateId || b.reportName || "";
+  if (tableA && tableB && tableA !== tableB) return false;
+
+  // 2. Tên batch (nếu cả 2 đều có nhập tên riêng và tên khác nhau thì không trùng)
   const nameA = (a.batchName || a.name || "").trim();
   const nameB = (b.batchName || b.name || "").trim();
-  if (nameA !== nameB) return false;
+  if (nameA && nameB && nameA !== nameB) return false;
 
+  // 3. Phải cùng loại chu kỳ (Năm / Tháng / Ngày)
   const typeA = getBatchType(a);
   const typeB = getBatchType(b);
   if (typeA !== typeB) return false;
 
+  // 4. Phải cùng thời gian báo cáo
   if (typeA === "year") {
     return String(a.reportYear) === String(b.reportYear);
   }
@@ -76,7 +84,6 @@ const isDuplicate = (a: BatchRecord, b: BatchRecord): boolean => {
       String(a.reportMonth) === String(b.reportMonth)
     );
   }
-  // day
   return (
     String(a.reportYear) === String(b.reportYear) &&
     String(a.reportMonth) === String(b.reportMonth) &&
@@ -88,9 +95,11 @@ const calcDeleteMissing = (
   batchToPush: BatchRecord,
   allBatches: BatchRecord[]
 ): boolean => {
-  const alreadyPushed = allBatches.filter(
-    (b) => b.isPushed === true && b.batchId !== batchToPush.batchId
-  );
+  const targetId = batchToPush.batchId ?? batchToPush.id;
+  const alreadyPushed = allBatches.filter((b) => {
+    const currentId = b.batchId ?? b.id;
+    return b.isPushed === true && currentId !== targetId;
+  });
   return alreadyPushed.some((existing) => isDuplicate(batchToPush, existing));
 };
 
