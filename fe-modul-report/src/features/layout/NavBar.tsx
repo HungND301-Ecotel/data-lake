@@ -239,7 +239,7 @@ export default function NavBar() {
   const [quickOpen, setQuickOpen] = useState(false);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
   const navigate = useNavigate();
-  const { role: storeRole, setRole, clearRole } = useAuthStore();
+  const { role: storeRole, setRole } = useAuthStore();
   const isAdmin = storeRole === "ADMIN";
 
   const getRoleFromToken = (): string | null => {
