@@ -259,12 +259,14 @@ export const SyncBatch: React.FC = () => {
     if (selectedIds.length === 0) return;
 
     setSyncing(true);
-    try {
-      // Đồng bộ từng batch một
-      let successCount = 0;
-      let failCount = 0;
+    const errors: { name: string; errorMsg: string }[] = [];
+    let successCount = 0;
 
+    try {
       for (const batchId of selectedIds) {
+        const batchItem = selectedBatches.find((b) => b.id === batchId);
+        const batchName = batchItem?.reportName || batchItem?.code || `Batch #${batchId}`;
+
         try {
           await wareBatchApi.pushWareBatch({
             id: batchId as number,
@@ -273,20 +275,70 @@ export const SyncBatch: React.FC = () => {
             password: values.password,
           });
           successCount++;
-        } catch (error) {
-          failCount++;
+        } catch (error: any) {
+          console.error(`Lỗi đồng bộ batch ${batchId}:`, error);
+          const errorMsg =
+            error?.message ||
+            error?.data?.message ||
+            (typeof error?.data === "string" ? error.data : null) ||
+            "Lỗi không xác định";
+          errors.push({ name: batchName, errorMsg });
         }
       }
 
-      messageApi.success(
-        `Đồng bộ thành công ${successCount} batch${failCount > 0 ? `, thất bại ${failCount}` : ""}`,
-      );
       setSyncModalVisible(false);
       setSelectedIds([]);
       form.resetFields();
       fetchBatches();
+
+      if (errors.length === 0) {
+        messageApi.success(`Đồng bộ thành công ${successCount} batch`);
+      } else {
+        if (successCount > 0) {
+          messageApi.warning(
+            `Đồng bộ thành công ${successCount} batch, thất bại ${errors.length} batch`
+          );
+        } else {
+          messageApi.error(`Đồng bộ thất bại toàn bộ ${errors.length} batch`);
+        }
+
+        modal.error({
+          title: "Chi tiết lỗi đồng bộ",
+          content: (
+            <div style={{ maxHeight: 300, overflowY: "auto" }}>
+              {errors.map((err, index) => (
+                <div
+                  key={index}
+                  style={{
+                    marginBottom: 8,
+                    padding: 8,
+                    backgroundColor: "#fff2f0",
+                    borderRadius: 6,
+                    border: "1px solid #ffccc7",
+                  }}
+                >
+                  <div style={{ fontWeight: 600, color: "#cf1322" }}>
+                    {err.name}
+                  </div>
+                  <div style={{ fontSize: 13, color: "#a8071a" }}>
+                    {err.errorMsg}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ),
+          width: 520,
+          okText: "Đã hiểu",
+        });
+      }
     } catch (error: any) {
-      messageApi.error(error?.data || "Đồng bộ batch thất bại");
+      console.error("Lỗi đồng bộ batch:", error);
+      const mainErrorMsg =
+        error?.message ||
+        error?.data?.message ||
+        (typeof error?.data === "string" ? error.data : null) ||
+        "Đồng bộ batch thất bại";
+      messageApi.error(mainErrorMsg);
     } finally {
       setSyncing(false);
     }

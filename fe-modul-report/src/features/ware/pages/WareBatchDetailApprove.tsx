@@ -802,7 +802,13 @@ export const WareBatchDetailApprove: React.FC = () => {
       setPushModalVisible(false);
       fetchBatchDetail();
     } catch (error: any) {
-      messageApi.error(error?.data || "Push batch thất bại");
+      console.error("Push batch thất bại:", error);
+      const errorMsg =
+        error?.message ||
+        error?.data?.message ||
+        (typeof error?.data === "string" ? error.data : null) ||
+        "Push batch thất bại";
+      messageApi.error(errorMsg);
     }
   };
 

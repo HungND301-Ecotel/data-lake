@@ -317,10 +317,11 @@ export const ApproveBatch: React.FC = () => {
 
       // Bước 4: Đẩy từng batch — tính deleteMissing tự động
       let successCount = 0;
-      let failCount = 0;
+      const errors: { name: string; errorMsg: string }[] = [];
 
       for (const batch of readyToPush) {
         const deleteMissing = calcDeleteMissing(batch, updatedBatches);
+        const batchName = batch.reportName || batch.code || `Batch #${batch.batchId}`;
         try {
           await wareBatchApi.pushWareBatch({
             id: batch.batchId as number,
@@ -329,25 +330,70 @@ export const ApproveBatch: React.FC = () => {
             password: userPushConfig.password,
           });
           successCount++;
-        } catch {
-          failCount++;
+        } catch (error: any) {
+          console.error(`Lỗi đồng bộ batch ${batch.batchId}:`, error);
+          const errorMsg =
+            error?.message ||
+            error?.data?.message ||
+            (typeof error?.data === "string" ? error.data : null) ||
+            "Lỗi không xác định";
+          errors.push({ name: batchName, errorMsg });
         }
       }
 
-      if (failCount === 0) {
+      if (errors.length === 0) {
         messageApi.success(
           `Đã duyệt và đồng bộ thành công ${successCount} batch`
         );
       } else {
-        messageApi.warning(
-          `Đã duyệt ${selectedBatches.length} batch. Đồng bộ: ${successCount} thành công, ${failCount} thất bại`
-        );
+        if (successCount > 0) {
+          messageApi.warning(
+            `Đã duyệt ${selectedBatches.length} batch. Đồng bộ: ${successCount} thành công, ${errors.length} thất bại`
+          );
+        } else {
+          messageApi.error(`Duyệt thành công nhưng đồng bộ thất bại toàn bộ ${errors.length} batch`);
+        }
+
+        modal.error({
+          title: "Chi tiết lỗi đồng bộ",
+          content: (
+            <div style={{ maxHeight: 300, overflowY: "auto" }}>
+              {errors.map((err, index) => (
+                <div
+                  key={index}
+                  style={{
+                    marginBottom: 8,
+                    padding: 8,
+                    backgroundColor: "#fff2f0",
+                    borderRadius: 6,
+                    border: "1px solid #ffccc7",
+                  }}
+                >
+                  <div style={{ fontWeight: 600, color: "#cf1322" }}>
+                    {err.name}
+                  </div>
+                  <div style={{ fontSize: 13, color: "#a8071a" }}>
+                    {err.errorMsg}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ),
+          width: 520,
+          okText: "Đã hiểu",
+        });
       }
 
       setSelectedRowKeys([]);
       fetchBatches();
     } catch (error: any) {
-      messageApi.error(error?.data || "Duyệt batch thất bại");
+      console.error("Duyệt batch thất bại:", error);
+      const mainErrorMsg =
+        error?.message ||
+        error?.data?.message ||
+        (typeof error?.data === "string" ? error.data : null) ||
+        "Duyệt batch thất bại";
+      messageApi.error(mainErrorMsg);
     } finally {
       setApprovalLoading(false);
       setLoading(false);
