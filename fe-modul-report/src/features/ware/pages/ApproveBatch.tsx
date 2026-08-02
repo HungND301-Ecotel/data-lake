@@ -321,7 +321,7 @@ export const ApproveBatch: React.FC = () => {
 
       for (const batch of readyToPush) {
         const deleteMissing = calcDeleteMissing(batch, updatedBatches);
-        const batchName = batch.reportName || batch.code || `Batch #${batch.batchId}`;
+        const batchName = batch.name || batch.reportName || batch.code || `Batch #${batch.batchId}`;
         try {
           await wareBatchApi.pushWareBatch({
             id: batch.batchId as number,

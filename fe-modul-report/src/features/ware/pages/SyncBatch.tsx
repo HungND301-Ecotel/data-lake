@@ -265,7 +265,7 @@ export const SyncBatch: React.FC = () => {
     try {
       for (const batchId of selectedIds) {
         const batchItem = selectedBatches.find((b) => b.id === batchId);
-        const batchName = batchItem?.reportName || batchItem?.code || `Batch #${batchId}`;
+        const batchName = batchItem?.name || batchItem?.code || `Batch #${batchId}`;
 
         try {
           await wareBatchApi.pushWareBatch({
