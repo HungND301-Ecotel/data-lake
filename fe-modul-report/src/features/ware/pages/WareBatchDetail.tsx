@@ -30,6 +30,7 @@ import {
   ReloadOutlined,
 } from "@ant-design/icons";
 // import * as XLSX from "xlsx";
+import { getErrorMessage } from "../../../services/erorr";
 
 export const ExcelMetaRows = ({
   metaRows,
@@ -449,7 +450,7 @@ export const WareBatchDetail: React.FC = () => {
       setPushModalVisible(false);
       fetchBatchDetail();
     } catch (error: any) {
-      messageApi.error(error?.data || "Push batch thất bại");
+      messageApi.error(getErrorMessage(error, "Push batch thất bại"));
     }
   };
 
@@ -462,7 +463,7 @@ export const WareBatchDetail: React.FC = () => {
       rejectForm.resetFields();
       fetchBatchDetail();
     } catch (error: any) {
-      messageApi.error(error?.data || "Từ chối batch thất bại");
+      messageApi.error(getErrorMessage(error, "Từ chối batch thất bại"));
     }
   };
 

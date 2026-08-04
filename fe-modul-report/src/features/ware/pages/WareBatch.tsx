@@ -38,6 +38,7 @@ import {
   DownloadOutlined,
 } from "@ant-design/icons";
 import { wareTemplateApi } from "../api/wareTemplateApi";
+import { getErrorMessage } from "../../../services/erorr";
 
 const { Search } = Input;
 
@@ -141,7 +142,7 @@ export const WareBatch: React.FC<WareBatchProps> = ({ templateIdProp }) => {
       form.resetFields();
       fetchBatches();
     } catch (error: any) {
-      messageApi.error(error?.data || "Thêm batch thất bại");
+      messageApi.error(getErrorMessage(error, "Thêm batch thất bại"));
     }
   };
 

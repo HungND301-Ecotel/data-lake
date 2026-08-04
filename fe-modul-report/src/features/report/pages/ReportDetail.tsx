@@ -16,6 +16,7 @@ import { message, Modal } from "antd";
 import PdfPreviewModal from "../components/previewReport/PdfPreviewModalProps ";
 import { excelApi } from "../api/excelApi";
 import reportApi from "../api/reportApi";
+import { getErrorMessage } from "../../../services/erorr";
 
 const ReportDetail: React.FC = () => {
   const location = useLocation();
@@ -115,7 +116,7 @@ const ReportDetail: React.FC = () => {
       setPdfModalOpen(true);
     } catch (error: any) {
       // messageApi.error("Lỗi xuất PDF:"+  error);
-      messageApi.error(error?.data || "Lỗi xuất PDF");
+      messageApi.error(getErrorMessage(error, "Lỗi xuất PDF"));
     }
   };
 
@@ -135,7 +136,7 @@ const ReportDetail: React.FC = () => {
 
       window.open(url);
     } catch (error: any) {
-      messageApi.error(error?.data || "Lỗi xuất Excel");
+      messageApi.error(getErrorMessage(error, "Lỗi xuất Excel"));
     }
   };
 

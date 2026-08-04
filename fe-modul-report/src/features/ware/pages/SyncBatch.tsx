@@ -34,6 +34,7 @@ import type { UserPushResponse } from "../../auth/types/accountConfig";
 import { departmentApi } from "../../department/api/departmentApi";
 import { employeeApi } from "../../employee/api/employeeApi";
 import { useNavigate } from "react-router-dom";
+import { getErrorMessage } from "../../../services/erorr";
 
 const { Search } = Input;
 const { Option } = Select;
@@ -286,7 +287,7 @@ export const SyncBatch: React.FC = () => {
       form.resetFields();
       fetchBatches();
     } catch (error: any) {
-      messageApi.error(error?.data || "Đồng bộ batch thất bại");
+      messageApi.error(getErrorMessage(error, "Đồng bộ batch thất bại"));
     } finally {
       setSyncing(false);
     }

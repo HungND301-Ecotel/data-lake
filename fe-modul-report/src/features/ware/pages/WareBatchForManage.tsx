@@ -33,6 +33,7 @@ import {
   CheckOutlined,
   CloseOutlined,
 } from "@ant-design/icons";
+import { getErrorMessage } from "../../../services/erorr";
 
 const { Search } = Input;
 
@@ -91,7 +92,7 @@ export const WareBatchForManagement: React.FC = () => {
       form.resetFields();
       fetchBatches();
     } catch (error: any) {
-      messageApi.error(error?.data || "Thêm batch thất bại");
+      messageApi.error(getErrorMessage(error, "Thêm batch thất bại"));
     }
   };
 
@@ -156,7 +157,7 @@ export const WareBatchForManagement: React.FC = () => {
           fetchBatches();
         } catch (error: any) {
           messageApi.error(
-            error?.data || "Duyệt batch thất bại"
+            getErrorMessage(error, "Duyệt batch thất bại")
           );
         } finally {
           setApprovalLoading(false);
@@ -198,7 +199,7 @@ export const WareBatchForManagement: React.FC = () => {
           fetchBatches();
         } catch (error: any) {
           messageApi.error(
-            error?.data || "Từ chối batch thất bại"
+            getErrorMessage(error, "Từ chối batch thất bại")
           );
         } finally {
           setApprovalLoading(false);

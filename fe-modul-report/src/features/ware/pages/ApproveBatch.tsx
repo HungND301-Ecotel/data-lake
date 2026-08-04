@@ -36,6 +36,7 @@ import { departmentApi } from "../../department/api/departmentApi";
 import { userPushApi } from "../../auth/api/accountConfigApi";
 import type { UserPushResponse } from "../../auth/types/accountConfig";
 import { approvalConfigsApi } from "../api/wareConfigApi";
+import { getErrorMessage } from "../../../services/erorr";
 
 const { Search } = Input;
 const { Option } = Select;
@@ -225,7 +226,7 @@ export const ApproveBatch: React.FC = () => {
       form.resetFields();
       fetchBatches();
     } catch (error: any) {
-      messageApi.error(error?.data || "Thêm batch thất bại");
+      messageApi.error(getErrorMessage(error, "Thêm batch thất bại"));
     }
   };
 
@@ -338,7 +339,7 @@ export const ApproveBatch: React.FC = () => {
       setSelectedRowKeys([]);
       fetchBatches();
     } catch (error: any) {
-      messageApi.error(error?.data || "Duyệt batch thất bại");
+      messageApi.error(getErrorMessage(error, "Duyệt batch thất bại"));
     } finally {
       setApprovalLoading(false);
       setLoading(false);
@@ -369,7 +370,7 @@ export const ApproveBatch: React.FC = () => {
           setSelectedRowKeys([]);
           fetchBatches();
         } catch (error: any) {
-          messageApi.error(error?.data || "Từ chối batch thất bại");
+          messageApi.error(getErrorMessage(error, "Từ chối batch thất bại"));
         } finally {
           setApprovalLoading(false);
         }

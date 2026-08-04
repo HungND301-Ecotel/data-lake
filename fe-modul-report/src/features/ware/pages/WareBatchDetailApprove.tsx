@@ -35,6 +35,7 @@ import {
 import { userPushApi } from "../../auth/api/accountConfigApi";
 import type { UserPushResponse } from "../../auth/types/accountConfig";
 import { approvalConfigsApi } from "../api/wareConfigApi";
+import { getErrorMessage } from "../../../services/erorr";
 
 // ─── ExcelMetaRows ────────────────────────────────────────────────────────────
 
@@ -763,7 +764,7 @@ export const WareBatchDetailApprove: React.FC = () => {
           messageApi.success("Đã duyệt và đồng bộ dữ liệu thành công");
           fetchBatchDetail();
         } catch (error: any) {
-          messageApi.error(error?.data || "Duyệt batch thất bại");
+          messageApi.error(getErrorMessage(error, "Duyệt batch thất bại"));
         } finally {
           setApprovalLoading(false);
         }
@@ -790,7 +791,7 @@ export const WareBatchDetailApprove: React.FC = () => {
       setPushModalVisible(false);
       fetchBatchDetail();
     } catch (error: any) {
-      messageApi.error(error?.data || "Push batch thất bại");
+      messageApi.error(getErrorMessage(error, "Push batch thất bại"));
     }
   };
 
@@ -805,7 +806,7 @@ export const WareBatchDetailApprove: React.FC = () => {
       rejectForm.resetFields();
       fetchBatchDetail();
     } catch (error: any) {
-      messageApi.error(error?.data || "Từ chối batch thất bại");
+      messageApi.error(getErrorMessage(error, "Từ chối batch thất bại"));
     }
   };
 
