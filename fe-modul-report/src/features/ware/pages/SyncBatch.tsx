@@ -274,8 +274,10 @@ export const SyncBatch: React.FC = () => {
             password: values.password,
           });
           successCount++;
-        } catch (error) {
+        } catch (error: any) {
           failCount++;
+          console.error(`Đồng bộ batch ID ${batchId} thất bại:`, error);
+          messageApi.error(`Batch ID ${batchId}: ${getErrorMessage(error, "Đồng bộ thất bại")}`);
         }
       }
 

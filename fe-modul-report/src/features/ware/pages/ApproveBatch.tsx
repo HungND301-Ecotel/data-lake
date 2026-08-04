@@ -321,8 +321,10 @@ export const ApproveBatch: React.FC = () => {
             password: userPushConfig.password,
           });
           successCount++;
-        } catch {
+        } catch (error: any) {
           failCount++;
+          console.error(`Đồng bộ batch ID ${batch.batchId} thất bại:`, error);
+          messageApi.error(`Batch ID ${batch.batchId}: ${getErrorMessage(error, "Đồng bộ thất bại")}`);
         }
       }
 
