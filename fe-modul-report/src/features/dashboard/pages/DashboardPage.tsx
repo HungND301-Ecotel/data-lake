@@ -29,6 +29,9 @@ import { employeeApi } from "../../employee/api/employeeApi";
 import { reportStorageApi } from "../../report/api/reportStorageApi";
 import { InternalReportsSection } from "../components/ReportSections/InternalReportsSection";
 import { TkvReportsSection } from "../components/ReportSections/TkvReportsSection";
+import { serverApi } from "../../server/api/serverApi";
+import type { SyncConnectionConfig } from "../../server/types/server";
+import { useConnection } from "../context/ConnectionContext";
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const COMPANY_NAME = "CÔNG TY CỔ PHẦN THAN ĐÈO NAI CỌC SÁU - VINACOMIN";
 
@@ -149,6 +152,9 @@ export default function DashboardPage() {
   const [syncing, setSyncing] = useState(false);
   const [showSetupModal, setShowSetupModal] = useState(false);
 
+  // State cho Select SyncConnectionConfig
+  const [syncConfigs, setSyncConfigs] = useState<SyncConnectionConfig[]>([]);
+  const { selectedConfig, setSelectedConfig } = useConnection();
 
   const [realDepts, setRealDepts] = useState<DepartmentResponse[]>([]);
 
@@ -206,6 +212,15 @@ export default function DashboardPage() {
   const [recentReportsData, setRecentReportsData] = useState<
     { key: string; name: string; department: string; date: string; rawDate: string }[]
   >([]);
+
+  // Fetch danh sách SyncConnectionConfig
+  useEffect(() => {
+    serverApi.getAll().then((res) => {
+      if (res?.data) {
+        setSyncConfigs(res.data.filter((c) => c.active !== false));
+      }
+    }).catch((err) => console.error("Fetch sync configs failed", err));
+  }, []);
 
   // Fetch departments & system overview metrics
   useEffect(() => {
@@ -929,63 +944,86 @@ export default function DashboardPage() {
       <div className="bg-[#f8faf9] min-h-screen   mx-auto py-4 px-6 md:p-12">
         <div className="w-full flex flex-col gap-5">
           {/* ═══ HEADER ═══ */}
-          <div className="bg-white rounded-2xl p-5 md:p-6 flex justify-between items-center shadow-[0_4px_20px_-2px_rgba(15,23,42,0.03)] border border-slate-100 relative overflow-hidden before:content-[''] before:absolute ">
-            <div className="flex flex-col gap-1">
-              <h1 className="font-sans text-2xl font-bold text-slate-900 tracking-tight">
-                Báo cáo điều hành sản xuất & Nhân sự
-              </h1>
-              <p className="text-slate-500 text-xs flex items-center gap-1.5">
-                <Briefcase size={14} className="text-[#1a8649]" />
-                <span>{COMPANY_NAME}</span>
-                <span>•</span>
-                <Calendar size={14} className="text-slate-400" />
-                <span>Cập nhật ngày: {dayStr}</span>
-              </p>
-            </div>
-
-            <div className="flex gap-3 items-center flex-wrap">
-              {/* Date Selector */}
-              <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200/60">
-                <Calendar size={14} className="text-slate-500" />
-                <input
-                  type="date"
-                  className="bg-transparent border-none text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                />
+          <div className="bg-white rounded-2xl p-5 md:p-6 shadow-[0_4px_20px_-2px_rgba(15,23,42,0.03)] border border-slate-100">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              {/* Left: Title */}
+              <div className="flex flex-col gap-1">
+                <h1 className="font-sans text-2xl font-bold text-slate-900 tracking-tight">
+                  Báo cáo điều hành sản xuất & Nhân sự
+                </h1>
+                <p className="text-slate-500 text-xs flex items-center gap-1.5">
+                  <Briefcase size={14} className="text-[#1a8649]" />
+                  <span>{COMPANY_NAME}</span>
+                  <span>•</span>
+                  <Calendar size={14} className="text-slate-400" />
+                  <span>Cập nhật ngày: {dayStr}</span>
+                </p>
               </div>
 
-              {/* Period selector */}
-              <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mr-2">
-                {["Ngày", "Tuần", "Tháng"].map((period) => (
-                  <button
-                    key={period}
-                    className={`px-3 py-1.5 rounded-lg cursor-pointer text-xs font-semibold transition-all border-0 ${
-                      timePeriod === period
-                        ? "bg-[#1a8649] text-white shadow-xs"
-                        : "bg-transparent text-slate-600 hover:text-slate-900"
-                    }`}
-                    onClick={() => setTimePeriod(period)}
+              {/* Right: Controls */}
+              <div className="flex flex-wrap items-center gap-2">
+                {/* SyncConnectionConfig Selector */}
+                <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200/60 h-9">
+                  <Database size={13} className="text-slate-500 flex-shrink-0" />
+                  <select
+                    className="bg-transparent border-none text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer w-[200px]"
+                    value={selectedConfig?.id || ""}
+                    onChange={(e) => {
+                      const config = syncConfigs.find((c) => c.id === e.target.value);
+                      setSelectedConfig(config || null);
+                    }}
                   >
-                    {period}
-                  </button>
-                ))}
+                    <option value="">Chọn database</option>
+                    {syncConfigs.map((config) => (
+                      <option key={config.id} value={config.id}>
+                        {config.name || config.databaseName} ({config.host}:{config.port})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Date Selector */}
+                <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200/60 h-9">
+                  <Calendar size={13} className="text-slate-500 flex-shrink-0" />
+                  <input
+                    type="date"
+                    className="bg-transparent border-none text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                  />
+                </div>
+
+                {/* Period selector */}
+                <div className="flex gap-0.5 bg-slate-100 p-0.5 rounded-lg h-9">
+                  {["Ngày", "Tuần", "Tháng"].map((period) => (
+                    <button
+                      key={period}
+                      className={`px-2.5 rounded-md cursor-pointer text-xs font-semibold transition-all border-0 ${
+                        timePeriod === period
+                          ? "bg-[#1a8649] text-white shadow-xs"
+                          : "bg-transparent text-slate-600 hover:text-slate-900"
+                      }`}
+                      onClick={() => setTimePeriod(period)}
+                    >
+                      {period}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Action Buttons */}
+                <button
+                  className="bg-[#1a8649] text-white border-0 rounded-lg py-1.5 px-3.5 font-semibold text-xs cursor-pointer flex items-center gap-1.5 transition-all hover:bg-[#15703d] h-9 shadow-md shadow-teal-900/15"
+                  onClick={() => setPlanModalMode("plan")}
+                >
+                  <PlusCircle size={14} /> Lập kế hoạch
+                </button>
+                <button
+                  className="bg-[#0284c7] text-white border-0 rounded-lg py-1.5 px-3.5 font-semibold text-xs cursor-pointer flex items-center gap-1.5 transition-all hover:bg-[#0369a1] h-9 shadow-md shadow-sky-900/15"
+                  onClick={() => setPlanModalMode("operation")}
+                >
+                  <Activity size={14} /> Điều hành
+                </button>
               </div>
-
-              {/* Action Buttons */}
-              <button
-                className="bg-[#1a8649] text-white border-0 rounded-lg py-2.5 px-5 font-semibold text-xs cursor-pointer flex items-center gap-2 transition-all hover:bg-[#15703d] hover:-translate-y-0.5 shadow-md shadow-teal-900/15"
-                onClick={() => setPlanModalMode("plan")}
-              >
-                <PlusCircle size={16} /> Lập kế hoạch
-              </button>
-              <button
-                className="bg-[#0284c7] text-white border-0 rounded-lg py-2.5 px-5 font-semibold text-xs cursor-pointer flex items-center gap-2 transition-all hover:bg-[#0369a1] hover:-translate-y-0.5 shadow-md shadow-sky-900/15"
-                onClick={() => setPlanModalMode("operation")}
-              >
-                <Activity size={16} /> Điều hành sản xuất
-              </button>
-
             </div>
           </div>
 

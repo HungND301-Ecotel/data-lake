@@ -14,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -26,6 +28,42 @@ import java.util.Map;
 public class WareBatchActionService  {
     private final WareBatchActionRepository wareBatchActionRepository;
     private final WareBatchActionJdbc wareBatchActionJdbc;
+    private final com.quangnt0000.be_modul.repository.SyncConnectionConfigRepository configRepository;
+
+    /**
+     * Tạo JdbcTemplate động từ SyncConnectionConfig
+     */
+    private JdbcTemplate createDynamicJdbcTemplate(String configId) {
+        com.quangnt0000.be_modul.modal.Data.SyncConnectionConfig config = configRepository.findById(configId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy config với id: " + configId));
+
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+
+        String driverClassName;
+        String jdbcUrl;
+        String databaseType = config.getDatabaseType() != null ? config.getDatabaseType().name() : null;
+
+        if (databaseType == null || databaseType.equalsIgnoreCase("POSTGRES") || databaseType.equalsIgnoreCase("POSTGRESQL")) {
+            driverClassName = "org.postgresql.Driver";
+            jdbcUrl = String.format("jdbc:postgresql://%s:%d/%s", config.getHost(), config.getPort(), config.getDatabaseName());
+        } else if (databaseType.equalsIgnoreCase("SQLSERVER")) {
+            driverClassName = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+            jdbcUrl = String.format("jdbc:sqlserver://%s:%d;databaseName=%s;encrypt=false;trustServerCertificate=true", config.getHost(), config.getPort(), config.getDatabaseName());
+        } else if (databaseType.equalsIgnoreCase("MYSQL")) {
+            driverClassName = "com.mysql.cj.jdbc.Driver";
+            jdbcUrl = String.format("jdbc:mysql://%s:%d/%s", config.getHost(), config.getPort(), config.getDatabaseName());
+        } else {
+            driverClassName = "org.postgresql.Driver";
+            jdbcUrl = String.format("jdbc:postgresql://%s:%d/%s", config.getHost(), config.getPort(), config.getDatabaseName());
+        }
+
+        dataSource.setDriverClassName(driverClassName);
+        dataSource.setUrl(jdbcUrl);
+        dataSource.setUsername(config.getUsername());
+        dataSource.setPassword(config.getPassword());
+
+        return new JdbcTemplate(dataSource);
+    }
     public ResponseEntity<?> search(WareBatchActionSearch request) {
         Sort sort = request.getSort().equals("ASC") ? Sort.by(request.getSortBy()).ascending() : Sort.by(request.getSortBy()).descending();
         Pageable pageable = PageRequest.of(request.getPage(), request.getLimit(), sort);
@@ -53,17 +91,34 @@ public class WareBatchActionService  {
     }
 
     public ResponseEntity<?> dashboard() {
-        Map<String, Object> response = wareBatchActionJdbc.execute();
+        return dashboard(null);
+    }
+
+    public ResponseEntity<?> dashboard(String configId) {
+        JdbcTemplate dynamicTemplate = null;
+        if (configId != null && !configId.isBlank()) {
+            dynamicTemplate = createDynamicJdbcTemplate(configId);
+        }
+        Map<String, Object> response = wareBatchActionJdbc.execute(dynamicTemplate);
         return ResponseEntity.ok(response);
     }
 
     public ResponseEntity<?> cntTime(String time) {
+        return cntTime(time, null);
+    }
+
+    public ResponseEntity<?> cntTime(String time, String configId) {
+        JdbcTemplate dynamicTemplate = null;
+        if (configId != null && !configId.isBlank()) {
+            dynamicTemplate = createDynamicJdbcTemplate(configId);
+        }
+
         List<TimeCountDto> result;
 
         switch (time.toUpperCase()) {
-            case "DAY" -> result = wareBatchActionJdbc.countByDay();
-            case "MONTH" -> result = wareBatchActionJdbc.countByMonth();
-            case "YEAR" -> result = wareBatchActionJdbc.countByYear();
+            case "DAY" -> result = wareBatchActionJdbc.countByDay(dynamicTemplate);
+            case "MONTH" -> result = wareBatchActionJdbc.countByMonth(dynamicTemplate);
+            case "YEAR" -> result = wareBatchActionJdbc.countByYear(dynamicTemplate);
             default -> throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "time must be DAY | MONTH | YEAR"
@@ -74,7 +129,15 @@ public class WareBatchActionService  {
     }
 
     public ResponseEntity<?> topTable() {
-        List<TimeCountDto> result = wareBatchActionJdbc.topTable();
+        return topTable(null);
+    }
+
+    public ResponseEntity<?> topTable(String configId) {
+        JdbcTemplate dynamicTemplate = null;
+        if (configId != null && !configId.isBlank()) {
+            dynamicTemplate = createDynamicJdbcTemplate(configId);
+        }
+        List<TimeCountDto> result = wareBatchActionJdbc.topTable(dynamicTemplate);
         return ResponseEntity.ok(result);
     }
 }

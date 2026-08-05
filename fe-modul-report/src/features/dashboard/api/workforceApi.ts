@@ -104,12 +104,13 @@ export const workforceApi = {
   getWorkforceTree: async (
     date?: string,
     _departmentId?: string,
+    configId?: string,
   ): Promise<WorkforceRow[]> => {
     try {
       const res = await axiosClient.get<WorkforceApiResponse[]>(
         "/dashboard/work-force",
         {
-          params: { date },
+          params: { date, configId },
         },
       );
       if (res.data && Array.isArray(res.data) && res.data.length > 0) {

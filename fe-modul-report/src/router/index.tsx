@@ -42,6 +42,7 @@ import DocumentChatPage from "../features/lakehouse/document-chat/pages/Document
 import SqlMetadataPage from "../features/sql-metadata/pages/SqlMetadataPage";
 import ExcelMappingPage from "../features/excel-mapping/pages/ExcelMappingPage";
 import DashboardPage from "../features/dashboard/pages/DashboardPage";
+import { ConnectionProvider } from "../features/dashboard/context/ConnectionContext";
 
 export const router = createBrowserRouter([
   {
@@ -107,7 +108,7 @@ export const router = createBrowserRouter([
       { path: "/category/report", element: <ReportCategoryPage /> },
       { path: "/category/departments", element: <DepartmentCategoryPage /> },
       { path: "/category/ware", element: <WareCategoryPage /> },
-      { path: "/analytics", element: <DashboardPage /> },
+      { path: "/analytics", element: <ConnectionProvider><DashboardPage /></ConnectionProvider> },
 
       {
         path: "/reports/view/excel/:fileKey",

@@ -8,18 +8,10 @@ export const whBatchApi = {
   /**
    * Lấy danh sách WareBatch cho dashboard.
    * Gọi endpoint POST /wh-batch/dashboard với JSON body.
-   *
-   * Body gửi lên:
-   * {
-   *   departmentId?: string,
-   *   reportType?:   "Noi_Bo" | "Tap_Doan",
-   *   reportYear?:   number,
-   *   reportMonth?:  number,
-   *   reportDay?:    number,
-   * }
    */
   getDashboard: async (
     params: WhBatchDashboardSearch,
+    configId?: string,
   ): Promise<WhBatchDashboardResponse[]> => {
     // Xây body – chỉ đưa vào các field có giá trị thực sự
     const body: Record<string, any> = {};
@@ -31,6 +23,7 @@ export const whBatchApi = {
     if (params.reportYear != null) body.reportYear = params.reportYear;
     if (params.reportMonth != null) body.reportMonth = params.reportMonth;
     if (params.reportDay != null) body.reportDay = params.reportDay;
+    if (configId) body.configId = configId;
 
     // Gọi HTTP POST với body JSON
     const res = await axiosClient.post(`/wh-batch/dashboard`, body);

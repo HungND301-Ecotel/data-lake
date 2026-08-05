@@ -14,7 +14,18 @@ import java.util.Map;
 public class WareBatchActionJdbc {
     private final JdbcTemplate jdbcTemplate;
 
+    /**
+     * Lấy JdbcTemplate - sử dụng template động nếu được truyền vào, không thì dùng default
+     */
+    private JdbcTemplate getTemplate(JdbcTemplate dynamicTemplate) {
+        return dynamicTemplate != null ? dynamicTemplate : jdbcTemplate;
+    }
+
     public Map<String, Object> execute() {
+        return execute(null);
+    }
+
+    public Map<String, Object> execute(JdbcTemplate dynamicTemplate) {
         StringBuilder sql = new StringBuilder("""
                 SELECT
                             COALESCE(COUNT(DISTINCT CASE
@@ -38,10 +49,14 @@ public class WareBatchActionJdbc {
         // vì mục tiêu là đếm số batch đã phát sinh thao tác insert/update,
         // không phải tổng số bản ghi được insert/update.
         // Một batch có thể có nhiều row action, nên cần DISTINCT để tránh đếm trùng batch.
-        return jdbcTemplate.queryForMap(sql.toString());
+        return getTemplate(dynamicTemplate).queryForMap(sql.toString());
     }
 
     public List<TimeCountDto> countByDay() {
+        return countByDay(null);
+    }
+
+    public List<TimeCountDto> countByDay(JdbcTemplate dynamicTemplate) {
         String sql = """
             SELECT
                 TO_CHAR(created_at, 'YYYY-MM-DD') AS label,
@@ -52,7 +67,7 @@ public class WareBatchActionJdbc {
             ORDER BY label
         """;
 
-        return jdbcTemplate.query(
+        return getTemplate(dynamicTemplate).query(
                 sql,
                 (rs, rowNum) -> new TimeCountDto(
                         rs.getString("label"),
@@ -63,6 +78,10 @@ public class WareBatchActionJdbc {
 
     /* ================= MONTH (năm hiện tại) ================= */
     public List<TimeCountDto> countByMonth() {
+        return countByMonth(null);
+    }
+
+    public List<TimeCountDto> countByMonth(JdbcTemplate dynamicTemplate) {
         String sql = """
             SELECT
                 TO_CHAR(created_at, 'MM') AS label,
@@ -74,7 +93,7 @@ public class WareBatchActionJdbc {
             ORDER BY label
         """;
 
-        return jdbcTemplate.query(
+        return getTemplate(dynamicTemplate).query(
                 sql,
                 (rs, rowNum) -> new TimeCountDto(
                         rs.getString("label"),
@@ -85,6 +104,10 @@ public class WareBatchActionJdbc {
 
     /* ================= YEAR ================= */
     public List<TimeCountDto> countByYear() {
+        return countByYear(null);
+    }
+
+    public List<TimeCountDto> countByYear(JdbcTemplate dynamicTemplate) {
         String sql = """
             SELECT
                 TO_CHAR(created_at, 'YYYY') AS label,
@@ -95,7 +118,7 @@ public class WareBatchActionJdbc {
             ORDER BY label
         """;
 
-        return jdbcTemplate.query(
+        return getTemplate(dynamicTemplate).query(
                 sql,
                 (rs, rowNum) -> new TimeCountDto(
                         rs.getString("label"),
@@ -105,6 +128,10 @@ public class WareBatchActionJdbc {
     }
 
     public List<TimeCountDto> topTable() {
+        return topTable(null);
+    }
+
+    public List<TimeCountDto> topTable(JdbcTemplate dynamicTemplate) {
         StringBuilder sql = new StringBuilder( """
             SELECT
               table_name AS label,
@@ -116,7 +143,7 @@ public class WareBatchActionJdbc {
             LIMIT 10;
         """);
 
-        return jdbcTemplate.query(
+        return getTemplate(dynamicTemplate).query(
                 sql.toString(),
                 (rs, rowNum) -> new TimeCountDto(
                         rs.getString("label"),

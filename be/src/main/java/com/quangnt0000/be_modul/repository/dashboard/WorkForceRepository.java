@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -21,12 +22,16 @@ public class WorkForceRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private String sqlBaoCao; // đọc 1 lần từ file, cache lại
 
-    public List<WorkforceResponse> getWorkForce(LocalDate ngayBaoCao) {
+    public List<WorkforceResponse> getWorkForce(LocalDate ngayBaoCao, JdbcTemplate dynamicTemplate) {
+        NamedParameterJdbcTemplate templateToUse = dynamicTemplate != null
+                ? new NamedParameterJdbcTemplate(dynamicTemplate)
+                : jdbcTemplate;
+
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("ngayBaoCao", ngayBaoCao);
 
         try {
-            return jdbcTemplate.query(getSql(), params, (rs, rowNum) -> {
+            return templateToUse.query(getSql(), params, (rs, rowNum) -> {
                 WorkforceResponse response = WorkforceResponse.builder()
                         .maPban(rs.getString("MA_PBAN"))
                         .tenPban(rs.getString("TEN_PBAN"))

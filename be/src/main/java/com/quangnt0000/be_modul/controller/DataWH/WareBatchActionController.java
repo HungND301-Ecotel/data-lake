@@ -16,18 +16,23 @@ public class WareBatchActionController {
     public ResponseEntity<?> search(@ModelAttribute WareBatchActionSearch request) {
         return wareBatchActionService.search(request);
     }
+
     @GetMapping("/dashboard")
-    public ResponseEntity<?> dashboard(){
-        return wareBatchActionService.dashboard();
+    public ResponseEntity<?> dashboard(
+            @RequestParam(required = false) String configId) {
+        return wareBatchActionService.dashboard(configId);
     }
 
     @GetMapping("/cnt-time/{time}")
-    public ResponseEntity<?> cntTime(@PathVariable ("time") String time){
-        return wareBatchActionService.cntTime(time);
+    public ResponseEntity<?> cntTime(
+            @PathVariable("time") String time,
+            @RequestParam(required = false) String configId) {
+        return wareBatchActionService.cntTime(time, configId);
     }
 
     @GetMapping("/top-table")
-    public ResponseEntity<?> topTable(){
-        return wareBatchActionService.topTable();
+    public ResponseEntity<?> topTable(
+            @RequestParam(required = false) String configId) {
+        return wareBatchActionService.topTable(configId);
     }
 }

@@ -7,6 +7,7 @@ import type {
   WorkforceDetailTableProps,
   WorkforceRow,
 } from "../../types/workforce";
+import { useConnection } from "../../context/ConnectionContext";
 
 // Helper to pre-calculate which row IDs have children or shifts to check hasChildren
 const getRowsWithExpandable = (rows: WorkforceRow[]): Set<string> => {
@@ -69,6 +70,7 @@ export default function WorkforceDetailTable({
   );
   const [error, setError] = useState<Error | null>(null);
   const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
+  const { selectedConfig } = useConnection();
 
   useEffect(() => {
     if (propData !== undefined) {
@@ -82,7 +84,7 @@ export default function WorkforceDetailTable({
     setError(null);
 
     workforceApi
-      .getWorkforceTree(date, departmentId)
+      .getWorkforceTree(date, departmentId, selectedConfig?.id)
       .then((res) => {
         if (isMounted) {
           setData(res);
@@ -99,10 +101,52 @@ export default function WorkforceDetailTable({
     return () => {
       isMounted = false;
     };
-  }, [date, departmentId, propData, propLoading]);
+  }, [date, departmentId, propData, propLoading, selectedConfig]);
 
   const reportDate =
     propReportDate || (date ? dayjs(date).format("DD/MM/YYYY") : "");
+
+  // Identify all department rows that have expandable details (either shifts or child departments)
+  const rowsWithExpandable = useMemo(() => getRowsWithExpandable(data), [data]);
+
+  // Flatten the recursive workforce tree into a flat list for row-by-row rendering
+  const flatRows = useMemo(() => {
+    const flattened = flattenWorkforceRows(data, collapsedIds);
+    return flattened.map((r) => ({
+      ...r,
+      collapsed: collapsedIds.has(r.id),
+      hasChildren: rowsWithExpandable.has(r.id),
+    }));
+  }, [data, collapsedIds, rowsWithExpandable]);
+
+  // Hiển thị thông báo khi chưa chọn database (SAU tất cả hooks)
+  if (!selectedConfig) {
+    return (
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_4px_20px_-2px_rgba(15,23,42,0.03)] overflow-hidden flex flex-col">
+        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-bold text-slate-800 tracking-tight">
+              Bảng công nhân lực chi tiết
+            </h2>
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-100">
+              Báo cáo phân cấp
+            </span>
+          </div>
+        </div>
+        <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+          <div className="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center mb-3">
+            <AlertCircle className="w-6 h-6 text-amber-500" />
+          </div>
+          <h3 className="text-sm font-semibold text-slate-700 mb-1">
+            Chưa chọn cơ sở dữ liệu
+          </h3>
+          <p className="text-xs text-slate-500 max-w-xs">
+            Vui lòng chọn cơ sở dữ liệu ở dropdown phía trên để xem dữ liệu nhân lực
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (
@@ -130,19 +174,6 @@ export default function WorkforceDetailTable({
       return next;
     });
   };
-
-  // Identify all department rows that have expandable details (either shifts or child departments)
-  const rowsWithExpandable = useMemo(() => getRowsWithExpandable(data), [data]);
-
-  // Flatten the recursive workforce tree into a flat list for row-by-row rendering
-  const flatRows = useMemo(() => {
-    const flattened = flattenWorkforceRows(data, collapsedIds);
-    return flattened.map((r) => ({
-      ...r,
-      collapsed: collapsedIds.has(r.id),
-      hasChildren: rowsWithExpandable.has(r.id),
-    }));
-  }, [data, collapsedIds, rowsWithExpandable]);
 
   const getRowClassName = (row: (typeof flatRows)[number]) => {
     let classes =

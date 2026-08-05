@@ -17,9 +17,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DashboardController {
     private final WorkforceService workforceService;
-    
+
     @GetMapping("/work-force")
-    public ResponseEntity<?> getData(@RequestParam("date") LocalDate date) {
-        return ResponseEntity.ok(workforceService.getWorkForce(date));
+    public ResponseEntity<?> getData(
+            @RequestParam("date") LocalDate date,
+            @RequestParam(required = false) String configId) {
+        return ResponseEntity.ok(workforceService.getWorkForce(date, configId));
     }
 }

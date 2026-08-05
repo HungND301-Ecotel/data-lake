@@ -15,4 +15,5 @@ public class DashboardRequest {
     private Integer reportYear;
     private Integer reportMonth;
     private Integer reportDay;
+    private String configId;
 }

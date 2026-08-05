@@ -149,9 +149,15 @@ public class WareBatchJdbc {
 
     
     public List<WareBatchResponse> getWareBatches(DashboardRequest request) {
+        return getWareBatches(request, null);
+    }
+
+    public List<WareBatchResponse> getWareBatches(DashboardRequest request, JdbcTemplate dynamicTemplate) {
+        JdbcTemplate templateToUse = dynamicTemplate != null ? dynamicTemplate : jdbcTemplate;
+
         StringBuilder sql = new StringBuilder(
                 """
-                    SELECT 
+                    SELECT
                         wb.id AS id,
                         wb.code AS code,
                         wb.name AS name,
@@ -200,7 +206,7 @@ public class WareBatchJdbc {
             sql.append(" and wb.report_day = ? ");
             params.add(request.getReportDay());
         }
-        return jdbcTemplate.query(sql.toString(),
+        return templateToUse.query(sql.toString(),
                 params.toArray(),
                 new BeanPropertyRowMapper<>(WareBatchResponse.class)
         );

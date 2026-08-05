@@ -4,6 +4,7 @@ import dayjs from "dayjs";
 import { whBatchApi } from "../../api/whBatchApi";
 import type { WhBatchDashboardResponse } from "../../types/whBatch";
 import type { DepartmentResponse } from "../../../department/types/department";
+import { useConnection } from "../../context/ConnectionContext";
 
 interface TkvReportsSectionProps {
   selectedDate: string;
@@ -21,6 +22,7 @@ export function TkvReportsSection({
   const [tkvDeptId, setTkvDeptId] = useState<string>("all");
   const [tkvReports, setTkvReports] = useState<WhBatchDashboardResponse[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const { selectedConfig } = useConnection();
 
   const dayStr = dayjs(selectedDate).format("DD/MM/YYYY");
 
@@ -36,7 +38,7 @@ export function TkvReportsSection({
         reportYear: parsedDate.year(),
         reportMonth: parsedDate.month() + 1,
         reportDay: parsedDate.date(),
-      })
+      }, selectedConfig?.id)
       .then((res) => {
         if (!cancelled) {
           setTkvReports(res);
@@ -57,7 +59,31 @@ export function TkvReportsSection({
     return () => {
       cancelled = true;
     };
-  }, [tkvDeptId, selectedDate]);
+  }, [tkvDeptId, selectedDate, selectedConfig]);
+
+  // Hiển thị thông báo khi chưa chọn database
+  if (!selectedConfig) {
+    return (
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_4px_20px_-2px_rgba(15,23,42,0.03)] overflow-hidden flex flex-col">
+        <div className="p-4 px-5 flex justify-between items-center bg-slate-50/50 border-b border-slate-100">
+          <span className="font-bold text-sm tracking-wide text-slate-900 uppercase">
+            B. BÁO CÁO TKV — TỔNG HỢP GỬI TẬP ĐOÀN
+          </span>
+        </div>
+        <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+          <div className="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center mb-3">
+            <RefreshCw className="w-6 h-6 text-amber-500" />
+          </div>
+          <h3 className="text-sm font-semibold text-slate-700 mb-1">
+            Chưa chọn cơ sở dữ liệu
+          </h3>
+          <p className="text-xs text-slate-500 max-w-xs">
+            Vui lòng chọn cơ sở dữ liệu ở dropdown phía trên để xem báo cáo TKV
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_4px_20px_-2px_rgba(15,23,42,0.03)] overflow-hidden flex flex-col">

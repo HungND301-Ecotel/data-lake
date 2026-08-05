@@ -10,23 +10,18 @@ export const wareBatchActionApi = {
     return res.data;
   },
 
-  // deleteWareBatch: async (id: string): Promise<string> => {
-  //   const res = await axiosClient.delete(`/wh-batch/${id}`);
-  //   return res.data;
-  // },
-
-  getDashboard: async (): Promise<WareBatchActionStatistic> => {
-    const res = await axiosClient.get(`/ware-batch-action/dashboard`);
+  getDashboard: async (configId?: string): Promise<WareBatchActionStatistic> => {
+    const res = await axiosClient.get(`/ware-batch-action/dashboard`, { params: { configId } });
     return res.data;
   },
 
-  cntActionTime: async (type: string): Promise<TimeCountDto[]> => {
-    const res = await axiosClient.get(`/ware-batch-action/cnt-time/${type}`);
+  cntActionTime: async (type: string, configId?: string): Promise<TimeCountDto[]> => {
+    const res = await axiosClient.get(`/ware-batch-action/cnt-time/${type}`, { params: { configId } });
     return res.data;
   },
 
-  getTop10ByMonth: async (): Promise<TimeCountDto[]> => {
-    const res = await axiosClient.get(`/ware-batch-action/top-table`);
+  getTop10ByMonth: async (configId?: string): Promise<TimeCountDto[]> => {
+    const res = await axiosClient.get(`/ware-batch-action/top-table`, { params: { configId } });
     return res.data;
   },
 
