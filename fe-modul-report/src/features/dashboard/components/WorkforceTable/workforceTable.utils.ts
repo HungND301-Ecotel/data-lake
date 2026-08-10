@@ -16,6 +16,8 @@ export interface FlatWorkforceRow extends Omit<
   vangP: number;
   vangTt: number;
   vangH: number;
+  tuTuc?: number;
+  hoiHop?: number;
   vangV: number;
   tLoVang: number;
 }
@@ -34,6 +36,8 @@ export function sumRowNumbers(
     vangP: 0,
     vangTt: 0,
     vangH: 0,
+    tuTuc: 0,
+    hoiHop: 0,
     vangV: 0,
     tLoVang: 0,
   };
@@ -50,6 +54,8 @@ export function sumRowNumbers(
       result.vangP += s.vangP || 0;
       result.vangTt += s.vangTt || 0;
       result.vangH += s.vangH || 0;
+      result.tuTuc += s.tuTuc || 0;
+      result.hoiHop += s.hoiHop || 0;
       result.vangV += s.vangV || 0;
       result.tLoVang += s.tLoVang || 0;
     }
@@ -68,6 +74,8 @@ export function sumRowNumbers(
       result.vangP += childTotals.vangP;
       result.vangTt += childTotals.vangTt;
       result.vangH += childTotals.vangH;
+      result.tuTuc += childTotals.tuTuc || 0;
+      result.hoiHop += childTotals.hoiHop || 0;
       result.vangV += childTotals.vangV;
       result.tLoVang += childTotals.tLoVang;
     }
@@ -128,6 +136,8 @@ export function flattenWorkforceRows(
             vangP: shift.vangP,
             vangTt: shift.vangTt,
             vangH: shift.vangH,
+            tuTuc: shift.tuTuc || 0,
+            hoiHop: shift.hoiHop || 0,
             vangV: shift.vangV,
             tLoVang: shift.tLoVang,
           });

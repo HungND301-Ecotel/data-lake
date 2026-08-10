@@ -1027,233 +1027,249 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* ═══ ROW 1: KPI CARDS ═══ */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* KPI 1: Coal Production */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_4px_20px_-2px_rgba(15,23,42,0.03)] p-6 flex flex-col justify-between relative overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg">
-              <div className="flex justify-between items-start mb-4">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                  Tổng than NK lũy kế (Tấn)
+          {/* ═══ ROW 1: 6 KPI CARDS IN 3 SECTION BOXES (SINGLE ROW) ═══ */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+            {/* BOX 1: SẢN XUẤT */}
+            <div className="lg:col-span-5 bg-white rounded-2xl border border-emerald-100/90 shadow-[0_2px_12px_-2px_rgba(15,23,42,0.03)] overflow-hidden flex flex-col justify-between">
+              {/* Header */}
+              <div className="py-2.5 px-4 bg-emerald-50/50 border-b border-emerald-100/80 text-center">
+                <span className="text-xs font-extrabold text-[#1a8649] tracking-wider uppercase">
+                  SẢN XUẤT
                 </span>
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-[#1a8649] flex items-center justify-center">
-                  <TrendingUp size={16} />
+              </div>
+              {/* 2 Cards side-by-side */}
+              <div className="p-3 md:p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
+                {/* Sub-card 1.1: Coal */}
+                <div className="bg-slate-50/40 border border-slate-100 rounded-xl p-3.5 flex flex-col justify-between">
+                  <div>
+                    <div className="flex justify-between items-start gap-2 mb-2">
+                      <span className="text-[11px] font-extrabold text-slate-800 uppercase tracking-tight leading-snug">
+                        TỔNG THAN NK LŨY KẾ (TẤN)
+                      </span>
+                      <div className="w-7 h-7 rounded-lg bg-emerald-50 text-[#1a8649] flex items-center justify-center flex-shrink-0">
+                        <TrendingUp size={15} />
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-end gap-2 mt-1">
+                      <div>
+                        <div className="font-sans font-extrabold text-3xl text-slate-900 leading-none">
+                          {fmtNum(coalLuyKeVal)}
+                        </div>
+                        <div className="text-[11px] text-slate-500 mt-2">
+                          Hôm nay:{" "}
+                          <b className="text-[#1a8649] font-semibold">
+                            {fmtNum(coalTodayVal)} tấn
+                          </b>
+                        </div>
+                      </div>
+                      <div className="flex-shrink-0 text-center">
+                        <Sparkline data={[900, 1050, 1100, 980, 1150, 1080, 1200]} />
+                        <div className="text-[9px] text-slate-400 mt-0.5">
+                          7 ngày qua
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-slate-100">
+                    <div className="flex justify-between text-[11px] text-slate-500 mb-1">
+                      <span>Mục tiêu: {fmtNum(coalKhVal)} Tấn</span>
+                      <span className="font-bold text-[#1a8649]">
+                        {coalPctVal}%
+                      </span>
+                    </div>
+                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-2.5">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${Math.min(coalPctVal, 100)}%`,
+                          backgroundColor: "#1a8649",
+                        }}
+                      />
+                    </div>
+                    <div className="flex gap-1.5 flex-wrap">
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700">
+                        Than NK: {fmtNum(coalTodayVal)}
+                      </span>
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-blue-50 text-blue-700">
+                        Than Sạch: {fmtNum(cleanCoalTodayVal)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sub-card 1.2: Excavation */}
+                <div className="bg-slate-50/40 border border-slate-100 rounded-xl p-3.5 flex flex-col justify-between">
+                  <div>
+                    <div className="flex justify-between items-start gap-2 mb-2">
+                      <span className="text-[11px] font-extrabold text-slate-800 uppercase tracking-tight leading-snug">
+                        MÉT ĐÀO LÒ MỚI LŨY KẾ (MÉT)
+                      </span>
+                      <div className="w-7 h-7 rounded-lg bg-emerald-50 text-[#1a8649] flex items-center justify-center flex-shrink-0">
+                        <Layers size={15} />
+                      </div>
+                    </div>
+                    <div className="mt-1">
+                      <div className="font-sans font-extrabold text-3xl text-slate-900 leading-none">
+                        {fmtNum(excLuyKeVal)}
+                      </div>
+                        <div className="text-[11px] text-slate-500 mt-2">
+                        Hôm nay:{" "}
+                        <b className="text-[#1a8649] font-semibold">
+                          {fmtNum(excTodayVal)} m
+                        </b>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-slate-100">
+                    <div className="flex justify-between text-[11px] text-slate-500 mb-1">
+                      <span>Kế hoạch: {fmtNum(excKhVal)} m</span>
+                      <span className="font-bold text-[#1a8649]">
+                        {excPctVal}%
+                      </span>
+                    </div>
+                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-2.5">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${Math.min(excPctVal, 100)}%`,
+                          backgroundColor: "#1a8649",
+                        }}
+                      />
+                    </div>
+                    <div className="flex gap-1.5 flex-wrap">
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700">
+                        XDCB: {fmtNum(xdcbVal)} m
+                      </span>
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-blue-50 text-blue-700">
+                        CBSX: {fmtNum(cbsxVal)} m
+                      </span>
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+                        Mò xén: {fmtNum(moxenVal)} m
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="flex justify-between items-end">
-                <div className="flex-1">
-                  <div className="font-sans font-bold text-3xl text-slate-900 leading-none">
-                    {fmtNum(coalLuyKeVal)}
-                  </div>
-                  <div className="text-xs text-slate-500 mt-1.5">
-                    Hôm nay:{" "}
-                    <b className="text-[#1a8649] font-semibold">
-                      {fmtNum(coalTodayVal)} tấn
-                    </b>
-                  </div>
-                </div>
-                <div className="flex-shrink-0 text-center">
-                  <Sparkline data={[900, 1050, 1100, 980, 1150, 1080, 1200]} />
-                  <div className="text-[10px] text-slate-400 mt-1">
-                    7 ngày qua
-                  </div>
-                </div>
+            </div>
+
+            {/* BOX 2: NHÂN LỰC */}
+            <div className="lg:col-span-3 bg-white rounded-2xl border border-emerald-100/90 shadow-[0_2px_12px_-2px_rgba(15,23,42,0.03)] overflow-hidden flex flex-col justify-between">
+              {/* Header */}
+              <div className="py-2.5 px-4 bg-emerald-50/50 border-b border-emerald-100/80 text-center">
+                <span className="text-xs font-extrabold text-[#1a8649] tracking-wider uppercase">
+                  NHÂN LỰC
+                </span>
               </div>
-              <div className="mt-4 border-t border-slate-100 pt-4">
-                <div className="mt-2">
-                  <div className="flex justify-between text-xs text-slate-500 mb-1">
-                    <span>Mục tiêu: {fmtNum(coalKhVal)} Tấn</span>
-                    <span className="font-bold text-[#1a8649]">
-                      {coalPctVal}%
+              {/* 1 Card */}
+              <div className="p-3 md:p-4 flex-1 flex flex-col justify-between bg-slate-50/40 border border-slate-100 rounded-xl m-3">
+                <div>
+                  <div className="flex justify-between items-start gap-2 mb-2">
+                    <span className="text-[11px] font-extrabold text-slate-800 uppercase tracking-tight leading-snug">
+                      NHÂN SỰ & LAO ĐỘNG
+                    </span>
+                    <div className="w-7 h-7 rounded-lg bg-emerald-50 text-[#1a8649] flex items-center justify-center flex-shrink-0">
+                      <Users size={15} />
+                    </div>
+                  </div>
+                  <div className="mt-1">
+                    <div className="font-sans font-extrabold text-3xl text-slate-900 leading-none">
+                      {fmtNum(workforceTotal)}
+                    </div>
+                    <div className="text-[11px] text-slate-500 mt-2">
+                      Đi làm thực tế:{" "}
+                      <b className="text-[#1a8649] font-semibold">
+                        {workforceDiLam} người
+                      </b>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 pt-3 border-t border-slate-100 flex flex-col gap-2">
+                  <div className="flex gap-1.5 flex-wrap">
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700">
+                      Thợ lò: {workforceThoLo}
+                    </span>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-blue-50 text-blue-700">
+                      Điện cơ: {workforceDienCo}
+                    </span>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+                      BCH: {workforceBch}
                     </span>
                   </div>
-                  <div className="h-1.5 bg-slate-50 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{
-                        width: `${Math.min(coalPctVal, 100)}%`,
-                        backgroundColor: "#1a8649",
-                      }}
-                    />
-                  </div>
-                </div>
-                <div className="flex gap-1.5 mt-3 flex-wrap">
-                  <span className="text-[10px] font-semibold px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-600 inline-flex items-center gap-1">
-                    Than NK: {fmtNum(coalTodayVal)}
-                  </span>
-                  <span className="text-[10px] font-semibold px-2.5 py-1 rounded-md bg-blue-50 text-blue-600 inline-flex items-center gap-1">
-                    Than Sạch: {fmtNum(cleanCoalTodayVal)}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* KPI 2: Excavation */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_4px_20px_-2px_rgba(15,23,42,0.03)] p-6 flex flex-col justify-between relative overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg">
-              <div className="flex justify-between items-start mb-4">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                  Mét đào lò mới lũy kế (Mét)
-                </span>
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-[#1a8649] flex items-center justify-center">
-                  <Layers size={16} />
-                </div>
-              </div>
-              <div className="flex justify-between items-end">
-                <div className="flex-1">
-                  <div className="font-sans font-bold text-3xl text-slate-900 leading-none">
-                    {fmtNum(excLuyKeVal)}
-                  </div>
-                  <div className="text-xs text-slate-500 mt-1.5">
-                    Hôm nay:{" "}
-                    <b className="text-[#1a8649] font-semibold">
-                      {fmtNum(excTodayVal)} m
-                    </b>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-4 border-t border-slate-100 pt-4">
-                <div className="mt-2">
-                  <div className="flex justify-between text-xs text-slate-500 mb-1">
-                    <span>Kế hoạch: {fmtNum(excKhVal)} m</span>
-                    <span className="font-bold text-[#1a8649]">
-                      {excPctVal}%
+                  <div className="flex gap-1.5 flex-wrap">
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-red-50 text-red-600">
+                      Vắng: {workforceVang}
+                    </span>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+                      Nghỉ: {workforceNghi}
+                    </span>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+                      Lũy kế nghỉ: {workforceNghiLuyKe}
                     </span>
                   </div>
-                  <div className="h-1.5 bg-slate-50 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{
-                        width: `${Math.min(excPctVal, 100)}%`,
-                        backgroundColor: "#1a8649",
-                      }}
-                    />
-                  </div>
-                </div>
-                <div className="flex gap-1.5 mt-3 flex-wrap">
-                  <span className="text-[10px] font-semibold px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-600 inline-flex items-center gap-1">
-                    XDCB: {fmtNum(xdcbVal)} m
-                  </span>
-                  <span className="text-[10px] font-semibold px-2.5 py-1 rounded-md bg-blue-50 text-blue-600 inline-flex items-center gap-1">
-                    CBSX: {fmtNum(cbsxVal)} m
-                  </span>
-                  <span className="text-[10px] font-semibold px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 inline-flex items-center gap-1">
-                    Mò xén: {fmtNum(moxenVal)} m
-                  </span>
                 </div>
               </div>
             </div>
 
-            {/* KPI 3: Workforce */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_4px_20px_-2px_rgba(15,23,42,0.03)] p-6 flex flex-col justify-between relative overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg">
-              <div className="flex justify-between items-start mb-4">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                  Nhân sự & Lao động
+            {/* BOX 3: HỆ THỐNG */}
+            <div className="lg:col-span-4 bg-white rounded-2xl border border-emerald-100/90 shadow-[0_2px_12px_-2px_rgba(15,23,42,0.03)] overflow-hidden flex flex-col">
+              {/* Header */}
+              <div className="py-2.5 px-4 bg-emerald-50/50 border-b border-emerald-100/80 text-center">
+                <span className="text-xs font-extrabold text-[#1a8649] tracking-wider uppercase">
+                  HỆ THỐNG
                 </span>
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-[#1a8649] flex items-center justify-center">
-                  <Users size={16} />
-                </div>
               </div>
-              <div className="flex justify-between items-end">
-                <div className="flex-1">
-                  <div className="font-sans font-bold text-3xl text-slate-900 leading-none">
-                    {fmtNum(workforceTotal)}
+              {/* 3 Cards side-by-side */}
+              <div className="p-3 md:p-4 grid grid-cols-1 sm:grid-cols-3 gap-2.5 flex-1">
+                {/* Sub-card 3.1 */}
+                <div className="bg-slate-50/40 border border-slate-100 rounded-xl p-3.5 flex flex-col justify-start">
+                  <div className="flex items-start gap-1.5 mb-2.5">
+                    <div className="p-1 rounded bg-emerald-50 text-[#1a8649] flex-shrink-0 mt-0.5">
+                      <FileText size={14} />
+                    </div>
+                    <span className="text-[10px] font-extrabold text-slate-800 uppercase tracking-tight leading-snug">
+                      TỔNG BÁO CÁO HỆ THỐNG
+                    </span>
                   </div>
-                  <div className="text-xs text-slate-500 mt-1.5">
-                    Đi làm thực tế:{" "}
-                    <b className="text-[#1a8649] font-semibold">
-                      {workforceDiLam} người
-                    </b>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-4 border-t border-slate-100 pt-4">
-                <div className="flex flex-wrap gap-1.5 mb-2">
-                  <span className="text-[10px] font-semibold px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-600 inline-flex items-center gap-1">
-                    Thợ lò: {workforceThoLo}
-                  </span>
-                  <span className="text-[10px] font-semibold px-2.5 py-1 rounded-md bg-blue-50 text-blue-600 inline-flex items-center gap-1">
-                    Điện cơ: {workforceDienCo}
-                  </span>
-                  <span className="text-[10px] font-semibold px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 inline-flex items-center gap-1">
-                    BCH: {workforceBch}
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  <span className="text-[10px] font-semibold px-2.5 py-1 rounded-md bg-red-50 text-red-600 inline-flex items-center gap-1">
-                    Vắng: {workforceVang}
-                  </span>
-                  <span className="text-[10px] font-semibold px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 inline-flex items-center gap-1">
-                    Nghỉ: {workforceNghi}
-                  </span>
-                  <span className="text-[10px] font-semibold px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 inline-flex items-center gap-1">
-                    Lũy kế nghỉ: {workforceNghiLuyKe}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ═══ ROW 1.5: SYSTEM OVERVIEW KPI CARDS (FROM OLD DASHBOARD) ═══ */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* KPI 4: Total Reports */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_4px_20px_-2px_rgba(15,23,42,0.03)] p-6 flex flex-col justify-between relative overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg">
-              <div className="flex justify-between items-start mb-4">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                  Tổng báo cáo hệ thống
-                </span>
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-[#1a8649] flex items-center justify-center">
-                  <FileText size={16} />
-                </div>
-              </div>
-              <div className="flex justify-between items-end">
-                <div className="flex-1">
-                  <div className="font-sans font-bold text-3xl text-slate-900 leading-none">
+                  <div className="font-sans font-extrabold text-3xl text-slate-900 leading-none my-2">
                     {fmtNum(reportsCountVal)}
                   </div>
-                  <div className="text-xs text-slate-500 mt-1.5">
+                  <div className="text-[11px] text-slate-500 leading-snug">
                     Hồ sơ luân chuyển phát sinh trong kỳ
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* KPI 5: Departments */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_4px_20px_-2px_rgba(15,23,42,0.03)] p-6 flex flex-col justify-between relative overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg">
-              <div className="flex justify-between items-start mb-4">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                  Phòng ban liên kết
-                </span>
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-[#1a8649] flex items-center justify-center">
-                  <Database size={16} />
-                </div>
-              </div>
-              <div className="flex justify-between items-end">
-                <div className="flex-1">
-                  <div className="font-sans font-bold text-3xl text-slate-900 leading-none">
+                {/* Sub-card 3.2 */}
+                <div className="bg-slate-50/40 border border-slate-100 rounded-xl p-3.5 flex flex-col justify-start">
+                  <div className="flex items-start gap-1.5 mb-2.5">
+                    <div className="p-1 rounded bg-emerald-50 text-[#1a8649] flex-shrink-0 mt-0.5">
+                      <Database size={14} />
+                    </div>
+                    <span className="text-[10px] font-extrabold text-slate-800 uppercase tracking-tight leading-snug">
+                      PHÒNG BÀN LIÊN KẾT
+                    </span>
+                  </div>
+                  <div className="font-sans font-extrabold text-3xl text-slate-900 leading-none my-2">
                     {departmentsCountVal}
                   </div>
-                  <div className="text-xs text-slate-500 mt-1.5">
+                  <div className="text-[11px] text-slate-500 leading-snug">
                     Đang hoạt động trên luồng báo cáo
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* KPI 6: Users */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_4px_20px_-2px_rgba(15,23,42,0.03)] p-6 flex flex-col justify-between relative overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg">
-              <div className="flex justify-between items-start mb-4">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                  Tài khoản hoạt động
-                </span>
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-[#1a8649] flex items-center justify-center">
-                  <Users size={16} />
-                </div>
-              </div>
-              <div className="flex justify-between items-end">
-                <div className="flex-1">
-                  <div className="font-sans font-bold text-3xl text-slate-900 leading-none">
+                {/* Sub-card 3.3 */}
+                <div className="bg-slate-50/40 border border-slate-100 rounded-xl p-3.5 flex flex-col justify-start">
+                  <div className="flex items-start gap-1.5 mb-2.5">
+                    <div className="p-1 rounded bg-emerald-50 text-[#1a8649] flex-shrink-0 mt-0.5">
+                      <Users size={14} />
+                    </div>
+                    <span className="text-[10px] font-extrabold text-slate-800 uppercase tracking-tight leading-snug">
+                      TÀI KHOẢN HOẠT ĐỘNG
+                    </span>
+                  </div>
+                  <div className="font-sans font-extrabold text-3xl text-slate-900 leading-none my-2">
                     {usersCountVal}
                   </div>
-                  <div className="text-xs text-slate-500 mt-1.5">
+                  <div className="text-[11px] text-slate-500 leading-snug">
                     Đang trực tuyến và quản trị dữ liệu
                   </div>
                 </div>

@@ -47,8 +47,10 @@ export const transformWorkforceApiToTree = (
       vangTong,
       vangO: item.om ?? 0,
       vangP: item.phep ?? 0,
-      vangTt: item.ttuc ?? 0,
-      vangH: item.h2 ?? 0,
+      vangTt: item.tuTuc ?? 0,
+      vangH: item.hoiHop ?? 0,
+      tuTuc: item.tuTuc ?? 0,
+      hoiHop: item.hoiHop ?? 0,
       vangV: item.vang ?? 0,
       tLoVang: item.thoLoVangTrongNgay ?? 0,
     };

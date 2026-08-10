@@ -10,6 +10,8 @@ export interface WorkforceCaRow {
   vangP: number;
   vangTt: number;
   vangH: number;
+  tuTuc?: number;
+  hoiHop?: number;
   vangV: number;
   tLoVang: number;
 }
@@ -41,8 +43,8 @@ export interface WorkforceApiResponse {
   tongVangMat: number;
   om: number;
   phep: number;
-  ttuc: number;
-  h2: number;
+  tuTuc: number;
+  hoiHop: number;
   vang: number;
   thoLoVangTrongNgay: number;
 }
