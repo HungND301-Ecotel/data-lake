@@ -3,8 +3,6 @@ import {
   Layers,
   Users,
   Calendar,
-  RefreshCw,
-  Settings,
   PlusCircle,
   Briefcase,
   Database,
@@ -19,7 +17,6 @@ import type { DepartmentResponse } from "../../department/types/department";
 import { Column, Line } from "@ant-design/charts";
 import { UniverPreviewModal } from "../components/Modal/UniverPreviewModal";
 import { PlanModal } from "../components/ProductionPlanning";
-import { SetupModal } from "../components/Modal/SetupModal";
 import { BatchSyncModal } from "../components/Modal/BatchSyncModal";
 import { ProductionPivotSection } from "../components/PivotTable/ProductionPivotSection";
 import WorkforceDetailTable from "../components/WorkforceTable/WorkforceDetailTable";
@@ -80,8 +77,6 @@ const flattenTargetReports = (depts: DepartmentTargetResponse[]) => {
     ? Array.from(merged.values())
     : PRODUCTION_TABLE_FALLBACK;
 };
-
-
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 const fmtNum = (n: any) =>
@@ -147,10 +142,12 @@ export default function DashboardPage() {
   const [deptFilter] = useState("Tất cả");
 
   const [showPlanModal, setShowPlanModal] = useState(false);
-  const [planModalMode, setPlanModalMode] = useState<"plan" | "operation" | null>(null);
+  const [planModalMode, setPlanModalMode] = useState<
+    "plan" | "operation" | null
+  >(null);
 
-  const [syncing, setSyncing] = useState(false);
-  const [showSetupModal, setShowSetupModal] = useState(false);
+  const [dashboardRefreshKey, setDashboardRefreshKey] = useState<number>(0);
+  const refreshDashboard = () => setDashboardRefreshKey((prev) => prev + 1);
 
   // State cho Select SyncConnectionConfig
   const [syncConfigs, setSyncConfigs] = useState<SyncConnectionConfig[]>([]);
@@ -208,18 +205,29 @@ export default function DashboardPage() {
   const [realLineChartData, setRealLineChartData] = useState<
     { date: string; reports: number }[]
   >([]);
-  const [trendRange, setTrendRange] = useState<"7days" | "30days" | "month">("7days");
+  const [trendRange, setTrendRange] = useState<"7days" | "30days" | "month">(
+    "7days",
+  );
   const [recentReportsData, setRecentReportsData] = useState<
-    { key: string; name: string; department: string; date: string; rawDate: string }[]
+    {
+      key: string;
+      name: string;
+      department: string;
+      date: string;
+      rawDate: string;
+    }[]
   >([]);
 
   // Fetch danh sách SyncConnectionConfig
   useEffect(() => {
-    serverApi.getAll().then((res) => {
-      if (res?.data) {
-        setSyncConfigs(res.data.filter((c) => c.active !== false));
-      }
-    }).catch((err) => console.error("Fetch sync configs failed", err));
+    serverApi
+      .getAll()
+      .then((res) => {
+        if (res?.data) {
+          setSyncConfigs(res.data.filter((c) => c.active !== false));
+        }
+      })
+      .catch((err) => console.error("Fetch sync configs failed", err));
   }, []);
 
   // Fetch departments & system overview metrics
@@ -485,7 +493,7 @@ export default function DashboardPage() {
         setPivotTargetData(depts);
       })
       .catch((err) => console.error("Failed to load target reports:", err));
-  }, [selectedDate]);
+  }, [selectedDate, dashboardRefreshKey]);
 
   const handleAddBatch = (newBatch: any) => {
     setBatches((prev) => [newBatch, ...prev]);
@@ -715,13 +723,6 @@ export default function DashboardPage() {
         },
       },
     },
-  };
-
-  const handleSync = () => {
-    setSyncing(true);
-    setTimeout(() => {
-      setSyncing(false);
-    }, 3000);
   };
 
   const handlePreviewTkvReport = (reportId: string) => {
@@ -964,19 +965,25 @@ export default function DashboardPage() {
               <div className="flex flex-wrap items-center gap-2">
                 {/* SyncConnectionConfig Selector */}
                 <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200/60 h-9">
-                  <Database size={13} className="text-slate-500 flex-shrink-0" />
+                  <Database
+                    size={13}
+                    className="text-slate-500 flex-shrink-0"
+                  />
                   <select
                     className="bg-transparent border-none text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer w-[200px]"
                     value={selectedConfig?.id || ""}
                     onChange={(e) => {
-                      const config = syncConfigs.find((c) => c.id === e.target.value);
+                      const config = syncConfigs.find(
+                        (c) => c.id === e.target.value,
+                      );
                       setSelectedConfig(config || null);
                     }}
                   >
                     <option value="">Chọn database</option>
                     {syncConfigs.map((config) => (
                       <option key={config.id} value={config.id}>
-                        {config.name || config.databaseName} ({config.host}:{config.port})
+                        {config.name || config.databaseName} ({config.host}:
+                        {config.port})
                       </option>
                     ))}
                   </select>
@@ -984,7 +991,10 @@ export default function DashboardPage() {
 
                 {/* Date Selector */}
                 <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200/60 h-9">
-                  <Calendar size={13} className="text-slate-500 flex-shrink-0" />
+                  <Calendar
+                    size={13}
+                    className="text-slate-500 flex-shrink-0"
+                  />
                   <input
                     type="date"
                     className="bg-transparent border-none text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer"
@@ -1063,7 +1073,9 @@ export default function DashboardPage() {
                         </div>
                       </div>
                       <div className="flex-shrink-0 text-center">
-                        <Sparkline data={[900, 1050, 1100, 980, 1150, 1080, 1200]} />
+                        <Sparkline
+                          data={[900, 1050, 1100, 980, 1150, 1080, 1200]}
+                        />
                         <div className="text-[9px] text-slate-400 mt-0.5">
                           7 ngày qua
                         </div>
@@ -1112,7 +1124,7 @@ export default function DashboardPage() {
                       <div className="font-sans font-extrabold text-3xl text-slate-900 leading-none">
                         {fmtNum(excLuyKeVal)}
                       </div>
-                        <div className="text-[11px] text-slate-500 mt-2">
+                      <div className="text-[11px] text-slate-500 mt-2">
                         Hôm nay:{" "}
                         <b className="text-[#1a8649] font-semibold">
                           {fmtNum(excTodayVal)} m
@@ -1286,6 +1298,7 @@ export default function DashboardPage() {
             <ProductionPivotSection
               targetData={pivotTargetData}
               selectedDate={selectedDate}
+              refreshKey={dashboardRefreshKey}
             />
           </div>
 
@@ -1326,7 +1339,8 @@ export default function DashboardPage() {
                   <option value="7days">7 ngày qua</option>
                   <option value="30days">30 ngày qua</option>
                   <option value="month">
-                    Tất cả ngày trong tháng ({dayjs(selectedDate).format("MM/YYYY")})
+                    Tất cả ngày trong tháng (
+                    {dayjs(selectedDate).format("MM/YYYY")})
                   </option>
                 </select>
               </div>
@@ -1418,39 +1432,6 @@ export default function DashboardPage() {
               onTrinhDuyet={handleTrinhDuyet}
             />
           </div>
-
-          {/* ═══ BOTTOM ACTION BUTTONS ═══ */}
-          <div className="flex justify-center gap-3 my-4 pt-4 border-t border-slate-100">
-            <button
-              className="bg-white text-slate-700 border border-slate-200 rounded-lg py-2.5 px-5 font-medium text-xs cursor-pointer flex items-center gap-2 transition-all hover:bg-slate-50 hover:text-slate-950 hover:border-slate-400"
-              onClick={() => setShowSetupModal(true)}
-            >
-              <Settings size={16} /> Cấu hình Server kết nối
-            </button>
-            <button
-              className="bg-[#1a8649] text-white border-0 rounded-lg py-2.5 px-5 font-semibold text-xs cursor-pointer flex items-center gap-2 transition-all hover:bg-[#15703d] hover:-translate-y-0.5 shadow-md shadow-teal-900/15 disabled:bg-slate-300 disabled:cursor-not-allowed disabled:transform-none"
-              onClick={handleSync}
-              disabled={syncing}
-            >
-              {syncing ? (
-                <>
-                  <RefreshCw size={16} className="animate-spin" />
-                  Đang đồng bộ hệ thống...
-                </>
-              ) : (
-                <>
-                  <RefreshCw size={16} /> Đồng bộ toàn bộ dữ liệu
-                </>
-              )}
-            </button>
-          </div>
-
-          {/* ═══ FOOTER ═══ */}
-          <div className="flex justify-between text-xs text-slate-400 border-t border-slate-200 pt-4 pb-6">
-            <span>Đồng bộ lần cuối: {dayStr} 10:30</span>
-            <span>Nguồn: API Tập đoàn Vinacomin TKV</span>
-            <span>Phiên bản quản lý: v2.2.0</span>
-          </div>
         </div>
       </div>
 
@@ -1458,19 +1439,23 @@ export default function DashboardPage() {
       {planModalMode && (
         <PlanModal
           mode={planModalMode}
-          onClose={() => setPlanModalMode(null)}
+          onClose={() => {
+            setPlanModalMode(null);
+            refreshDashboard();
+          }}
           onAddBatch={handleAddBatch}
         />
       )}
       {showPlanModal && (
         <PlanModal
-          onClose={() => setShowPlanModal(false)}
+          onClose={() => {
+            setShowPlanModal(false);
+            refreshDashboard();
+          }}
           onAddBatch={handleAddBatch}
         />
       )}
-      {showSetupModal && (
-        <SetupModal onClose={() => setShowSetupModal(false)} />
-      )}
+
       {showBatchSyncModal && (
         <BatchSyncModal
           onClose={() => setShowBatchSyncModal(false)}

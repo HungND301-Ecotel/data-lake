@@ -34,9 +34,10 @@ interface PivotRecord {
 interface Props {
   targetData?: DepartmentTargetResponse[];
   selectedDate?: string;
+  refreshKey?: number;
 }
 
-export function ProductionPivotSection({ selectedDate }: Props) {
+export function ProductionPivotSection({ selectedDate, refreshKey }: Props) {
   const [selectedChiTieu, setSelectedChiTieu] = useState<string>("");
   const [monthlyData, setMonthlyData] = useState<PivotRecord[]>([]);
 
@@ -134,7 +135,7 @@ export function ProductionPivotSection({ selectedDate }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [selectedDate]);
+  }, [selectedDate, refreshKey]);
 
   const pivotData = monthlyData;
 
@@ -236,20 +237,22 @@ export function ProductionPivotSection({ selectedDate }: Props) {
             </span>
           </div>
           {/* Chỉ tiêu filter */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {chiTieuList.map((ct) => (
-              <button
-                key={ct}
-                onClick={() => setSelectedChiTieu(ct)}
-                className={`text-xs font-semibold px-3 py-1 rounded-full border transition-all ${
-                  selectedChiTieu === ct
-                    ? "bg-emerald-600 text-white border-emerald-600"
-                    : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                }`}
-              >
-                {ct}
-              </button>
-            ))}
+          <div className="flex items-center gap-2">
+            <label htmlFor="chi-tieu-select" className="text-xs font-medium text-slate-600">
+              Chỉ tiêu:
+            </label>
+            <select
+              id="chi-tieu-select"
+              value={selectedChiTieu}
+              onChange={(e) => setSelectedChiTieu(e.target.value)}
+              className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 bg-transparent outline-none focus:outline-none focus:border-slate-400 cursor-pointer"
+            >
+              {chiTieuList.map((ct) => (
+                <option key={ct} value={ct}>
+                  {ct}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
