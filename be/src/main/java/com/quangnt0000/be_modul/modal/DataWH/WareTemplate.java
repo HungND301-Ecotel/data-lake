@@ -1,5 +1,7 @@
 package com.quangnt0000.be_modul.modal.DataWH;
 
+import com.quangnt0000.be_modul.enums.ReportType;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,6 +37,10 @@ public class WareTemplate {
     private String tableName;
     private String tableCode;
     private String excelFileKey;
+    
+    @Column(name = "reportType", nullable = true)
+    @Enumerated(EnumType.STRING)
+    private ReportType reportType;
 
     @ManyToOne
     @JoinColumn(name = "wareCategoryId")

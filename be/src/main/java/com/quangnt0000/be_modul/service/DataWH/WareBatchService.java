@@ -1104,45 +1104,7 @@ public class WareBatchService {
     }
 
     public ResponseEntity<?> getWareBatches(DashboardRequest request) {
-        JdbcTemplate dynamicTemplate = null;
-        if (request.getConfigId() != null && !request.getConfigId().isBlank()) {
-            dynamicTemplate = createDynamicJdbcTemplate(request.getConfigId());
-        }
-        List<WareBatchResponse> wareCategoryResponses = wareBatchJdbc.getWareBatches(request, dynamicTemplate);
+        List<WareBatchResponse> wareCategoryResponses = wareBatchJdbc.getWareBatches(request);
         return ResponseEntity.ok(wareCategoryResponses);
-    }
-
-    private JdbcTemplate createDynamicJdbcTemplate(String configId) {
-        com.quangnt0000.be_modul.modal.Data.SyncConnectionConfig config =
-                syncConnectionConfigRepository.findById(configId)
-                        .orElseThrow(() -> new RuntimeException("Không tìm thấy config với id: " + configId));
-
-        org.springframework.jdbc.datasource.DriverManagerDataSource dataSource =
-                new org.springframework.jdbc.datasource.DriverManagerDataSource();
-
-        String driverClassName;
-        String jdbcUrl;
-        String databaseType = config.getDatabaseType() != null ? config.getDatabaseType().name() : null;
-
-        if (databaseType == null || databaseType.equalsIgnoreCase("POSTGRES") || databaseType.equalsIgnoreCase("POSTGRESQL")) {
-            driverClassName = "org.postgresql.Driver";
-            jdbcUrl = String.format("jdbc:postgresql://%s:%d/%s", config.getHost(), config.getPort(), config.getDatabaseName());
-        } else if (databaseType.equalsIgnoreCase("SQLSERVER")) {
-            driverClassName = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-            jdbcUrl = String.format("jdbc:sqlserver://%s:%d;databaseName=%s;encrypt=false;trustServerCertificate=true", config.getHost(), config.getPort(), config.getDatabaseName());
-        } else if (databaseType.equalsIgnoreCase("MYSQL")) {
-            driverClassName = "com.mysql.cj.jdbc.Driver";
-            jdbcUrl = String.format("jdbc:mysql://%s:%d/%s", config.getHost(), config.getPort(), config.getDatabaseName());
-        } else {
-            driverClassName = "org.postgresql.Driver";
-            jdbcUrl = String.format("jdbc:postgresql://%s:%d/%s", config.getHost(), config.getPort(), config.getDatabaseName());
-        }
-
-        dataSource.setDriverClassName(driverClassName);
-        dataSource.setUrl(jdbcUrl);
-        dataSource.setUsername(config.getUsername());
-        dataSource.setPassword(config.getPassword());
-
-        return new JdbcTemplate(dataSource);
     }
 }

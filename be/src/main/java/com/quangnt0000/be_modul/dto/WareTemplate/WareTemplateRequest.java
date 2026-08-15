@@ -1,5 +1,6 @@
 package com.quangnt0000.be_modul.dto.WareTemplate;
 
+import com.quangnt0000.be_modul.enums.ReportType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,5 +21,6 @@ public class WareTemplateRequest {
 
     private String tableName;
     private String tableCode;
+    private ReportType reportType;
     private MultipartFile excelFile;
 }

@@ -47,6 +47,7 @@ public class WareTemplateService {
                 .tableName(request.getTableName())
                 .tableCode(request.getTableCode())
                 .startRow(request.getStartRow())
+                .reportType(request.getReportType())
                 .excelFileKey(excelFileKey)
                 .wareCategory(wareCategory)
                 .build();
@@ -81,6 +82,7 @@ public class WareTemplateService {
                             .tableCode(wareTemplate.getTableCode())
                             .excelFileKey(wareTemplate.getExcelFileKey())
                             .startRow(wareTemplate.getStartRow())
+                            .reportType(wareTemplate.getReportType())
                             .createdAt(wareTemplate.getCreatedAt())
                             .updatedAt(wareTemplate.getUpdatedAt())
                             .hasApprovalConfig(hasConfig)
@@ -102,6 +104,7 @@ public class WareTemplateService {
                 .tableCode(wareTemplate.getTableCode())
                 .excelFileKey(wareTemplate.getExcelFileKey())
                 .startRow(wareTemplate.getStartRow())
+                .reportType(wareTemplate.getReportType())
                 .createdAt(wareTemplate.getCreatedAt())
                 .updatedAt(wareTemplate.getUpdatedAt())
                 .build();
@@ -117,7 +120,8 @@ public class WareTemplateService {
         wareTemplate.setTableName(request.getTableName());
         wareTemplate.setTableCode(request.getTableCode());
         wareTemplate.setStartRow(request.getStartRow());
-        
+        wareTemplate.setReportType(request.getReportType());
+
         if (request.getExcelFile() != null && !request.getExcelFile().isEmpty()) {
             String excelFileKey = s3Service.uploadFile("warehouse-template", request.getExcelFile()).getKey();
             wareTemplate.setExcelFileKey(excelFileKey);

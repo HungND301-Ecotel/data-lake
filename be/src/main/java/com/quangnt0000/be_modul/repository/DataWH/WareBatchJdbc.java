@@ -2,13 +2,11 @@ package com.quangnt0000.be_modul.repository.DataWH;
 
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchResponse;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchSearch;
-import com.quangnt0000.be_modul.dto.WareCategory.WareCategoryResponse;
 import com.quangnt0000.be_modul.dto.dashboard.DashboardRequest;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -24,7 +22,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class WareBatchJdbc {
     private final JdbcTemplate jdbcTemplate;
-    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     public List<WareBatchResponse> search(WareBatchSearch request) {
         StringBuilder sql = new StringBuilder(
@@ -147,14 +144,7 @@ public class WareBatchJdbc {
         return jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray());
     }
 
-    
     public List<WareBatchResponse> getWareBatches(DashboardRequest request) {
-        return getWareBatches(request, null);
-    }
-
-    public List<WareBatchResponse> getWareBatches(DashboardRequest request, JdbcTemplate dynamicTemplate) {
-        JdbcTemplate templateToUse = dynamicTemplate != null ? dynamicTemplate : jdbcTemplate;
-
         StringBuilder sql = new StringBuilder(
                 """
                     SELECT
@@ -172,7 +162,7 @@ public class WareBatchJdbc {
                         wb.report_year AS report_year,
                         wb.report_month AS report_month,
                         wb.report_day AS report_day,
-                        wc.report_type AS reportType
+                        wt.report_type AS reportType
                     FROM ware_batch wb
                     LEFT JOIN employee e ON wb.employee_id = e.id
                     LEFT JOIN ware_template wt ON wb.ware_template_id = wt.id
@@ -188,7 +178,7 @@ public class WareBatchJdbc {
         }
 
         if (request.getReportType() != null) {
-            sql.append(" and wc.report_type = ? ");
+            sql.append(" and wt.report_type = ? ");
             params.add(request.getReportType());
         }
 
@@ -206,7 +196,7 @@ public class WareBatchJdbc {
             sql.append(" and wb.report_day = ? ");
             params.add(request.getReportDay());
         }
-        return templateToUse.query(sql.toString(),
+        return jdbcTemplate.query(sql.toString(),
                 params.toArray(),
                 new BeanPropertyRowMapper<>(WareBatchResponse.class)
         );
