@@ -730,7 +730,7 @@ export default function NavBar() {
           </Button>
         </Dropdown>
 
-        <Link to="/analytics">
+        {/* <Link to="/analytics">
           <Button
             type="text"
             icon={<PieChartOutlined className="text-lg mr-2" />}
@@ -739,7 +739,7 @@ export default function NavBar() {
           >
             Thống kê tác nghiệp
           </Button>
-        </Link>
+        </Link> */}
 
         {/* Account Menu */}
         <div className="ml-auto">

@@ -6,9 +6,9 @@ spring:
       max-file-size: 500MB
       max-request-size: 500MB
   datasource:
-    url: jdbc:postgresql://localhost:5434/report
-    username: admin
-    password: admin
+    url: jdbc:postgresql://localhost:5433/Nammau
+    username: postgres
+    password: 123
   jpa:
     hibernate:
       ddl-auto: update

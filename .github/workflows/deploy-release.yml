@@ -24,15 +24,9 @@
 name: Deploy Release
 
 on:
-  workflow_dispatch:
-    inputs:
-      tenant:
-        description: "Chọn tenant để release lên production"
-        required: true
-        type: choice
-        options:
-          - deonaicocsau
-          - uongbi
+  push:
+    branches:
+      - production/main
 
 env:
   WEBAPP_NAME: data-lake
@@ -41,6 +35,10 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        tenant: [nammau]
 
     steps:
       - name: Checkout repository
@@ -49,12 +47,12 @@ jobs:
       - name: Set TENANT_UPPER (dùng để lookup secrets)
         id: tu
         run: |
-          echo "name=$(echo '${{ github.event.inputs.tenant }}' | tr '[:lower:]' '[:upper:]')" >> $GITHUB_OUTPUT
+          echo "name=$(echo '${{ matrix.tenant }}' | tr '[:lower:]' '[:upper:]')" >> $GITHUB_OUTPUT
 
       # ── Build .env cho FE theo tenant ────────────────────────
       - name: Create frontend .env from tenant config
         run: |
-          TENANT="${{ github.event.inputs.tenant }}"
+          TENANT="${{ matrix.tenant }}"
           # Copy toàn bộ branding config (màu, logo, tên công ty...)
           cp fe-modul-report/tenants/${TENANT}.env ./fe-modul-report/.env
           # ⚠️ KHÔNG inject VITE_API nữa.
@@ -68,7 +66,7 @@ jobs:
         env:
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-          TENANT: ${{ github.event.inputs.tenant }}
+          TENANT: ${{ matrix.tenant }}
         run: |
           # 1. Sử dụng DOCKER_HUB_USERNAME làm REGISTRY để build và push
           REGISTRY_VAL="${{ secrets.DOCKER_HUB_USERNAME }}"
@@ -99,7 +97,7 @@ jobs:
           username: ${{ secrets[format('{0}_USER', steps.tu.outputs.name)] }}
           key: ${{ secrets[format('{0}_SSH_KEY', steps.tu.outputs.name)] }}
           port: ${{ secrets[format('{0}_PORT', steps.tu.outputs.name)] }}
-          script: mkdir -p ~/data-lake/${{ github.event.inputs.tenant }}/deployment/release
+          script: mkdir -p ~/data-lake/${{ matrix.tenant }}/deployment/release
 
       # ── SCP: copy docker-compose + .env_tenant lên server ────
       - name: Transfer deployment files to server
@@ -110,7 +108,7 @@ jobs:
           key: ${{ secrets[format('{0}_SSH_KEY', steps.tu.outputs.name)] }}
           port: ${{ secrets[format('{0}_PORT', steps.tu.outputs.name)] }}
           source: "deployment/release/*"
-          target: "~/data-lake/${{ github.event.inputs.tenant }}/deployment/release"
+          target: "~/data-lake/${{ matrix.tenant }}/deployment/release"
           strip_components: 2
 
       # ── SSH: deploy ───────────────────────────────────────────
@@ -122,6 +120,6 @@ jobs:
           key: ${{ secrets[format('{0}_SSH_KEY', steps.tu.outputs.name)] }}
           port: ${{ secrets[format('{0}_PORT', steps.tu.outputs.name)] }}
           script: |
-            cd ~/data-lake/${{ github.event.inputs.tenant }}/deployment/release
+            cd ~/data-lake/${{ matrix.tenant }}/deployment/release
             chmod +x start-app.sh
             ./start-app.sh
