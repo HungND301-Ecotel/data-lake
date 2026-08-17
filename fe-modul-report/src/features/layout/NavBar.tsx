@@ -20,7 +20,6 @@ import {
   RightOutlined,
   LoadingOutlined,
   SettingOutlined,
-  PieChartOutlined,
   DatabaseOutlined,
 } from "@ant-design/icons";
 import { Button, Dropdown, Menu, Spin, message } from "antd";
