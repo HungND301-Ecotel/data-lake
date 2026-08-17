@@ -118,8 +118,8 @@ public class MaterialsReportService {
                 return result;
         }
 
-        public List<CoalConsumptionRowDTO> buildConsumptionReport(String unitCode, Integer year, Integer month) {
-                List<CoalConsumptionDataDTO> rawData = repository.getConsumptionData(unitCode, year, month);
+        public List<CoalConsumptionRowDTO> buildConsumptionReport(Integer year, Integer month) {
+                List<CoalConsumptionDataDTO> rawData = repository.getConsumptionData(year, month);
 
                 Map<String, List<CoalConsumptionDataDTO>> grouped = rawData.stream()
                                 .collect(Collectors.groupingBy(CoalConsumptionDataDTO::getProductCode));
@@ -134,17 +134,42 @@ public class MaterialsReportService {
                         row.setUnit(rows.get(0).getUnit());
 
                         for (CoalConsumptionDataDTO r : rows) {
-                                switch (r.getConsumptionType()) {
-                                        case "sale_parent_company" ->
-                                                row.setSaleParentCompany(row.getSaleParentCompany().add(r.getQty()));
-                                        case "sale_other" -> row.setSaleOther(row.getSaleOther().add(r.getQty()));
-                                        case "internal_use" -> row.setInternalUse(row.getInternalUse().add(r.getQty()));
-                                        default -> {
+                                if ("Y06".equals(r.getImportExportMethodCode())) { // xuất dùng nôi bộ
+                                        row.setInternalUse(row.getInternalUse().add(r.getQty()));
+                                } else { // Y01 - Bán cho đối tác
+                                        String partnerCode = r.getPartnerCode() != null ? r.getPartnerCode()
+                                                        : "UNKNOWN";
+                                        String partnerGroupCode = r.getPartnerGroupCode();
+
+                                        if ("03".equals(partnerGroupCode)) {
+                                                // Bán cho công ty mẹ - phân theo đơn vị
+                                                row.getSoldToParent().merge(partnerCode, r.getQty(), BigDecimal::add);
+                                                row.getParentNames().putIfAbsent(partnerCode, r.getPartnerName());
+                                        } else if ("02".equals(partnerGroupCode)) {
+                                                // Bán công ty con trong tập đoàn
+                                                row.getSoldToSubsidiary().merge(partnerCode, r.getQty(), BigDecimal::add);
+                                                row.getSubsidiaryNames().putIfAbsent(partnerCode, r.getPartnerName());
+                                        } else if("01".equals(partnerGroupCode)) {
+                                                // Bán ngoài tập đoàn
+                                                row.getSoldToExternal().merge(partnerCode, r.getQty(), BigDecimal::add);
+                                                row.getExternalNames().putIfAbsent(partnerCode, r.getPartnerName());
                                         }
                                 }
-                                row.setTotalConsumption(row.getSaleParentCompany().add(row.getSaleOther()));
                         }
-                        row.setTotalConsumption(row.getSaleParentCompany().add(row.getSaleOther()).add(row.getInternalUse()));
+
+                        // Tính tổng
+                        row.setTotalSoldToParent(row.getSoldToParent().values().stream()
+                                        .reduce(BigDecimal.ZERO, BigDecimal::add));
+                        row.setTotalSoldToSubsidiary(row.getSoldToSubsidiary().values().stream()
+                                        .reduce(BigDecimal.ZERO, BigDecimal::add));
+                        row.setTotalSoldToExternal(row.getSoldToExternal().values().stream()
+                                        .reduce(BigDecimal.ZERO, BigDecimal::add));
+                        row.setTotalConsumption(
+                                        row.getTotalSoldToParent()
+                                                        .add(row.getTotalSoldToSubsidiary())
+                                                        .add(row.getTotalSoldToExternal())
+                                                        .add(row.getInternalUse()));
+
                         result.add(row);
                 }
 

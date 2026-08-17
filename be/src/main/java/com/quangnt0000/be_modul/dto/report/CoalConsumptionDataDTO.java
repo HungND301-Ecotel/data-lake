@@ -4,14 +4,18 @@ import java.math.BigDecimal;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class CoalConsumptionDataDTO {
-    private String maDonVi;
-    private String productCode;       // ma_vthh1
-    private String productName;       // ten_vthh1
+    private String productCode;       // ma_vthh
+    private String productName;       // ten_vthh
     private String unit;              // ten_dvt
-    private String consumptionType;   // sale_internal_tkv | sale_external | internal_use
+    private String importExportMethodCode; // ma_ptnx
+    private String partnerCode;       // ma_dtpn
+    private String partnerGroupCode;  // ma_nhom_dtpn
+    private String partnerName;       // ten_dtpn
     private BigDecimal qty;
 }

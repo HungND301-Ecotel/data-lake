@@ -26,9 +26,8 @@ public class MaterialsReportController {
 
     @GetMapping("/tieu-thu-than")
     public ResponseEntity<?> getTieuThuReport(
-            @RequestParam String unitCode,
             @RequestParam Integer year,
             @RequestParam Integer month) {
-        return ResponseEntity.ok(coalReportService.buildConsumptionReport(unitCode, year, month));
+        return ResponseEntity.ok(coalReportService.buildConsumptionReport(year, month));
     }
 }
