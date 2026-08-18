@@ -12,47 +12,47 @@ export const transformWorkforceApiToTree = (
     return [];
   }
 
-  // 1. Group by maPban / tenPban
+  // 1. Group by departmentCode / departmentName
   const deptMap = new Map<
     string,
     { tenPban: string; tenNhomPban: string; shifts: WorkforceCaRow[] }
   >();
 
   for (const item of apiData) {
-    const deptKey = item.maPban || item.tenPban;
+    const deptKey = item.departmentCode || item.departmentName;
     if (!deptKey) continue;
 
     if (!deptMap.has(deptKey)) {
       deptMap.set(deptKey, {
-        tenPban: item.tenPban || deptKey,
-        tenNhomPban: item.tenNhomPban || "KHỐI TRỰC TIẾP",
+        tenPban: item.departmentName || deptKey,
+        tenNhomPban: item.departmentGroupName || "KHỐI TRỰC TIẾP",
         shifts: [],
       });
     }
 
-    const diLamTong = item.tongDiLam ?? 0;
-    const vangTong = item.tongVangMat ?? 0;
+    const diLamTong = item.totalWorking ?? 0;
+    const vangTong = item.totalAbsent ?? 0;
     const tongNhanLuc =
-      item.tongNhanLuc && item.tongNhanLuc > 0
-        ? item.tongNhanLuc
+      item.totalHeadcount && item.totalHeadcount > 0
+        ? item.totalHeadcount
         : diLamTong + vangTong;
 
     const shiftRow: WorkforceCaRow = {
-      shiftName: item.tenCa || (item.maCa ? `Ca ${item.maCa}` : "Ca 1"),
+      shiftName: item.shiftName || (item.shiftCode ? `Ca ${item.shiftCode}` : "Ca 1"),
       tongNhanLuc,
       diLamTong,
-      diLamThoLo: item.thoLoDiLam ?? 0,
-      diLamCoDien: item.coDien ?? 0,
-      diLamQlpv: item.qlyPhongVu ?? 0,
+      diLamThoLo: item.undergroundWorkers ?? 0,
+      diLamCoDien: item.electricalAndOtherWorkers ?? 0,
+      diLamQlpv: item.managementAndSupport ?? 0,
       vangTong,
-      vangO: item.om ?? 0,
-      vangP: item.phep ?? 0,
-      vangTt: item.tuTuc ?? 0,
-      vangH: item.hoiHop ?? 0,
-      tuTuc: item.tuTuc ?? 0,
-      hoiHop: item.hoiHop ?? 0,
-      vangV: item.vang ?? 0,
-      tLoVang: item.thoLoVangTrongNgay ?? 0,
+      vangO: item.sickLeave ?? 0,
+      vangP: item.annualLeave ?? 0,
+      vangTt: item.maternityLeave ?? 0,
+      vangH: item.meetingAndTraining ?? 0,
+      tuTuc: item.maternityLeave ?? 0,
+      hoiHop: item.meetingAndTraining ?? 0,
+      vangV: item.unauthorizedAbsence ?? 0,
+      tLoVang: item.undergroundWorkersAbsent ?? 0,
     };
 
     deptMap.get(deptKey)!.shifts.push(shiftRow);

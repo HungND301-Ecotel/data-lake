@@ -29,24 +29,24 @@ export interface WorkforceRow {
 }
 
 export interface WorkforceApiResponse {
-  maPban: string;
-  tenPban: string;
-  maNhomPban?: string;
-  tenNhomPban?: string;
-  maCa?: string;
-  tenCa?: string;
-  tongNhanLuc: number;
-  tongDiLam: number;
-  thoLoDiLam: number;
-  coDien: number;
-  qlyPhongVu: number;
-  tongVangMat: number;
-  om: number;
-  phep: number;
-  tuTuc: number;
-  hoiHop: number;
-  vang: number;
-  thoLoVangTrongNgay: number;
+  departmentCode: string;
+  departmentName: string;
+  departmentGroupCode?: string;
+  departmentGroupName?: string;
+  shiftCode?: string;
+  shiftName?: string;
+  totalHeadcount: number;
+  totalWorking: number;
+  undergroundWorkers: number;
+  electricalAndOtherWorkers: number;
+  managementAndSupport: number;
+  totalAbsent: number;
+  sickLeave: number;
+  annualLeave: number;
+  maternityLeave: number;
+  meetingAndTraining: number;
+  unauthorizedAbsence: number;
+  undergroundWorkersAbsent: number;
 }
 
 export interface WorkforceDetailTableProps {
