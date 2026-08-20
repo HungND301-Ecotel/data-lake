@@ -4,7 +4,9 @@ import com.quangnt0000.be_modul.dto.WareTemplate.WareTemplateRequest;
 import com.quangnt0000.be_modul.dto.WareTemplate.WareTemplateSearch;
 import com.quangnt0000.be_modul.service.DataWH.WareTemplateService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -13,12 +15,14 @@ import org.springframework.web.bind.annotation.*;
 public class WareTemplateController {
     private final WareTemplateService wareTemplateService;
 
-    @PostMapping
-    public ResponseEntity<?> add(@RequestBody WareTemplateRequest request) {
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> add(@ModelAttribute WareTemplateRequest request) {
         return wareTemplateService.add(request);
     }
 
     @DeleteMapping("/{template-id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> delete(@PathVariable ("template-id") Integer templateId) {
         return wareTemplateService.delete(templateId);
     }
@@ -32,9 +36,19 @@ public class WareTemplateController {
         return wareTemplateService.getById(templateId);
     }
 
-    @PutMapping
-    public ResponseEntity<?> update(@RequestBody WareTemplateRequest request) {
+    @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> update(@ModelAttribute WareTemplateRequest request) {
         return wareTemplateService.update(request);
     }
 
+    @GetMapping("/{template-id}/export-excel")
+    public ResponseEntity<?> exportExcel(@PathVariable ("template-id") Integer templateId) {
+        return wareTemplateService.exportExcel(templateId);
+    }
+
+    @GetMapping("/table-option")
+    public ResponseEntity<?> getTableOption(@RequestParam(value = "keyword", required = false) String keyword) {
+        return wareTemplateService.getTableOption(keyword);
+    }
 }

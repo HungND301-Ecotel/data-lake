@@ -6,7 +6,7 @@ spring:
       max-file-size: 500MB
       max-request-size: 500MB
   datasource:
-    url: jdbc:postgresql://localhost:5432/report
+    url: jdbc:postgresql://localhost:5434/report
     username: admin
     password: admin
   jpa:
@@ -34,8 +34,17 @@ aws:
 jwt:
   secret: ${JWT_SECRET}
 
-logging:
-  level:
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql: TRACE
+datalake:
+  base-url: http://113.22.123.208:1313
 
+account:
+  username: ${USERNAME_VINA}
+  password: ${PASSWORD_VINA}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+    health:
+      show-details: never

@@ -27,15 +27,20 @@ public class WareMappingService {
     private final WareMappingRepository wareMappingRepository;
     private final WareTemplateRepository wareTemplateRepository;
     private final WareBatchRepository wareBatchRepository;
+
     public ResponseEntity<?> add(WareMappingRequest request) {
         WareTemplate wareTemplate = wareTemplateRepository.findById(request.getWareTemplateId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ware Template Not Found"));
        WareMapping wareMapping = WareMapping.builder()
                .fieldName(request.getFieldName())
+                .fieldTitle(request.getFieldTitle())
                .fieldValue(request.getFieldValue())
                .fieldType(request.getFieldType())
                .isKeyColumn(request.getIsKeyColumn())
                .isScopFilter(request.getIsScopFilter())
+               .isSummable(request.getIsSummable())
+               .role(request.getRole())
+               .aggregateType(request.getAggregateType())
                .cellAddress(request.getCellAddress())
                .wareTemplate(wareTemplate)
                .build();
@@ -57,11 +62,15 @@ public class WareMappingService {
         List<WareMappingResponse> wareMappingResponseList = wareMappings.getContent().stream().map(
                 wareMapping -> WareMappingResponse.builder()
                         .id(wareMapping.getId())
+                        .fieldTitle(wareMapping.getFieldTitle())
                         .fieldName(wareMapping.getFieldName())
                         .fieldValue(wareMapping.getFieldValue())
                         .fieldType(wareMapping.getFieldType())
                         .isKeyColumn(wareMapping.getIsKeyColumn())
                         .isScopFilter(wareMapping.getIsScopFilter())
+                        .isSummable(wareMapping.getIsSummable())
+                        .role(wareMapping.getRole())
+                        .aggregateType(wareMapping.getAggregateType())
                         .cellAddress(wareMapping.getCellAddress())
                         .build()
         ).toList();
@@ -82,10 +91,14 @@ public class WareMappingService {
         WareMapping wareMapping = wareMappingRepository.findById(request.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ware Mapping Not Found"));
         wareMapping.setFieldName(request.getFieldName());
+        wareMapping.setFieldTitle(request.getFieldTitle());
         wareMapping.setFieldValue(request.getFieldValue());
         wareMapping.setFieldType(request.getFieldType());
         wareMapping.setIsKeyColumn(request.getIsKeyColumn());
         wareMapping.setIsScopFilter(request.getIsScopFilter());
+        wareMapping.setIsSummable(request.getIsSummable());
+        wareMapping.setRole(request.getRole());
+        wareMapping.setAggregateType(request.getAggregateType());
         wareMapping.setCellAddress(request.getCellAddress());
         wareMapping = wareMappingRepository.save(wareMapping);
         return ResponseEntity.ok(wareMapping.getId());

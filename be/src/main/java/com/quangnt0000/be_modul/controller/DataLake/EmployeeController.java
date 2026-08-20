@@ -28,6 +28,11 @@ public class EmployeeController {
         return employeeService.updateEmployee(request);
     }
 
+    @PutMapping("/json")
+    private ResponseEntity<?> updateEmployeeJson(@RequestBody EmployeeRequest request) {
+        return employeeService.updateEmployee(request);
+    }
+
     @DeleteMapping("/{employee-id}")
     private ResponseEntity<?> deleteEmployee(@PathVariable ("employee-id") String employeeId) {
         return employeeService.deleteEmployee(employeeId);

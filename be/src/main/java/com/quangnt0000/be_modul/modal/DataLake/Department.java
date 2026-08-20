@@ -28,6 +28,7 @@ public class Department {
     private String code;
     private String name;
     private String description;
+    private String parentId;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
@@ -39,7 +40,7 @@ public class Department {
     @Builder.Default
     private Boolean deleted = false;
 
-    @OneToMany(mappedBy = "department")
+    @ManyToMany(mappedBy = "departments")
     private List<Employee> employees;
 
     @OneToMany(mappedBy = "department")

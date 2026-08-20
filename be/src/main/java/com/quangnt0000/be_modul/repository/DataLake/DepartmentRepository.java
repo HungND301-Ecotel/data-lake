@@ -7,7 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface DepartmentRepository extends JpaRepository<Department, String> {
     @Query("SELECT d FROM Department d " +
@@ -19,4 +21,8 @@ public interface DepartmentRepository extends JpaRepository<Department, String> 
     Optional<Department> findByIdAndDeletedFalse(String departmentId);
 
     Optional<Department> findByCode(String code);
+
+    List<Department> findAllByIdInAndDeletedFalse(Set<String> strings);
+
+    List<Department> findByDeletedFalse();
 }

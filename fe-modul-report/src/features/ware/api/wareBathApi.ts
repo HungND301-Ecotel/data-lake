@@ -1,27 +1,52 @@
 import axiosClient from "../../../services/axiosClient";
 import type { PageResponse } from "../../department/types/department";
-import type { WareBatchPush, WareBatchRequest, WareBatchResponse, WareBatchSearch } from "../types/wareBacth";
+import type {
+  WareBatchPush,
+  WareBatchRequest,
+  WareBatchResponse,
+  WareBatchSearch,
+} from "../types/wareBacth";
 
 export const wareBatchApi = {
   searchWareBatch: async (
     params: WareBatchSearch
   ): Promise<PageResponse<WareBatchResponse>> => {
-    const res = await axiosClient.get(`/wh-batch`, { params });
+    const { departmentIds, ...rest } = params;
+
+    const res = await axiosClient.get(`/wh-batch`, {
+      params: rest,
+      paramsSerializer: (p) => {
+        const searchParams = new URLSearchParams();
+
+        Object.entries(p).forEach(([key, value]) => {
+          if (value !== null && value !== undefined) {
+            searchParams.append(key, String(value));
+          }
+        });
+
+        departmentIds?.forEach((id) => {
+          searchParams.append("departmentIds", id);
+        });
+
+        return searchParams.toString();
+      },
+    });
     return res.data;
   },
 
-  saveWareBatch: async (
-    request: WareBatchRequest
-  ): Promise<string> => {
+  getDetail: async (id: number): Promise<WareBatchResponse> => {
+    const res = await axiosClient.get(`/wh-batch/${id}`);
+    return res.data;
+  },
+
+  saveWareBatch: async (request: WareBatchRequest): Promise<string> => {
     const res = await axiosClient.post(`/wh-batch`, request, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      headers: { "Content-Type": "multipart/form-data" },
+    });
     return res.data;
   },
 
-  updateWareBatch: async (
-    request: WareBatchRequest
-  ): Promise<string> => {
+  updateWareBatch: async (request: WareBatchRequest): Promise<string> => {
     const res = await axiosClient.post(`/wh-batch`, request);
     return res.data;
   },
@@ -34,6 +59,38 @@ export const wareBatchApi = {
   pushWareBatch: async (request: WareBatchPush): Promise<any> => {
     const res = await axiosClient.post(`/wh-batch/push`, request);
     return res.data;
-  }
+  },
 
+  approveBatch: async (id: number): Promise<string> => {
+    const res = await axiosClient.put(`/wh-batch/approve`, {
+      wareBatchId: id,
+    });
+    return res.data;
+  },
+
+  rejectBatch: async (id: number): Promise<string> => {
+    const res = await axiosClient.put(`/wh-batch/reject`, { wareBatchId: id });
+    return res.data;
+  },
+
+  getMyApprovals: async (departmentId?: string) => {
+    const params = departmentId ? { departmentId } : {};
+    const res = await axiosClient.get(`/wh-batch/my-approvals`, { params });
+    return res.data;
+  },
+
+  /**
+   * Tải file từ S3 qua backend (tự động đính kèm Authorization header).
+   * Dùng cho cả preview (parse ArrayBuffer bằng SheetJS) và download.
+   *
+   * @param fileKey - Ví dụ: "warehouse-batch/26/b18f984e-bc06-46eb-b4c5-5fed187d6e32.xlsx"
+   * @returns ArrayBuffer của file
+   */
+  getFileBlob: async (fileKey: string): Promise<ArrayBuffer> => {
+    const res = await axiosClient.get(`/file`, {
+      params: { fileKey },
+      responseType: "arraybuffer",
+    });
+    return res.data;
+  },
 };

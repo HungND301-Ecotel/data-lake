@@ -22,14 +22,16 @@ public class WareMapping {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
+    private String fieldTitle;
     private String cellAddress; //địa chỉ cell
     private String fieldName;
     private String fieldValue; //string-number
     private String fieldType;   //row - cell - input
     private Boolean isKeyColumn;
     private Boolean isScopFilter;
-
+    private Boolean isSummable;
+    private String role; // DIMENSION | MEASURE
+    private String aggregateType; // SUM | LAST | FIRST | MAX | MIN | NONE
 
     @ManyToOne
     @JoinColumn(name = "wareTemplateId")

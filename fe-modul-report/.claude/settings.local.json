@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//f/Ecotel/lake-house-chat-dashboard/**)",
+      "Read(//f/Ecotel/data-lake/**)",
+      "Bash(npx tsc:*)"
+    ]
+  }
+}

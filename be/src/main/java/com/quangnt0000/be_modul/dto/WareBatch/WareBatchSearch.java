@@ -1,9 +1,12 @@
 package com.quangnt0000.be_modul.dto.WareBatch;
 
+import com.quangnt0000.be_modul.enums.WareBatchEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -18,4 +21,8 @@ public class WareBatchSearch {
     private String keyword = null;
     @Builder.Default
     private Integer wareTemplateId = null;
+    @Builder.Default
+    private List<String> departmentIds = null;
+    @Builder.Default
+    private WareBatchEnum status = null;
 }

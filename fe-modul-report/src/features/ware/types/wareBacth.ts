@@ -4,6 +4,9 @@ export interface WareBatchRequest {
   description: string;
   file?: File | null;
   wareTemplateId: number | null;
+  reportYear: number | null;
+  reportMonth: number | null;
+  reportDay: number | null;
 }
 
 export interface WareBatchResponse {
@@ -15,6 +18,15 @@ export interface WareBatchResponse {
   updatedAt: string;
   employeeName?: string | null;
   isPushed: boolean;
+  status: string;
+  myApprovalStatus: string;
+  wareBatchStatus: string;
+  canApprove: boolean;
+  reportYear?: number | null;
+  reportMonth?: number | null;
+  reportDay?: number | null;
+  templateId?: number | null;
+  s3FileKey?: string | null;
 }
 
 export interface WareBatchSearch {
@@ -22,6 +34,9 @@ export interface WareBatchSearch {
   limit?: number;
   keyword?: string | null;
   wareTemplateId?: number | null;
+  status?: string | null;
+  departmentId?: string | null;
+  departmentIds?: string[] | null;
 }
 
 export interface WareBatchPush {

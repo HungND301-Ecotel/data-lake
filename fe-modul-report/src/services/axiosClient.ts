@@ -1,18 +1,17 @@
 import axios from "axios";
 import type { ApiError } from "./erorr";
 import { message } from "antd";
-
 const axiosClient = axios.create({
   baseURL: import.meta.env.VITE_API,
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true,
+  withCredentials: false,
 });
 
 axiosClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
-  if (token) {
+  if (token && !config.url?.includes("/user/login")) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
@@ -22,6 +21,7 @@ axiosClient.interceptors.response.use(
   (response) => response,
   (error): Promise<never> => {
     let apiError: ApiError;
+    const requestUrl = error.config?.url || "";
 
     if (!error.response) {
       apiError = {
@@ -37,12 +37,27 @@ axiosClient.interceptors.response.use(
       case 400:
         apiError = {
           status,
-          message: data?.message || "Dữ liệu không hợp lệ",
+          message:
+            typeof data === "string"
+              ? data
+              : data?.message || "Dữ liệu không hợp lệ",
           data,
         };
         break;
 
       case 401:
+        if (requestUrl.includes("/user/login")) {
+          apiError = {
+            status,
+            message:
+              typeof data === "string"
+                ? data
+                : data?.message || "Sai tài khoản hoặc mật khẩu",
+            data,
+          };
+          break;
+        }
+
         localStorage.removeItem("token");
         message.error("Phiên đăng nhập đã hết hạn");
         window.location.href = "/login";
@@ -55,37 +70,40 @@ axiosClient.interceptors.response.use(
       case 403:
         apiError = {
           status,
-          message: 
-            typeof data === "string" ? data : data?.message || "Bạn không có quyền truy cập",
+          message:
+            typeof data === "string"
+              ? data
+              : data?.message || "Bạn không có quyền truy cập",
         };
         break;
 
       case 404:
         apiError = {
           status,
-          message: 
-            typeof data === "string" ? data : data?.message || "API không tồn tại",
+          message:
+            typeof data === "string"
+              ? data
+              : data?.message || "API không tồn tại",
         };
         break;
 
       case 422:
         apiError = {
           status,
-          message: 
+          message:
             typeof data === "string" ? data : data?.message || "Lỗi validation",
           data,
         };
         break;
 
-        case 500:
-          apiError = {
-            status,
-            message:
-              typeof data === "string" ? data : data?.message || "Lỗi server",
-            data,
-          };
-          break;
-        
+      case 500:
+        apiError = {
+          status,
+          message:
+            typeof data === "string" ? data : data?.message || "Lỗi server",
+          data,
+        };
+        break;
 
       default:
         apiError = {
@@ -93,15 +111,6 @@ axiosClient.interceptors.response.use(
           message: data?.message || "Đã xảy ra lỗi",
         };
     }
-
-    axiosClient.interceptors.response.use(
-      (response) => response,
-      (error) => {
-        const msg = error.response?.data?.message || "Lỗi hệ thống";
-        message.error(msg);
-        return Promise.reject(error);
-      }
-    );
 
     return Promise.reject(apiError);
   }

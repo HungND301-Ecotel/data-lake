@@ -8,6 +8,7 @@ export interface WareTemplateRequest {
 
   tableName: string;
   tableCode: string;
+  excelFile?: File | null;
 }
 export interface WareTemplateSearch {
   page?: number;
@@ -25,7 +26,16 @@ export interface WareTemplateResponse {
 
   tableName: string;
   tableCode: string;
+  excelFileKey?: string | null;
 
   createdAt: string;
   updatedAt: string;
+  hasApprovalConfig: boolean;
 }
+
+export interface TableOption {
+  id: number;
+  tableName: string;
+  tableCode: string;
+}
+

@@ -21,7 +21,10 @@ public class WareTemplateResponse {
 
     private String tableName;
     private String tableCode;
+    private String excelFileKey;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    
+    private Boolean hasApprovalConfig;
 }
