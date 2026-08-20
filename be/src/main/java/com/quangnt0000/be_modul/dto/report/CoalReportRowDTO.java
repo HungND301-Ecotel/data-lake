@@ -12,40 +12,45 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CoalReportRowDTO {
-    private String productCode;      // B - Mã sản phẩm (MA_VTHH1)
-    private String productName;      // C - Tên sản phẩm (TEN_VTHH1)
-    private String unit;             // D - Đơn vị tính (TEN_DVT)
+    // ===== Phân nhóm dòng báo cáo (I, II, III, IV, V) =====
+    private String reportGroup; // 'I' | 'II' | 'III' | 'IV' | 'V'
+    private String reportGroupName; // "THAN SẠCH THÀNH PHẨM", ...
+
+    // ===== Định danh sản phẩm =====
+    private String productCode; // B - MA_VTHH
+    private String productName; // C - TEN_VTHH
+    private String unit; // D - TEN_DVT
 
     // ===== Tồn đầu kỳ =====
-    private BigDecimal openingStock = BigDecimal.ZERO;   // E (1)
+    private BigDecimal openingStock = BigDecimal.ZERO; // cột 1
 
-    // ===== Chi tiết NHẬP =====
-    private BigDecimal importFromRaw            = BigDecimal.ZERO; // G (3)  Từ nguyên khai
-    private BigDecimal importFromFinishedSale   = BigDecimal.ZERO; // H (4)  Từ bán TP [TODO]
-    private BigDecimal importFromNonCoal        = BigDecimal.ZERO; // I (5)  Từ SP ngoài TC than [TODO]
-    private BigDecimal importFromContract       = BigDecimal.ZERO; // J (6)  Từ giao thầu [TODO]
-    private BigDecimal importFromRecovery       = BigDecimal.ZERO; // K (7)  Từ thu hồi khác
-    private BigDecimal importInternalProcessed  = BigDecimal.ZERO; // L (8)  Nhập sau chế biến
-    private BigDecimal importInternalBlended    = BigDecimal.ZERO; // M (9)  Nhập sau pha trộn
-    private BigDecimal importInternalTransfer   = BigDecimal.ZERO; // N (10) Nhập chuyển kho
-    private BigDecimal importPurchaseDomestic   = BigDecimal.ZERO; // O (11) Mua trong nước [TODO]
-    private BigDecimal importPurchaseImport     = BigDecimal.ZERO; // P/Q (12/13) Nhập khẩu [TODO]
+    // ===== Chi tiết NHẬP (cột 3-13) =====
+    private BigDecimal importFromRaw = BigDecimal.ZERO; // cột 3 - Từ nguyên khai
+    private BigDecimal importFromFinishedSale = BigDecimal.ZERO; // cột 4 - Từ bán TP [TODO]
+    private BigDecimal importFromNonCoal = BigDecimal.ZERO; // cột 5 - Từ SP ngoài TC than [TODO]
+    private BigDecimal importFromContract = BigDecimal.ZERO; // cột 6 - Từ giao thầu [TODO]
+    private BigDecimal importFromRecovery = BigDecimal.ZERO; // cột 7 - Từ thu hồi khác
+    private BigDecimal importInternalProcessed = BigDecimal.ZERO; // cột 8 - Nhập sau chế biến
+    private BigDecimal importInternalBlended = BigDecimal.ZERO; // cột 9 - Nhập sau pha trộn
+    private BigDecimal importInternalTransfer = BigDecimal.ZERO; // cột 10 - Nhập chuyển kho
+    private BigDecimal importPurchaseInTkv = BigDecimal.ZERO; // cột 11 - Than mua TRONG TKV [TODO]
+    private BigDecimal importPurchaseDomestic = BigDecimal.ZERO; // cột 12 - Mua ngoài TKV (trong nước) [TODO]
+    private BigDecimal importPurchaseImport = BigDecimal.ZERO; // cột 13 - Nhập khẩu [TODO]
 
-    // ===== Tổng nhập (tính toán, không nhận input) =====
-    private BigDecimal totalImport = BigDecimal.ZERO;    // F (2) = SUM(G..Q)
+    // ===== Tổng nhập (tính toán) =====
+    private BigDecimal totalImport = BigDecimal.ZERO; // cột 2 = SUM(3..13)
 
-    // ===== Chi tiết XUẤT =====
-    private BigDecimal exportSaleInternalTkv    = BigDecimal.ZERO; // S (15) Bán trong TKV
-    private BigDecimal exportSaleExternal       = BigDecimal.ZERO; // T (16) Bán ngoài TKV & SD nội bộ
-    private BigDecimal exportInternalBlend      = BigDecimal.ZERO; // U (17) Xuất pha trộn
-    private BigDecimal exportInternalProcess    = BigDecimal.ZERO; // V (18) Xuất chế biến
-    private BigDecimal exportInternalTransfer   = BigDecimal.ZERO; // W (19) Xuất chuyển kho, chống cháy
+    // ===== Chi tiết XUẤT (cột 15-19) =====
+    private BigDecimal exportSaleInternalTkv = BigDecimal.ZERO; // cột 15 - Bán trong TKV
+    private BigDecimal exportSaleExternal = BigDecimal.ZERO; // cột 16 - Bán ngoài TKV & SD nội bộ
+    private BigDecimal exportInternalBlend = BigDecimal.ZERO; // cột 17 - Xuất pha trộn
+    private BigDecimal exportInternalProcess = BigDecimal.ZERO; // cột 18 - Xuất chế biến
+    private BigDecimal exportInternalTransfer = BigDecimal.ZERO; // cột 19 - Xuất chuyển kho
 
-    // ===== Tổng xuất (tính toán, không nhận input) =====
-    private BigDecimal totalExport = BigDecimal.ZERO;    // R (14) = SUM(S..W)
+    // ===== Tổng xuất (tính toán) =====
+    private BigDecimal totalExport = BigDecimal.ZERO; // cột 14 = SUM(15..19)
 
     // ===== Điều chỉnh & Tồn cuối kỳ =====
-    private BigDecimal adjustment    = BigDecimal.ZERO;  // X (20) Chênh lệch tăng/giảm
-    private BigDecimal closingStock  = BigDecimal.ZERO;  
-
+    private BigDecimal adjustment = BigDecimal.ZERO; // cột 20
+    private BigDecimal closingStock = BigDecimal.ZERO; // cột 21 = 1+2-14+20
 }

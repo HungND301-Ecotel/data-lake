@@ -18,10 +18,9 @@ public class MaterialsReportController {
     
     @GetMapping("/tong-hop-nhap-xuat-ton")
     public ResponseEntity<?> getTongHopReport(
-            @RequestParam String unitCode,
             @RequestParam Integer year,
             @RequestParam Integer month) {
-        return ResponseEntity.ok(coalReportService.buildFullReport(unitCode, year, month));
+        return ResponseEntity.ok(coalReportService.buildFullReport(year, month));
     }
 
     @GetMapping("/tieu-thu-than")

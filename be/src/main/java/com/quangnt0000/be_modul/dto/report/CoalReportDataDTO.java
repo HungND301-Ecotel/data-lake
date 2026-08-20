@@ -8,10 +8,12 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class CoalReportDataDTO {
-    private String maDonVi;
     private String productCode;
     private String productName;
     private String unit;
     private String reportColumn;
+    private String reportGroup;
+    private String reportGroupName;
+    private String group;
     private BigDecimal qty;
 }
