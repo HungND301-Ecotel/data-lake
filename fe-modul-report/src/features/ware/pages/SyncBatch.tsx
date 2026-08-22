@@ -275,6 +275,7 @@ export const SyncBatch: React.FC = () => {
           });
           successCount++;
         } catch (error) {
+          console.error(`Sync batch ${batchId} failed:`, error);
           failCount++;
         }
       }
@@ -361,9 +362,17 @@ export const SyncBatch: React.FC = () => {
       ),
     },
     {
-      title: "Tên",
-      dataIndex: "name",
-      key: "name",
+      title: "Mã bảng",
+      dataIndex: "tableCode",
+      key: "tableCode",
+      render: (text: string) => (
+        <span className="font-medium text-gray-800">{text}</span>
+      ),
+    },
+    {
+      title: "Tên báo cáo",
+      dataIndex: "reportName",
+      key: "reportName",
       render: (text: string) => <span className="text-gray-700">{text}</span>,
     },
     {

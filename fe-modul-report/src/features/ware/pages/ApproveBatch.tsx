@@ -225,7 +225,7 @@ export const ApproveBatch: React.FC = () => {
       form.resetFields();
       fetchBatches();
     } catch (error: any) {
-      messageApi.error(error?.data || "Thêm batch thất bại");
+      messageApi.error(error?.message || "Thêm batch thất bại");
     }
   };
 
@@ -320,7 +320,8 @@ export const ApproveBatch: React.FC = () => {
             password: userPushConfig.password,
           });
           successCount++;
-        } catch {
+        } catch (error) {
+          console.error(`Sync batch ${batch.batchId} failed:`, error);
           failCount++;
         }
       }
@@ -415,10 +416,16 @@ export const ApproveBatch: React.FC = () => {
       render: (text: string) => <span className="font-medium text-gray-800">{text}</span>,
     },
     {
-      title: "Tên",
-      dataIndex: "batchName",
-      key: "batchName",
-      render: (text: string) => <span className="text-gray-700">{text}</span>,
+      title: "Mã bảng",
+      dataIndex: "tableCode",
+      key: "tableCode",
+      render: (text: string) => <span className="text-gray-800">{text || "-"}</span>,
+    },
+    {
+      title: "Tên báo cáo",
+      dataIndex: "reportName",
+      key: "reportName",
+      render: (text: string) => <span className="text-gray-600">{text || "-"}</span>,
     },
     {
       title: "Năm",

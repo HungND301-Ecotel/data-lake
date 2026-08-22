@@ -1,6 +1,11 @@
 import axiosClient from "../../../services/axiosClient";
 import type { PageResponse } from "../../department/types/department";
-import type { WareBatchPush, WareBatchRequest, WareBatchResponse, WareBatchSearch } from "../types/wareBacth";
+import type {
+  WareBatchPush,
+  WareBatchRequest,
+  WareBatchResponse,
+  WareBatchSearch,
+} from "../types/wareBacth";
 
 export const wareBatchApi = {
   searchWareBatch: async (
@@ -34,18 +39,14 @@ export const wareBatchApi = {
     return res.data;
   },
 
-  saveWareBatch: async (
-    request: WareBatchRequest
-  ): Promise<string> => {
+  saveWareBatch: async (request: WareBatchRequest): Promise<string> => {
     const res = await axiosClient.post(`/wh-batch`, request, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     return res.data;
   },
 
-  updateWareBatch: async (
-    request: WareBatchRequest
-  ): Promise<string> => {
+  updateWareBatch: async (request: WareBatchRequest): Promise<string> => {
     const res = await axiosClient.post(`/wh-batch`, request);
     return res.data;
   },
@@ -61,7 +62,9 @@ export const wareBatchApi = {
   },
 
   approveBatch: async (id: number): Promise<string> => {
-    const res = await axiosClient.put(`/wh-batch/approve`, { wareBatchId: id });
+    const res = await axiosClient.put(`/wh-batch/approve`, {
+      wareBatchId: id,
+    });
     return res.data;
   },
 

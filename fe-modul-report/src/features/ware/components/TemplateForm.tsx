@@ -37,6 +37,7 @@ import {
 } from "@ant-design/icons";
 import type { EmployeeResponse } from "../../employee/types/employee";
 import type { UploadFile } from "antd/es/upload/interface";
+import { useAuthStore } from "../../../stores/authStore";
 
 interface TemplateFormProps {
   templateId: number;
@@ -71,6 +72,8 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
   const [filteredEmployees, setFilteredEmployees] = useState<EmployeeResponse[]>([]);
   const [autoApprove, setAutoApprove] = useState(false);
   const [excelFileList, setExcelFileList] = useState<UploadFile[]>([]);
+  const role = useAuthStore((state) => state.role);
+  const isAdmin = role === "ADMIN";
 
   const fetchTemplate = async () => {
     try {
@@ -146,6 +149,12 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
     }
   }, [searchEmployee, allEmployees]);
 
+  useEffect(() => {
+    if (!isAdmin && isEditing) {
+      setIsEditing(false);
+    }
+  }, [isAdmin, isEditing]);
+
   const updateField = <K extends keyof WareTemplateRequest>(
     key: K,
     value: WareTemplateRequest[K],
@@ -172,7 +181,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
       fetchTemplate();
     } catch (err) {
       message.error(
-        (err as any)?.response?.data?.message || "Cập nhật template thất bại",
+        (err as any)?.message || "Cập nhật template thất bại",
       );
     }
   };
@@ -198,7 +207,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
       URL.revokeObjectURL(objectUrl);
       message.success("Xuất file Excel thành công");
     } catch (err: any) {
-      message.error(err?.response?.data?.message || "Xuất file Excel thất bại");
+      message.error(err?.message || "Xuất file Excel thất bại");
     }
   };
 
@@ -299,7 +308,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
       setSearchEmployee("");
       fetchApprovalConfigs();
     } catch (err) {
-      message.error("Lưu cấu hình thất bại");
+      message.error((err as any)?.message || "Lưu cấu hình thất bại");
     }
   };
 
@@ -352,7 +361,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                   Lưu
                 </Button>
               </Space>
-            ) : (
+            ) : isAdmin ? (
               <Button
                 type="primary"
                 size="large"
@@ -362,7 +371,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
               >
                 Chỉnh sửa
               </Button>
-            )}
+            ) : null}
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-4">
@@ -565,9 +574,11 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                 size="large"
                 icon={hasApprovalConfigs ? <EditOutlined /> : <PlusOutlined />}
                 onClick={handleOpenApprovalModal}
-                className="bg-green-600! hover:bg-green-700! h-10 px-6"
+                className="bg-[#1976D2]! hover:bg-blue-700! h-10 px-6"
               >
-                {hasApprovalConfigs ? "Chỉnh sửa người duyệt" : "Thêm mới người duyệt"}
+                {hasApprovalConfigs
+                  ? "Chỉnh sửa người duyệt"
+                  : "Thêm mới người duyệt"}
               </Button>
             </Space>
           </div>
@@ -600,7 +611,10 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                       <label className="block text-sm font-medium text-gray-600 mb-2">
                         Thứ tự duyệt
                       </label>
-                      <Tag color="purple" className="px-3 py-1 text-base font-semibold">
+                      <Tag
+                        color="purple"
+                        className="px-3 py-1 text-base font-semibold"
+                      >
                         #{config.approvalOrder}
                       </Tag>
                     </div>
@@ -654,11 +668,11 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
       <Modal
         title={
           <div className="flex items-center gap-3 pb-3 border-b">
-            <div className="w-10 h-10 flex items-center justify-center bg-green-100">
+            <div className="w-10 h-10 flex items-center justify-center bg-blue-100">
               {hasApprovalConfigs ? (
-                <EditOutlined className="text-green-600 text-lg" />
+                <EditOutlined className="text-blue-600 text-lg" />
               ) : (
-                <PlusOutlined className="text-green-600 text-lg" />
+                <PlusOutlined className="text-blue-600 text-lg" />
               )}
             </div>
             <div className="text-lg font-semibold text-gray-800">
@@ -706,7 +720,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                   >
                     {isEditing ? (
                       <div>
-                        <div className="flex justify-between items-center mb-4 pb-3 border-b border-green-200">
+                        <div className="flex justify-between items-center mb-4 pb-3 border-b border-blue-200">
                           <div className="flex items-center gap-3">
                             <Avatar
                               src={employee?.keyAvatar || DEFAULT_AVATAR}

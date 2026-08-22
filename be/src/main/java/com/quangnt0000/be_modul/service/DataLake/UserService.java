@@ -61,6 +61,11 @@ public class UserService {
         return authService.login(request);
     }
 
+    public ResponseEntity<?> logout() {
+        SecurityContextHolder.clearContext();
+        return ResponseEntity.ok("Đăng xuất thành công");
+    }
+
     public ResponseEntity<?> getUserByEmployeeId(String employeeId) {
         User user = userRepository.findByEmployee_Id(employeeId)
                 .orElseThrow(() -> BusinessException.notFound("User not found"));

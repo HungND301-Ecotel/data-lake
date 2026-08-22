@@ -6,12 +6,12 @@ const axiosClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true,
+  withCredentials: false,
 });
 
 axiosClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
-  if (token) {
+  if (token && !config.url?.includes("/user/login")) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
@@ -21,6 +21,7 @@ axiosClient.interceptors.response.use(
   (response) => response,
   (error): Promise<never> => {
     let apiError: ApiError;
+    const requestUrl = error.config?.url || "";
 
     if (!error.response) {
       apiError = {
@@ -36,12 +37,27 @@ axiosClient.interceptors.response.use(
       case 400:
         apiError = {
           status,
-          message: data?.message || "Dữ liệu không hợp lệ",
+          message:
+            typeof data === "string"
+              ? data
+              : data?.message || "Dữ liệu không hợp lệ",
           data,
         };
         break;
 
       case 401:
+        if (requestUrl.includes("/user/login")) {
+          apiError = {
+            status,
+            message:
+              typeof data === "string"
+                ? data
+                : data?.message || "Sai tài khoản hoặc mật khẩu",
+            data,
+          };
+          break;
+        }
+
         localStorage.removeItem("token");
         message.error("Phiên đăng nhập đã hết hạn");
         window.location.href = "/login";
@@ -95,15 +111,6 @@ axiosClient.interceptors.response.use(
           message: data?.message || "Đã xảy ra lỗi",
         };
     }
-
-    axiosClient.interceptors.response.use(
-      (response) => response,
-      (error) => {
-        const msg = error.response?.data?.message || "Lỗi hệ thống";
-        message.error(msg);
-        return Promise.reject(error);
-      }
-    );
 
     return Promise.reject(apiError);
   }

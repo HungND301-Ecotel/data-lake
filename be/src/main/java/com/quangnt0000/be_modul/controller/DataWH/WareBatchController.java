@@ -6,6 +6,7 @@ import com.quangnt0000.be_modul.dto.WareBatch.WareBatchPush;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchRejectRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchSearch;
+import com.quangnt0000.be_modul.dto.dashboard.DashboardRequest;
 import com.quangnt0000.be_modul.service.DataWH.WareBatchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -70,5 +71,11 @@ public class WareBatchController {
     @GetMapping("/my-approvals")
     public ResponseEntity<?> getMyApprovalBatches(@RequestParam(required = false) String departmentId) {
         return wareBatchService.getMyApprovalBatches(departmentId);
+    }
+
+    
+    @GetMapping("/dashboard")
+    public ResponseEntity<?> getDashboard(@RequestBody DashboardRequest request) {
+        return wareBatchService.getWareBatches(request);
     }
 }

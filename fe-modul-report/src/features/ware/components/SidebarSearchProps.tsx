@@ -189,7 +189,7 @@ const SidebarSearch = ({
                 size="large"
                 type="primary"
                 icon={<SearchOutlined />}
-                className="bg-green-600! hover:bg-green-700!"
+                className="bg-[#0891b2]! hover:bg-cyan-7000!"
                 onClick={handleSearch}
               >
                 Tìm kiếm
@@ -283,17 +283,13 @@ const SidebarSearch = ({
                       placeholder="Cột"
                       size="small"
                       value={f.key}
-                      onChange={(e) =>
-                        updateFilter(i, "key", e.target.value)
-                      }
+                      onChange={(e) => updateFilter(i, "key", e.target.value)}
                     />
                     <Input
                       placeholder="Giá trị"
                       size="small"
                       value={f.value}
-                      onChange={(e) =>
-                        updateFilter(i, "value", e.target.value)
-                      }
+                      onChange={(e) => updateFilter(i, "value", e.target.value)}
                     />
                     <Tooltip title="Xóa">
                       <Button

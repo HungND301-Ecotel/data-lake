@@ -44,4 +44,9 @@ public class UserController {
         return userService.changePassword(request);
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(){
+        return userService.logout();
+    }
+
 }

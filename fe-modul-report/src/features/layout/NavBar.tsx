@@ -37,17 +37,26 @@ import {
   SolutionOutlined,
   LinkOutlined,
   NodeIndexOutlined,
+  PieChartOutlined,
 } from "@ant-design/icons";
-import { Button, Dropdown, Menu, Spin } from "antd";
+import { Button, Dropdown, Menu, Spin, message } from "antd";
 import { employeeApi } from "../employee/api/employeeApi";
 import { departmentApi } from "../department/api/departmentApi";
 import { wareCategoryApi } from "../ware/api/wareCategoryApi";
 import { wareTemplateApi } from "../ware/api/wareTemplateApi";
 import type { DepartmentResponse } from "../department/types/department";
 import { useAuthStore } from "../../stores/authStore";
+import { userApi } from "../auth/api/userApi";
 
 type Cat = { id: number; code: string; name: string };
-type Tmpl = { id: number; code: string; name: string; tableCode?: string; deptName?: string; catName?: string };
+type Tmpl = {
+  id: number;
+  code: string;
+  name: string;
+  tableCode?: string;
+  deptName?: string;
+  catName?: string;
+};
 
 const QuickInputPanel = ({
   onSelectTemplate,
@@ -97,7 +106,10 @@ const QuickInputPanel = ({
     setLoadingCats(true);
     try {
       const res = await wareCategoryApi.searchWareCategory({
-        page: 0, limit: 100, keyword: "", departmentId: String(dept.id),
+        page: 0,
+        limit: 100,
+        keyword: "",
+        departmentId: String(dept.id),
       });
       setCats(res.content);
     } catch (e) {
@@ -115,7 +127,10 @@ const QuickInputPanel = ({
     setLoadingTmpls(true);
     try {
       const res = await wareTemplateApi.searchWareTemplate({
-        page: 0, limit: 100, wareCategoryId: cat.id, keyword: "",
+        page: 0,
+        limit: 100,
+        wareCategoryId: cat.id,
+        keyword: "",
       });
       setTmpls(res);
     } catch (e) {
@@ -128,9 +143,12 @@ const QuickInputPanel = ({
   const colBase = "flex flex-col border-r border-gray-100 overflow-y-auto";
 
   // Kích thước text & item đồng nhất, to rõ hơn
-  const colHeader = "px-4 pt-3 pb-2 text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100";
-  const itemBase = "flex items-center gap-3 px-4 py-3 cursor-pointer select-none transition-all";
-  const activeItem = "bg-blue-50 text-blue-700 font-semibold border-r-2 border-blue-500";
+  const colHeader =
+    "px-4 pt-3 pb-2 text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100";
+  const itemBase =
+    "flex items-center gap-3 px-4 py-3 cursor-pointer select-none transition-all";
+  const activeItem =
+    "bg-blue-50 text-blue-700 font-semibold border-r-2 border-blue-500";
   const hoverItem = "text-gray-700 hover:bg-gray-50";
 
   return (
@@ -139,19 +157,22 @@ const QuickInputPanel = ({
       style={{ width: 820 }}
       onMouseDown={(e) => e.stopPropagation()}
     >
-
       {/* 3-column cascade */}
       <div className="flex" style={{ height: 400 }}>
-
         {/* Col 1: Departments */}
-        <div className={`${colBase} bg-gray-50`} style={{ width: 220, flexShrink: 0 }}>
+        <div
+          className={`${colBase} bg-gray-50`}
+          style={{ width: 220, flexShrink: 0 }}
+        >
           <div className={colHeader}>Phòng ban</div>
           {loadingDepts ? (
             <div className="flex justify-center pt-10">
               <Spin indicator={<LoadingOutlined spin />} />
             </div>
           ) : depts.length === 0 ? (
-            <div className="px-4 py-8 text-gray-400 text-sm text-center">Không có phòng ban</div>
+            <div className="px-4 py-8 text-gray-400 text-sm text-center">
+              Không có phòng ban
+            </div>
           ) : (
             depts.map((d) => (
               <div
@@ -160,10 +181,16 @@ const QuickInputPanel = ({
                 className={`${itemBase} ${activeDept?.id === d.id ? activeItem : hoverItem} justify-between`}
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <TeamOutlined style={{ fontSize: 15, flexShrink: 0, opacity: 0.7 }} />
-                  <span className="truncate" style={{ fontSize: 14 }}>{d.name}</span>
+                  <TeamOutlined
+                    style={{ fontSize: 15, flexShrink: 0, opacity: 0.7 }}
+                  />
+                  <span className="truncate" style={{ fontSize: 14 }}>
+                    {d.name}
+                  </span>
                 </div>
-                <RightOutlined style={{ fontSize: 11, opacity: 0.4, flexShrink: 0 }} />
+                <RightOutlined
+                  style={{ fontSize: 11, opacity: 0.4, flexShrink: 0 }}
+                />
               </div>
             ))
           )}
@@ -177,9 +204,13 @@ const QuickInputPanel = ({
               <Spin indicator={<LoadingOutlined spin />} />
             </div>
           ) : !activeDept ? (
-            <div className="px-4 py-8 text-gray-400 text-sm text-center">← Chọn phòng ban</div>
+            <div className="px-4 py-8 text-gray-400 text-sm text-center">
+              ← Chọn phòng ban
+            </div>
           ) : cats.length === 0 ? (
-            <div className="px-4 py-8 text-gray-400 text-sm text-center">Không có danh mục</div>
+            <div className="px-4 py-8 text-gray-400 text-sm text-center">
+              Không có danh mục
+            </div>
           ) : (
             cats.map((c) => (
               <div
@@ -188,13 +219,27 @@ const QuickInputPanel = ({
                 className={`${itemBase} ${activeCat?.id === c.id ? activeItem : hoverItem} justify-between`}
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <AppstoreOutlined style={{ fontSize: 15, flexShrink: 0, opacity: 0.7 }} />
+                  <AppstoreOutlined
+                    style={{ fontSize: 15, flexShrink: 0, opacity: 0.7 }}
+                  />
                   <div className="min-w-0">
-                    <div className="truncate font-medium" style={{ fontSize: 14 }}>{c.name}</div>
-                    <div className="text-gray-400 truncate" style={{ fontSize: 12 }}>{c.code}</div>
+                    <div
+                      className="truncate font-medium"
+                      style={{ fontSize: 14 }}
+                    >
+                      {c.name}
+                    </div>
+                    <div
+                      className="text-gray-400 truncate"
+                      style={{ fontSize: 12 }}
+                    >
+                      {c.code}
+                    </div>
                   </div>
                 </div>
-                <RightOutlined style={{ fontSize: 11, opacity: 0.4, flexShrink: 0 }} />
+                <RightOutlined
+                  style={{ fontSize: 11, opacity: 0.4, flexShrink: 0 }}
+                />
               </div>
             ))
           )}
@@ -208,28 +253,41 @@ const QuickInputPanel = ({
               <Spin indicator={<LoadingOutlined spin />} />
             </div>
           ) : !activeCat ? (
-            <div className="px-4 py-8 text-gray-400 text-sm text-center">← Chọn danh mục</div>
+            <div className="px-4 py-8 text-gray-400 text-sm text-center">
+              ← Chọn danh mục
+            </div>
           ) : tmpls.length === 0 ? (
-            <div className="px-4 py-8 text-gray-400 text-sm text-center">Không có template</div>
+            <div className="px-4 py-8 text-gray-400 text-sm text-center">
+              Không có template
+            </div>
           ) : (
             tmpls.map((t) => (
               <div
                 key={t.id}
-                onClick={() => onSelectTemplate({
-                  ...t,
-                  deptName: activeDept?.name || "",
-                  catName: activeCat?.name || "",
-                })}
+                onClick={() =>
+                  onSelectTemplate({
+                    ...t,
+                    deptName: activeDept?.name || "",
+                    catName: activeCat?.name || "",
+                  })
+                }
                 className={`${itemBase} hover:bg-blue-50 hover:text-blue-700 group mx-2 my-1 rounded-lg`}
               >
                 <div
                   className="rounded-lg bg-blue-100 group-hover:bg-blue-200 flex items-center justify-center transition-colors"
                   style={{ width: 36, height: 36, flexShrink: 0 }}
                 >
-                  <FileTextOutlined style={{ color: "#1976D2", fontSize: 16 }} />
+                  <FileTextOutlined
+                    style={{ color: "#1976D2", fontSize: 16 }}
+                  />
                 </div>
                 <div className="min-w-0">
-                  <div className="font-semibold truncate" style={{ fontSize: 14 }}>{t.name}</div>
+                  <div
+                    className="font-semibold truncate"
+                    style={{ fontSize: 14 }}
+                  >
+                    {t.name}
+                  </div>
                   <div className="text-xs text-gray-400 truncate">{t.code}</div>
                 </div>
               </div>
@@ -241,7 +299,8 @@ const QuickInputPanel = ({
       {/* Footer */}
       <div className="px-5 py-2.5 bg-gray-50 border-t border-gray-100">
         <span className="text-gray-400" style={{ fontSize: 13 }}>
-          {footerText || "💡 Di chuột vào các mục để điều hướng • Click vào Template để mở nhập liệu ngay"}
+          {footerText ||
+            "💡 Di chuột vào các mục để điều hướng • Click vào Template để mở nhập liệu ngay"}
         </span>
       </div>
     </div>
@@ -256,7 +315,7 @@ export default function NavBar() {
   const [quickOpen, setQuickOpen] = useState(false);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
   const navigate = useNavigate();
-  const { role: storeRole, setRole } = useAuthStore();
+  const { role: storeRole, setRole, clearRole } = useAuthStore();
 
   const getRoleFromToken = (): string | null => {
     try {
@@ -288,7 +347,6 @@ export default function NavBar() {
     })();
   }, []);
 
-
   const handleSelectTemplate = (tmpl: Tmpl) => {
     setQuickOpen(false);
     const params = new URLSearchParams();
@@ -316,28 +374,38 @@ export default function NavBar() {
         {
           key: "departments",
           icon: <TeamOutlined className="text-lg" />,
-          label: <span className="text-base font-medium">Danh mục phòng ban</span>,
+          label: (
+            <span className="text-base font-medium">Danh mục phòng ban</span>
+          ),
           onClick: () => navigate("/category/departments"),
           className: "py-3 px-4 hover:bg-[#f0f9f4]!",
         },
         {
           key: "ware",
           icon: <FileTextOutlined className="text-lg" />,
-          label: <span className="text-base font-medium">Danh mục báo cáo</span>,
+          label: (
+            <span className="text-base font-medium">Danh mục báo cáo</span>
+          ),
           onClick: () => navigate("/category/ware"),
           className: "py-3 px-4 hover:bg-[#f0f9f4]!",
         },
         {
           key: "employee",
           icon: <IdcardOutlined className="text-lg" />,
-          label: <span className="text-base font-medium">Danh mục tài khoản</span>,
+          label: (
+            <span className="text-base font-medium">Danh mục tài khoản</span>
+          ),
           onClick: () => navigate("/employee"),
           className: "py-3 px-4 hover:bg-[#f0f9f4]!",
         },
         {
           key: "accountConfig",
           icon: <IdcardOutlined className="text-lg" />,
-          label: <span className="text-base font-medium">Cấu hình tài khoản TKV</span>,
+          label: (
+            <span className="text-base font-medium">
+              Cấu hình tài khoản TKV
+            </span>
+          ),
           onClick: () => navigate("/account-config"),
           className: "py-3 px-4 hover:bg-[#f0f9f4]!",
         },
@@ -643,7 +711,19 @@ export default function NavBar() {
           icon: <LogoutOutlined className="text-lg" />,
           danger: true,
           label: <span className="text-base font-medium">Đăng xuất</span>,
-          onClick: () => navigate("/login"),
+          onClick: async () => {
+            try {
+              await userApi.logout();
+            } catch (e) {
+              console.error("Failed to logout on backend:", e);
+            } finally {
+              localStorage.removeItem("token");
+              localStorage.removeItem("refreshToken");
+              clearRole();
+              message.success("Đăng xuất thành công");
+              navigate("/login");
+            }
+          },
           className: "py-3 px-4 hover:bg-[#fff1f0]!",
         },
       ]}
@@ -700,7 +780,6 @@ export default function NavBar() {
             Cấu hình
           </Button>
         </Link>
-
 
         {/* ── Nhập nhanh ── */}
         <Dropdown
@@ -793,16 +872,16 @@ export default function NavBar() {
           </Button>
         </Dropdown>
 
-        {/* <Link to="/analytics">
+        <Link to="/analytics">
           <Button
             type="text"
             icon={<PieChartOutlined className="text-lg mr-2" />}
             className="text-white! border-0! bg-transparent! font-semibold text-base tracking-wide hover:bg-white/15! transition-all duration-300 rounded-lg"
             size="large"
           >
-            Thống kê
+            Thống kê tác nghiệp
           </Button>
-        </Link> */}
+        </Link>
 
         {/* Account Menu */}
         <div className="ml-auto">

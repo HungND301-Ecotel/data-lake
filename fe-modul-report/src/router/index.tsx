@@ -41,7 +41,6 @@ import TableQaPage from "../features/lakehouse/table-qa/pages/TableQaPage";
 import DocumentChatPage from "../features/lakehouse/document-chat/pages/DocumentChatPage";
 import SqlMetadataPage from "../features/sql-metadata/pages/SqlMetadataPage";
 import ExcelMappingPage from "../features/excel-mapping/pages/ExcelMappingPage";
-import CoalMiningDashboard from "../features/dashboard/pages/MockDashboardPage";
 import IngestionPage from "../features/ingestion/pages/IngestionPage";
 import IngestionJobsPage from "../features/ingestion/pages/IngestionJobsPage";
 import AuditPage from "../features/ingestion/pages/AuditPage";
@@ -59,6 +58,7 @@ import SemanticLayerPage from "../features/ingestion/pages/SemanticLayerPage";
 import ApprovalPage from "../features/ingestion/pages/ApprovalPage";
 import DataSourcePage from "../features/ingestion/pages/DataSourcePage";
 import GovernedPipelinePage from "../features/ingestion/pages/PipelinePage";
+import DashboardPage from "../features/dashboard/pages/DashboardPage";
 
 export const router = createBrowserRouter([
   {
@@ -132,16 +132,25 @@ export const router = createBrowserRouter([
       { path: "/search/master", element: <SearchMasterData /> },
       { path: "/ware/department/:departmentId", element: <WareTemplate /> },
       { path: "/ware/template/:templateId", element: <WareBatch /> },
-      { path: "/ware/template/approve/:templateId", element: <WareBatchForManagement /> },
-      { path: "/ware/template/detail/:templateId", element: <TemplateDetail /> },
+      {
+        path: "/ware/template/approve/:templateId",
+        element: <WareBatchForManagement />,
+      },
+      {
+        path: "/ware/template/detail/:templateId",
+        element: <TemplateDetail />,
+      },
       { path: "/ware/batch/:wareBatchId", element: <WareBatchDetail /> },
-      { path: "/ware/batch-approve/:wareBatchId", element: <WareBatchDetailApprove /> },
+      {
+        path: "/ware/batch-approve/:wareBatchId",
+        element: <WareBatchDetailApprove />,
+      },
       { path: "/approve/batch", element: <ApproveBatch /> },
       { path: "/sync/batch", element: <SyncBatch /> },
       { path: "/category/report", element: <ReportCategoryPage /> },
       { path: "/category/departments", element: <DepartmentCategoryPage /> },
       { path: "/category/ware", element: <WareCategoryPage /> },
-      { path: "/analytics", element: <CoalMiningDashboard /> },
+      { path: "/analytics", element: <DashboardPage /> },
 
       {
         path: "/reports/view/excel/:fileKey",
@@ -153,15 +162,20 @@ export const router = createBrowserRouter([
         element: <PreviewFilePdf />,
       },
 
-
       { path: "/reports/template/us/:reportId", element: <ReportDetail /> },
       { path: "/reports/template/edit/:reportId", element: <ReportDetail /> },
 
       { path: "/reports/template", element: <ReportTemplatePage /> },
-      { path: "/reports/template/department/:departmentId", element: <ReportTemplateDepartment /> },
+      {
+        path: "/reports/template/department/:departmentId",
+        element: <ReportTemplateDepartment />,
+      },
 
       { path: "/reports/storage", element: <ReportStoragePage /> },
-      { path: "/reports/storage/department/:departmentId", element: <ReportStorageDepartment /> },
+      {
+        path: "/reports/storage/department/:departmentId",
+        element: <ReportStorageDepartment />,
+      },
 
       { path: "/report/:id", element: <ReportDetailPage /> },
     ],

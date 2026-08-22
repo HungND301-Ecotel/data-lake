@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { message } from "antd";
+import { useState, useEffect } from "react";
+import { Alert, message } from "antd";
 import { useNavigate } from "react-router-dom";
 import { Phone, Mail, Eye, EyeOff } from 'lucide-react';
 
@@ -19,6 +19,7 @@ const LoginPage = () => {
   /** Token trung gian sau bước mật khẩu; chỉ dùng để xác minh MFA. */
   const [mfaToken, setMfaToken] = useState<string | null>(null);
   const [mfaCode, setMfaCode] = useState("");
+  const [loginError, setLoginError] = useState<string | null>(null);
   const navigate = useNavigate();
   const setAccess = useAuthStore((s) => s.setAccess);
 
@@ -37,19 +38,29 @@ const LoginPage = () => {
     navigate("/");
   };
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/");
+    }
+  }, [navigate]);
+
   const handleLogin = async (e?: React.FormEvent) => {
     e?.preventDefault();
 
     if (!username.trim()) {
+      setLoginError(null);
       message.error('Vui lòng nhập tài khoản');
       return;
     }
 
     if (!password.trim()) {
+      setLoginError(null);
       message.error('Vui lòng nhập mật khẩu');
       return;
     }
 
+    setLoginError(null);
     setLoading(true);
     try {
       const res: LoginResponse = await userApi.login({ username, password });
@@ -63,7 +74,14 @@ const LoginPage = () => {
       startSession(res);
     } catch (err: any) {
       console.log(err);
-      message.error(err?.response?.data?.message || "Đăng nhập thất bại");
+      const errorMessage =
+        err?.message ||
+        err?.response?.data?.message ||
+        err?.response?.data ||
+        "Đăng nhập thất bại";
+
+      setLoginError(errorMessage);
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -135,7 +153,7 @@ const LoginPage = () => {
           <div className="mb-5 sm:mb-1 flex justify-center">
             <img
               src={logoUb}
-              className="h-18 w-18 rounded-full cursor-pointer"
+              className="h-14 w-20 rounded-full cursor-pointer"
             />
           </div>
 
@@ -259,6 +277,15 @@ const LoginPage = () => {
                   {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
                 </button>
               </div>
+
+              {loginError ? (
+                <Alert
+                  type="error"
+                  showIcon
+                  message={loginError}
+                  className="mt-2"
+                />
+              ) : null}
             </div>
           </form>
           )}

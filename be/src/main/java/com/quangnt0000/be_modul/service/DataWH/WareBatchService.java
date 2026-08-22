@@ -10,10 +10,14 @@ import com.quangnt0000.be_modul.dto.WareBatch.WareBatchRejectRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchResponse;
 import com.quangnt0000.be_modul.dto.WareBatch.WareBatchSearch;
+import com.quangnt0000.be_modul.dto.WareCategory.WareCategoryResponse;
+import com.quangnt0000.be_modul.dto.dashboard.DashboardRequest;
 import com.quangnt0000.be_modul.dto.WareBatch.MyApprovalBatchResponse;
 import com.quangnt0000.be_modul.enums.WareBatchEnum;
+import com.quangnt0000.be_modul.enums.ReportType;
 import com.quangnt0000.be_modul.modal.DataLake.User;
 import com.quangnt0000.be_modul.modal.DataWH.WareBatch;
+import com.quangnt0000.be_modul.modal.DataWH.WareBatchAction;
 import com.quangnt0000.be_modul.modal.DataWH.WareBatchApproval;
 import com.quangnt0000.be_modul.modal.DataWH.WareDataRow;
 import com.quangnt0000.be_modul.modal.DataWH.WareMapping;
@@ -94,7 +98,7 @@ public class WareBatchService {
                                 colIndex = 0;
                             }
                             Cell cellRow = row.getCell(colIndex);
-                            value = (cellRow != null) ? parseCell(cellRow, mapping.getFieldValue()) : mapping.getFieldValue();
+                            value = (cellRow != null) ? parseCell(cellRow, mapping.getFieldValue()) : null;
                             break;
 
                         case "CELL":
@@ -105,7 +109,7 @@ public class WareBatchService {
                                 Row targetRow = sheet.getRow(targetRowNum);
                                 if (targetRow != null) {
                                     Cell targetCell = targetRow.getCell(targetColNum);
-                                    value = (targetCell != null) ? parseCell(targetCell, mapping.getFieldValue()) : mapping.getFieldValue();
+                                    value = (targetCell != null) ? parseCell(targetCell, mapping.getFieldValue()) : null;
                                 } else {
                                     value = mapping.getFieldValue();
                                 }
@@ -129,6 +133,15 @@ public class WareBatchService {
                 rows.add(data);
             }
 
+            List<Map<String, Object>> validRows = rows.stream()
+                    .filter(row -> !isDataRowEmpty(row))
+                    .toList();
+
+            if (validRows.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("File báo cáo không có dữ liệu. Vui lòng kiểm tra và upload lại file.");
+            }
+
             // Lưu WareBatch
             WareBatch batch = wareBatchRepository.save(WareBatch.builder()
                     .code("new")
@@ -139,14 +152,14 @@ public class WareBatchService {
                     .reportYear(request.getReportYear())
                     .reportMonth(request.getReportMonth())
                     .reportDay(request.getReportDay())
-                    .status(WareBatchEnum.Cho_Phe_Duyet)
+                    .status(request.getRequiresApproval() != null && request.getRequiresApproval() ? WareBatchEnum.Cho_Phe_Duyet : WareBatchEnum.Da_Phe_Duyet)
                     .build());
 
             batch.setCode("BATCH" + batch.getId());
 
             // Lưu các WareDataRow
             List<WareDataRow> wareDataRows = new ArrayList<>();
-            for (Map<String, Object> dataRow : rows) {
+            for (Map<String, Object> dataRow : validRows) {
                 wareDataRows.add(WareDataRow.builder()
                         .data(dataRow)
                         .wareBatch(batch)
@@ -157,9 +170,13 @@ public class WareBatchService {
 
             // Upload file excel goc len S3 de luu tru doi soat sau khi da doc du lieu
             if (request.getFile() != null && !request.getFile().isEmpty()) {
-                String s3Key = s3Service.uploadFile("warehouse-batch*" + batch.getId(), request.getFile()).getKey();
-                batch.setS3FileKey(s3Key);
-                wareBatchRepository.save(batch);
+                try {
+                    String s3Key = s3Service.uploadFile("warehouse-batch*" + batch.getId(), request.getFile()).getKey();
+                    batch.setS3FileKey(s3Key);
+                    wareBatchRepository.save(batch);
+                } catch (Exception e) {
+                    System.err.println("Failed to upload file to S3: " + e.getMessage());
+                }
             }
 
             // Khởi tạo approval workflow - tạo snapshot từ WareApprovalConfig
@@ -230,6 +247,27 @@ public class WareBatchService {
                 );
             }
         }
+        return true;
+    }
+
+    private boolean isDataRowEmpty(Map<String, Object> rowData) {
+        if (rowData == null || rowData.isEmpty()) {
+            return true;
+        }
+
+        for (Object value : rowData.values()) {
+            if (value == null) {
+                continue;
+            }
+            if (value instanceof String strValue) {
+                if (!strValue.trim().isEmpty()) {
+                    return false;
+                }
+                continue;
+            }
+            return false;
+        }
+
         return true;
     }
 
@@ -532,7 +570,6 @@ public class WareBatchService {
                     "Batch chưa hoàn tất phê duyệt, không thể push dữ liệu"
             );
         }
-
         List<WareDataRow> wareDataRows = wareDataRowService.getByBatchId(request.getId());
 
         List<WareMapping> filters = wareBatch.getWareTemplate().getWareMappings().stream()
@@ -554,7 +591,6 @@ public class WareBatchService {
                 filter.put(key, value);
             }
         }
-
         WareTemplate wareTemplate = wareBatch.getWareTemplate();
         PushRequest body = PushRequest.builder()
                 .table(wareTemplate.getTableCode())
@@ -574,6 +610,7 @@ public class WareBatchService {
                 .changedBy(UUID.randomUUID().toString())
                 .dataUploadId(UUID.randomUUID().toString())
                 .build();
+ 
         try {
             ResponseEntity<?> response = wareApiService.push(body, wareBatch, request).block();
             if (response != null && response.getStatusCode().is2xxSuccessful()) {
@@ -581,7 +618,7 @@ public class WareBatchService {
                 wareBatchRepository.save(wareBatch);
             }
             return response;
-        }catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
@@ -838,7 +875,8 @@ public class WareBatchService {
                     // Batch info
                     .batchId(batch.getId())
                     .batchCode(batch.getCode())
-                    .batchName(batch.getName())
+                    .tableCode(batch.getWareTemplate() != null ? batch.getWareTemplate().getTableCode() : null)
+                    .reportName(batch.getWareTemplate() != null ? batch.getWareTemplate().getTableName() : null)
                     .batchDescription(batch.getDescription())
                     .createdAt(batch.getCreatedAt())
                     // Thời gian báo cáo
@@ -885,12 +923,18 @@ public class WareBatchService {
                     .wareBatch(wareBatch)
                     .approver(config.getApprover())
                     .approvalOrder(config.getApprovalOrder())
-                    .status(WareBatchEnum.Cho_Phe_Duyet)  // Trạng thái ban đầu
+                    .status(wareBatch.getStatus() == WareBatchEnum.Da_Phe_Duyet ? WareBatchEnum.Da_Phe_Duyet : WareBatchEnum.Cho_Phe_Duyet)  // Trạng thái ban đầu
                     .build();
             batchApprovals.add(batchApproval);
         }
 
         // Lưu tất cả approvals
         batchApprovalRepository.saveAll(batchApprovals);
+    }
+
+    
+    public ResponseEntity<?> getWareBatches(DashboardRequest request) {
+        List<WareBatchResponse> wareCategoryResponses = wareBatchJdbc.getWareBatches(request);
+        return ResponseEntity.ok(wareCategoryResponses);
     }
 }

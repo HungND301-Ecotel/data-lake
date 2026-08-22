@@ -32,8 +32,8 @@ import java.util.Collection;
 import java.util.List;
 
 @Configuration
-@RequiredArgsConstructor
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
     @Value("${jwt.secret}")
     private String secretKey;

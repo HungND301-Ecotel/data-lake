@@ -122,19 +122,18 @@ const ReportDetail: React.FC = () => {
   const handleExportExcel = async () => {
     try {
       if (!report) return;
-  
+
       const excelBytes = await excelApi.exportExcel(report);
-  
+
       console.log("fetched json:", JSON.stringify(report, null, 2));
-  
+
       const blob = new Blob([excelBytes], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
-  
-      const url = URL.createObjectURL(blob);
-  
-      window.open(url); 
 
+      const url = URL.createObjectURL(blob);
+
+      window.open(url);
     } catch (error: any) {
       messageApi.error(error?.data || "Lỗi xuất Excel");
     }
@@ -165,7 +164,7 @@ const ReportDetail: React.FC = () => {
     <div className=" bg-white text-black min-h-screen">
       {contextHolder}
       {contextHolderModal}
-      <div className="sticky top-0 bg-white z-50 border-b pb-2 pt-2 mb-5 shadow-sm">
+      <div className="sticky top-0 bg-white z-40 border-b pb-2 pt-2 mb-5 shadow-sm">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-semibold">{report.name}</h2>
 
@@ -384,6 +383,7 @@ const ReportDetail: React.FC = () => {
                       <div
                         ref={provided.innerRef}
                         {...provided.draggableProps}
+                        style={provided.draggableProps.style as React.CSSProperties}
                         {...provided.dragHandleProps}
                         className={`mb-5 p-3 rounded border bg-gray-100 ${
                           editMode ? "" : "border-none p-0 bg-transparent"

@@ -121,6 +121,7 @@ export const OrderCompoent: React.FC<Props> = ({ orders = [], onUpdate }) => {
                         <tr
                           ref={dragProvided.innerRef}
                           {...dragProvided.draggableProps}
+                          style={dragProvided.draggableProps.style as React.CSSProperties}
                           className="border-b border-gray-300 hover:bg-gray-50"
                         >
                           <td
