@@ -11,10 +11,18 @@ spring:
     password: admin
   jpa:
     hibernate:
-      ddl-auto: update
+      # Xem ghi chú ở application-prod.yml: lược đồ do Flyway quản lý.
+      ddl-auto: ${JPA_DDL_AUTO:validate}
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-    defer-datasource-initialization: true
+    # Xem ghi chú ở application-prod.yml.
+    defer-datasource-initialization: false
+  flyway:
+    enabled: ${FLYWAY_ENABLED:true}
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 1
+    validate-on-migrate: true
   sql:
     init:
       mode: always
@@ -29,6 +37,7 @@ aws:
   secretAccessKey: ${AWS_SECRETACCESSKEY}
   s3:
     bucket: ${AWS_S3_BUCKET}
+    endpoint: ${AWS_S3_ENDPOINT:}
   region: ${AWS_REGION}
 
 jwt:

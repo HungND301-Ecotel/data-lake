@@ -42,6 +42,23 @@ import DocumentChatPage from "../features/lakehouse/document-chat/pages/Document
 import SqlMetadataPage from "../features/sql-metadata/pages/SqlMetadataPage";
 import ExcelMappingPage from "../features/excel-mapping/pages/ExcelMappingPage";
 import CoalMiningDashboard from "../features/dashboard/pages/MockDashboardPage";
+import IngestionPage from "../features/ingestion/pages/IngestionPage";
+import IngestionJobsPage from "../features/ingestion/pages/IngestionJobsPage";
+import AuditPage from "../features/ingestion/pages/AuditPage";
+import IamAdminPage from "../features/auth/pages/IamAdminPage";
+import GovernedChatPage from "../features/ingestion/pages/GovernedChatPage";
+import ModelRegistryPage from "../features/ingestion/pages/ModelRegistryPage";
+import GovernedReportPage from "../features/report-governed/pages/GovernedReportPage";
+import CatalogPage from "../features/ingestion/pages/CatalogPage";
+import DynamicApiPage from "../features/ingestion/pages/DynamicApiPage";
+import BiIntegrationPage from "../features/ingestion/pages/BiIntegrationPage";
+import DataQualityPage from "../features/ingestion/pages/DataQualityPage";
+import DiscoveryPage from "../features/ingestion/pages/DiscoveryPage";
+import KnowledgeGraphPage from "../features/ingestion/pages/KnowledgeGraphPage";
+import SemanticLayerPage from "../features/ingestion/pages/SemanticLayerPage";
+import ApprovalPage from "../features/ingestion/pages/ApprovalPage";
+import DataSourcePage from "../features/ingestion/pages/DataSourcePage";
+import GovernedPipelinePage from "../features/ingestion/pages/PipelinePage";
 
 export const router = createBrowserRouter([
   {
@@ -69,6 +86,32 @@ export const router = createBrowserRouter([
       { path: "/lakehouse/rag", element: <RagPage /> },
       { path: "/lakehouse/table-qa", element: <TableQaPage /> },
       { path: "/lakehouse/document-chat", element: <DocumentChatPage /> },
+
+      // Governed ingestion (M03) + audit trail (M14)
+      { path: "/lakehouse/ingestion", element: <IngestionPage /> },
+      { path: "/lakehouse/jobs", element: <IngestionJobsPage /> },
+      { path: "/lakehouse/audit", element: <AuditPage /> },
+
+      // AI Chat có kiểm soát (M09)
+      { path: "/lakehouse/chat", element: <GovernedChatPage /> },
+      { path: "/lakehouse/models", element: <ModelRegistryPage /> },
+      { path: "/lakehouse/catalog", element: <CatalogPage /> },
+      { path: "/lakehouse/api-products", element: <DynamicApiPage /> },
+      { path: "/lakehouse/bi", element: <BiIntegrationPage /> },
+      { path: "/lakehouse/quality", element: <DataQualityPage /> },
+      { path: "/lakehouse/search", element: <DiscoveryPage /> },
+      { path: "/lakehouse/graph", element: <KnowledgeGraphPage /> },
+      { path: "/lakehouse/metrics", element: <SemanticLayerPage /> },
+      { path: "/lakehouse/approvals", element: <ApprovalPage /> },
+      { path: "/lakehouse/sources", element: <DataSourcePage /> },
+      { path: "/lakehouse/pipelines", element: <GovernedPipelinePage /> },
+
+      // Báo cáo có kiểm soát (M10)
+      { path: "/reports/governed", element: <GovernedReportPage /> },
+
+      // Quản trị danh tính và phân quyền (M01)
+      { path: "/iam", element: <IamAdminPage /> },
+
       { path: "/sql-metadata", element: <SqlMetadataPage /> },
       { path: "/excel-mapping", element: <ExcelMappingPage /> },
 

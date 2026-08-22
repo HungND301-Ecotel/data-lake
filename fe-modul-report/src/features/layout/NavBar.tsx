@@ -19,6 +19,24 @@ import {
   RightOutlined,
   LoadingOutlined,
   SettingOutlined,
+  DatabaseOutlined,
+  CloudUploadOutlined,
+  DeploymentUnitOutlined,
+  AuditOutlined,
+  SafetyCertificateOutlined,
+  RobotOutlined,
+  ExperimentOutlined,
+  FileProtectOutlined,
+  PartitionOutlined,
+  ApiOutlined,
+  FundProjectionScreenOutlined,
+  SafetyOutlined,
+  FileSearchOutlined,
+  ShareAltOutlined,
+  FunctionOutlined,
+  SolutionOutlined,
+  LinkOutlined,
+  NodeIndexOutlined,
 } from "@ant-design/icons";
 import { Button, Dropdown, Menu, Spin } from "antd";
 import { employeeApi } from "../employee/api/employeeApi";
@@ -458,6 +476,128 @@ export default function NavBar() {
   //   />
   // );
 
+  // Governed ingestion (M03) - Bronze intake, processing jobs and audit trail.
+  const lakehouseMenu = (
+    <Menu
+      items={[
+        {
+          key: "sources",
+          icon: <LinkOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Nguồn dữ liệu</span>,
+          onClick: () => navigate("/lakehouse/sources"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "discovery",
+          icon: <FileSearchOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Tìm kiếm & khám phá</span>,
+          onClick: () => navigate("/lakehouse/search"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "ingestion",
+          icon: <CloudUploadOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Tiếp nhận dữ liệu</span>,
+          onClick: () => navigate("/lakehouse/ingestion"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "pipelines",
+          icon: <NodeIndexOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Pipeline</span>,
+          onClick: () => navigate("/lakehouse/pipelines"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "ingestion-jobs",
+          icon: <DeploymentUnitOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Job xử lý & DLQ</span>,
+          onClick: () => navigate("/lakehouse/jobs"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "catalog",
+          icon: <PartitionOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Danh mục dữ liệu</span>,
+          onClick: () => navigate("/lakehouse/catalog"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "api-products",
+          icon: <ApiOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Dynamic API</span>,
+          onClick: () => navigate("/lakehouse/api-products"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "metrics",
+          icon: <FunctionOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Tầng ngữ nghĩa</span>,
+          onClick: () => navigate("/lakehouse/metrics"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "graph",
+          icon: <ShareAltOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Đồ thị tri thức</span>,
+          onClick: () => navigate("/lakehouse/graph"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "approvals",
+          icon: <SolutionOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Phê duyệt & vòng đời</span>,
+          onClick: () => navigate("/lakehouse/approvals"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "quality",
+          icon: <SafetyOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Chất lượng dữ liệu</span>,
+          onClick: () => navigate("/lakehouse/quality"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "bi",
+          icon: <FundProjectionScreenOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Tích hợp BI</span>,
+          onClick: () => navigate("/lakehouse/bi"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "governed-chat",
+          icon: <RobotOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Hỏi đáp AI</span>,
+          onClick: () => navigate("/lakehouse/chat"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "model-registry",
+          icon: <ExperimentOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Model registry</span>,
+          onClick: () => navigate("/lakehouse/models"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "audit",
+          icon: <AuditOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Nhật ký kiểm toán</span>,
+          onClick: () => navigate("/lakehouse/audit"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        { type: "divider" as const, className: "my-1" },
+        {
+          key: "iam",
+          icon: <SafetyCertificateOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Danh tính & phân quyền</span>,
+          onClick: () => navigate("/iam"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+      ]}
+      className="rounded-xl! shadow-2xl! min-w-[260px] py-2"
+    />
+  );
+
   const reportsMenu = (
     <Menu
       items={[
@@ -466,6 +606,13 @@ export default function NavBar() {
           icon: <CheckCircleOutlined className="text-lg" />,
           label: <span className="text-base font-medium">Duyệt báo cáo</span>,
           onClick: () => navigate("/approve/batch"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
+        {
+          key: "governed-report",
+          icon: <FileProtectOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Báo cáo có kiểm soát</span>,
+          onClick: () => navigate("/reports/governed"),
           className: "py-3 px-4 hover:bg-[#f0f9f4]!",
         },
         {
@@ -619,6 +766,19 @@ export default function NavBar() {
             <DownOutlined className="text-xs ml-2 group-hover:translate-y-0.5 transition-transform duration-300" />
           </Button>
         </Dropdown> */}
+
+        {/* Lakehouse Dropdown */}
+        <Dropdown overlay={lakehouseMenu} placement="bottomLeft">
+          <Button
+            type="text"
+            icon={<DatabaseOutlined className="text-lg mr-2" />}
+            className="text-white! border-0! bg-transparent! font-semibold text-base tracking-wide hover:bg-white/15! transition-all duration-300 rounded-lg cursor-pointer group"
+            size="large"
+          >
+            <span>Kho dữ liệu</span>
+            <DownOutlined className="text-xs ml-2 group-hover:translate-y-0.5 transition-transform duration-300" />
+          </Button>
+        </Dropdown>
 
         {/* Reports Dropdown */}
         <Dropdown overlay={reportsMenu} placement="bottomLeft">

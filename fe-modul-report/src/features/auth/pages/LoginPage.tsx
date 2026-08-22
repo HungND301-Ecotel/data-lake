@@ -6,6 +6,7 @@ import { Phone, Mail, Eye, EyeOff } from 'lucide-react';
 import type { LoginResponse } from "../../employee/types/user";
 import { useAuthStore } from "../../../stores/authStore";
 import { userApi } from "../api/userApi";
+import iamApi from "../api/iamApi";
 import logoUb from "../../../file/logo-ub.jpg";
 import Banner from "../../../file/Banner.jpg";
 
@@ -15,8 +16,26 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  /** Token trung gian sau bước mật khẩu; chỉ dùng để xác minh MFA. */
+  const [mfaToken, setMfaToken] = useState<string | null>(null);
+  const [mfaCode, setMfaCode] = useState("");
   const navigate = useNavigate();
-  const setRole = useAuthStore((s) => s.setRole);
+  const setAccess = useAuthStore((s) => s.setAccess);
+
+  /** Lưu phiên và chuyển vào trong; dùng chung cho luồng có và không có MFA. */
+  const startSession = (res: LoginResponse) => {
+    localStorage.setItem("token", res.token);
+    localStorage.setItem("refreshToken", res.refreshToken);
+    setAccess({
+      role: res.role,
+      roles: res.roles,
+      permissions: res.permissions,
+      orgCode: res.orgCode,
+      clearanceLevel: res.clearanceLevel,
+    });
+    message.success("Đăng nhập thành công");
+    navigate("/");
+  };
 
   const handleLogin = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -35,17 +54,41 @@ const LoginPage = () => {
     try {
       const res: LoginResponse = await userApi.login({ username, password });
 
-      localStorage.setItem("token", res.token);
-      localStorage.setItem("refreshToken", res.refreshToken);
-      setRole(res.role);
-      message.success("Đăng nhập thành công");
-      navigate("/");
+      if (res.mfaRequired && res.mfaToken) {
+        setMfaToken(res.mfaToken);
+        setMfaCode("");
+        return;
+      }
+
+      startSession(res);
     } catch (err: any) {
       console.log(err);
       message.error(err?.response?.data?.message || "Đăng nhập thất bại");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleVerifyMfa = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (mfaCode.trim().length !== 6) {
+      message.error("Nhập đủ 6 chữ số của mã xác thực");
+      return;
+    }
+    setLoading(true);
+    try {
+      startSession(await iamApi.verifyMfa(mfaToken as string, mfaCode.trim()));
+    } catch (err: any) {
+      message.error(err?.response?.data?.message || "Mã xác thực không đúng");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cancelMfa = () => {
+    setMfaToken(null);
+    setMfaCode("");
+    setPassword("");
   };
 
   return (
@@ -99,8 +142,13 @@ const LoginPage = () => {
           {/* Title */}
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold text-green-600 dark:text-blue-400">
-              Đăng nhập
+              {mfaToken ? "Xác thực hai lớp" : "Đăng nhập"}
             </h2>
+            {mfaToken && (
+              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                Nhập mã 6 chữ số từ ứng dụng xác thực của bạn
+              </p>
+            )}
           </div>
 
           {/* Divider */}
@@ -110,7 +158,49 @@ const LoginPage = () => {
             </div>
           </div>
 
-          {/* Form */}
+          {mfaToken ? (
+            <form onSubmit={handleVerifyMfa}>
+              <div className="space-y-6">
+                <div>
+                  <label htmlFor="mfaCode" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Mã xác thực <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="mfaCode"
+                    name="mfaCode"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    placeholder="000000"
+                    value={mfaCode}
+                    onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ""))}
+                    disabled={loading}
+                    autoFocus
+                    className="w-full px-4 py-2 text-center text-2xl tracking-[0.5em] border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-green-500 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  {loading ? "Đang xác thực..." : "Xác nhận"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={cancelMfa}
+                  disabled={loading}
+                  className="w-full text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400"
+                >
+                  Quay lại đăng nhập
+                </button>
+              </div>
+            </form>
+          ) : (
+          /* Form */
           <form onSubmit={handleLogin}>
             <div className="space-y-6">
               {/* Username */}
@@ -171,6 +261,7 @@ const LoginPage = () => {
               </div>
             </div>
           </form>
+          )}
 
           {/* Footer */}
           <div className="mt-6 text-center">

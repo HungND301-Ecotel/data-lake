@@ -60,6 +60,49 @@ public class S3Service {
         }
     }
 
+    /**
+     * Tải lên nội dung đã có trong bộ nhớ, dùng cho tệp do hệ thống sinh ra
+     * (bản render báo cáo) thay vì tệp người dùng gửi lên.
+     */
+    public FileResponse uploadBytes(String key, byte[] content, String contentType,
+                                    String fileName) {
+        try {
+            String prefix = key.replace("*", "/");
+            String objectKey = prefix + "/" + UUID.randomUUID() + "-" + fileName;
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(objectKey)
+                    .contentType(contentType)
+                    .build();
+
+            s3Client.putObject(putObjectRequest, RequestBody.fromBytes(content));
+            return FileResponse.builder()
+                    .key(objectKey)
+                    .type(contentType)
+                    .build();
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    /** Đọc toàn bộ nội dung một object thành mảng byte. */
+    public byte[] readBytes(String fileKey) {
+        try {
+            String key = fileKey.replace("*", "/");
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(key)
+                    .build();
+            try (ResponseInputStream<GetObjectResponse> stream =
+                         s3Client.getObject(getObjectRequest)) {
+                return stream.readAllBytes();
+            }
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Không đọc được tệp: " + fileKey);
+        }
+    }
+
     public ResponseEntity<String> deleteFile(String key) {
         try{
             key = key.replace("*", "/");
