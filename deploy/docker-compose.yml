@@ -1,0 +1,125 @@
+# Triển khai staging trên fullstack-server (118.70.151.69).
+#
+# Cổng đã mở trên máy chủ là 50001-50010, nên mọi thứ lộ ra ngoài đều nằm trong
+# dải đó. Máy chủ đang chạy sẵn 4 hệ staging khác, đĩa 88% và RAM còn ~5G, nên
+# bản này cố tình gọn: một PostgreSQL phục vụ hai database thay vì hai instance,
+# không pgadmin, không MinIO (backend dùng S3 thật theo be/.env).
+#
+#   $ docker compose -f deploy/docker-compose.yml up -d --build
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: lakehouse_postgres
+    environment:
+      POSTGRES_USER: ${PG_USER:-admin}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:?PG_PASSWORD phải được đặt}
+      POSTGRES_DB: report
+      TZ: Asia/Ho_Chi_Minh
+    volumes:
+      - lakehouse_pgdata:/var/lib/postgresql/data
+      # Tạo sẵn database thứ hai cho worker; script chỉ chạy lần đầu khi volume
+      # còn rỗng, nên chạy lại compose không làm mất dữ liệu.
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "50004:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PG_USER:-admin} -d report"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks: [lakenet]
+
+  backend:
+    build:
+      context: ../be
+    image: lakehouse_backend_img
+    container_name: lakehouse_backend
+    env_file:
+      - ../be/.env
+    environment:
+      # Ghi đè DB_URL của .env: trong compose, backend nói chuyện với postgres
+      # qua tên service chứ không qua localhost.
+      DB_URL: jdbc:postgresql://postgres:5432/report
+      DB_USERNAME: ${PG_USER:-admin}
+      DB_PASSWORD: ${PG_PASSWORD}
+      SPRING_PROFILES_ACTIVE: prod
+      JPA_DDL_AUTO: validate
+      FLYWAY_ENABLED: "true"
+      TZ: Asia/Ho_Chi_Minh
+      JAVA_OPTS: "-XX:MaxRAMPercentage=60"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "50002:8080"
+    restart: unless-stopped
+    networks: [lakenet]
+
+  worker:
+    build:
+      context: ../ai_worker_lake_house
+    image: lakehouse_worker_img
+    container_name: lakehouse_worker
+    environment:
+      DATABASE_URL: postgresql+psycopg2://${PG_USER:-admin}:${PG_PASSWORD}@postgres:5432/lakehouse
+      # Cùng JWT_SECRET với backend: worker xác thực token do portal cấp.
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET phải trùng với be/.env}
+      # Tắt chế độ DEV — nếu bật, worker tin header X-User-Id/X-Roles gửi lên.
+      DEV_AUTH_ENABLED: "false"
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      SEED_EXTERNAL_MODEL: ${SEED_EXTERNAL_MODEL:-false}
+      EMBEDDING_MODE: ${EMBEDDING_MODE:-hash}
+      AV_SCAN_MODE: ${AV_SCAN_MODE:-off}
+      AV_FAIL_CLOSED: "true"
+      WORKER_ENABLED: "true"
+      SCHEMA_MODE: alembic
+      TZ: Asia/Ho_Chi_Minh
+    volumes:
+      - lakehouse_store:/app/store
+      - lakehouse_data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "50003:2803"
+    restart: unless-stopped
+    networks: [lakenet]
+
+  frontend:
+    build:
+      context: ../fe-modul-report
+      args:
+        # Vite nướng biến vào bundle lúc build, nên chúng phải là build-arg chứ
+        # không phải biến môi trường lúc chạy.
+        VITE_API: ${PUBLIC_BACKEND_URL}
+        VITE_DATALAKE_API: ${PUBLIC_WORKER_URL}
+        VITE_INGESTION_API: ${PUBLIC_WORKER_URL}
+    image: lakehouse_frontend_img
+    container_name: lakehouse_frontend
+    environment:
+      TZ: Asia/Ho_Chi_Minh
+    depends_on:
+      - backend
+      - worker
+    ports:
+      # Ảnh nginx của FE nghe 6228 (xem fe-modul-report/nginx.conf), không phải 80.
+      - "50001:6228"
+    restart: unless-stopped
+    networks: [lakenet]
+
+volumes:
+  lakehouse_pgdata:
+  lakehouse_store:
+  lakehouse_data:
+
+networks:
+  lakenet:
+    # Máy chủ đã dùng hết pool mặc định của Docker (172.17-172.31/16 và
+    # 192.168.16-240/20) cho 33 network của các stack khác, nên phải chỉ định
+    # subnet tường minh thay vì để Docker tự cấp — và chọn dải 10.x đang trống
+    # để không đụng vào network của ai.
+    ipam:
+      config:
+        - subnet: 10.200.0.0/24

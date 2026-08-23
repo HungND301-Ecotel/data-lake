@@ -17,6 +17,15 @@ RUN npm i
 ## Get all the code needed to run the app
 COPY . .
 
+## Vite nướng biến vào bundle lúc build, nên URL của backend/worker phải có
+## mặt ở bước này chứ không phải lúc chạy container.
+ARG VITE_API
+ARG VITE_DATALAKE_API
+ARG VITE_INGESTION_API
+ENV VITE_API=${VITE_API}
+ENV VITE_DATALAKE_API=${VITE_DATALAKE_API}
+ENV VITE_INGESTION_API=${VITE_INGESTION_API}
+
 ## React buid for production environment (smaller size)
 RUN npm run build
 

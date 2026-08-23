@@ -55,6 +55,9 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
+            // Probe của Docker/orchestrator gọi trước khi có token; show-details:
+            // never nên endpoint chỉ trả UP/DOWN, không lộ gì thêm.
+            "/actuator/health",
 
     };
     private static final String[] PUBLIC_ENDPOINTS_GET = {

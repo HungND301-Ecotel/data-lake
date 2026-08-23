@@ -37,6 +37,17 @@ server:
   servlet:
     context-path: /api
 
+# Chỉ mở đúng health cho probe của Docker/orchestrator; show-details: never để
+# không lộ thông tin nội bộ (DB, disk) ra ngoài.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
 aws:
   accessKeyId: ${AWS_ACCESSKEYID}
   secretAccessKey: ${AWS_SECRETACCESSKEY}
