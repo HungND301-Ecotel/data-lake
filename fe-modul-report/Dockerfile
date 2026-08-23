@@ -1,6 +1,6 @@
 ### Build Front-End
 ### E.g.: $ docker build -t ecotel_frontend_img:latest .
-# $ docker run -d -p 3000:80 ecotel_frontend_img:latest
+# $ docker run -d -p 3000:6228 ecotel_frontend_img:latest
 
 ## Create an image based on the official Node image from dockerhub
 FROM node:20 AS development
@@ -22,16 +22,23 @@ COPY . .
 ARG VITE_API
 ARG VITE_DATALAKE_API
 ARG VITE_INGESTION_API
-ENV VITE_API=${VITE_API}
-ENV VITE_DATALAKE_API=${VITE_DATALAKE_API}
-ENV VITE_INGESTION_API=${VITE_INGESTION_API}
+
+## `.env.production` nằm trong repo và Vite cho tệp đó thắng biến môi trường,
+## nên nếu để nguyên thì bundle triển khai vẫn trỏ về cổng của máy chủ cũ dù
+## build-arg đã truyền đúng. Ghi đè bằng chính giá trị lúc triển khai; bỏ trống
+## build-arg thì giữ nguyên tệp sẵn có để `docker build` trần vẫn chạy như cũ.
+RUN if [ -n "$VITE_API" ]; then \
+      { echo "VITE_API=$VITE_API"; \
+        echo "VITE_DATALAKE_API=$VITE_DATALAKE_API"; \
+        echo "VITE_INGESTION_API=$VITE_INGESTION_API"; } > .env.production; \
+    fi \
+    && cat .env.production
 
 ## React buid for production environment (smaller size)
 RUN npm run build
 
-## Create an HTTP web server based on nginx image;
-## default nginx server's port is 80
-### E.g.: $ docker run -d -p 3000:80 frontend:latest
+## Create an HTTP web server based on nginx image.
+## Cấu hình trong .nginx/nginx.conf cho nginx nghe cổng 6228, không phải 80.
 FROM nginx:alpine
 
 ### Reference for connecting Frontend to Backend

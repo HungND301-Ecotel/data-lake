@@ -120,3 +120,39 @@ worker tin thẳng header `X-User-Id`/`X-Roles` do người gọi tự khai.
 - **Thiếu `OPENAI_API_KEY` không được làm sập worker.** Client OpenAI dựng lười ở
   lần dùng đầu tiên (`ocr_service`, `ai_service`, `excel_mapping_service`); chỉ
   thao tác cần AI mới hỏng, phần còn lại vẫn chạy.
+- **`.env.production` trong repo thắng build-arg của Vite.** Tệp đó trỏ về cổng
+  máy chủ cũ, nên bundle triển khai gọi nhầm địa chỉ dù compose truyền đúng
+  `VITE_API`. Dockerfile của frontend vì thế ghi đè tệp này từ build-arg.
+  `VITE_API` phải gồm cả `/api` — `axiosClient` lấy thẳng nó làm `baseURL`.
+- **`axiosDataLakeClient` vẫn hardcode `118.70.151.69:1313`** — dịch vụ cũ,
+  không nằm trong cụm này. Các màn hình `/datalake/*` phụ thuộc nó.
+
+## Chụp ảnh màn hình để làm báo cáo
+
+`docs/Bao_cao_chay_thu_Lakehouse.docx` dựng bằng Playwright + python-docx chạy
+trong Docker. Kịch bản nằm ở thư mục scratchpad của phiên, gồm:
+
+- `gieo*.py` — bơm dữ liệu mẫu **qua HTTP như người dùng thường**, không ghi
+  thẳng vào cơ sở dữ liệu. Nhờ vậy chỗ nào bị chính sách chặn thì hiện ra thật.
+- `chup.py` — đăng nhập qua chính màn hình đăng nhập rồi chụp từng route. Vài
+  màn hình chỉ có nội dung sau một thao tác (ô tìm kiếm), khai trong
+  `routes.json` ở khoá `hanh_dong`.
+- `dung_docx.py` — gom lại thành tài liệu, mỗi module một mục.
+
+Ảnh chứa dữ liệu công ty nên đừng đưa lên dịch vụ bên ngoài.
+
+Vài điểm khi dựng lại:
+
+- Ảnh `mcr.microsoft.com/playwright/python` có sẵn trình duyệt nhưng **thiếu gói
+  `playwright`** — phải `pip install` thêm.
+- Ant Design để nền cao bằng màn hình dù nội dung ngắn, nên `full_page=True` cho
+  ra một dải trắng dài. Đo đáy thật bằng cách lấy `getBoundingClientRect` của
+  các phần tử lá có nội dung rồi `clip` theo đó.
+- Nhãn bảo mật và dataset hiển thị theo `clearance_level` của người đăng nhập.
+  Tài khoản seed `admin` có mức 0 nên chỉ thấy nhãn PUBLIC — không phải lỗi.
+- Bốn mắt cần hai chủ thể khác nhau. Tạo tài khoản dịch vụ qua
+  `POST /iam/service-accounts` rồi lấy token qua `POST /iam/auth/token` để đóng
+  vai người duyệt thứ hai.
+- Dataset Gold không công bố được nếu chưa có dòng dữ liệu thật: luật chất lượng
+  trả `UNKNOWN` ("không có dòng nào để đánh giá") chứ không tự coi là đạt.
+  Dataset Silver thì công bố thẳng, dùng nó khi cần một bản PUBLISHED để minh hoạ.

@@ -93,7 +93,9 @@ services:
       args:
         # Vite nướng biến vào bundle lúc build, nên chúng phải là build-arg chứ
         # không phải biến môi trường lúc chạy.
-        VITE_API: ${PUBLIC_BACKEND_URL}
+        # axiosClient lấy thẳng VITE_API làm baseURL rồi gọi "/user/login", nên
+        # giá trị phải gồm cả context-path /api của backend.
+        VITE_API: ${PUBLIC_BACKEND_URL}/api
         VITE_DATALAKE_API: ${PUBLIC_WORKER_URL}
         VITE_INGESTION_API: ${PUBLIC_WORKER_URL}
     image: lakehouse_frontend_img
