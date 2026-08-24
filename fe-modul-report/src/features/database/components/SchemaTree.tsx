@@ -28,7 +28,7 @@ export default function SchemaTree({ schema, loading, onTableSelect }: Props) {
         <span className="flex items-center gap-2">
           <FieldNumberOutlined className="text-gray-400" />
           <span>{col.name}</span>
-          <Tag color="blue" className="text-xs">{col.type}</Tag>
+          <Tag color="green" className="text-xs">{col.type}</Tag>
           {!col.nullable && <Tag color="red" className="text-xs">NOT NULL</Tag>}
         </span>
       ),

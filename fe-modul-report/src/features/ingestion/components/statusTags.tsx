@@ -39,7 +39,9 @@ export function JobStatusTag({ status }: { status: JobStatus }) {
 /** Domain C never leaves the internal enclave, so it is flagged distinctly. */
 export function SecurityLabelTag({ label }: { label?: SecurityLabel }) {
   if (!label) return <Tag>—</Tag>;
-  const color = label.domain === "C" ? "red" : label.domain === "B" ? "gold" : "blue";
+  // Thang mật A→B→C đọc như thang rủi ro, nên xanh lá / vàng / đỏ tự nhiên hơn
+  // xanh dương / vàng / đỏ, và hợp tông thương hiệu.
+  const color = label.domain === "C" ? "red" : label.domain === "B" ? "gold" : "green";
   return (
     <Tooltip title={`Miền ${label.domain} · mức ${label.level}${label.allow_external_ai ? "" : " · không gửi ra AI ngoài"}`}>
       <Tag color={color}>{label.name}</Tag>

@@ -19,7 +19,7 @@ export default function MetadataViewer({ metadata }: Props) {
         <TableOutlined className="mr-1" />
         <Text strong>{table.table_name}</Text>
         {table.row_count !== undefined && (
-          <Tag className="ml-2" color="blue">{table.row_count} rows</Tag>
+          <Tag className="ml-2" color="green">{table.row_count} rows</Tag>
         )}
       </span>
     ),
@@ -64,7 +64,7 @@ export default function MetadataViewer({ metadata }: Props) {
       <Card size="small" title="Tổng quan">
         <Descriptions size="small" column={2}>
           <Descriptions.Item label="Database Type">
-            <Tag color="blue">{metadata.database_type}</Tag>
+            <Tag color="green">{metadata.database_type}</Tag>
           </Descriptions.Item>
           <Descriptions.Item label="Số bảng">{metadata.tables.length}</Descriptions.Item>
           <Descriptions.Item label="Analysis ID">

@@ -71,7 +71,7 @@ export default function DbMappingPage() {
       dataIndex: "mapping_count",
       key: "mapping_count",
       width: 100,
-      render: (v: number) => <Tag color="blue">{v}</Tag>,
+      render: (v: number) => <Tag color="green">{v}</Tag>,
     },
     {
       title: "Chế độ",

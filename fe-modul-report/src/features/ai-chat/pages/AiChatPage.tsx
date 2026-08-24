@@ -188,7 +188,7 @@ const AiChatPage: React.FC = () => {
                 disabled={!context.serverId}
               />
               {context.database && (
-                <Tag color="blue" className="ml-2">
+                <Tag color="green" className="ml-2">
                   {context.database}
                 </Tag>
               )}

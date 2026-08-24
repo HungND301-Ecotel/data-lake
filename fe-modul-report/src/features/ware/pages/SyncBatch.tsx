@@ -717,7 +717,7 @@ export const SyncBatch: React.FC = () => {
                 size="large"
                 className="rounded-lg"
                 disabled={!!userPushConfig}
-                prefix={userPushConfig ? <Tag color="blue">Từ cấu hình</Tag> : null}
+                prefix={userPushConfig ? <Tag color="green">Từ cấu hình</Tag> : null}
               />
             </Form.Item>
 

@@ -582,7 +582,7 @@ export const MappingTable: React.FC<{ templateId: number }> = ({ templateId }) =
         const role = resolveRole(record);
         const agg = resolveAggregateType(record);
         if (role === "DIMENSION") {
-          return <Tag color="blue">DIMENSION</Tag>;
+          return <Tag color="green">DIMENSION</Tag>;
         }
         return <Tag color="green">MEASURE / {agg}</Tag>;
       },

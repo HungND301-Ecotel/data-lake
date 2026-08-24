@@ -108,7 +108,7 @@ export default function DbServerPage() {
       key: "auth",
       width: 120,
       render: (_: unknown, record: ServerConfig) =>
-        record.windows_auth ? <Tag>Windows</Tag> : <Tag color="blue">SQL Auth</Tag>,
+        record.windows_auth ? <Tag>Windows</Tag> : <Tag color="green">SQL Auth</Tag>,
     },
     {
       title: "Ngày tạo",

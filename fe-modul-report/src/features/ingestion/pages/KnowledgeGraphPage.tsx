@@ -346,7 +346,7 @@ export default function KnowledgeGraphPage() {
                                 {path.path.map((step, index) => (
                                   <span key={index}>
                                     <Text>{step.subject}</Text>{" "}
-                                    <Tag color="blue">{step.predicate}</Tag>{" "}
+                                    <Tag color="green">{step.predicate}</Tag>{" "}
                                     <Text>{step.object}</Text>
                                     {index < path.path.length - 1 && (
                                       <Text type="secondary"> → </Text>
@@ -510,7 +510,7 @@ export default function KnowledgeGraphPage() {
                 {
                   title: "Quan hệ",
                   key: "predicate",
-                  render: (_, row) => <Tag color="blue">{row.relationship.predicate}</Tag>,
+                  render: (_, row) => <Tag color="green">{row.relationship.predicate}</Tag>,
                 },
                 {
                   title: "Thực thể",

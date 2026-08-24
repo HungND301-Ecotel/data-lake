@@ -202,7 +202,7 @@ const UserPushConfigPage = () => {
                                         </span>
                                     }
                                 >
-                                    <Tag color="blue" className="px-3 py-1 text-base">
+                                    <Tag color="green" className="px-3 py-1 text-base">
                                         {userPushConfig.username}
                                     </Tag>
                                 </Descriptions.Item>

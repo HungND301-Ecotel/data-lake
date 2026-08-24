@@ -602,7 +602,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                         Người duyệt
                       </label>
                       <div className="flex items-center gap-2">
-                        <Tag color="blue" className="px-3 py-1 text-base">
+                        <Tag color="green" className="px-3 py-1 text-base">
                           {config.approverName}
                         </Tag>
                       </div>

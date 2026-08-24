@@ -137,7 +137,7 @@ export default function IamAdminPage() {
                         value.length ? (
                           <Space wrap size={[4, 4]}>
                             {value.map((code) => (
-                              <Tag key={code} color="blue">
+                              <Tag key={code} color="green">
                                 {code}
                               </Tag>
                             ))}

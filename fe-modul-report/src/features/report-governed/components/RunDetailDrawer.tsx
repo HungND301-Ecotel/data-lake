@@ -322,7 +322,7 @@ function NarrativeCard({
         {narrative.modelId && <Tag>{narrative.modelId}</Tag>}
         {narrative.factCodes && (
           <Tooltip title="Số liệu đã chốt mà đoạn văn này dựa vào">
-            <Tag color="blue">facts: {narrative.factCodes}</Tag>
+            <Tag color="green">facts: {narrative.factCodes}</Tag>
           </Tooltip>
         )}
         {narrative.editedBy && <Tag color="gold">đã sửa tay</Tag>}

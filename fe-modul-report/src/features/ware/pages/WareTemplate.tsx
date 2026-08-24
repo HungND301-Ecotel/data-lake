@@ -348,7 +348,7 @@ const WareTemplate = () => {
           <div className="flex items-center gap-2">
             <AppstoreOutlined className="text-blue-500 text-xl" />
             <span className="font-medium text-gray-700">Tổng số danh mục:</span>
-            <Tag color="blue" className="font-bold text-base px-3 py-1">
+            <Tag color="green" className="font-bold text-base px-3 py-1">
               {groups.length}
             </Tag>
           </div>

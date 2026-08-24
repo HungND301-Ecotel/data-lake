@@ -46,7 +46,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           {suggestions.map((suggestion, index) => (
             <Tag
               key={index}
-              color="blue"
+              color="green"
               className="cursor-pointer"
               onClick={() => handleSuggestionClick(suggestion)}
             >

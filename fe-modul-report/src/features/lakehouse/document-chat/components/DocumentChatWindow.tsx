@@ -41,7 +41,7 @@ export default function DocumentChatWindow({
       title={
         <span className="flex items-center gap-2">
           Document Chat
-          {documentName && <Tag icon={<FileOutlined />} color="blue">{documentName}</Tag>}
+          {documentName && <Tag icon={<FileOutlined />} color="green">{documentName}</Tag>}
           {sessionId && <Tag className="text-xs">Session: {sessionId.substring(0, 8)}</Tag>}
         </span>
       }

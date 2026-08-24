@@ -81,7 +81,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
               </Text>
               <div className="flex flex-wrap gap-1">
                 {message.sources.map((source, index) => (
-                  <Tag key={index} icon={<FileTextOutlined />} color="blue">
+                  <Tag key={index} icon={<FileTextOutlined />} color="green">
                     {source.metadata?.source || "Document"}
                     {source.metadata?.table && ` (${source.metadata.table})`}
                   </Tag>

@@ -289,7 +289,7 @@ const WareCategoryPage = () => {
               <span className="font-medium text-gray-700">
                 Tổng số danh mục:
               </span>
-              <Tag color="blue" className="font-bold text-base px-3 py-1">
+              <Tag color="green" className="font-bold text-base px-3 py-1">
                 {pageResponse.totalElements}
               </Tag>
             </div>

@@ -301,7 +301,7 @@ export default function BiIntegrationPage() {
                               <Text className="text-xs">{run.rows} dòng</Text>
                               {run.kept_previous && (
                                 <Tooltip title="Lần chạy lỗi nhưng extract trước vẫn còn nguyên">
-                                  <Tag color="blue">giữ bản trước</Tag>
+                                  <Tag color="green">giữ bản trước</Tag>
                                 </Tooltip>
                               )}
                             </Space>
@@ -763,7 +763,7 @@ function SourceDrawer({ code, onClose }: { code: string | null; onClose: () => v
                     title: "Giữ bản trước",
                     dataIndex: "kept_previous",
                     width: 130,
-                    render: (kept: boolean) => (kept ? <Tag color="blue">Có</Tag> : "—"),
+                    render: (kept: boolean) => (kept ? <Tag color="green">Có</Tag> : "—"),
                   },
                   { title: "Lỗi", dataIndex: "error", ellipsis: true },
                   { title: "Người kích hoạt", dataIndex: "triggered_by", width: 150 },

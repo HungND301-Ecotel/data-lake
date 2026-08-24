@@ -22,7 +22,7 @@ export default function LayerTabs({ activeLayer, onChange, rawCount, bronzeCount
             <span className="flex items-center gap-2">
               <FileOutlined />
               Raw
-              <Badge count={rawCount} showZero size="small" color="blue" />
+              <Badge count={rawCount} showZero size="small" color="green" />
             </span>
           ),
         },

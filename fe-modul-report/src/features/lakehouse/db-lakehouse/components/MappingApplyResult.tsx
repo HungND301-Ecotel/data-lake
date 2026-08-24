@@ -45,7 +45,7 @@ export default function MappingApplyResult({ result }: MappingApplyResultProps) 
     label: (
       <span>
         <Text strong>{r.table_name}</Text>
-        <Tag className="ml-2" color="blue">{r.columns_scanned} cột</Tag>
+        <Tag className="ml-2" color="green">{r.columns_scanned} cột</Tag>
         <Tag color={r.total_replacements > 0 ? "orange" : "default"}>
           {r.total_replacements.toLocaleString()} thay thế
         </Tag>

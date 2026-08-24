@@ -104,7 +104,7 @@ export default function MappingResultTable({ result }: Props) {
       dataIndex: "mapped_key",
       key: "mapped_key",
       render: (v: string | null) =>
-        v ? <Tag color="blue">{v}</Tag> : <Tag>-</Tag>,
+        v ? <Tag color="green">{v}</Tag> : <Tag>-</Tag>,
     },
     {
       title: "Tên tiếng Việt",

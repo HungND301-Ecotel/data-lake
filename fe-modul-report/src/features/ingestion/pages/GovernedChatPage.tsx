@@ -337,7 +337,7 @@ function CitationRow({ citation, index }: { citation: ChatCitation; index: numbe
   return (
     <div className="mt-2 p-2 bg-white rounded border border-gray-200">
       <Space size={6} wrap>
-        <Tag color="blue">S{index + 1}</Tag>
+        <Tag color="green">S{index + 1}</Tag>
         <Text className="text-xs" strong>
           {citation.original_name || citation.object_id.slice(0, 8)}
         </Text>

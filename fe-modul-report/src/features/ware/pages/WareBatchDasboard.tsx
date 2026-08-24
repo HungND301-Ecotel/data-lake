@@ -428,7 +428,7 @@ const DashboardWare = () => {
                 Lịch sử hoạt động gần đây
               </span>
             </div>
-            <Tag color="blue" className="px-3 py-1">
+            <Tag color="green" className="px-3 py-1">
               {actions.length} bản ghi
             </Tag>
           </div>

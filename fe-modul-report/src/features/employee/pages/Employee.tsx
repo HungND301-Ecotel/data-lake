@@ -195,7 +195,7 @@ const EmployeePage = () => {
       key: "position",
       width: "12%",
       render: (text: string) => (
-        <Tag color="blue" className="px-3 py-1">
+        <Tag color="green" className="px-3 py-1">
           {text}
         </Tag>
       ),
@@ -367,7 +367,7 @@ const EmployeePage = () => {
               <span className="font-medium text-gray-700">
                 Tổng số nhân viên:
               </span>
-              <Tag color="blue" className="font-bold text-base px-3 py-1">
+              <Tag color="green" className="font-bold text-base px-3 py-1">
                 {total}
               </Tag>
             </div>
@@ -655,7 +655,7 @@ const EmployeePage = () => {
                 const dept = departments.find((d) => d.id === props.value);
                 return (
                   <Tag
-                    color="blue"
+                    color="green"
                     closable={props.closable}
                     onClose={props.onClose}
                     className="flex items-center gap-1 my-0.5"

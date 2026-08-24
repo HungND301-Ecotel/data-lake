@@ -134,7 +134,7 @@ export default function MappingApplyForm({ savedMappings, databases, applying, o
           <Form.Item noStyle shouldUpdate={(prev, cur) => prev.dry_run !== cur.dry_run}>
             {({ getFieldValue }) =>
               getFieldValue("dry_run") && (
-                <Tag icon={<EyeOutlined />} color="blue">Chế độ xem trước - không thay đổi dữ liệu</Tag>
+                <Tag icon={<EyeOutlined />} color="green">Chế độ xem trước - không thay đổi dữ liệu</Tag>
               )
             }
           </Form.Item>

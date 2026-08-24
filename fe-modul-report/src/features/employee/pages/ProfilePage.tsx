@@ -160,7 +160,7 @@ const ProfilePage: React.FC = () => {
             <div className="text-gray-500">{profile?.position}</div>
 
             <div className="mt-2">
-              <Tag color="blue">{account?.role}</Tag>
+              <Tag color="green">{account?.role}</Tag>
 
               <Tag color={account?.status ? "green" : "red"}>
                 {account?.status ? "Hoạt động" : "Khóa"}

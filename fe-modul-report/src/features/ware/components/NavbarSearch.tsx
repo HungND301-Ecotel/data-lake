@@ -193,7 +193,7 @@ const NavbarSearch = ({
 
           <div className="flex-1 flex justify-end items-center gap-2">
             {tableLabel ? (
-              <Tag color="blue" className="mr-0! max-w-[260px] truncate">
+              <Tag color="green" className="mr-0! max-w-[260px] truncate">
                 {tableLabel}
               </Tag>
             ) : null}
@@ -253,7 +253,7 @@ const NavbarSearch = ({
                 <div>
                   <div className="font-semibold">{item.tableName}</div>
                   <div className="text-xs text-gray-500">
-                    Mã: <Tag color="blue">{item.tableCode}</Tag>
+                    Mã: <Tag color="green">{item.tableCode}</Tag>
                   </div>
                 </div>
               </List.Item>

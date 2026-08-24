@@ -180,7 +180,7 @@ export default function CatalogPage() {
                       dataIndex: "current_version",
                       width: 110,
                       render: (value: string | null) =>
-                        value ? <Tag color="blue">v{value}</Tag> : "—",
+                        value ? <Tag color="green">v{value}</Tag> : "—",
                     },
                     { title: "Chủ sở hữu", dataIndex: "owner_user", width: 150 },
                     {

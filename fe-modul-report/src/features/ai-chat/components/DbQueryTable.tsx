@@ -85,7 +85,7 @@ const DbQueryTable: React.FC<DbQueryTableProps> = ({ dbQuery }) => {
         <div className="flex items-center gap-2">
           <DatabaseOutlined className="text-blue-500" />
           <Text strong className="text-sm">Kết quả truy vấn SQL</Text>
-          <Tag color="blue">{dbQuery.source}</Tag>
+          <Tag color="green">{dbQuery.source}</Tag>
           <Tag color="green">{dbQuery.total_rows} dòng</Tag>
         </div>
       }

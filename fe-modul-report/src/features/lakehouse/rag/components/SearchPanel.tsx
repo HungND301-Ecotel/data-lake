@@ -43,7 +43,7 @@ export default function SearchPanel({ results, loading, onSearch }: Props) {
                   </Paragraph>
                 )}
                 <div>
-                  {item.raw && <Tag color="blue">Raw</Tag>}
+                  {item.raw && <Tag color="green">Raw</Tag>}
                   {item.bronze && <Tag color="orange">Bronze</Tag>}
                   {item.silver && <Tag color="green">Silver</Tag>}
                   {item.gold && item.gold.length > 0 && <Tag color="gold">Gold ({item.gold.length})</Tag>}
