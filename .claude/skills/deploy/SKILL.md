@@ -156,3 +156,22 @@ Vài điểm khi dựng lại:
 - Dataset Gold không công bố được nếu chưa có dòng dữ liệu thật: luật chất lượng
   trả `UNKNOWN` ("không có dòng nào để đánh giá") chứ không tự coi là đạt.
   Dataset Silver thì công bố thẳng, dùng nó khi cần một bản PUBLISHED để minh hoạ.
+
+## Đừng build song song trên máy chủ này
+
+Máy dùng chung với 4 hệ staging khác, 30 GB RAM và thường xuyên đã dùng ~27 GB.
+Một lần chạy `docker compose build worker frontend` (hai dịch vụ cùng lúc) đã đẩy
+load average lên **690**, RAM về 0 khả dụng, và sshd không bắt tay nổi trong hơn
+mười lăm phút — máy vẫn trả lời ping nhưng mọi cổng TCP đều chết. Toàn bộ
+container bị OOM và chỉ tự dậy lại sau khi build bị giết.
+
+Quy tắc rút ra:
+
+- **Build từng dịch vụ một.** `npm i` + `vite build` của frontend đủ nặng để một
+  mình nó chiếm phần lớn phần RAM còn trống.
+- **Xem `uptime` và `free -g` trước khi build.** Load hai chữ số trở lên hoặc
+  `available` dưới 3 GB thì chờ, đừng khởi động thêm.
+- **Nếu mất SSH**: kiên nhẫn thử lại, không reboot. Kết nối sẽ vào được khi load
+  hạ; lúc đó `pkill -f "compose build"` rồi `docker builder prune -f`.
+- Sau khi giết build, các container tự khởi động lại theo `restart:
+  unless-stopped` — kiểm tra bằng HTTP chứ đừng chờ SSH ổn định trước.

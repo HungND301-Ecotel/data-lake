@@ -48,6 +48,7 @@ import IamAdminPage from "../features/auth/pages/IamAdminPage";
 import GovernedChatPage from "../features/ingestion/pages/GovernedChatPage";
 import ModelRegistryPage from "../features/ingestion/pages/ModelRegistryPage";
 import GovernedReportPage from "../features/report-governed/pages/GovernedReportPage";
+import LakehouseDashboardPage from "../features/ingestion/pages/LakehouseDashboardPage";
 import CatalogPage from "../features/ingestion/pages/CatalogPage";
 import DynamicApiPage from "../features/ingestion/pages/DynamicApiPage";
 import BiIntegrationPage from "../features/ingestion/pages/BiIntegrationPage";
@@ -95,6 +96,7 @@ export const router = createBrowserRouter([
       // AI Chat có kiểm soát (M09)
       { path: "/lakehouse/chat", element: <GovernedChatPage /> },
       { path: "/lakehouse/models", element: <ModelRegistryPage /> },
+      { path: "/lakehouse/dashboard", element: <LakehouseDashboardPage /> },
       { path: "/lakehouse/catalog", element: <CatalogPage /> },
       { path: "/lakehouse/api-products", element: <DynamicApiPage /> },
       { path: "/lakehouse/bi", element: <BiIntegrationPage /> },

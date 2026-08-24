@@ -35,6 +35,7 @@ import {
   ShareAltOutlined,
   FunctionOutlined,
   SolutionOutlined,
+  DashboardOutlined,
   LinkOutlined,
   NodeIndexOutlined,
   PieChartOutlined,
@@ -548,6 +549,13 @@ export default function NavBar() {
   const lakehouseMenu = (
     <Menu
       items={[
+        {
+          key: "overview",
+          icon: <DashboardOutlined className="text-lg" />,
+          label: <span className="text-base font-medium">Tổng quan</span>,
+          onClick: () => navigate("/lakehouse/dashboard"),
+          className: "py-3 px-4 hover:bg-[#f0f9f4]!",
+        },
         {
           key: "sources",
           icon: <LinkOutlined className="text-lg" />,
