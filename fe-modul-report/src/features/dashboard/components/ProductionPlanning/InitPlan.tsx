@@ -307,7 +307,7 @@ export function InitPlan({
             type="button"
             onClick={() => handleAddInline(null)}
             disabled={!selectedWorkshop}
-            className="w-full bg-[#1a8649] text-white border-0 py-2.5 px-4 rounded-lg font-semibold text-xs cursor-pointer flex items-center justify-center gap-2 hover:bg-[#15703d] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-blue-600 text-white border-0 py-2.5 px-4 rounded-lg font-semibold text-xs cursor-pointer flex items-center justify-center gap-2 hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <PlusCircle size={15} /> Thêm chỉ tiêu gốc
           </button>
@@ -352,7 +352,7 @@ export function InitPlan({
                 </tr>
               ) : (
                 <>
-                  <tr className="bg-[#1a8649]/10 border-b border-[#1a8649]/20">
+                  <tr className="bg-blue-600/10 border-b border-[#1a8649]/20">
                     <td
                       colSpan={5}
                       className="p-3 font-bold text-[#1a8649] text-xs uppercase"

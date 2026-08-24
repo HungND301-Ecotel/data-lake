@@ -572,7 +572,7 @@ export const WareBatchForManagement: React.FC = () => {
                 .ant-input:focus,
                 .ant-input-affix-wrapper:focus,
                 .ant-input-affix-wrapper-focused {
-                    border-color: #3b82f6;
+                    border-color: #1a8649;
                     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
                 }
                 .line-clamp-2 {

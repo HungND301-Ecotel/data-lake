@@ -454,7 +454,7 @@ export function TargetMonthCalendar({
       {/* Day Editor */}
       {isEditingDay && (
         <div className="w-full lg:w-[480px] bg-white rounded-xl border border-slate-200 overflow-hidden flex flex-col shrink-0">
-          <div className="p-4 border-b border-slate-100 bg-[#1a8649]/5 shrink-0">
+          <div className="p-4 border-b border-slate-100 bg-blue-600/5 shrink-0">
             <h5 className="font-bold text-slate-800 uppercase">
               NHẬP DỮ LIỆU: NGÀY {selectedDate.format("DD/MM/YYYY")}
             </h5>
@@ -513,7 +513,7 @@ export function TargetMonthCalendar({
             <button
               onClick={handleConfirmSave}
               disabled={saving || !isValid}
-              className="bg-[#1a8649] text-white border-0 rounded-lg py-2 px-5 font-semibold text-xs cursor-pointer hover:bg-[#15703d] transition-all shadow-md shadow-[#1a8649]/15 disabled:bg-slate-300 disabled:cursor-not-allowed"
+              className="bg-blue-600 text-white border-0 rounded-lg py-2 px-5 font-semibold text-xs cursor-pointer hover:bg-blue-700 transition-all shadow-md shadow-[#1a8649]/15 disabled:bg-slate-300 disabled:cursor-not-allowed"
             >
               {saving ? "Đang lưu..." : "Xác nhận"}
             </button>

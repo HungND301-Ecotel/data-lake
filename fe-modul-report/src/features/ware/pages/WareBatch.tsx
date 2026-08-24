@@ -409,7 +409,7 @@ export const WareBatch: React.FC<WareBatchProps> = ({ templateIdProp }) => {
                   {breadcrumbFromUrl?.departmentName && (
                     <>
                       <div className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 rounded-md border border-blue-100">
-                        <TeamOutlined style={{ fontSize: 11, color: "#1976D2" }} />
+                        <TeamOutlined style={{ fontSize: 11, color: "#1a8649" }} />
                         <span className="text-xs font-medium text-blue-700">{breadcrumbFromUrl.departmentName}</span>
                       </div>
                       <RightOutlined style={{ fontSize: 9, color: "#9ca3af" }} />
@@ -638,7 +638,7 @@ export const WareBatch: React.FC<WareBatchProps> = ({ templateIdProp }) => {
         .ant-table-row { transition: all 0.2s ease; }
         .ant-table-row:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
         .ant-input:focus, .ant-input-affix-wrapper:focus, .ant-input-affix-wrapper-focused {
-          border-color: #3b82f6;
+          border-color: #1a8649;
           box-shadow: 0 0 0 2px rgba(59,130,246,0.1);
         }
       `}</style>

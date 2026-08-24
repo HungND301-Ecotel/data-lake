@@ -2,6 +2,32 @@
 
 @theme {
   --font-mono: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Thang màu "blue" được ánh xạ lại thành xanh lá thương hiệu (#1a8649).
+   *
+   * Toàn bộ giao diện vốn dùng bg-blue-50, text-blue-600, border-blue-200…
+   * làm màu nhấn, trong khi thanh tiêu đề và nút đăng nhập lại xanh lá. Kết
+   * quả là hai hệ màu cùng tồn tại trên một màn hình: mục menu đang chọn nền
+   * xanh dương nằm ngay dưới thanh tiêu đề xanh lá.
+   *
+   * Đổi tại đây thay vì sửa hơn sáu mươi chỗ gọi: một nguồn duy nhất, và lần
+   * sau ai viết bg-blue-500 vẫn ra đúng màu thương hiệu.
+   *
+   * Lưu ý cho người đọc mã sau này: lớp vẫn tên là "blue" nhưng hiện màu
+   * xanh lá. Cần một màu xanh dương thật (ví dụ dải màu biểu đồ) thì dùng giá
+   * trị tuỳ ý như bg-[#3b82f6], đừng dùng bg-blue-*.
+   */
+  --color-blue-50: #f0f9f4;
+  --color-blue-100: #d9f0e2;
+  --color-blue-200: #b3e1c6;
+  --color-blue-300: #7fcca2;
+  --color-blue-400: #46b17c;
+  --color-blue-500: #1f9a5c;
+  --color-blue-600: #1a8649;
+  --color-blue-700: #15703d;
+  --color-blue-800: #115a31;
+  --color-blue-900: #0d4526;
+  --color-blue-950: #062a17;
 }
 
 body, button, input, select, textarea {

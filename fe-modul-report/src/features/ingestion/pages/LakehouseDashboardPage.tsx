@@ -29,6 +29,7 @@ import overviewApi, {
   type ViecCanLam,
 } from "../api/overviewApi";
 import { formatTime } from "../components/statusTags";
+import { CAM_CANH_BAO, DO_LOI } from "../../../theme/thuongHieu";
 
 const { Text, Title, Paragraph } = Typography;
 
@@ -172,21 +173,38 @@ function ONumber({ tieu_de, so, hau_to, mo_ta, duong_dan, theo, mau }: OProps) {
   );
 }
 
-export default function LakehouseDashboardPage() {
+interface Props {
+  /** Bật khi trang này nằm bên trong một trang khác (ví dụ trang chủ): bỏ đệm
+   *  ngoài, và im lặng biến mất nếu người xem không có quyền — trang chủ dành
+   *  cho mọi người, không nên ném lỗi vào mặt người vốn không cần khối này. */
+  nhung?: boolean;
+}
+
+export default function LakehouseDashboardPage({ nhung = false }: Props) {
   const navigate = useNavigate();
   const [dang_tai, setDangTai] = useState(true);
   const [du_lieu, setDuLieu] = useState<TongQuan | null>(null);
+  const [khong_du_quyen, setKhongDuQuyen] = useState(false);
 
-  const tai = useCallback(async (im_lang = false) => {
-    if (!im_lang) setDangTai(true);
-    try {
-      setDuLieu(await overviewApi.tongQuan());
-    } catch {
-      message.error("Không lấy được số liệu tổng quan");
-    } finally {
-      setDangTai(false);
-    }
-  }, []);
+  const tai = useCallback(
+    async (im_lang = false) => {
+      if (!im_lang) setDangTai(true);
+      try {
+        setDuLieu(await overviewApi.tongQuan());
+        setKhongDuQuyen(false);
+      } catch (loi) {
+        const ma = (loi as { response?: { status?: number } })?.response?.status;
+        if (ma === 401 || ma === 403) {
+          setKhongDuQuyen(true);
+        } else if (!nhung) {
+          message.error("Không lấy được số liệu tổng quan");
+        }
+      } finally {
+        setDangTai(false);
+      }
+    },
+    [nhung],
+  );
 
   useEffect(() => {
     tai();
@@ -223,6 +241,19 @@ export default function LakehouseDashboardPage() {
     [],
   );
 
+  if (khong_du_quyen) {
+    if (nhung) return null;
+    return (
+      <Alert
+        type="info"
+        showIcon
+        style={{ margin: 24 }}
+        message="Bạn chưa có quyền xem số liệu kho dữ liệu"
+        description="Cần quyền đọc dữ liệu (data.read). Liên hệ quản trị hệ thống nếu công việc của bạn cần tới."
+      />
+    );
+  }
+
   if (dang_tai && !du_lieu) {
     return (
       <div style={{ padding: 48, textAlign: "center" }}>
@@ -232,6 +263,7 @@ export default function LakehouseDashboardPage() {
   }
 
   if (!du_lieu) {
+    if (nhung) return null;
     return <Empty description="Chưa có số liệu" style={{ marginTop: 64 }} />;
   }
 
@@ -251,7 +283,7 @@ export default function LakehouseDashboardPage() {
   } = du_lieu;
 
   return (
-    <div style={{ padding: 16 }}>
+    <div style={{ padding: nhung ? 0 : 16 }}>
       <Row justify="space-between" align="middle" style={{ marginBottom: 12 }}>
         <Col>
           <Title level={4} style={{ margin: 0 }}>
@@ -350,7 +382,7 @@ export default function LakehouseDashboardPage() {
                   ? `${hang_doi.dlq} việc nằm trong hàng đợi thất bại`
                   : "Hàng đợi thất bại đang rỗng"
               }
-              mau={hang_doi.dlq ? "#cf1322" : undefined}
+              mau={hang_doi.dlq ? DO_LOI : undefined}
               theo={hang_doi.theo_trang_thai}
               duong_dan="/lakehouse/jobs"
             />
@@ -407,7 +439,7 @@ export default function LakehouseDashboardPage() {
                     value={chat_luong.issue_dang_mo}
                     valueStyle={{
                       fontSize: 20,
-                      color: chat_luong.issue_dang_mo ? "#d46b08" : undefined,
+                      color: chat_luong.issue_dang_mo ? CAM_CANH_BAO : undefined,
                     }}
                   />
                 </Col>
@@ -419,7 +451,7 @@ export default function LakehouseDashboardPage() {
                       valueStyle={{
                         fontSize: 20,
                         color: chat_luong.dataset_dang_bi_chan
-                          ? "#cf1322"
+                          ? DO_LOI
                           : undefined,
                       }}
                     />
@@ -450,7 +482,7 @@ export default function LakehouseDashboardPage() {
                 title="Chờ bạn quyết định"
                 value={phe_duyet.cho_ban_quyet_dinh}
                 valueStyle={{
-                  color: phe_duyet.cho_ban_quyet_dinh ? "#d46b08" : undefined,
+                  color: phe_duyet.cho_ban_quyet_dinh ? CAM_CANH_BAO : undefined,
                 }}
               />
               <Paragraph type="secondary" style={{ fontSize: 12, marginTop: 4 }}>

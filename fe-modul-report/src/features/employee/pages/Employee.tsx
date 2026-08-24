@@ -794,11 +794,11 @@ const EmployeePage = () => {
           transition: all 0.3s ease;
         }
         .ant-input:focus, .ant-input-affix-wrapper:focus, .ant-input-affix-wrapper-focused {
-          border-color: #3b82f6;
+          border-color: #1a8649;
           box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
         }
         .ant-select-focused .ant-select-selector {
-          border-color: #3b82f6 !important;
+          border-color: #1a8649 !important;
           box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1) !important;
         }
         .bg-gradient-to-br {

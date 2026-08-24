@@ -255,7 +255,7 @@ const DashboardWare = () => {
           <Card
             className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-0"
             style={{
-              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              background: "linear-gradient(135deg, #0d4526 0%, #1a8649 100%)",
             }}
           >
             <Statistic
@@ -283,7 +283,7 @@ const DashboardWare = () => {
           <Card
             className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-0"
             style={{
-              background: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+              background: "linear-gradient(135deg, #115a31 0%, #1f9a5c 100%)",
             }}
           >
             <Statistic
@@ -311,7 +311,7 @@ const DashboardWare = () => {
           <Card
             className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-0"
             style={{
-              background: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+              background: "linear-gradient(135deg, #15703d 0%, #46b17c 100%)",
             }}
           >
             <Statistic
@@ -339,7 +339,7 @@ const DashboardWare = () => {
           <Card
             className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-0"
             style={{
-              background: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+              background: "linear-gradient(135deg, #1a8649 0%, #52b788 100%)",
             }}
           >
             <Statistic
@@ -423,7 +423,7 @@ const DashboardWare = () => {
         title={
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <div className="w-1 h-6 bg-purple-500 rounded mr-3"></div>
+              <div className="w-1 h-6 bg-blue-500 rounded mr-3"></div>
               <span className="text-lg font-semibold text-gray-800">
                 Lịch sử hoạt động gần đây
               </span>

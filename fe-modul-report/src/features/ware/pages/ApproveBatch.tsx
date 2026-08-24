@@ -706,7 +706,7 @@ export const ApproveBatch: React.FC = () => {
                 .ant-table-header .ant-table-cell { background: linear-gradient(to right, #f3f4f6, #e5e7eb); font-weight: 600; color: #374151; }
                 .ant-table-row { transition: all 0.2s ease; }
                 .ant-table-row:hover { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
-                .ant-input:focus, .ant-input-affix-wrapper:focus, .ant-input-affix-wrapper-focused { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
+                .ant-input:focus, .ant-input-affix-wrapper:focus, .ant-input-affix-wrapper-focused { border-color: #1a8649; box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
                 .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
             `}</style>
     </div>

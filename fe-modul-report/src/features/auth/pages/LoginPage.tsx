@@ -112,7 +112,7 @@ const LoginPage = () => {
   return (
     <div className="relative flex flex-col min-h-screen overflow-hidden">
       {/* Header */}
-      <header className="h-auto border-b bg-[#1a8649] backdrop-blur flex items-center justify-center px-6 relative z-20">
+      <header className="h-auto border-b bg-blue-600 backdrop-blur flex items-center justify-center px-6 relative z-20">
         <div className="flex items-center gap-3 text-primary-foreground py-4">
           <span className="flex flex-col gap-1 text-white">
             <div className="text-base sm:text-5xl font-bold text-center">

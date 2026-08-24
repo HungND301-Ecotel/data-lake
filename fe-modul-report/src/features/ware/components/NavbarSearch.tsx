@@ -201,7 +201,7 @@ const NavbarSearch = ({
               size="large"
               type="primary"
               icon={<SearchOutlined />}
-              className="bg-[#1976D2]! hover:bg-blue-700!"
+              className="bg-blue-600! hover:bg-blue-700!"
               onClick={() => {
                 void handleSearch();
               }}

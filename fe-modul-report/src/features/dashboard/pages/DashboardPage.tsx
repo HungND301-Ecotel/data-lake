@@ -926,7 +926,7 @@ export default function DashboardPage() {
                 <Settings size={16} /> Cấu hình Server kết nối
               </button>
               <button
-                className="bg-[#1a8649] text-white border-0 rounded-lg py-2.5 px-5 font-semibold text-xs cursor-pointer flex items-center gap-2 transition-all hover:bg-[#15703d] hover:-translate-y-0.5 shadow-md shadow-teal-900/15 disabled:bg-slate-300 disabled:cursor-not-allowed disabled:transform-none"
+                className="bg-blue-600 text-white border-0 rounded-lg py-2.5 px-5 font-semibold text-xs cursor-pointer flex items-center gap-2 transition-all hover:bg-blue-700 hover:-translate-y-0.5 shadow-md shadow-teal-900/15 disabled:bg-slate-300 disabled:cursor-not-allowed disabled:transform-none"
                 onClick={handleSync}
                 disabled={syncing}
               >
@@ -942,7 +942,7 @@ export default function DashboardPage() {
                 )}
               </button>
               <button
-                className="bg-[#1a8649] text-white border-0 rounded-lg py-2.5 px-5 font-semibold text-xs cursor-pointer flex items-center gap-2 transition-all hover:bg-[#15703d] hover:-translate-y-0.5 shadow-md shadow-teal-900/15"
+                className="bg-blue-600 text-white border-0 rounded-lg py-2.5 px-5 font-semibold text-xs cursor-pointer flex items-center gap-2 transition-all hover:bg-blue-700 hover:-translate-y-0.5 shadow-md shadow-teal-900/15"
                 onClick={() => setShowPlanModal(true)}
               >
                 <PlusCircle size={16} /> Lập kế hoạch
@@ -959,7 +959,7 @@ export default function DashboardPage() {
                     key={period}
                     className={`border px-4 py-2 rounded-lg cursor-pointer text-xs font-medium transition-all ${
                       timePeriod === period
-                        ? "bg-[#1a8649] border-[#1a8649] text-white shadow-[0_4px_10px_rgba(15,118,110,0.15)]"
+                        ? "bg-blue-600 border-[#1a8649] text-white shadow-[0_4px_10px_rgba(15,118,110,0.15)]"
                         : "bg-slate-50 border-slate-100 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                     }`}
                     onClick={() => setTimePeriod(period)}
@@ -1628,7 +1628,7 @@ export default function DashboardPage() {
                             </button>
                             <button
                               onClick={() => handleTrinhDuyet(report.code)}
-                              className="flex-1 bg-[#1a8649] hover:bg-[#15703d] text-white font-semibold text-xs py-2 px-2 rounded-lg border-0 cursor-pointer transition-all active:scale-[0.98] text-center shadow-sm"
+                              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-2 px-2 rounded-lg border-0 cursor-pointer transition-all active:scale-[0.98] text-center shadow-sm"
                             >
                               Trình duyệt
                             </button>

@@ -21,7 +21,7 @@ export function PlanModal({ onClose }: PlanModalProps) {
         {/* Header */}
         <div className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center shrink-0 relative">
           <div className="flex items-center gap-3 z-10">
-            <div className="w-10 h-10 rounded-xl bg-[#1a8649]/10 text-[#1a8649] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-blue-600/10 text-[#1a8649] flex items-center justify-center">
               <TrendingUp size={22} />
             </div>
             <div>

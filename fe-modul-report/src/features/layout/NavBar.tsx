@@ -279,7 +279,7 @@ const QuickInputPanel = ({
                   style={{ width: 36, height: 36, flexShrink: 0 }}
                 >
                   <FileTextOutlined
-                    style={{ color: "#1976D2", fontSize: 16 }}
+                    style={{ color: "#1a8649", fontSize: 16 }}
                   />
                 </div>
                 <div className="min-w-0">
@@ -741,7 +741,7 @@ export default function NavBar() {
 
   return (
     <>
-      <nav className="top-0 z-50 bg-[#1a8649] flex items-center px-8 py-3 gap-2 shadow-lg border-b border-[#0a5232]">
+      <nav className="top-0 z-50 bg-blue-600 flex items-center px-8 py-3 gap-2 shadow-lg border-b border-[#0a5232]">
         {/* Back Button */}
         <Button
           type="text"

@@ -19,7 +19,7 @@ import WareTemplate from "../features/ware/pages/WareTemplate";
 import { WareBatch } from "../features/ware/pages/WareBatch";
 import { TemplateDetail } from "../features/ware/pages/WareTemplateDetail";
 import { WareBatchDetail } from "../features/ware/pages/WareBatchDetail";
-import DashboardWare from "../features/ware/pages/WareBatchDasboard";
+import TrangChuPage from "../features/layout/pages/TrangChuPage";
 import SearchMasterData from "../features/ware/pages/WareMasterData";
 import ReportTargetsPage from "../features/dashboard/pages/ReportTarget";
 import { WareBatchForManagement } from "../features/ware/pages/WareBatchForManage";
@@ -66,9 +66,9 @@ export const router = createBrowserRouter([
     path: "/",
     element: <MainLayout />,
     children: [
-      { path: "/", element: <DashboardWare /> },
+      { path: "/", element: <TrangChuPage /> },
       { path: "/report-targets", element: <ReportTargetsPage /> },
-      { path: "/dashboard", element: <DashboardWare /> },
+      { path: "/dashboard", element: <TrangChuPage /> },
 
       // DataLake AI routes
       { path: "/ai-chat", element: <AiChatPage /> },

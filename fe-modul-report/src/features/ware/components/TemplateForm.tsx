@@ -574,7 +574,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
                 size="large"
                 icon={hasApprovalConfigs ? <EditOutlined /> : <PlusOutlined />}
                 onClick={handleOpenApprovalModal}
-                className="bg-[#1976D2]! hover:bg-blue-700! h-10 px-6"
+                className="bg-blue-600! hover:bg-blue-700! h-10 px-6"
               >
                 {hasApprovalConfigs
                   ? "Chỉnh sửa người duyệt"
@@ -918,7 +918,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
           border-radius: 8px 8px 0 0;
         }
         .modern-tabs .ant-tabs-ink-bar {
-          background: #3b82f6;
+          background: #1a8649;
           height: 3px;
         }
         .ant-card {
@@ -927,7 +927,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId }) => {
         .ant-input:focus,
         .ant-input-affix-wrapper:focus,
         .ant-input-affix-wrapper-focused {
-          border-color: #3b82f6;
+          border-color: #1a8649;
           box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
         }
         .bg-gradient-to-br {
