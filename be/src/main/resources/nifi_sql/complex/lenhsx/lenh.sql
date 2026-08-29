@@ -1,0 +1,4 @@
+SELECT PR_KEY, TRAN_ID, NGAY_VAO_SO, SO_CTU, CA, CAN_CU, MA_NHOM_LSX, DIEN_GIAI,
+                       MA_NGIAO, NGUOI_GIAO, NGUOI_NHAN, USER_ID, USER_TIME, MA_CA, MA_PBAN, MA_TO
+                FROM dbo.LENH
+                WHERE USER_TIME > ?

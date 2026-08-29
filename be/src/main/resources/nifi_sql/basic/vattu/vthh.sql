@@ -1,0 +1,20 @@
+ SELECT
+                    MA_DON_VI,
+                    NGAY_VAO_SO,
+                    NGAY_CTU,
+                    MA_VTHH1,
+                    TEN_VTHH1,
+                    TEN_DVT,
+                    MA_PTNX,
+                    MA_DTPN,
+                    MA_NHOM_DTPN,
+                    TRAN_CLASS,
+                    SO_LUONG_BC,
+                    PR_KEY,
+                    TEN_VTHH,
+                    MA_LOAI_DTPN,
+                    USER_TIME,
+                    MA_NHOM_VTHH,
+                    TEN_NHOM_VTHH,
+                    MA_VTHH
+                FROM dbo.VTHH_VIEW;

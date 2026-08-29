@@ -1,6 +1,9 @@
 package com.quangnt0000.be_modul.config;
 
 import io.netty.channel.ChannelOption;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import org.springframework.context.annotation.Bean;
@@ -14,6 +17,8 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
+
+import javax.net.ssl.SSLException;
 
 @Configuration
 public class WebClientConfig {
@@ -48,5 +53,27 @@ public class WebClientConfig {
         return WebClient.builder()
                 .baseUrl(dataLakeBaseUrl)
                 .build();
+    }
+
+    @Bean
+    @Qualifier("nifiWebClient")
+    public WebClient nifiWebClient() {
+            String nifiBaseUrl = "https://localhost:8443/nifi-api/";
+            try {
+                    SslContext sslContext = SslContextBuilder.forClient()
+                                    .trustManager(InsecureTrustManagerFactory.INSTANCE)
+                                    .build();
+
+                    HttpClient httpClient = HttpClient.create()
+                                    .secure(spec -> spec.sslContext(sslContext));
+
+                    return WebClient.builder()
+                                    .baseUrl(nifiBaseUrl)
+                                    .clientConnector(new ReactorClientHttpConnector(httpClient))
+                                    .build();
+
+            } catch (SSLException e) {
+                    throw new RuntimeException(e);
+            }
     }
 }

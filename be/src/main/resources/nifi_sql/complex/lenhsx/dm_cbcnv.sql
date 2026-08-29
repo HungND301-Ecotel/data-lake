@@ -1,0 +1,11 @@
+ SELECT
+    MA_CBCNV,
+    TEN_CBCNV,
+    MA_NHOM_CBCNV,
+    DIA_CHI,
+    MA_PBAN,
+    MA_CVU,
+    MA_CONG_VIEC,
+    USER_TIME,
+    ACTIVE
+    FROM dbo.DM_CBCNV WHERE USER_TIME > ?
