@@ -142,6 +142,7 @@ npm run dev
 |--------|-----------|-------------|-------------|
 | `uongbi` | `#1a8649` (xanh lá) | Local | JAR + npm (start-local.sh) |
 | `deonaicocsau` | `#1976D2` (xanh dương) | Staging server | GitHub Actions CI/CD |
+| `quanghanh` | `#00695c` (xanh ngọc) | 1305 / 3605 | GitHub Actions CI/CD |
 
 ---
 

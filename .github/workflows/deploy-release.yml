@@ -38,7 +38,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tenant: [nammau]
+        tenant: [quanghanh]
 
     steps:
       - name: Checkout repository
