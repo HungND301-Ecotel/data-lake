@@ -25,6 +25,7 @@ import com.quangnt0000.be_modul.repository.DataWH.*;
 import com.quangnt0000.be_modul.service.S3Service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +36,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.*;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class WareBatchService {
@@ -62,23 +64,86 @@ public class WareBatchService {
         String employeeId = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findById(employeeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "user not found"));
-        List<WareMapping> wareMappings = wareTemplate.getWareMappings();
+
+        // Lấy danh sách mapping trực tiếp từ repository để đảm bảo dữ liệu mới nhất
+        List<WareMapping> wareMappings = wareMappingRepository.findByWareTemplate_IdOrderByIdAsc(wareTemplate.getId());
+        if (wareMappings == null || wareMappings.isEmpty()) {
+            wareMappings = wareTemplate.getWareMappings();
+        }
 
         try {
             Workbook workbook = WorkbookFactory.create(request.getFile().getInputStream());
             // Khởi tạo FormulaEvaluator để xử lý công thức
             formulaEvaluator = workbook.getCreationHelper().createFormulaEvaluator();
-            Sheet sheet = workbook.getSheetAt(0);
+
+            int startRowIndex = (wareTemplate.getStartRow() != null ? wareTemplate.getStartRow() : 1) - 1;
+            int consecutiveEmptyRows = 0;
+            int maxConsecutiveEmpty = 10;
+
+            log.info("=== BẮT ĐẦU ĐỌC EXCEL BATCH ===");
+            log.info("Template ID: {}, Tên: '{}', startRow cấu hình: {} (index POI: {})",
+                    wareTemplate.getId(), wareTemplate.getName(), wareTemplate.getStartRow(), startRowIndex);
+            log.info("Tổng số sheet trong file: {}", workbook.getNumberOfSheets());
+            for (int s = 0; s < workbook.getNumberOfSheets(); s++) {
+                log.info("  -> Sheet [{}]: '{}' (tổng số dòng: {})", s, workbook.getSheetName(s), workbook.getSheetAt(s).getLastRowNum() + 1);
+            }
+
+            // Tự động tìm sheet chứa dữ liệu báo cáo (ưu tiên Template_Import hoặc sheet có nhiều dòng nhất)
+            Sheet sheet = null;
+            int maxRows = -1;
+            for (int s = 0; s < workbook.getNumberOfSheets(); s++) {
+                Sheet curSheet = workbook.getSheetAt(s);
+                int lastRow = curSheet.getLastRowNum();
+                if (lastRow < 0 || "Kangatang".equalsIgnoreCase(curSheet.getSheetName())) {
+                    continue;
+                }
+                if ("Template_Import".equalsIgnoreCase(curSheet.getSheetName()) ||
+                        curSheet.getSheetName().toLowerCase().contains("template")) {
+                    sheet = curSheet;
+                    break;
+                }
+                if (lastRow > maxRows) {
+                    maxRows = lastRow;
+                    sheet = curSheet;
+                }
+            }
+            if (sheet == null) {
+                sheet = workbook.getSheetAt(0);
+            }
+
+            log.info("Đã chọn xử lý Sheet: '{}' (vị trí index: {}, tổng số dòng: {})",
+                    sheet.getSheetName(), workbook.getSheetIndex(sheet), sheet.getLastRowNum() + 1);
+            log.info("Tổng số cột mapping cấu hình: {}", wareMappings != null ? wareMappings.size() : 0);
+            if (wareMappings != null) {
+                for (WareMapping wm : wareMappings) {
+                    log.info("  [Mapping] fieldName: '{}', fieldTitle: '{}', fieldType: '{}', cellAddress: '{}', fieldValue: '{}'",
+                            wm.getFieldName(), wm.getFieldTitle(), wm.getFieldType(), wm.getCellAddress(), wm.getFieldValue());
+                }
+            }
 
             List<Map<String, Object>> rows = new ArrayList<>();
 
-            for (int i = wareTemplate.getStartRow() - 1; i <= sheet.getLastRowNum(); i++) {
+            for (int i = Math.max(0, startRowIndex); i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
-                if (row == null) break;
+                if (row == null) {
+                    consecutiveEmptyRows++;
+                    if (consecutiveEmptyRows >= maxConsecutiveEmpty) {
+                        log.info("Dừng đọc sheet tại dòng Excel {} do gặp liên tiếp {} dòng null", i + 1, consecutiveEmptyRows);
+                        break;
+                    }
+                    continue; // Bỏ qua dòng null, tiếp tục quét dòng sau
+                }
 
                 if (isRowEmpty(row, wareMappings)) {
-                    break;
+                    consecutiveEmptyRows++;
+                    if (consecutiveEmptyRows >= maxConsecutiveEmpty) {
+                        log.info("Dừng đọc sheet tại dòng Excel {} do gặp liên tiếp {} dòng trống", i + 1, consecutiveEmptyRows);
+                        break;
+                    }
+                    continue; // Bỏ qua dòng trống, tiếp tục quét dòng sau thay vì dừng cả file
                 }
+
+                consecutiveEmptyRows = 0; // Reset đếm dòng trống khi gặp dòng có dữ liệu
 
                 Map<String, Object> data = new HashMap<>();
 
@@ -89,8 +154,8 @@ public class WareBatchService {
                         case "ROW":
                             int colIndex;
                             try {
-                                colIndex = Integer.parseInt(mapping.getCellAddress()) - 1;
-                            } catch (NumberFormatException e) {
+                                colIndex = Integer.parseInt(mapping.getCellAddress().trim()) - 1;
+                            } catch (Exception e) {
                                 colIndex = 0;
                             }
                             Cell cellRow = row.getCell(colIndex);
@@ -100,13 +165,17 @@ public class WareBatchService {
                         case "CELL":
                             String[] parts = mapping.getCellAddress().split("-");
                             if (parts.length == 2) {
-                                int targetRowNum = Integer.parseInt(parts[0]) - 1;
-                                int targetColNum = Integer.parseInt(parts[1]) - 1;
-                                Row targetRow = sheet.getRow(targetRowNum);
-                                if (targetRow != null) {
-                                    Cell targetCell = targetRow.getCell(targetColNum);
-                                    value = (targetCell != null) ? parseCell(targetCell, mapping.getFieldValue()) : null;
-                                } else {
+                                try {
+                                    int targetRowNum = Integer.parseInt(parts[0].trim()) - 1;
+                                    int targetColNum = Integer.parseInt(parts[1].trim()) - 1;
+                                    Row targetRow = sheet.getRow(targetRowNum);
+                                    if (targetRow != null) {
+                                        Cell targetCell = targetRow.getCell(targetColNum);
+                                        value = (targetCell != null) ? parseCell(targetCell, mapping.getFieldValue()) : null;
+                                    } else {
+                                        value = mapping.getFieldValue();
+                                    }
+                                } catch (Exception e) {
                                     value = mapping.getFieldValue();
                                 }
                             } else {
@@ -122,20 +191,26 @@ public class WareBatchService {
                             value = mapping.getFieldValue();
                     }
 
-
                     data.put(mapping.getFieldName(), value);
                 }
 
                 rows.add(data);
+                log.info("Đã trích xuất dòng Excel {}: {}", i + 1, data);
             }
 
             List<Map<String, Object>> validRows = rows.stream()
                     .filter(row -> !isDataRowEmpty(row))
                     .toList();
 
+            log.info("Tổng số dòng trích xuất được: {}, số dòng hợp lệ: {}", rows.size(), validRows.size());
+
             if (validRows.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("File báo cáo không có dữ liệu. Vui lòng kiểm tra và upload lại file.");
+                String errorMsg = String.format(
+                        "File báo cáo không có dữ liệu (startRow cấu hình: %d, sheet đang đọc: '%s' có %d dòng, số dòng trích xuất được: %d). Vui lòng kiểm tra lại dòng bắt đầu hoặc sheet chứa dữ liệu trong file.",
+                        wareTemplate.getStartRow(), sheet.getSheetName(), sheet.getLastRowNum() + 1, rows.size()
+                );
+                log.warn(errorMsg);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMsg);
             }
 
             // Lưu WareBatch
@@ -210,11 +285,14 @@ public class WareBatchService {
 //    }
 
     private boolean isRowEmpty(Row row, List<WareMapping> mappings) {
+        if (row == null || mappings == null) return true;
         for (WareMapping mapping : mappings) {
             if (!"ROW".equals(mapping.getFieldType())) continue;
+            if (mapping.getCellAddress() == null || mapping.getCellAddress().trim().isEmpty()) continue;
 
             try {
-                int colIndex = Integer.parseInt(mapping.getCellAddress()) - 1;
+                int colIndex = Integer.parseInt(mapping.getCellAddress().trim()) - 1;
+                if (colIndex < 0) continue;
                 Cell cell = row.getCell(colIndex);
 
                 if (cell == null) continue;
@@ -236,11 +314,10 @@ public class WareBatchService {
                     default:
                         break;
                 }
+            } catch (NumberFormatException ignored) {
+                // Cell address không phải dạng số, bỏ qua kiểm tra
             } catch (Exception e) {
-                throw new ResponseStatusException(
-                        HttpStatus.INTERNAL_SERVER_ERROR,
-                        "Error checking empty row: " + e.getMessage()
-                );
+                log.warn("Lỗi khi kiểm tra cell rỗng tại mapping '{}': {}", mapping.getFieldName(), e.getMessage());
             }
         }
         return true;
@@ -318,12 +395,14 @@ public class WareBatchService {
             return null;
         }
 
-        switch (fieldType) {
+        String typeUpper = (fieldType != null) ? fieldType.trim().toUpperCase() : "";
+
+        switch (typeUpper) {
             case "STRING":
                 switch (cellValue.getCellType()) {
                     case STRING:
                         String strValue = cellValue.getStringValue();
-                        return (strValue == null || strValue.trim().isEmpty()) ? null : strValue;
+                        return (strValue == null || strValue.trim().isEmpty()) ? null : strValue.trim();
                     case NUMERIC:
                         double numValue = cellValue.getNumberValue();
                         if (numValue == Math.floor(numValue) && !Double.isInfinite(numValue)) {
@@ -374,7 +453,22 @@ public class WareBatchService {
                 return null;
 
             default:
-                return null;
+                // Fallback tự động nhận diện theo kiểu của CellValue nếu fieldType chưa cấu hình
+                switch (cellValue.getCellType()) {
+                    case STRING:
+                        String s = cellValue.getStringValue();
+                        return (s == null || s.trim().isEmpty()) ? null : s.trim();
+                    case NUMERIC:
+                        double d = cellValue.getNumberValue();
+                        if (d == Math.floor(d) && !Double.isInfinite(d)) {
+                            return (long) d;
+                        }
+                        return d;
+                    case BOOLEAN:
+                        return cellValue.getBooleanValue();
+                    default:
+                        return null;
+                }
         }
     }
 
@@ -386,15 +480,16 @@ public class WareBatchService {
             return null;
         }
 
-        switch (fieldType) {
+        String typeUpper = (fieldType != null) ? fieldType.trim().toUpperCase() : "";
+
+        switch (typeUpper) {
             case "STRING":
                 switch (cellType) {
                     case STRING:
                         String strValue = cell.getStringCellValue();
-                        return (strValue == null || strValue.trim().isEmpty()) ? null : strValue;
+                        return (strValue == null || strValue.trim().isEmpty()) ? null : strValue.trim();
                     case NUMERIC:
                         if (DateUtil.isCellDateFormatted(cell)) {
-                            // Xử lý ngày tháng nếu cần
                             return cell.getLocalDateTimeCellValue().toString();
                         }
                         double numValue = cell.getNumericCellValue();
@@ -446,7 +541,25 @@ public class WareBatchService {
                 return null;
 
             default:
-                return null;
+                // Fallback tự động nhận diện theo kiểu của Cell nếu fieldType chưa cấu hình
+                switch (cellType) {
+                    case STRING:
+                        String s = cell.getStringCellValue();
+                        return (s == null || s.trim().isEmpty()) ? null : s.trim();
+                    case NUMERIC:
+                        if (DateUtil.isCellDateFormatted(cell)) {
+                            return cell.getLocalDateTimeCellValue().toString();
+                        }
+                        double d = cell.getNumericCellValue();
+                        if (d == Math.floor(d) && !Double.isInfinite(d)) {
+                            return (long) d;
+                        }
+                        return d;
+                    case BOOLEAN:
+                        return cell.getBooleanCellValue();
+                    default:
+                        return null;
+                }
         }
     }
 
