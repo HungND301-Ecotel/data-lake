@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@FeignClient(name = "vinacomin-api", url = "https://Apidatabi.vinacomin.vn/")
+@FeignClient(name = "vinacomin-api", url = "https://Dev-apidatabi.vinacomin.vn/")
 public interface VinacominApiClient {
 
     @GetMapping("/v1/master-data")
